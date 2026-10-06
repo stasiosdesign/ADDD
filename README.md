@@ -1,50 +1,80 @@
 # ADDD — website
 
-Static implementation of the ADDD website from the Figma design.
-No build tooling and no install step.
+The ADDD website, built with [Astro](https://astro.build) as a fully static site.
+No UI framework: Astro components for the markup, plain CSS, and plain JavaScript
+on GSAP, Barba and Lenis.
 
-> **Serve it over HTTP.** Page transitions use Barba, which fetches the next
-> page with `fetch()`. Browsers block that on `file://`, so opening the HTML
-> directly still navigates but falls back to a full page reload with no
-> transition. Any static server works — GitHub Pages, VS Code Live Server,
-> `npx serve`, etc.
+## Commands
+
+Requires Node 22.12 or later.
+
+```bash
+npm install
+npm run dev       # dev server on http://localhost:4321
+npm run build     # production build into dist/
+npm run preview   # serve the production build locally
+```
+
+## Deployment
+
+Vercel builds the site from GitHub: every push to `main` deploys. Vercel detects
+Astro on its own (build command `astro build`, output directory `dist`), so the
+project needs no `vercel.json` and no adapter — the output is plain static files.
 
 ## Pages
 
-| File | Source design |
-|---|---|
-| `index.html` | Home |
-| `workshops-audits.html` | Workshops & Audits |
-| `technology-blueprint.html` | Technology Blueprint |
-| `advisory.html` | Advisory (ADDDvisory) |
-| `reports.html` | Reports index |
-| `report-template.html` | Report template — "The ultimate BIM 2.0 report" |
-| `newsletter.html` | Newsletter index |
-| `newsletter-template.html` | Newsletter template — "AI in architecture" |
-| `about.html` | About |
-| `contact.html` | Contact |
+Every page keeps its original URL. `build.format: "file"` in `astro.config.mjs`
+writes `src/pages/about.astro` to `/about.html` rather than `/about/`, so the
+relative links between pages (`href="about.html"`) and the URLs Barba fetches
+are unchanged.
 
-External destinations (`Software Database`, `AEC Jobs`) point at placeholder URLs
-and are not internal pages.
+| URL | Source |
+|---|---|
+| `/index.html` (`/`) | `src/pages/index.astro` — Home |
+| `/workshops-audits.html` | `src/pages/workshops-audits.astro` |
+| `/technology-blueprint.html` | `src/pages/technology-blueprint.astro` |
+| `/advisory.html` | `src/pages/advisory.astro` — ADDDvisory |
+| `/stack-diagnostic.html` | `src/pages/stack-diagnostic.astro` |
+| `/software-licensing-audit.html` | `src/pages/software-licensing-audit.astro` |
+| `/reports.html` | `src/pages/reports.astro` — Reports index |
+| `/report-template.html` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
+| `/newsletter.html` | `src/pages/newsletter.astro` — Newsletter index |
+| `/newsletter-template.html` | `src/pages/newsletter-template.astro` — "AI in architecture" |
+| `/about.html` | `src/pages/about.astro` |
+| `/contact.html` | `src/pages/contact.astro` |
+
+External destinations (`Sign in`, `Software Database`, `AEC Jobs`) link out to
+their own sites and are not pages here.
 
 ## Structure
 
 ```
-partials/     head, transition, nav, footer, script tags — shared by every page
-pages/        *.body.html — the unique <main> of each page
-assets/       css + site.js + logo.svg + icons/ images/ logos/
-build.sh      assembles partials + bodies into the flat .html files at the root
+src/
+  layouts/BaseLayout.astro   the shell every page shares: <head>, loader, wipe
+                             panel, nav, grid overlay, Barba container, footer,
+                             stylesheets and scripts
+  components/                Loader, Transition, Nav, AnimatedGrid, Footer
+  pages/*.astro              one per page — its title, its Barba page name and
+                             its <main>
+  styles/*.css               the site stylesheets, imported by the layout
+  scripts/                   site.js (Barba lifecycle and every interaction),
+                             marquee.js, animated-grid.js
+public/assets/               images, logos, icons and logo.svg, served as-is at
+                             /assets/…
+astro.config.mjs
 ```
 
-Each built page has this shape, which is what Barba needs:
+Each page renders as:
 
 ```html
 <body data-barba="wrapper">
-  <div data-transition-wrap>…</div>   <!-- wipe panel, outside the container -->
-  <nav class="mega-nav">…</nav>       <!-- persistent, outside the container -->
+  <div data-load-wrap>…</div>           <!-- first-load logo reveal -->
+  <div data-transition-wrap>…</div>     <!-- wipe panel, outside the container -->
+  <nav class="mega-nav">…</nav>         <!-- persistent, outside the container -->
+  <div data-animated-grid>…</div>       <!-- Shift + G layout overlay -->
   <div data-barba="container" data-page-name="Home">
     <main>…</main>
-    <footer>…</footer>                <!-- inside, so it animates with the page -->
+    <footer>…</footer>                  <!-- inside, so it animates with the page -->
   </div>
 </body>
 ```
@@ -53,41 +83,48 @@ The nav sits outside the container so it survives navigation — its GSAP
 timelines and the Contact button's width measurement are wired up once per
 session rather than per page. Anything inside the container is replaced on
 every navigation, so page-level behaviour must be re-bound in
-`initBeforeEnterFunctions()` in `assets/site.js`. `data-page-name` is what the
-wipe panel displays mid-transition.
+`initBeforeEnterFunctions()` in `src/scripts/site.js`. `data-page-name` comes
+from each page's `pageName` prop.
 
-The root `.html` files are generated output and **are** committed, so the site can
-be served straight from the repository with no build step.
+### Stylesheets and scripts
 
-## Editing
+Barba replaces only the container on a navigation, never `<head>`, so every
+page has to load exactly the same CSS and JS. That is why all of it is declared
+once, in `BaseLayout.astro`, and no page or component carries a `<style>` or
+`<script>` of its own — a page-specific bundle would be missing after a Barba
+navigation onto that page.
 
-Change a partial or a `pages/*.body.html`, then regenerate:
-
-```bash
-bash build.sh
-```
-
-Never edit the root `.html` files directly — `build.sh` overwrites them.
+- The stylesheets are imported in their cascade order and bundled into a single
+  hashed file.
+- `site.js` is bundled as a module, importing `marquee.js` and
+  `animated-grid.js`. GSAP, Barba and Lenis stay on the jsDelivr CDN and are
+  loaded as classic scripts ahead of it, so they are globals by the time it runs.
+- Neither bundle is minified (see `astro.config.mjs`): the minifiers rewrite
+  code for their target browsers, which would change how the site behaves in
+  some of the browsers it supports today. Vercel compresses both in transit.
+- `compressHTML` is off. Astro 7 otherwise strips the whitespace between
+  elements, which closes up the spaces between inline elements.
 
 ## Notes
 
-- **Fonts** — headings use BDO Grotesk, which is licensed and not included. The font
-  stack requests it first and falls back to Inter Tight (Google Fonts). Drop in the
-  webfont files and add an `@font-face` rule to use the real face.
-- **Imagery** — every image slot uses `assets/images/allister-presenting.jpg`,
-  applied as a `background-image` in `assets/media.css`. One rule covers all of
-  them, so giving a slot its own artwork means overriding `background-image` on
-  that selector only. Proportions come from the Figma design and are unchanged.
-- **Logos** — client logos live in `assets/logos/`, with `Black/`, `White/` and
-  `SVGs/` variants of each practice mark. The black PNGs are used site-wide, since
-  every logo slot sits on a light background: the homepage logo strip, the
-  case-study tab row and the research cards. The ADDD brand mark is a separate
-  vector, `assets/logo.svg`.
+- **Fonts** — Adobe Fonts (Typekit kit `lzu8hkz`): `elza` for display and body,
+  `dm-mono` for labels.
+- **Imagery** — photography lives in `public/assets/images/`. Every placeholder
+  slot (`.ph`, `.band`, `.card__media`, `.cover`, `.avatar__img`) takes
+  `allister-presenting.jpg` as a `background-image` from `src/styles/media.css`;
+  giving a slot its own artwork means overriding `background-image` on that
+  selector only.
+- **Logos** — client logos live in `public/assets/logos/`, with `Black/`,
+  `White/` and `SVGs/` variants of each practice mark. The ADDD brand mark is
+  `public/assets/logo.svg`.
 - **Page transitions** — [Barba](https://barba.js.org/) 2.10.3. A panel wipes up
   over the page, shows the incoming page's name, then continues up to reveal it.
-  Honours `prefers-reduced-motion` with an immediate swap.
+  The first document load plays the logo loader instead. Both honour
+  `prefers-reduced-motion` with an immediate swap.
 - **Smooth scroll** — [Lenis](https://github.com/darkroomengineering/lenis) 1.2.3,
   driven by the GSAP ticker rather than `autoRaf`, so the transition can stop and
   restart it around a navigation.
 - **Navigation** — mega nav with directional hover dropdowns, mobile slide-over
   panels and an animated burger, built on GSAP 3.15 via CDN.
+- **Layout grid** — Shift + G toggles a 12-column overlay (6 on tablet, 4 on
+  mobile). It always starts hidden.

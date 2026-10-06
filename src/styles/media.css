@@ -1,0 +1,69 @@
+/* ============================================================
+   ADDD — real media
+   Every element that was a black placeholder now carries the
+   supplied photograph. Sizes and proportions are unchanged, so
+   swapping in per-slot artwork later means changing only the
+   background-image on the relevant rule.
+   ============================================================ */
+
+:root {
+  --img-photo: url("/assets/images/allister-presenting.jpg");
+}
+
+/* every former placeholder */
+.ph,
+.band,
+.card__media,
+.cover,
+.avatar__img {
+  background-image: var(--img-photo);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* avatars crop to the face rather than the centre of the frame */
+.avatar__img {
+  background-image: var(--img-photo);
+  background-size: cover;
+  background-position: 50% 25%;
+}
+
+/* the insight card carries its featured image as a real <img> rather
+   than a background, so a per-report picture is a src swap */
+.insight-card__img { background: var(--c-light-fg); }
+
+/* ============================================================
+   client logos
+   ============================================================ */
+.logo-tile img,
+.case__tab img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 70%;
+  object-fit: contain;
+}
+
+/* the practice marks range from near-square to very wide wordmarks, so cap
+   the height as well as the width — otherwise a square logo overflows the
+   tile and a wide one is only a few pixels tall */
+.logo-tile img { max-height: 64px; }
+
+/* Optical sizing for the homepage: balance each mark's lettering, weight and
+   transparent padding, not just its image bounds. Auto height keeps proportions;
+   these selectors also apply to the marquee's cloned tiles. */
+.logos .logo-tile img { max-width: 90%; max-height: 88px; }
+.logos .logo-tile img[src$="/ADAM-Logo.png"] { width: 130px; }
+.logos .logo-tile img[src$="/studio-seilern-logo.png"] { width: 166px; }
+.logos .logo-tile img[src$="/Haworth-Tompkins-Logo.png"] { width: 174px; }
+.logos .logo-tile img[src$="/epr-architects-logo.png"] { width: 84px; }
+.logos .logo-tile img[src$="/Morris-Company-Logo.png"] { width: 181px; }
+.logos .logo-tile img[src$="/Architecture-PLB-Logo.png"] { width: 136px; }
+.logos .logo-tile img[src$="/ackroyd-lowrie-logo.png"] { width: 88px; }
+.logos .logo-tile img[src$="/dmwr-architects-logo.png"] { width: 100px; }
+.logos .logo-tile img[src$="/Ormsss-Logo.png"] { width: 115px; }
+.logos .logo-tile img[src$="/SHH-logo.png"] { width: 48px; }
+
+/* the case-study tab row highlights the active practice */
+.case__tab img { max-height: 50px; }

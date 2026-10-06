@@ -3,9 +3,9 @@
   "configurations": [
     {
       "name": "addd",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "5187"],
-      "port": 5187
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 4321
     }
   ]
 }

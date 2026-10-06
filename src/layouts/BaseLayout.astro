@@ -1,0 +1,87 @@
+---
+/*
+  The shell every page shares. Its shape is what Barba needs:
+
+    body[data-barba="wrapper"]
+      .loader                — first-load logo reveal, outside the container
+      .transition            — the wipe panel, outside the container
+      nav.mega-nav           — persistent, outside the container
+      .animated-grid         — Shift + G layout overlay
+      div[data-barba="container"][data-page-name]
+        main                 — the page body (the slot)
+        footer               — swapped with the page so it animates with it
+
+  The nav sits outside the container so it survives navigation: its GSAP
+  timelines and the Contact button's width measurement are wired up once per
+  session rather than per page. Anything inside the container is replaced on
+  every navigation, so page-level behaviour is re-bound in
+  initBeforeEnterFunctions() in src/scripts/site.js.
+
+  Barba swaps only the container, never <head>, so every page must load the
+  same stylesheets and scripts. They are all declared here, once, and no page
+  or component carries a <style> or <script> of its own.
+*/
+import Loader from "../components/Loader.astro";
+import Transition from "../components/Transition.astro";
+import Nav from "../components/Nav.astro";
+import AnimatedGrid from "../components/AnimatedGrid.astro";
+import Footer from "../components/Footer.astro";
+import { BUILD_STAMP } from "../build-stamp.js";
+
+// Site stylesheets, bundled into one file in this order — the cascade order
+// the pages have always loaded them in.
+import "../styles/styles.css";
+import "../styles/pages.css";
+import "../styles/nav.css";
+import "../styles/media.css";
+import "../styles/button-059.css";
+import "../styles/button-043.css";
+import "../styles/accordion-css.css";
+import "../styles/dots.css";
+import "../styles/transition.css";
+import "../styles/loader.css";
+import "../styles/animated-grid.css";
+
+interface Props {
+  /** The document <title>. */
+  title: string;
+  /** The page's display name, carried on the Barba container. */
+  pageName: string;
+}
+
+const { title, pageName } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{title}</title>
+<meta name="build" content={BUILD_STAMP}>
+<link rel="icon" href="assets/logo.svg">
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.css">
+</head>
+<body data-barba="wrapper">
+<Loader />
+<Transition />
+<Nav />
+<AnimatedGrid />
+<div data-barba="container" data-page-name={pageName}>
+<slot />
+<Footer />
+</div>
+<script is:inline src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomEase.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/SplitText.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/Draggable.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/InertiaPlugin.min.js"></script>
+{/* Bundled as a module, so it runs once the document has parsed — after the
+    classic CDN scripts above have defined barba, Lenis and gsap. */}
+<script src="../scripts/site.js"></script>
+</body>
+</html>
