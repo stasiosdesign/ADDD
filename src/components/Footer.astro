@@ -1,11 +1,17 @@
-<!-- The footer is revealed with a parallax: the panel starts high inside a
-     clipping wrap and settles as the wrap scrolls up, with a scrim clearing
-     off it at the same time. Both are driven from initFooterParallax().
+---
+/*
+  The footer is revealed with a parallax: the panel starts high inside a
+  clipping wrap and settles as the wrap scrolls up, with a scrim clearing
+  off it at the same time. Both are driven from initFooterParallax() in
+  src/scripts/site.js. It sits inside the Barba container, so it is swapped
+  with the page and animates with it.
 
-     One four-column grid is shared by the top and the bottom of the panel:
-     the newsletter takes the left half, the link groups the right, and the
-     brand, copyright, legal links and social marks sit on the same columns
-     along the foot. -->
+  One four-column grid is shared by the top and the bottom of the panel:
+  the newsletter takes the left half, the link groups the right, and the
+  brand, copyright, legal links and social marks sit on the same columns
+  along the foot.
+*/
+---
 <div data-footer-parallax="" class="footer-wrap">
   <footer data-footer-parallax-inner="" class="site-footer">
     <div class="site-footer__inner">

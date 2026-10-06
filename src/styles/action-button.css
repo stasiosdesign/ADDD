@@ -1,0 +1,198 @@
+/* ============================================================
+   Action button — the site's primary and secondary buttons
+   (markup: src/components/ActionButton.astro)
+   ============================================================
+
+   One component, two variants. Both carry the same squared shape,
+   the same 44px box as the .btn utility, and the same text-roll on
+   hover, so a primary and a secondary sitting in one .actions row
+   read as a pair.
+
+   The red only ever belongs to the primary, and only on hover: the
+   __bg-hover panel is parked off the bottom edge, tipped, until it
+   sweeps up. Nothing is red in the rest state.
+   ============================================================ */
+.action-button {
+  --action-button-color: var(--c-white);
+  --action-button-color-background: var(--c-text);
+  --action-button-hover-color-background: var(--c-red);
+  --action-button-icon-color: var(--c-text);
+  --action-button-icon-color-background: var(--c-white);
+  --action-button-color-focus: var(--c-text);
+  /* 13px block keeps the 44px box the .btn utility measures, so the
+     two sit level in a shared row; the left inset is .btn's 24px and
+     the right is tightened to sit against the arrow chip */
+  --action-button-padding: 13px 13px 13px 24px;
+  --action-button-text-duplicate-distance: 1.5em;
+  --action-button-ease-hover: var(--ease-osmo);
+  --action-button-ease-focus: cubic-bezier(0.32, 0.72, 0, 1);
+
+  -webkit-user-select: none;
+  user-select: none;
+  color: var(--action-button-color);
+  background-color: #0000;
+  outline-style: none;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-rg);
+  font-weight: var(--fw-body);
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: middle;
+  display: inline-grid;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.action-button::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: -0.125em;
+  border-radius: var(--radius);
+  transition: box-shadow 0.2s var(--action-button-ease-focus);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.action-button:focus-visible::after {
+  box-shadow: 0 0 0 0.125em var(--action-button-color-focus);
+}
+
+.action-button__bg {
+  background-color: var(--action-button-color-background);
+  border-radius: var(--radius);
+  grid-area: 1 / 1;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: relative;
+  overflow: clip;
+}
+
+.action-button__bg-hover {
+  background-color: var(--action-button-hover-color-background);
+  width: 120%;
+  height: 100%;
+  padding: 0;
+  position: absolute;
+  bottom: 0%;
+  left: -10%;
+  transition: transform 0.525s var(--action-button-ease-hover);
+  transform: translate3d(0, 175%, 0) rotate(15deg);
+}
+
+.action-button__inner {
+  grid-column-gap: .5em;
+  grid-row-gap: .5em;
+  width: 100%;
+  height: 100%;
+  padding: var(--action-button-padding);
+  grid-area: 1 / 1;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.action-button__mask {
+  clip-path: inset(-10% 0);
+  flex: none;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+.action-button__text {
+  transition: transform 0.525s var(--action-button-ease-hover);
+  text-shadow: 0px var(--action-button-text-duplicate-distance) currentColor;
+}
+
+.action-button__icon-wrap {
+  width: 1.125em;
+  height: 1.125em;
+  color: var(--action-button-icon-color);
+  border-radius: var(--radius);
+  flex: none;
+  display: grid;
+  position: relative;
+  /* the arrow chip turns red with the sweep rather than sitting red in
+     the rest state */
+  transition: color 0.3s var(--action-button-ease-hover);
+}
+
+.action-button__icon-bg {
+  background-color: var(--action-button-icon-color-background);
+  border-radius: var(--radius);
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  transition: transform 0.525s var(--action-button-ease-hover);
+}
+
+.action-button__icon-mask {
+  grid-area: 1 / 1;
+  justify-content: flex-end;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  position: relative;
+  overflow: clip;
+}
+
+.action-button__icon-list {
+  flex-flow: row;
+  grid-area: 1 / 1;
+  display: flex;
+  position: absolute;
+}
+
+/* The three arrows are a filmstrip that slides one icon width on hover, so
+   each has to keep its full size. The list is absolutely positioned inside
+   an 18px chip, and as a flex container with no width of its own it would
+   otherwise shrink all three to a third each and render slivers. */
+.action-button__icon {
+  flex: none;
+  width: 1.125em;
+  height: 1.125em;
+  padding: .2em;
+  transition: transform 0.525s var(--action-button-ease-hover);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .action-button:is(:hover, :focus-visible) {
+    --action-button-icon-color: var(--c-red);
+  }
+
+  .action-button:is(:hover, :focus-visible) .action-button__bg-hover {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+
+  .action-button:is(:hover, :focus-visible) .action-button__text {
+    transform: translate(0px, calc(-1 * var(--action-button-text-duplicate-distance)));
+  }
+
+  .action-button:is(:hover, :focus-visible) .action-button__icon-bg {
+    transform: rotate(90deg);
+  }
+
+  .action-button:is(:hover, :focus-visible) .action-button__icon {
+    transform: translate3d(200%, 0, 0);
+  }
+}
+
+/* Secondary — the same shape and the same text-roll, one step quieter.
+   No arrow, and it never takes the red: the sweep is a light grey a
+   shade under the rest state. Solid rather than translucent, so it
+   holds up on the dark CTA band as well as on white. */
+.action-button.is--secondary {
+  --action-button-color: var(--c-text);
+  --action-button-color-background: #dbdbdb;
+  --action-button-hover-color-background: #cacaca;
+  /* one extra pixel each side: with no 18px arrow chip setting the height,
+     the 16px text has to make up the difference to stay level with a
+     primary in the same row */
+  --action-button-padding: 14px 24px;
+}

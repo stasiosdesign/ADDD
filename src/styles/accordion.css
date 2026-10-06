@@ -1,0 +1,149 @@
+/* ============================================================
+   Accordion — question and answer list (markup:
+   src/components/Accordion.astro, behaviour: initAccordions() in
+   src/scripts/site.js)
+   ============================================================
+
+   The answer opens by animating grid-template-rows from 0fr to 1fr
+   on the site's own ease, so the panel always opens to its content's
+   height with nothing measured in script.
+
+   Items are bordered tiles on the site radius with a square chip
+   that turns the chevron. The one piece of colour is the red on an
+   open item's chip — the same red the primary button takes on hover,
+   the site's mark for "this is the one you are touching".
+
+   The tile has to sit on three grounds: plain white, .section--light
+   and .section--dark. Each gets its own fill and border so the tile
+   always reads one step off whatever is behind it.
+   ============================================================ */
+.accordion {
+  /* the old .faq measure, kept so the answers do not run long */
+  max-width: 900px;
+  margin-top: 48px;
+  position: relative;
+}
+
+.accordion__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.accordion__item {
+  background-color: var(--c-light-fg);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.accordion__heading {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--t-md);
+  font-weight: var(--fw-body);
+  line-height: 1.4;
+}
+
+/* The whole row is the button: the question on the left, the chip on
+   the right. It takes its type from the heading it sits in. */
+.accordion__toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  margin: 0;
+  padding: 20px 20px 20px 24px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.accordion__toggle:focus-visible {
+  outline: 2px solid var(--c-text);
+  outline-offset: -2px;
+}
+
+/* Square chip, chevron down at rest and up when open. */
+.accordion__icon {
+  display: flex;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  background-color: var(--c-white);
+  color: var(--c-text);
+  transform: rotate(180deg);
+  transition: transform 0.6s var(--ease-osmo),
+              background-color .3s ease, color .3s ease;
+}
+
+.accordion__icon-svg { width: 16px; }
+
+/* Scoped through .accordion__item so the open chip outranks the
+   per-section chip fills below — as a bare attribute selector it ties
+   with them on specificity and loses on source order. */
+.accordion__item[data-accordion-status="active"] .accordion__icon {
+  transform: rotate(0.001deg);
+  background-color: var(--c-red);
+  color: var(--c-white);
+}
+
+.accordion__panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  position: relative;
+  overflow: hidden;
+  transition: grid-template-rows 0.6s var(--ease-osmo);
+}
+
+[data-accordion-status="active"] .accordion__panel {
+  grid-template-rows: 1fr;
+}
+
+.accordion__panel-inner {
+  display: flex;
+  flex-flow: column;
+  height: 100000%;
+  position: relative;
+  overflow: hidden;
+}
+
+.accordion__content {
+  padding: 0 24px 24px;
+  max-width: 70ch;
+}
+
+.accordion__text {
+  color: #6b6b6b;
+  font-size: var(--t-rg);
+  line-height: 1.5;
+}
+
+/* On a light section the tile lifts to white; the chip drops to the
+   section tint so the two never flatten into each other. */
+.section--light .accordion__item { background-color: var(--c-white); }
+.section--light .accordion__icon { background-color: var(--c-light-fg); }
+
+/* On the dark band the tile goes darker than the section, not lighter. */
+.section--dark .accordion__item {
+  background-color: var(--c-dark-fg);
+  border-color: var(--c-border-dark);
+}
+.section--dark .accordion__icon {
+  background-color: rgba(255, 255, 255, .1);
+  color: var(--c-white);
+}
+.section--dark .accordion__text { color: rgba(255, 255, 255, .7); }
+.section--dark .accordion__toggle:focus-visible { outline-color: var(--c-white); }
+
+@media screen and (max-width: 767px) {
+  .accordion { margin-top: 32px; }
+  .accordion__toggle { gap: 16px; padding: 16px; }
+  .accordion__content { padding: 0 16px 16px; }
+  .accordion__heading { font-size: var(--t-rg); }
+}

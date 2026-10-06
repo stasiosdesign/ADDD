@@ -1,7 +1,21 @@
-<div data-transition-wrap class="transition">
+---
+/*
+  The page wipe (runPageLeaveAnimation / runPageEnterAnimation in
+  src/scripts/site.js). The label carries the destination page's name;
+  it starts as this page's own name, which is what a "reveal" arrival
+  shows while the panel covers the page. Purely visual, so hidden from
+  assistive tech.
+*/
+interface Props {
+  pageName: string;
+}
+
+const { pageName } = Astro.props;
+---
+<div data-transition-wrap class="transition" aria-hidden="true">
   <div data-transition-panel class="transition__panel">
     <span data-transition-label class="transition__label">
-      <span data-transition-label-text>Welcome</span>
+      <span data-transition-label-text>{pageName}</span>
     </span>
   </div>
 </div>

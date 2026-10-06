@@ -1,12 +1,19 @@
-<div data-load-wrap class="loader">
+---
+/*
+  First-load logo intro (runIntro() in src/scripts/site.js). Purely visual,
+  so it is hidden from assistive tech. It leaves the document once it has
+  played, and is never painted on a "reveal" arrival.
+*/
+---
+<div data-load-wrap class="loader" aria-hidden="true">
   <div data-load-bg class="loader__bg">
-    <div class="dots-grid" aria-hidden="true"></div>
+    <div class="dots-grid"></div>
     <div data-load-progress class="loader__bg-bar"></div>
   </div>
   <div data-load-container class="loader__container">
     <div class="loader__logo-wrap">
       <div class="loader__logo-item is--base">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="ADDD" class="loader__logo-img">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="loader__logo-img">
           <circle cx="51" cy="50.3" r="40.2" fill="#C40000"/>
           <g fill="#FFFFFF">
             <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>
@@ -17,7 +24,7 @@
         </svg>
       </div>
       <div data-load-logo class="loader__logo-item is--top">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" aria-hidden="true" class="loader__logo-img">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="loader__logo-img">
           <circle cx="51" cy="50.3" r="40.2" fill="#C40000"/>
           <g fill="#FFFFFF">
             <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>

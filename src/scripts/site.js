@@ -1,191 +1,135 @@
 // -----------------------------------------
-// OSMO PAGE TRANSITION BOILERPLATE
+// ADDD — site behaviour
 // -----------------------------------------
+//
+// One module for the whole site. barba, Lenis, gsap and the GSAP plugins are
+// globals, loaded from the CDN by classic scripts ahead of this module (see
+// src/layouts/BaseLayout.astro), so they are always there when it runs.
+//
+//   ARRIVAL            how a document load opens: the intro or the wipe's reveal
+//   PAGE TRANSITIONS   the wipe between pages
+//   PAGE LIFECYCLE     per-page init and teardown, wired to Barba's hooks
+//   COMPONENTS         the persistent nav and Contact button, then everything
+//                      that lives inside the Barba container
 
-// barba, Lenis, gsap and its plugins are globals, loaded from the CDN by
-// classic scripts ahead of this module (see src/layouts/BaseLayout.astro).
 import { initMarqueeScrollDirection, destroyMarqueeScrollDirection } from "./marquee.js";
 import { initAnimatedGrid } from "./animated-grid.js";
 
-gsap.registerPlugin(CustomEase, ScrollTrigger);
-if (typeof window.SplitText !== "undefined") gsap.registerPlugin(SplitText);
-if (typeof window.Draggable !== "undefined") gsap.registerPlugin(Draggable);
-if (typeof window.InertiaPlugin !== "undefined") gsap.registerPlugin(InertiaPlugin);
-
-history.scrollRestoration = "manual";
-
-let lenis = null;
-let nextPage = document;
-let onceFunctionsInitialized = false;
-
-// -----------------------------------------
-// LOADER / TRANSITION LIFECYCLE BOUNDARY
-// -----------------------------------------
-//
-// Two animation systems, one rule: a document load gets the logo loader, a
-// Barba navigation gets the page wipe. Nothing below is allowed to blur that.
-//
-// The loader only ever runs from Barba's once(), which fires on a document
-// load and never on an internal navigation. Once it has played it is taken
-// out of the DOM for good — killing the loader is not enough on its own,
-// because the markup lives outside the Barba container and would survive a
-// clearProps, a style reset or a stray tween and reappear at z-index 300.
-let loaderRetired = false;
-
-// Barba's last resort for a failed internal navigation is window.location
-// .assign(): Core.page() catches any rejection out of its lifecycle and calls
-// force(). That is a real document load, so the next document runs once() and
-// replays the loader on what the user experienced as a link click. The causes
-// are fixed further down; this flag is what tells once() that a given arrival
-// was Barba giving up rather than a genuine visit.
-const FORCED_NAV_KEY = "addd:forced-nav";
-
-// Take the loader out of the document permanently. Tweens are killed first so
-// nothing still queued can write style back onto a detached node.
-function retireLoader(wrap) {
-  if (loaderRetired) return;
-  loaderRetired = true;
-
-  const el = wrap || document.querySelector("[data-load-wrap]");
-  if (!el) return;
-
-  gsap.killTweensOf(el);
-  el.querySelectorAll("*").forEach(node => gsap.killTweensOf(node));
-  el.remove();
-}
-
-// One-shot read: the flag is cleared the moment it is seen, so it can only
-// ever suppress the loader for the single navigation Barba forced.
-function consumedForcedNav() {
-  let forced = false;
-
-  try {
-    forced = sessionStorage.getItem(FORCED_NAV_KEY) === "1";
-    sessionStorage.removeItem(FORCED_NAV_KEY);
-  } catch (err) {
-    return false;
-  }
-
-  // A deliberate refresh always earns the loader, even directly after a
-  // forced navigation.
-  const entry = performance.getEntriesByType?.("navigation")?.[0];
-  return forced && entry?.type !== "reload";
-}
-
-// Barba treats any rejection inside its lifecycle as a dead transition and
-// falls back to a full page load. No page-level init is worth that, so every
-// hook body is contained here: a failure is logged and the navigation carries
-// on rather than turning into a reload.
-function safeHook(name, fn) {
-  return function (data) {
-    try {
-      return fn(data);
-    } catch (err) {
-      console.error(`barba hook "${name}" failed`, err);
-    }
-  };
-}
-
-const hasLenis = typeof window.Lenis !== "undefined";
-const hasScrollTrigger = typeof window.ScrollTrigger !== "undefined";
-const hasSplitText = typeof window.SplitText !== "undefined";
-const hasDraggable = typeof window.Draggable !== "undefined";
-
-const rmMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
-let reducedMotion = rmMQ.matches;
-rmMQ.addEventListener?.("change", e => (reducedMotion = e.matches));
-rmMQ.addListener?.(e => (reducedMotion = e.matches));
-
-const has = (s) => !!nextPage.querySelector(s);
-
-let staggerDefault = 0.05;
-let durationDefault = 0.6;
+gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin);
 
 CustomEase.create("osmo", "0.625, 0.05, 0, 1");
 CustomEase.create("loader", "0.65, 0.01, 0.05, 0.99");
-gsap.defaults({ ease: "osmo", duration: durationDefault });
+gsap.defaults({ ease: "osmo", duration: 0.6 });
+
+history.scrollRestoration = "manual";
+
+const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+let reducedMotion = reducedMotionQuery.matches;
+reducedMotionQuery.addEventListener("change", e => (reducedMotion = e.matches));
+
+// Smooth scroll, driven by the GSAP ticker rather than its own rAF so the
+// transition can stop and restart it around a navigation.
+const lenis = new Lenis({ lerp: 0.165, wheelMultiplier: 1.25 });
+lenis.on("scroll", ScrollTrigger.update);
+gsap.ticker.add(time => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// The wipe panel lives outside the Barba container, so it is looked up once.
+const wipe = {
+  panel: document.querySelector("[data-transition-panel]"),
+  label: document.querySelector("[data-transition-label]"),
+  labelText: document.querySelector("[data-transition-label-text]"),
+};
 
 
 
 // -----------------------------------------
-// FUNCTION REGISTRY
+// ARRIVAL
 // -----------------------------------------
+//
+// Two animation systems, one rule: the logo intro plays once per browsing
+// session, and every other change of page uses the wipe.
+//
+// The intro cannot simply belong to Barba's once(), because once() runs on
+// every document load — and a session has more of those than the first
+// visit. Barba itself falls back to window.location.assign() when an internal
+// navigation fails (a request error or timeout, an exception inside the
+// transition, a history step taken mid-transition), a back/forward can miss
+// the bfcache, and a typed URL loads a fresh document. Any of those used to
+// replay the intro on what was, to the user, a move within the site.
+//
+// So each document load is classified before its first paint, by the inline
+// script in the layout's <head>, which writes data-arrival on <html>:
+//
+//   "intro"   the session's first page load, or a genuine reload
+//   "reveal"  any other load in the same session
+//
+// The stylesheets act on it straight away — on a "reveal" the loader is never
+// painted and the wipe panel starts out covering the page — and once() below
+// plays whichever of the two the document was given.
 
-function initOnceFunctions() {
-  initLenis();
-  if (onceFunctionsInitialized) return;
-  onceFunctionsInitialized = true;
+function runArrival(next) {
+  const root = document.documentElement;
+  const arrival = root.dataset.arrival === "reveal" ? runReveal(next) : runIntro(next);
+  return Promise.resolve(arrival).then(() => delete root.dataset.arrival);
+}
 
-  // The nav and the Contact button live outside the Barba container, so
-  // they survive every navigation and are only ever wired up once.
-  initMegaNavDirectionalHover();
-  initAnimatedGrid();
+// The second half of the internal wipe: the panel the stylesheet put over the
+// page carries on up and off, and the page rises in behind it.
+function runReveal(next) {
+  removeLoader();
+  // Take the covered state over from the stylesheet in GSAP's own terms.
+  // Left to itself, GSAP reads the stylesheet's translateY(-100%) as a
+  // fixed pixel offset and carries it into every later wipe.
+  gsap.set(wipe.panel, { y: 0, yPercent: -100 });
+  return runPageEnterAnimation(next);
+}
 
-  // Width measurement waits on the webfont so the label is not measured
-  // against the fallback face.
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(initButton059);
-  } else {
-    initButton059();
+// First-load logo reveal. The full-opacity logo is wiped in over a low-opacity
+// copy of itself with a clip-path while the bottom bar fills; the content then
+// fades, the background slides up out of view and the page rises into place
+// behind it with the same motion runPageEnterAnimation uses, so the hand-off
+// reads as the start of the site's normal transition.
+function runIntro(next) {
+  const loader = document.querySelector("[data-load-wrap]");
+  const tl = gsap.timeline();
+
+  tl.call(resetPage, [next], 0);
+
+  if (loader && !reducedMotion) {
+    const bar = loader.querySelector("[data-load-progress]");
+
+    tl.add(gsap
+      .timeline({ defaults: { ease: "loader", duration: 0.9 } })
+      .to(bar, { scaleX: 1 })
+      .to(loader.querySelector("[data-load-logo]"), { clipPath: "inset(0% 0% 0% 0%)" }, "<")
+      .to(loader.querySelector("[data-load-container]"), { autoAlpha: 0, duration: 0.2 })
+      .to(bar, { scaleX: 0, transformOrigin: "right center", duration: 0.2 }, "<")
+      .add("hideContent", "<")
+      .to(loader.querySelector("[data-load-bg]"), { yPercent: -101, duration: 0.4 }, "hideContent")
+      // Out of the pointer's way as soon as it is off screen, rather than
+      // at the end of the page's rise.
+      .set(loader, { display: "none" })
+      // The same rise the destination page makes on an internal navigation.
+      .from(next, { y: "15vh", duration: 1, ease: "osmo" }, "hideContent"), 0);
   }
+
+  // Once it has played, the loader leaves the document for good. It sits
+  // outside the Barba container, so anything that touched its styles later —
+  // a clearProps, a stray tween — could otherwise bring it back at z-index 300.
+  tl.call(removeLoader);
+
+  return tl;
 }
 
-// Page-scoped teardown. Anything a page-level init leaves behind that would
-// outlive the DOM it was built from — GSAP tweens, ScrollTriggers, listeners
-// on window/document, timers, observers — registers an undo here, and it is
-// run against the outgoing page in beforeLeave, before the next page inits.
-let pageCleanups = [];
+// Tweens are killed first so nothing still queued can write style back onto a
+// detached node.
+function removeLoader() {
+  const loader = document.querySelector("[data-load-wrap]");
+  if (!loader) return;
 
-function registerPageCleanup(fn) {
-  pageCleanups.push(fn);
-}
-
-function runPageCleanups() {
-  const cleanups = pageCleanups;
-  pageCleanups = [];
-  cleanups.forEach(fn => {
-    try {
-      fn();
-    } catch (err) {
-      console.error("page cleanup failed", err);
-    }
-  });
-}
-
-function initBeforeEnterFunctions(next) {
-  nextPage = next || document;
-
-  // Barba's once() inits the first container, and beforeEnter inits every
-  // one after it. Marking the container keeps a stray second call from
-  // binding the same DOM twice.
-  if (nextPage.dataset) {
-    if (nextPage.dataset.pageInit === "true") return;
-    nextPage.dataset.pageInit = "true";
-  }
-
-  // Page-level behaviour — rebound on every navigation because the
-  // container these live in is replaced.
-  if (has('[data-slider]')) initInsightSlider();
-  if (has('[data-approach-slides-init]')) initApproachSlides();
-  if (has('[data-problem-grid-init]')) initProblemGrid();
-  if (has('[data-testimonial-wrap]')) initLineRevealTestimonials();
-  if (has('[data-shutter-scroll-transition]')) initShutterScrollTransition();
-  if (has('[data-accordion-css-init]')) initAccordionCSS();
-  if (has("[data-dots-canvas-init]")) initInteractiveDotsGrid();
-  if (has("[data-filter-group]")) initFilterGroups();
-  if (has("[data-footer-parallax]")) initFooterParallax();
-  if (has('[data-marquee-scroll-direction-target]')) {
-    initMarqueeScrollDirection(nextPage);
-    registerPageCleanup(destroyMarqueeScrollDirection);
-  }
-}
-
-// Page functions that need the container live and on screen. Lenis and
-// ScrollTrigger are deliberately not re-measured here — that happens once, in
-// beforeEnter, while the panel still covers the viewport, so a re-measure can
-// never shift the layout the user is already looking at.
-function initAfterEnterFunctions(next) {
-  nextPage = next || document;
+  gsap.killTweensOf([loader, ...loader.querySelectorAll("*")]);
+  loader.remove();
 }
 
 
@@ -193,73 +137,6 @@ function initAfterEnterFunctions(next) {
 // -----------------------------------------
 // PAGE TRANSITIONS
 // -----------------------------------------
-
-function runPageOnceAnimation(next) {
-  const tl = gsap.timeline();
-
-  tl.call(() => {
-    resetPage(next);
-  }, null, 0);
-
-  const loader = buildLogoRevealLoader(next);
-  if (loader) tl.add(loader, 0);
-
-  return tl;
-}
-
-// First-load logo reveal, run from Barba's once() so it never fires on an
-// internal navigation. The full-opacity logo is wiped in over a low-opacity
-// copy of itself with a clip-path while the bottom bar fills; the content
-// then fades, the background slides up out of view and the page rises into
-// place behind it with the same motion runPageEnterAnimation uses, so the
-// hand-off reads as the start of the site's normal transition.
-function buildLogoRevealLoader(next) {
-  const wrap = document.querySelector("[data-load-wrap]");
-  if (!wrap) return null;
-
-  // once() runs on every document load, including one Barba forced on itself
-  // after a failed internal navigation. That arrival gets the page rise on its
-  // own, with no loader, so it reads as the tail of the internal transition
-  // the user actually asked for.
-  if (loaderRetired || consumedForcedNav()) {
-    retireLoader(wrap);
-
-    const skipped = gsap.timeline();
-    if (next && !reducedMotion) {
-      skipped.from(next, { y: "15vh", duration: 1, ease: "osmo" });
-    }
-    return skipped;
-  }
-
-  const container = wrap.querySelector("[data-load-container]");
-  const bg = wrap.querySelector("[data-load-bg]");
-  const progressBar = wrap.querySelector("[data-load-progress]");
-  const logo = wrap.querySelector("[data-load-logo]");
-
-  if (reducedMotion) {
-    return gsap.timeline().call(() => retireLoader(wrap));
-  }
-
-  const tl = gsap
-    .timeline({
-      defaults: { ease: "loader", duration: 0.9 },
-      onComplete: () => retireLoader(wrap)
-    })
-    .to(progressBar, { scaleX: 1 })
-    .to(logo, { clipPath: "inset(0% 0% 0% 0%)" }, "<")
-    .to(container, { autoAlpha: 0, duration: 0.2 })
-    .to(progressBar, { scaleX: 0, transformOrigin: "right center", duration: 0.2 }, "<")
-    .add("hideContent", "<")
-    .to(bg, { yPercent: -101, duration: 0.4 }, "hideContent")
-    .set(wrap, { display: "none" });
-
-  // The same rise the destination page makes on an internal navigation.
-  if (next) {
-    tl.from(next, { y: "15vh", duration: 1, ease: "osmo" }, "hideContent");
-  }
-
-  return tl;
-}
 
 // The leave animation runs before the destination page has been fetched, so
 // there is no container to read data-page-name off yet. Derive the label from
@@ -288,19 +165,14 @@ function pageNameFromUrl(href) {
 }
 
 function runPageLeaveAnimation(current, nextHref) {
-  const transitionWrap = document.querySelector("[data-transition-wrap]");
-  const transitionPanel = transitionWrap.querySelector("[data-transition-panel]");
-  const transitionLabel = transitionWrap.querySelector("[data-transition-label]");
-  const transitionLabelText = transitionWrap.querySelector("[data-transition-label-text]");
-
-  transitionLabelText.innerText = pageNameFromUrl(nextHref);
+  wipe.labelText.textContent = pageNameFromUrl(nextHref);
 
   // A navigation that starts while the panel is still settling from the last
   // one would otherwise fight the tweens already on it.
-  gsap.killTweensOf([transitionPanel, transitionLabel]);
+  gsap.killTweensOf([wipe.panel, wipe.label]);
 
   const tl = gsap.timeline({
-    onComplete: () => { current.remove() }
+    onComplete: () => current.remove()
   });
 
   if (reducedMotion) {
@@ -308,29 +180,10 @@ function runPageLeaveAnimation(current, nextHref) {
     return tl.set(current, { autoAlpha: 0 });
   }
 
-  tl.set(transitionPanel, {
-    autoAlpha: 1
-  }, 0);
-
-  tl.fromTo(transitionPanel, {
-    yPercent: 0
-  }, {
-    yPercent: -100,
-    duration: 0.8,
-  }, 0);
-
-  tl.fromTo(transitionLabel, {
-    autoAlpha: 0
-  }, {
-    autoAlpha: 1
-  }, "<+=0.2");
-
-  tl.fromTo(current, {
-    y: "0vh"
-  }, {
-    y: "-15vh",
-    duration: 0.8,
-  }, 0);
+  tl.set(wipe.panel, { autoAlpha: 1 }, 0);
+  tl.fromTo(wipe.panel, { yPercent: 0 }, { yPercent: -100, duration: 0.8 }, 0);
+  tl.fromTo(wipe.label, { autoAlpha: 0 }, { autoAlpha: 1 }, "<+=0.2");
+  tl.fromTo(current, { y: "0vh" }, { y: "-15vh", duration: 0.8 }, 0);
 
   // Barba awaits whatever leave() hands back, and a GSAP timeline is
   // thenable. Returning it is what holds the rest of the lifecycle — the
@@ -339,20 +192,18 @@ function runPageLeaveAnimation(current, nextHref) {
   return tl;
 }
 
+// Also the whole of a "reveal" arrival (see ARRIVAL), which starts from the
+// covered state the stylesheet sets up rather than the one leave() ends on.
 function runPageEnterAnimation(next) {
-  const transitionWrap = document.querySelector("[data-transition-wrap]");
-  const transitionPanel = transitionWrap.querySelector("[data-transition-panel]");
-  const transitionLabel = transitionWrap.querySelector("[data-transition-label]");
-  const transitionLabelText = transitionWrap.querySelector("[data-transition-label-text]");
-
   const tl = gsap.timeline();
 
   if (reducedMotion) {
     // Immediate swap behavior if user prefers reduced motion. Set outside the
     // timeline so the container comes back in the same frame nextAdded hid it,
-    // rather than a frame later.
+    // rather than a frame later. The panel is only ever up here on a reveal.
     gsap.set(next, { autoAlpha: 1 });
-    tl.add("pageReady")
+    gsap.set(wipe.panel, { autoAlpha: 0 });
+    tl.add("pageReady");
     tl.call(resetPage, [next], "pageReady");
     return new Promise(resolve => tl.call(resolve, null, "pageReady"));
   }
@@ -362,11 +213,9 @@ function runPageEnterAnimation(next) {
   // the start of the wipe. Same pause on screen as before.
   tl.add("startEnter", 0.45);
 
-  tl.set(next, {
-    autoAlpha: 1,
-  }, "startEnter");
+  tl.set(next, { autoAlpha: 1 }, "startEnter");
 
-  tl.fromTo(transitionPanel, {
+  tl.fromTo(wipe.panel, {
     yPercent: -100,
   }, {
     yPercent: -200,
@@ -375,11 +224,9 @@ function runPageEnterAnimation(next) {
     immediateRender: false
   }, "startEnter");
 
-  tl.set(transitionPanel, {
-    autoAlpha: 0
-  }, ">");
+  tl.set(wipe.panel, { autoAlpha: 0 }, ">");
 
-  tl.fromTo(transitionLabel, {
+  tl.fromTo(wipe.label, {
     autoAlpha: 1
   }, {
     autoAlpha: 0,
@@ -388,10 +235,7 @@ function runPageEnterAnimation(next) {
     immediateRender: false
   }, "startEnter+=0.1");
 
-  tl.from(next, {
-    y: "15vh",
-    duration: 1,
-  }, "startEnter");
+  tl.from(next, { y: "15vh", duration: 1 }, "startEnter");
 
   tl.add("pageReady");
   tl.call(resetPage, [next], "pageReady");
@@ -401,181 +245,11 @@ function runPageEnterAnimation(next) {
   });
 }
 
-
-// -----------------------------------------
-// BARBA HOOKS + INIT
-// -----------------------------------------
-
-// Hide the incoming container the instant Barba puts it in the DOM, so it is
-// invisible for the whole covered stretch until enter reveals it. A bare
-// gsap.set applies synchronously; a timeline's set() is a zero-duration tween
-// that would not render until the ticker's next frame, leaving the browser a
-// frame in which to paint the new page.
-barba.hooks.nextAdded(data => {
-  gsap.set(data.next.container, { autoAlpha: 0 });
-});
-
-// Everything expensive or jarring happens here, in the covered window between
-// the panel arriving and the enter animation revealing anything: the scroll
-// reset, the theme swap, page init and the one ScrollTrigger refresh. None of
-// it is on screen, so none of it can read as a jump.
-barba.hooks.beforeEnter(data => {
-  if (lenis && typeof lenis.stop === "function") {
-    lenis.stop();
-  }
-
-  resetScroll();
-
-  // The incoming container is in normal flow — the outgoing one is already
-  // gone by this point — so the height hold has done its job and can be
-  // released here rather than at the reveal.
-  document.documentElement.style.minHeight = "";
-
-  initBeforeEnterFunctions(data.next.container);
-  applyThemeFrom(data.next.container);
-
-  if (hasLenis) lenis.resize();
-  if (hasScrollTrigger) ScrollTrigger.refresh();
-});
-
-// Safety net for anything the page cleanups missed. Only triggers whose
-// element has left the document are stale — never a blanket kill, which would
-// take the incoming page's triggers with it the moment anything (a slow fetch,
-// a future sync transition) puts beforeEnter ahead of this hook.
-barba.hooks.afterLeave(() => {
-  if (!hasScrollTrigger) return;
-
-  ScrollTrigger.getAll().forEach(trigger => {
-    const el = trigger.trigger || trigger.vars.trigger;
-    if (!el || !document.contains(el)) trigger.kill();
-  });
-});
-
-barba.hooks.enter(data => {
-  initBarbaNavUpdate(data);
-})
-
-// Hold the document height for the length of the transition. Without it the
-// page briefly has no in-flow content — the outgoing container is removed and
-// the incoming one is position:fixed — so the scrollbar drops out and returns,
-// shifting the layout by its width twice. Registered ahead of the afterEnter
-// hook below so the height is released before Lenis re-measures.
-barba.hooks.beforeLeave(() => {
-  // Runs before beforeEnter, so the outgoing page is torn down before the
-  // incoming one builds anything of its own.
-  runPageCleanups();
-
-  const height = Math.max(
-    document.body.scrollHeight,
-    document.documentElement.scrollHeight
-  );
-  document.documentElement.style.minHeight = `${height}px`;
-});
-
-barba.hooks.afterEnter(data => {
-  // Run page functions
-  initAfterEnterFunctions(data.next.container);
-
-  // Everything else already settled while the panel was covering; all that
-  // is left is handing scrolling back to the user.
-  if (hasLenis) lenis.start();
-});
-
-barba.init({
-  debug: false,
-  timeout: 7000,
-  preventRunning: true,
-  // Not sync: leave runs to completion — the panel wipes up and covers the
-  // viewport — before Barba removes the current container, adds the next one
-  // and runs enter. The destination page is therefore never in the document
-  // while any of it is visible, which is what makes the flash impossible
-  // rather than merely hidden.
-  transitions: [
-    {
-      name: "default",
-
-      // First load
-      async once(data) {
-        initOnceFunctions();
-        initBeforeEnterFunctions(data.next.container);
-
-        await runPageOnceAnimation(data.next.container);
-        initAfterEnterFunctions(data.next.container);
-      },
-
-      // Current page leaves
-      async leave(data) {
-        return runPageLeaveAnimation(data.current.container, data.next.url.href);
-      },
-
-      // New page enters
-      async enter(data) {
-        return runPageEnterAnimation(data.next.container);
-      }
-    }
-  ],
-});
-
-
-
-// -----------------------------------------
-// GENERIC + HELPERS
-// -----------------------------------------
-
-const themeConfig = {
-  light: {
-    nav: "dark",
-    transition: "light"
-  },
-  dark: {
-    nav: "light",
-    transition: "dark"
-  }
-};
-
-function applyThemeFrom(container) {
-  const pageTheme = container?.dataset?.pageTheme || "light";
-  const config = themeConfig[pageTheme] || themeConfig.light;
-
-  document.body.dataset.pageTheme = pageTheme;
-  const transitionEl = document.querySelector('[data-theme-transition]');
-  if (transitionEl) {
-    transitionEl.dataset.themeTransition = config.transition;
-  }
-
-  const nav = document.querySelector('[data-theme-nav]');
-  if (nav) {
-    nav.dataset.themeNav = config.nav;
-  }
-}
-
-function initLenis() {
-  if (lenis) return; // already created
-  if (!hasLenis) return;
-
-  lenis = new Lenis({
-    lerp: 0.165,
-    wheelMultiplier: 1.25,
-  });
-
-  if (hasScrollTrigger) {
-    lenis.on("scroll", ScrollTrigger.update);
-  }
-
-  gsap.ticker.add((time) => {
-    lenis.raf(time * 1000);
-  });
-
-  gsap.ticker.lagSmoothing(0);
-}
-
 // Scroll to the top in a way Lenis agrees with. Setting window.scrollY behind
 // its back leaves its internal position stale, and it snaps back to the old
 // offset the moment it is started again.
 function resetScroll() {
-  if (hasLenis && lenis) {
-    lenis.scrollTo(0, { immediate: true, force: true });
-  }
+  lenis.scrollTo(0, { immediate: true, force: true });
   window.scrollTo(0, 0);
 }
 
@@ -602,57 +276,207 @@ function resetPage(container) {
   resetScroll();
   gsap.set(container, { clearProps: "position,top,left,right,transform" });
 
-  if (hasLenis) {
-    lenis.resize();
-    lenis.start();
-  }
-
-  if (hasScrollTrigger) ScrollTrigger.refresh();
+  lenis.resize();
+  lenis.start();
+  ScrollTrigger.refresh();
 }
 
-function debounceOnWidthChange(fn, ms) {
-  let last = innerWidth,
-    timer;
-  return function (...args) {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (innerWidth !== last) {
-        last = innerWidth;
-        fn.apply(this, args);
-      }
-    }, ms);
-  };
-}
 
-function initBarbaNavUpdate(data) {
-  var tpl = document.createElement('template');
-  tpl.innerHTML = data.next.html.trim();
-  var nextNodes = tpl.content.querySelectorAll('[data-barba-update]');
-  var currentNodes = document.querySelectorAll('nav [data-barba-update]');
 
-  currentNodes.forEach(function (curr, index) {
-    var next = nextNodes[index];
-    if (!next) return;
+// -----------------------------------------
+// PAGE LIFECYCLE
+// -----------------------------------------
 
-    // Aria-current sync
-    var newStatus = next.getAttribute('aria-current');
-    if (newStatus !== null) {
-      curr.setAttribute('aria-current', newStatus);
-    } else {
-      curr.removeAttribute('aria-current');
+// Page-level components, in init order. Each is handed the Barba container it
+// was found in, and is bound again on every navigation because that container
+// is replaced.
+const PAGE_COMPONENTS = [
+  ["[data-slider]", initInsightSlider],
+  ["[data-approach-slides-init]", initApproachSlides],
+  ["[data-problem-grid-init]", initProblemGrid],
+  ["[data-testimonial-wrap]", initLineRevealTestimonials],
+  ["[data-shutter-scroll-transition]", initShutterScrollTransition],
+  ["[data-accordion-init]", initAccordions],
+  ["[data-dots-canvas-init]", initInteractiveDotsGrid],
+  ["[data-filter-group]", initFilterGroups],
+  ["[data-footer-parallax]", initFooterParallax],
+  ["[data-marquee-scroll-direction-target]", initMarquee],
+];
+
+function initPage(container) {
+  PAGE_COMPONENTS.forEach(([selector, init]) => {
+    if (!container.querySelector(selector)) return;
+
+    // One broken component must not take the rest of the page down with it.
+    // This runs inside a Barba hook, where the error would otherwise be
+    // swallowed by Barba's muted logger and skip everything after it.
+    try {
+      init(container);
+    } catch (err) {
+      console.error(`${init.name} failed`, err);
     }
-
-    // Class list sync
-    var newClassList = next.getAttribute('class') || '';
-    curr.setAttribute('class', newClassList);
   });
 }
 
+// Page-scoped teardown. Anything a page-level init leaves behind that would
+// outlive the DOM it was built from — GSAP tweens, ScrollTriggers, listeners
+// on window/document, timers, observers — registers an undo here, and it is
+// run against the outgoing page in beforeLeave, before the next page inits.
+let pageCleanups = [];
+
+function registerPageCleanup(fn) {
+  pageCleanups.push(fn);
+}
+
+function runPageCleanups() {
+  const cleanups = pageCleanups;
+  pageCleanups = [];
+  cleanups.forEach(fn => {
+    try {
+      fn();
+    } catch (err) {
+      console.error("page cleanup failed", err);
+    }
+  });
+}
+
+// Hide the incoming container the instant Barba puts it in the DOM, so it is
+// invisible for the whole covered stretch until enter reveals it. A bare
+// gsap.set applies synchronously; a timeline's set() is a zero-duration tween
+// that would not render until the ticker's next frame, leaving the browser a
+// frame in which to paint the new page.
+barba.hooks.nextAdded(data => {
+  gsap.set(data.next.container, { autoAlpha: 0 });
+});
+
+// Everything expensive or jarring happens here, in the covered window between
+// the panel arriving and the enter animation revealing anything: the scroll
+// reset, page init and the one ScrollTrigger refresh. None of it is on screen,
+// so none of it can read as a jump. On a document load Barba runs this ahead
+// of once(), so the first page is set up the same way.
+barba.hooks.beforeEnter(data => {
+  lenis.stop();
+  resetScroll();
+
+  // The incoming container is in normal flow — the outgoing one is already
+  // gone by this point — so the height hold has done its job and can be
+  // released here rather than at the reveal.
+  document.documentElement.style.minHeight = "";
+
+  initPage(data.next.container);
+
+  lenis.resize();
+  ScrollTrigger.refresh();
+});
+
+// Safety net for anything the page cleanups missed. Only triggers whose
+// element has left the document are stale — never a blanket kill, which would
+// take the incoming page's triggers with it the moment anything (a slow fetch,
+// a future sync transition) puts beforeEnter ahead of this hook.
+barba.hooks.afterLeave(() => {
+  ScrollTrigger.getAll().forEach(trigger => {
+    const el = trigger.trigger || trigger.vars.trigger;
+    if (!el || !document.contains(el)) trigger.kill();
+  });
+});
+
+// Hold the document height for the length of the transition. Without it the
+// page briefly has no in-flow content — the outgoing container is removed and
+// the incoming one is position:fixed — so the scrollbar drops out and returns,
+// shifting the layout by its width twice.
+barba.hooks.beforeLeave(() => {
+  // Runs before beforeEnter, so the outgoing page is torn down before the
+  // incoming one builds anything of its own.
+  runPageCleanups();
+
+  const height = Math.max(
+    document.body.scrollHeight,
+    document.documentElement.scrollHeight
+  );
+  document.documentElement.style.minHeight = `${height}px`;
+});
+
+// Everything else already settled while the panel was covering; all that is
+// left is handing scrolling back to the user.
+barba.hooks.afterEnter(() => {
+  lenis.start();
+});
+
+// A history step taken while a transition is still running — Back pressed
+// twice, a trackpad swipe mid-wipe — is something Barba answers with
+// window.location.assign(): a full document load in place of the wipe. Hold
+// the step instead and replay it through Barba once the running transition
+// has finished. Registered ahead of barba.init(), so it runs before Barba's
+// own popstate listener and can stop it.
+let heldHistoryStep = null;
+
+window.addEventListener("popstate", event => {
+  if (!barba.transitions.isRunning) return;
+  event.stopImmediatePropagation();
+  heldHistoryStep = event;
+});
+
+function replayHeldHistoryStep() {
+  if (!heldHistoryStep) return;
+  const event = heldHistoryStep;
+  heldHistoryStep = null;
+  // Barba only clears its running flag once the last hook has resolved.
+  setTimeout(() => barba.go(location.href, "popstate", event));
+}
+
+barba.hooks.after(replayHeldHistoryStep);
+barba.hooks.afterOnce(replayHeldHistoryStep);
+
+// The nav, the Contact button and the layout grid live outside the Barba
+// container, so they survive every navigation and are wired up once per
+// document load.
+initMegaNav();
+initAnimatedGrid();
+// The width measurement waits on the webfont so the label is not measured
+// against the fallback face.
+document.fonts.ready.then(initContactButton);
+
+barba.init({
+  debug: false,
+  timeout: 7000,
+  preventRunning: true,
+  // Not sync: leave runs to completion — the panel wipes up and covers the
+  // viewport — before Barba removes the current container, adds the next one
+  // and runs enter. The destination page is therefore never in the document
+  // while any of it is visible, which is what makes the flash impossible
+  // rather than merely hidden.
+  transitions: [
+    {
+      name: "default",
+
+      // Every document load — see ARRIVAL
+      async once(data) {
+        return runArrival(data.next.container);
+      },
+
+      // Current page leaves
+      async leave(data) {
+        return runPageLeaveAnimation(data.current.container, data.next.url.href);
+      },
+
+      // New page enters
+      async enter(data) {
+        return runPageEnterAnimation(data.next.container);
+      }
+    }
+  ],
+});
+
 
 
 // -----------------------------------------
-// YOUR FUNCTIONS GO BELOW HERE
+// COMPONENTS
 // -----------------------------------------
+
+function initMarquee(container) {
+  initMarqueeScrollDirection(container);
+  registerPageCleanup(destroyMarqueeScrollDirection);
+}
 
 /* ============================================================
    INSIGHT SLIDER
@@ -667,7 +491,7 @@ function initBarbaNavUpdate(data) {
    and every programmatic move runs on power3.out. Nothing elastic,
    nothing that bounces back.
 
-   Structure (see partials / page bodies):
+   Structure (see src/components/InsightSlider.astro):
      [data-slider]                    the root, carries the tuning
        [data-slider-viewport]         clipped frame
          [data-slider-list]           the element Draggable moves
@@ -677,11 +501,8 @@ function initBarbaNavUpdate(data) {
    Tuning attributes on the root: data-scale (rest scale of a stacked
    card) and data-rotate (its rotation in degrees).
    ============================================================ */
-function initInsightSlider() {
-  const roots = nextPage.querySelectorAll("[data-slider]");
-  if (!roots.length) return;
-
-  roots.forEach(root => {
+function initInsightSlider(container) {
+  container.querySelectorAll("[data-slider]").forEach(root => {
     const viewport = root.querySelector("[data-slider-viewport]");
     const list = root.querySelector("[data-slider-list]");
     const slides = Array.from(root.querySelectorAll("[data-slider-item]"));
@@ -731,7 +552,7 @@ function initInsightSlider() {
     }
 
     function syncControls() {
-      dots.forEach((d, i) => d.classList.toggle("is-active", i === index));
+      dots.forEach((d, i) => d.classList.toggle("is--active", i === index));
       if (prevBtn) prevBtn.disabled = index <= 0;
       if (nextBtn) nextBtn.disabled = index >= slides.length - 1;
     }
@@ -767,47 +588,45 @@ function initInsightSlider() {
       if (draggable) draggable.applyBounds({ minX: -maxDrag, maxX: 0 });
     }
 
-    if (hasDraggable) {
-      draggable = Draggable.create(list, {
-        type: "x",
-        bounds: { minX: -maxDrag, maxX: 0 },
-        inertia: typeof window.InertiaPlugin !== "undefined",
-        // A throw settles inside a beat and cannot spring past the
-        // ends — the restraint the deck is asked for.
-        maxDuration: 0.8,
-        overshootTolerance: 0,
-        edgeResistance: 0.9,
-        allowContextMenu: true,
-        snap: raw => {
-          const d = clamp(-raw);
-          return -(spacing > 0 ? Math.round(d / spacing) : 0) * spacing;
-        },
-        onPress() {
-          if (moveTween) moveTween.kill();
-        },
-        onDragStart() {
-          root.classList.add("is--dragging");
-        },
-        onDrag() {
-          dragX = clamp(-this.x);
-          paint();
-        },
-        onThrowUpdate() {
-          dragX = clamp(-this.x);
-          paint();
-        },
-        onDragEnd() {
-          // Released after a real drag the card under the pointer must
-          // not also follow its link; a tap that never moved still
-          // should, so the class only comes off once the click that
-          // ends the gesture has been and gone.
-          requestAnimationFrame(() => root.classList.remove("is--dragging"));
-        },
-        onClick() {
-          root.classList.remove("is--dragging");
-        }
-      })[0];
-    }
+    draggable = Draggable.create(list, {
+      type: "x",
+      bounds: { minX: -maxDrag, maxX: 0 },
+      inertia: true,
+      // A throw settles inside a beat and cannot spring past the
+      // ends — the restraint the deck is asked for.
+      maxDuration: 0.8,
+      overshootTolerance: 0,
+      edgeResistance: 0.9,
+      allowContextMenu: true,
+      snap: raw => {
+        const d = clamp(-raw);
+        return -(spacing > 0 ? Math.round(d / spacing) : 0) * spacing;
+      },
+      onPress() {
+        if (moveTween) moveTween.kill();
+      },
+      onDragStart() {
+        root.classList.add("is--dragging");
+      },
+      onDrag() {
+        dragX = clamp(-this.x);
+        paint();
+      },
+      onThrowUpdate() {
+        dragX = clamp(-this.x);
+        paint();
+      },
+      onDragEnd() {
+        // Released after a real drag the card under the pointer must
+        // not also follow its link; a tap that never moved still
+        // should, so the class only comes off once the click that
+        // ends the gesture has been and gone.
+        requestAnimationFrame(() => root.classList.remove("is--dragging"));
+      },
+      onClick() {
+        root.classList.remove("is--dragging");
+      }
+    })[0];
 
     if (prevBtn) prevBtn.addEventListener("click", () => goTo(index - 1));
     if (nextBtn) nextBtn.addEventListener("click", () => goTo(index + 1));
@@ -837,7 +656,7 @@ function initInsightSlider() {
     measure();
     // The card width is set in em against the webfont's metrics on the
     // body; re-measure once it has actually loaded.
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+    document.fonts.ready.then(measure);
 
     registerPageCleanup(() => {
       if (moveTween) moveTween.kill();
@@ -852,9 +671,9 @@ function initInsightSlider() {
 
 /* ============================================================
    Mega nav — directional hover dropdowns, mobile slide-over panels.
-   Lives outside the Barba container, so this runs once per session.
+   Lives outside the Barba container, so this runs once per document.
    ============================================================ */
-function initMegaNavDirectionalHover() {
+function initMegaNav() {
   // The panel opens as one considered move: the container heights out on the
   // site's own osmo ease while the content settles in behind it. The stagger
   // is deliberately near-nothing — enough to stop the items landing on a
@@ -894,7 +713,6 @@ function initMegaNavDirectionalHover() {
   const state = {
     isOpen: false,
     activePanel: null,
-    activePanelIndex: -1,
     isMobile: window.innerWidth <= 991,
     mobileMenuOpen: false,
     mobilePanelActive: null,
@@ -905,11 +723,14 @@ function initMegaNavDirectionalHover() {
     mobilePanelTl: null,
   };
 
-  // Helpers
-  const getPanel = (name) => document.querySelector(`[data-nav-content="${name}"]`);
-  const getToggle = (name) => document.querySelector(`[data-dropdown-toggle="${name}"]`);
-  const getFade = (el) => el.querySelectorAll("[data-menu-fade]");
-  const getNavItems = () => navList.querySelectorAll("[data-nav-list-item]");
+  // Lookups — the nav is never replaced, so every list is collected once.
+  const panelByName = new Map(panels.map((p) => [p.dataset.navContent, p]));
+  const toggleByName = new Map(toggles.map((t) => [t.dataset.dropdownToggle, t]));
+  const fadeByPanel = new Map(panels.map((p) => [p, p.querySelectorAll("[data-menu-fade]")]));
+  const navItems = navList.querySelectorAll("[data-nav-list-item]");
+  const getPanel = (name) => panelByName.get(name);
+  const getToggle = (name) => toggleByName.get(name);
+  const getFade = (el) => fadeByPanel.get(el);
   const getIndex = (name) => toggles.indexOf(getToggle(name));
   const stagger = (n) => (n <= 1 ? 0 : { amount: DUR.stagger });
 
@@ -937,7 +758,7 @@ function initMegaNavDirectionalHover() {
 
   function killMobilePanel() {
     killTl("mobilePanelTl");
-    gsap.killTweensOf(getNavItems());
+    gsap.killTweensOf(navItems);
     gsap.killTweensOf([backBtn, logo]);
     panels.forEach((p) => { gsap.killTweensOf(p); gsap.killTweensOf(getFade(p)); });
   }
@@ -964,7 +785,7 @@ function initMegaNavDirectionalHover() {
       gsap.set(p, { autoAlpha: 0, xPercent: 0, visibility: "visible", pointerEvents: "none" });
       gsap.set(getFade(p), { xPercent: 20, autoAlpha: 0 });
     });
-    gsap.set(getNavItems(), { xPercent: 0, y: 0, autoAlpha: 1 });
+    gsap.set(navItems, { xPercent: 0, y: 0, autoAlpha: 1 });
     gsap.set(navList, { autoAlpha: 0, x: 0 });
     gsap.set(backBtn, { autoAlpha: 0 });
     gsap.set(logo, { autoAlpha: 1 });
@@ -1000,7 +821,6 @@ function initMegaNavDirectionalHover() {
 
     state.isOpen = true;
     state.activePanel = panelName;
-    state.activePanelIndex = getIndex(panelName);
     menuWrap.setAttribute("data-menu-open", "true");
     if (toggle) toggle.setAttribute("aria-expanded", "true");
 
@@ -1032,7 +852,6 @@ function initMegaNavDirectionalHover() {
       onComplete() {
         state.isOpen = false;
         state.activePanel = null;
-        state.activePanelIndex = -1;
         state.tl = null;
         resetDesktop();
       },
@@ -1066,7 +885,6 @@ function initMegaNavDirectionalHover() {
 
     const toToggle = getToggle(toName);
     state.activePanel = toName;
-    state.activePanelIndex = getIndex(toName);
     resetToggles();
     if (toToggle) toToggle.setAttribute("aria-expanded", "true");
 
@@ -1225,13 +1043,12 @@ function initMegaNavDirectionalHover() {
     burger.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
 
-    const items = getNavItems();
     const tl = gsap.timeline();
     state.mobileTl = tl;
     tl.add(animateBurger(true), 0);
     tl.to(navList, { autoAlpha: 1, duration: 0.3, ease: "power2.out" }, 0);
-    if (items.length) {
-      tl.fromTo(items,
+    if (navItems.length) {
+      tl.fromTo(navItems,
         { autoAlpha: 0, y: 12 },
         { autoAlpha: 1, y: 0, duration: 0.3, stagger: 0.04, ease: "power3.out" },
         0.15
@@ -1277,7 +1094,6 @@ function initMegaNavDirectionalHover() {
     killMobilePanel();
     state.mobilePanelActive = panelName;
 
-    const navItems = getNavItems();
     const panelFade = getFade(el);
 
     const tl = gsap.timeline();
@@ -1309,7 +1125,6 @@ function initMegaNavDirectionalHover() {
     if (!el) return;
     killMobilePanel();
 
-    const navItems = getNavItems();
     const panelFade = getFade(el);
 
     const tl = gsap.timeline({
@@ -1371,7 +1186,7 @@ function initMegaNavDirectionalHover() {
       if (was && !state.isMobile) {
         killMobile(); killMobilePanel();
         gsap.set(navList, { clearProps: "all" });
-        gsap.set(getNavItems(), { clearProps: "all" });
+        gsap.set(navItems, { clearProps: "all" });
         gsap.set(backBtn, { autoAlpha: 0 });
         gsap.set(logo, { clearProps: "all" });
         gsap.set([lineTop, lineMid, lineBot], { rotation: 0, y: 0, autoAlpha: 1 });
@@ -1390,7 +1205,7 @@ function initMegaNavDirectionalHover() {
 
       if (!was && state.isMobile) {
         killDropdown();
-        state.isOpen = false; state.activePanel = null; state.activePanelIndex = -1;
+        state.isOpen = false; state.activePanel = null;
         clearTimers();
         menuWrap.setAttribute("data-menu-open", "false");
         resetToggles();
@@ -1431,43 +1246,25 @@ function initMegaNavDirectionalHover() {
 }
 
 /* ============================================================
-   Button 059 — measures each label so the two halves swap width
+   Contact button — the nav's block-swap button. Each label is
+   measured so the two halves can trade widths on hover; the CSS
+   reads the measurement back from --contact-button-width.
    ============================================================ */
-function initButton059() {
-  const buttons = document.querySelectorAll('[data-button-059]');
-  if (buttons.length === 0) return;
+function initContactButton() {
+  const elements = document.querySelectorAll("[data-contact-button-element]");
+  if (!elements.length) return;
 
-  const resizeCallbacks = new Set();
-  let resizeTimeout;
-
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(() => {
-      resizeCallbacks.forEach((callback) => callback());
-    }, 60);
+  const measure = () => elements.forEach((el) => {
+    const text = el.querySelector("[data-contact-button-text]");
+    el.style.setProperty("--contact-button-width", `${text.offsetWidth}px`);
   });
 
-  const addResizeCallback = (callback) => {
-    resizeCallbacks.add(callback);
-    return () => resizeCallbacks.delete(callback);
-  };
+  measure();
 
-  buttons.forEach((element) => {
-    const elements = element.querySelectorAll('[data-button-059-element]');
-
-    const updateWidth = (el) => {
-      const text = el.querySelector('[data-button-059-text]');
-      const width = text.offsetWidth;
-      el.style.setProperty('--button-059-width', `${width}px`);
-    };
-
-    const updateAll = () => { elements.forEach(updateWidth); };
-    updateAll();
-    const removeResize = addResizeCallback(updateAll);
-
-    return () => {
-      removeResize?.();
-    };
+  let resizeTimer;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(measure, 60);
   });
 }
 
@@ -1488,9 +1285,8 @@ function initButton059() {
      - Lenis and ScrollTrigger are already wired up by the page
        lifecycle, so nothing here starts either.
    ============================================================ */
-function initApproachSlides() {
-  const root = nextPage.querySelector("[data-approach-slides-init]");
-  if (!root || !hasScrollTrigger) return;
+function initApproachSlides(container) {
+  const root = container.querySelector("[data-approach-slides-init]");
 
   const slides = [...root.querySelectorAll(".approach__slide")];
   if (!slides.length) return;
@@ -1596,7 +1392,7 @@ function initApproachSlides() {
    counter, autoplay, arrow buttons, arrow-key handling and the
    in-view ScrollTrigger are all unchanged.
 
-   Four adaptations so it lives in this codebase:
+   Three adaptations so it lives in this codebase:
 
      - it is queried against the Barba container, not document, and
        runs from the page registry rather than DOMContentLoaded;
@@ -1604,15 +1400,10 @@ function initApproachSlides() {
        torn down through registerPageCleanup, so nothing outlives
        the DOM it measured;
      - the portrait's circular clip becomes a straight fade, since
-       what sits there is a logo on a square tile, not a face;
-     - if SplitText is not on the page it falls back to the
-       component's own reduced-motion path, a plain crossfade.
+       what sits there is a logo on a square tile, not a face.
    ============================================================ */
-function initLineRevealTestimonials() {
-  const wraps = nextPage.querySelectorAll("[data-testimonial-wrap]");
-  if (!wraps.length) return;
-
-  wraps.forEach((wrap) => {
+function initLineRevealTestimonials(container) {
+  container.querySelectorAll("[data-testimonial-wrap]").forEach((wrap) => {
     const list = wrap.querySelector("[data-testimonial-list]");
     if (!list) return;
 
@@ -1630,7 +1421,7 @@ function initLineRevealTestimonials() {
     if (activeIndex < 0) activeIndex = 0;
 
     let isAnimating = false;
-    const reduceMotion = reducedMotion || !hasSplitText;
+    const reduceMotion = reducedMotion;
 
     const autoplayEnabled = wrap.getAttribute("data-autoplay") === "true";
     const autoplayDuration = parseInt(wrap.getAttribute("data-autoplay-duration"), 10) || 4000;
@@ -1702,28 +1493,26 @@ function initLineRevealTestimonials() {
     updateCounter();
 
     // Create SplitText instances
-    if (hasSplitText) {
-      slides.forEach((slide, slideIndex) => {
-        slide.splitInstances = slide.splitTargets.map((el) =>
-          SplitText.create(el, {
-            type: "lines",
-            mask: "lines",
-            linesClass: "text-line",
-            autoSplit: true,
-            onSplit(self) {
-              if (reduceMotion) return;
+    slides.forEach((slide, slideIndex) => {
+      slide.splitInstances = slide.splitTargets.map((el) =>
+        SplitText.create(el, {
+          type: "lines",
+          mask: "lines",
+          linesClass: "text-line",
+          autoSplit: true,
+          onSplit(self) {
+            if (reduceMotion) return;
 
-              const isActive = slideIndex === activeIndex;
-              gsap.set(self.lines, { yPercent: isActive ? 0 : 110 });
+            const isActive = slideIndex === activeIndex;
+            gsap.set(self.lines, { yPercent: isActive ? 0 : 110 });
 
-              if (slide.image) {
-                gsap.set(slide.image, { autoAlpha: isActive ? 1 : 0 });
-              }
-            },
-          })
-        );
-      });
-    }
+            if (slide.image) {
+              gsap.set(slide.image, { autoAlpha: isActive ? 1 : 0 });
+            }
+          },
+        })
+      );
+    });
 
     function goTo(nextIndex) {
       if (isAnimating || nextIndex === activeIndex) return;
@@ -1900,7 +1689,7 @@ function initLineRevealTestimonials() {
        which tears the rows and their triggers down with it, and GSAP
        and ScrollTrigger are the ones the page has already loaded.
    ============================================================ */
-function initShutterScrollTransition() {
+function initShutterScrollTransition(container) {
   // Defaults — edit these to change fallbacks if no data-attribute is added
   const defaultRows = 6;
   const defaultMode = "cover";
@@ -1959,14 +1748,12 @@ function initShutterScrollTransition() {
   function createRow() {
     const row = document.createElement("div");
     row.classList.add(rowClass);
-    row.setAttribute("data-shutter-scroll-row", "");
     return row;
   }
 
   function buildRows(wrapper, rows) {
     const panel = document.createElement("div");
     panel.classList.add(panelClass);
-    panel.setAttribute("data-shutter-scroll-panel", "");
 
     const fragment = document.createDocumentFragment();
     for (let r = 0; r < rows; r++) {
@@ -2024,7 +1811,7 @@ function initShutterScrollTransition() {
     const rowList = collectRows(panel);
     const tl = createAnimation(wrapper, rowList, section, mode);
 
-    return { wrapper, tl };
+    return { panel, tl };
   }
 
   function destroyInstance(instance) {
@@ -2032,8 +1819,7 @@ function initShutterScrollTransition() {
       instance.tl.scrollTrigger?.kill();
       instance.tl.kill();
     }
-    const panel = instance.wrapper.querySelector("[data-shutter-scroll-panel]");
-    if (panel) panel.remove();
+    instance.panel.remove();
   }
 
   function buildAll(wrappers) {
@@ -2048,8 +1834,7 @@ function initShutterScrollTransition() {
     instances.length = 0;
   }
 
-  const wrappers = [...nextPage.querySelectorAll("[data-shutter-scroll-transition]")];
-  if (!wrappers.length || !hasScrollTrigger) return;
+  const wrappers = [...container.querySelectorAll("[data-shutter-scroll-transition]")];
 
   const mm = gsap.matchMedia();
 
@@ -2084,9 +1869,8 @@ function initShutterScrollTransition() {
    once, and then stops observing. Scoped to the Barba container
    and disconnected on leave.
    ============================================================ */
-function initProblemGrid() {
-  const grids = nextPage.querySelectorAll("[data-problem-grid-init]");
-  if (!grids.length) return;
+function initProblemGrid(container) {
+  const grids = container.querySelectorAll("[data-problem-grid-init]");
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
@@ -2101,77 +1885,40 @@ function initProblemGrid() {
 }
 
 /* ============================================================
-   Accordion — one delegated handler, every instance on the page
+   Accordion — one delegated handler per accordion
    ============================================================
-   The reference's logic is unchanged: a click on a toggle flips its
-   item's data-accordion-status, and when the accordion carries
-   data-accordion-close-siblings="true" every other open item in the
-   same accordion is closed. The CSS does the expansion.
+   A click on a toggle flips its item's data-accordion-status, and
+   when the accordion carries data-accordion-close-siblings="true"
+   every other open item in it is closed. The CSS does the
+   expansion; aria-expanded is kept in step with the status.
 
-   Two adaptations. It is scoped to the Barba container and called
-   from the page registry rather than DOMContentLoaded, so it binds
-   on every navigation; the listeners sit on elements inside the
-   container, so they are collected with it and need no cleanup.
-
-   And the toggles are reachable from the keyboard. Replacing
-   <details>/<summary> with a div would otherwise have dropped the
-   keyboard and screen-reader behaviour the native element gave us
-   for free, so the toggle carries role/tabindex/aria-expanded in the
-   markup, Enter and Space activate it here, and aria-expanded is
-   kept in step with the status attribute.
+   Each toggle is a real <button> inside the item's heading (see
+   src/components/Accordion.astro), so Enter, Space and focus come
+   from the browser, and the listener sits on an element inside the
+   Barba container, so it goes with it and needs no cleanup.
    ============================================================ */
-function initAccordionCSS() {
-  nextPage.querySelectorAll("[data-accordion-css-init]").forEach((accordion) => {
-    const closeSiblings =
-      accordion.getAttribute("data-accordion-close-siblings") === "true";
+function initAccordions(container) {
+  container.querySelectorAll("[data-accordion-init]").forEach((accordion) => {
+    const closeSiblings = accordion.dataset.accordionCloseSiblings === "true";
 
-    function syncAria(item) {
-      const toggle = item.querySelector("[data-accordion-toggle]");
-      if (toggle) {
-        toggle.setAttribute(
-          "aria-expanded",
-          item.getAttribute("data-accordion-status") === "active" ? "true" : "false"
-        );
-      }
-    }
-
-    function toggleItem(toggle) {
-      const singleAccordion = toggle.closest("[data-accordion-status]");
-      if (!singleAccordion) return;
-
-      const isActive =
-        singleAccordion.getAttribute("data-accordion-status") === "active";
-      singleAccordion.setAttribute(
-        "data-accordion-status",
-        isActive ? "not-active" : "active"
-      );
-      syncAria(singleAccordion);
-
-      if (closeSiblings && !isActive) {
-        accordion
-          .querySelectorAll('[data-accordion-status="active"]')
-          .forEach((sibling) => {
-            if (sibling !== singleAccordion) {
-              sibling.setAttribute("data-accordion-status", "not-active");
-              syncAria(sibling);
-            }
-          });
-      }
+    function setOpen(item, open) {
+      item.dataset.accordionStatus = open ? "active" : "not-active";
+      item.querySelector("[data-accordion-toggle]").setAttribute("aria-expanded", String(open));
     }
 
     accordion.addEventListener("click", (event) => {
       const toggle = event.target.closest("[data-accordion-toggle]");
-      if (!toggle) return;
-      toggleItem(toggle);
-    });
+      const item = toggle && toggle.closest("[data-accordion-status]");
+      if (!item) return;
 
-    accordion.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
-      const toggle = event.target.closest("[data-accordion-toggle]");
-      if (!toggle) return;
-      // Space would otherwise scroll the page out from under the answer.
-      event.preventDefault();
-      toggleItem(toggle);
+      const open = item.dataset.accordionStatus !== "active";
+      setOpen(item, open);
+
+      if (open && closeSiblings) {
+        accordion.querySelectorAll('[data-accordion-status="active"]').forEach((sibling) => {
+          if (sibling !== item) setOpen(sibling, false);
+        });
+      }
     });
   });
 }
@@ -2190,9 +1937,8 @@ function initAccordionCSS() {
    (pointer: fine), so on touch the grid paints once per resize
    and never starts a loop.
    ============================================================ */
-function initInteractiveDotsGrid() {
-  const elements = nextPage.querySelectorAll("[data-dots-canvas-init]");
-  if (!elements.length) return;
+function initInteractiveDotsGrid(container) {
+  const elements = container.querySelectorAll("[data-dots-canvas-init]");
 
   const gap = "1em";
   const dotSize = "0.125em";
@@ -2464,11 +2210,8 @@ function initInteractiveDotsGrid() {
    instead of a point above it, so the panel is never caught
    mid-animation with nowhere left to scroll.
    ============================================================ */
-function initFooterParallax() {
-  if (!hasScrollTrigger) return;
-
-  const wraps = nextPage.querySelectorAll("[data-footer-parallax]");
-  if (!wraps.length) return;
+function initFooterParallax(container) {
+  const wraps = container.querySelectorAll("[data-footer-parallax]");
 
   const timelines = [];
 
@@ -2517,14 +2260,14 @@ function initFooterParallax() {
    archives do it, so the token comes off the category chip already on the
    card rather than being repeated in a second attribute.
 
-   Bound from initBeforeEnterFunctions rather than DOMContentLoaded: Barba
+   Bound from the page registry (initPage) rather than DOMContentLoaded: Barba
    replaces the container on every navigation, so a one-shot listener on
    the document would only ever wire up the first page loaded. */
-function initFilterGroups() {
+function initFilterGroups(container) {
   // Matches the out transition in the stylesheet — the item is faded before
   // its state flips, so a row never re-flows under a visible card.
   const transitionDelay = reducedMotion ? 0 : 300;
-  const groups = [...nextPage.querySelectorAll('[data-filter-group]')];
+  const groups = [...container.querySelectorAll('[data-filter-group]')];
 
   groups.forEach(group => {
     const targetMatch = (group.getAttribute('data-filter-target-match') || 'multi').trim().toLowerCase();

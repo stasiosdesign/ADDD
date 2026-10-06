@@ -1,70 +1,80 @@
-<nav data-menu-open="false" data-menu-wrap="" class="mega-nav">
+---
+/*
+  The mega nav (src/styles/nav.css, initMegaNav() in src/scripts/site.js).
+  It sits outside the Barba container, so it is rendered once per document
+  and survives every navigation. On desktop the Services and Resources
+  toggles open their panels on hover or from the keyboard; below 992px the
+  burger opens a drawer and the same panels slide over it.
+*/
+import ArrowIcon from "./ArrowIcon.astro";
+---
+<nav data-menu-open="false" data-menu-wrap class="mega-nav">
   <div class="mega-nav__bar">
     <div class="mega-nav__container">
       <div class="mega-nav__bar-start">
-        <a data-menu-logo="" href="index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
+        <a data-menu-logo href="index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
           <img src="assets/logo.svg" alt="ADDD">
         </a>
-        <div data-nav-list="" data-mobile-nav="" class="mega-nav__bar-inner">
+        <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
           <ul class="mega-nav__bar-list">
-            <li data-nav-list-item="">
+            <li data-nav-list-item>
               <a href="index.html" class="mega-nav__bar-link"><span class="mega-nav__bar-link-label">Home</span></a>
             </li>
-            <li data-nav-list-item="">
-              <button data-dropdown-toggle="services" aria-expanded="false" aria-haspopup="true" class="mega-nav__bar-link is--dropdown">
+            <li data-nav-list-item>
+              <button type="button" data-dropdown-toggle="services" aria-expanded="false" aria-controls="mega-nav-services" class="mega-nav__bar-link is--dropdown">
                 <span class="mega-nav__bar-link-label">Services</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" class="mega-nav__bar-link-icon is--dropdown">
+                <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown">
                   <path d="M6.6665 8.3335L9.99984 11.6668L13.3332 8.3335" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
               </button>
             </li>
-            <li data-nav-list-item="">
-              <button data-dropdown-toggle="resources" aria-expanded="false" aria-haspopup="true" class="mega-nav__bar-link is--dropdown">
+            <li data-nav-list-item>
+              <button type="button" data-dropdown-toggle="resources" aria-expanded="false" aria-controls="mega-nav-resources" class="mega-nav__bar-link is--dropdown">
                 <span class="mega-nav__bar-link-label">Resources</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" class="mega-nav__bar-link-icon is--dropdown">
+                <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown">
                   <path d="M6.6665 8.3335L9.99984 11.6668L13.3332 8.3335" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>
                 </svg>
               </button>
             </li>
-            <li data-nav-list-item="">
+            <li data-nav-list-item>
               <a href="tech-firms.html" class="mega-nav__bar-link"><span class="mega-nav__bar-link-label">Tech Firms</span></a>
             </li>
-            <li data-nav-list-item="">
+            <li data-nav-list-item>
               <a href="https://aectechjobs.com/" target="_blank" rel="noopener" class="mega-nav__bar-link"><span class="mega-nav__bar-link-label">AEC Jobs</span></a>
             </li>
-            <li data-nav-list-item="">
+            <li data-nav-list-item>
               <a href="about.html" class="mega-nav__bar-link"><span class="mega-nav__bar-link-label">About</span></a>
             </li>
           </ul>
-          <ul data-nav-list-item="" class="mega-nav__bar-list is--actions">
+          <ul data-nav-list-item class="mega-nav__bar-list is--actions">
             <li class="mega-nav__bar-action">
-              <a href="https://app.addd.io/login" target="_blank" rel="noopener" class="mega-nav__bar-cta is--secondary"><span class="mega-nav__bar-link-label">Sign in</span></a>
+              <a href="https://app.addd.io/login" target="_blank" rel="noopener" class="mega-nav__bar-cta"><span class="mega-nav__bar-link-label">Sign in</span></a>
             </li>
             <li class="mega-nav__bar-action">
-              <a data-button-059="" href="contact.html" class="button-059">
-                <span class="button-059__block"></span>
-                <span data-button-059-element="" class="button-059__element is--default">
-                  <span data-button-059-text="" class="button-059__text">Contact</span>
+              <a href="contact.html" class="contact-button">
+                <span class="contact-button__block"></span>
+                <span data-contact-button-element class="contact-button__element is--default">
+                  <span data-contact-button-text class="contact-button__text">Contact</span>
                 </span>
-                <span class="button-059__block"></span>
-                <span data-button-059-element="" aria-hidden="true" class="button-059__element is--hover">
-                  <span data-button-059-text="" class="button-059__text">Contact</span>
+                <span class="contact-button__block"></span>
+                <span data-contact-button-element aria-hidden="true" class="contact-button__element is--hover">
+                  <span data-contact-button-text class="contact-button__text">Contact</span>
                 </span>
-                <span class="button-059__block"></span>
+                <span class="contact-button__block"></span>
               </a>
             </li>
           </ul>
         </div>
         <div class="mega-nav__bar-end">
-          <button data-burger-toggle="" aria-label="toggle menu" aria-expanded="false" class="mega-nav__burger">
+          <button type="button" data-burger-toggle aria-label="Menu" aria-expanded="false" aria-controls="mega-nav-menu" class="mega-nav__burger">
             <span data-burger-line="top" class="mega-nav__burger-line"></span>
             <span data-burger-line="mid" class="mega-nav__burger-line"></span>
             <span data-burger-line="bot" class="mega-nav__burger-line"></span>
           </button>
         </div>
-        <div data-mobile-back="" class="mega-nav__back">
-          <button aria-label="back to menu" class="mega-nav__bar-link is--back">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" class="mega-nav__bar-link-icon">
+        <div data-mobile-back class="mega-nav__back">
+          <button type="button" aria-label="Back to menu" class="mega-nav__bar-link is--back">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mega-nav__bar-link-icon">
               <path d="M11.6665 6.6665L8.33317 9.99984L11.6665 13.3332" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>
             </svg>
             <span class="mega-nav__bar-link-label">Back</span>
@@ -74,18 +84,18 @@
     </div>
   </div>
 
-  <div data-dropdown-wrapper="" class="mega-nav__dropdown-wrapper">
-    <div data-dropdown-container="" class="mega-nav__dropdown-container">
-      <div data-dropdown-bg="" class="mega-nav__dropdown-bg"></div>
+  <div data-dropdown-wrapper class="mega-nav__dropdown-wrapper">
+    <div data-dropdown-container class="mega-nav__dropdown-container">
+      <div class="mega-nav__dropdown-bg"></div>
 
-      <div data-panel-state="" data-nav-content="services" role="region" aria-label="services menu" class="mega-nav__dropdown-panel">
+      <div data-nav-content="services" id="mega-nav-services" role="region" aria-label="Services" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner">
           <div class="mega-nav__panel-col is--services">
             <div class="mega-nav__service-grid">
-              <a data-menu-fade="" href="workshops-audits.html" class="mega-nav__service-card">
+              <a data-menu-fade href="workshops-audits.html" class="mega-nav__service-card">
                 <span class="mega-nav__service-card-media">
                   <span class="mega-nav__panel-label mega-nav__service-card-label">Focused diagnostic</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
                   <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg></span>
                 </span>
                 <span class="mega-nav__service-card-text">
@@ -93,10 +103,10 @@
                   <span class="mega-nav__panel-link-desc">Half-day diagnostic using a live project</span>
                 </span>
               </a>
-              <a data-menu-fade="" href="software-licensing-audit.html" class="mega-nav__service-card">
+              <a data-menu-fade href="software-licensing-audit.html" class="mega-nav__service-card">
                 <span class="mega-nav__service-card-media">
                   <span class="mega-nav__panel-label mega-nav__service-card-label">Cost optimisation</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
                   <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
                 </span>
                 <span class="mega-nav__service-card-text">
@@ -104,10 +114,10 @@
                   <span class="mega-nav__panel-link-desc">Software spend, usage and overlap reviewed</span>
                 </span>
               </a>
-              <a data-menu-fade="" href="technology-blueprint.html" class="mega-nav__service-card">
+              <a data-menu-fade href="technology-blueprint.html" class="mega-nav__service-card">
                 <span class="mega-nav__service-card-media">
                   <span class="mega-nav__panel-label mega-nav__service-card-label">Strategic roadmap</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
                   <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
                 </span>
                 <span class="mega-nav__service-card-text">
@@ -115,10 +125,10 @@
                   <span class="mega-nav__panel-link-desc">Eight-week strategy with clear priorities</span>
                 </span>
               </a>
-              <a data-menu-fade="" href="advisory.html" class="mega-nav__service-card">
+              <a data-menu-fade href="advisory.html" class="mega-nav__service-card">
                 <span class="mega-nav__service-card-media">
                   <span class="mega-nav__panel-label mega-nav__service-card-label">Ongoing guidance</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
                   <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
                 </span>
                 <span class="mega-nav__service-card-text">
@@ -131,12 +141,12 @@
         </div>
       </div>
 
-      <div data-panel-state="" data-nav-content="resources" role="region" aria-label="resources menu" class="mega-nav__dropdown-panel">
+      <div data-nav-content="resources" id="mega-nav-resources" role="region" aria-label="Resources" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner">
 
           <!-- Explore — the interactive research layer: the Stack applies the
                knowledge, the database exposes the software landscape under it. -->
-          <div data-menu-fade="" class="mega-nav__panel-col"><span class="mega-nav__panel-label">Explore</span>
+          <div data-menu-fade class="mega-nav__panel-col"><span class="mega-nav__panel-label">Explore</span>
             <ul class="mega-nav__panel-list is--divided">
               <li>
                 <a href="stack-diagnostic.html" class="mega-nav__panel-link is--lead">
@@ -161,7 +171,7 @@
 
           <!-- Reports — the index link, then the latest report as one featured
                card. The report is the first on reports.html; keep the two in step. -->
-          <div data-menu-fade="" class="mega-nav__panel-col"><span class="mega-nav__panel-label">Reports</span>
+          <div data-menu-fade class="mega-nav__panel-col"><span class="mega-nav__panel-label">Reports</span>
             <ul class="mega-nav__panel-list">
               <li>
                 <a href="reports.html" class="mega-nav__panel-link is--lead">
@@ -191,7 +201,7 @@
                row as the others (icon chip, name, one line of description)
                so the column reads as part of the same list rather than a
                panel of its own, with the signup compact underneath it. -->
-          <div data-menu-fade="" class="mega-nav__panel-col is--colored"><span class="mega-nav__panel-label">Newsletter</span>
+          <div data-menu-fade class="mega-nav__panel-col is--colored"><span class="mega-nav__panel-label">Newsletter</span>
             <ul class="mega-nav__panel-list">
               <li>
                 <a href="newsletter.html" class="mega-nav__panel-link is--lead">
@@ -215,5 +225,5 @@
     </div>
   </div>
 
-  <div data-menu-backdrop="" class="mega-nav__backdrop"></div>
+  <div data-menu-backdrop class="mega-nav__backdrop"></div>
 </nav>

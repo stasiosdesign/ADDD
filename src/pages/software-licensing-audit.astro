@@ -1,7 +1,13 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "../components/ActionButton.astro";
+import ClosingCta from "../components/ClosingCta.astro";
 ---
-<BaseLayout title="Software & Licensing Audit — ADDD" pageName="Software & Licensing Audit">
+<BaseLayout
+  title="Software & Licensing Audit — ADDD"
+  description="A complete account of what your practice pays for and what it actually uses. Every seat, every renewal date, every overlapping subscription—set against real usage."
+  pageName="Software & Licensing Audit"
+>
 <main>
 
   <section class="pg-hero">
@@ -14,23 +20,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="pg-hero__col">
           <p class="text-md">A complete account of what your practice pays for and what it actually uses. Every seat, every renewal date, every overlapping subscription&mdash;set against real usage, so renewal conversations start from evidence instead of habit.</p>
           <div class="actions">
-            <a data-button-043="" href="contact.html" class="button-043">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner">
-                <span class="button-043__mask"><span class="button-043__text">Contact</span></span>
-                <span class="button-043__icon-wrap">
-                  <span class="button-043__icon-bg"></span>
-                  <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-                </span>
-              </span>
-            </a>
+            <ActionButton href="contact.html">Contact</ActionButton>
             <a class="btn btn--link" href="#how-it-works">How it works <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
       </div>
     </div>
   </section>
-  <div class="band band--wide" role="img" aria-label="Image placeholder"></div>
+  <div class="band band--wide"></div>
 
   <section class="section" id="who-its-for">
     <div class="container">
@@ -114,16 +111,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
 
       <div class="actions" style="margin-top:48px">
-        <a data-button-043="" href="contact.html" class="button-043">
-          <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-          <span class="button-043__inner">
-            <span class="button-043__mask"><span class="button-043__text">Enquire about an audit</span></span>
-            <span class="button-043__icon-wrap">
-              <span class="button-043__icon-bg"></span>
-              <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-            </span>
-          </span>
-        </a>
+        <ActionButton href="contact.html">Enquire about an audit</ActionButton>
         <a class="btn btn--link" href="reports.html">Read the research <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
       </div>
     </div>
@@ -157,31 +145,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <section class="cta">
-    <div class="cta__grid">
-      <p class="tagline tagline--sm cta__label">For architecture practices</p>
-      <div class="cta__body">
-        <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
-        <div class="actions actions--tight">
-          <a data-button-043="" href="stack-diagnostic.html" class="button-043">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner">
-              <span class="button-043__mask"><span class="button-043__text">Free Tech Stacks</span></span>
-              <span class="button-043__icon-wrap">
-                <span class="button-043__icon-bg"></span>
-                <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-              </span>
-            </span>
-          </a>
-          <a href="contact.html" class="button-043 is--secondary">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Talk to Us</span></span></span>
-          </a>
-        </div>
-      </div>
-      <span class="cta__mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-    </div>
-  </section>
+  <ClosingCta />
 
 </main>
 </BaseLayout>

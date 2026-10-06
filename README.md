@@ -54,9 +54,13 @@ src/
   layouts/BaseLayout.astro   the shell every page shares: <head>, loader, wipe
                              panel, nav, grid overlay, Barba container, footer,
                              stylesheets and scripts
-  components/                Loader, Transition, Nav, AnimatedGrid, Footer
-  pages/*.astro              one per page — its title, its Barba page name and
-                             its <main>
+  components/                the shell's parts — Loader, Transition, Nav,
+                             AnimatedGrid, Footer — and the pieces pages share:
+                             ActionButton, ClosingCta, Accordion, InsightCard,
+                             InsightSlider, ArrowIcon
+  pages/*.astro              one per page — its title, description, Barba page
+                             name and <main>; repeated content (cards, FAQs)
+                             sits in a data array in the frontmatter
   styles/*.css               the site stylesheets, imported by the layout
   scripts/                   site.js (Barba lifecycle and every interaction),
                              marquee.js, animated-grid.js
@@ -69,7 +73,7 @@ Each page renders as:
 
 ```html
 <body data-barba="wrapper">
-  <div data-load-wrap>…</div>           <!-- first-load logo reveal -->
+  <div data-load-wrap>…</div>           <!-- the session's logo intro -->
   <div data-transition-wrap>…</div>     <!-- wipe panel, outside the container -->
   <nav class="mega-nav">…</nav>         <!-- persistent, outside the container -->
   <div data-animated-grid>…</div>       <!-- Shift + G layout overlay -->
@@ -82,10 +86,20 @@ Each page renders as:
 
 The nav sits outside the container so it survives navigation — its GSAP
 timelines and the Contact button's width measurement are wired up once per
-session rather than per page. Anything inside the container is replaced on
-every navigation, so page-level behaviour must be re-bound in
-`initBeforeEnterFunctions()` in `src/scripts/site.js`. `data-page-name` comes
-from each page's `pageName` prop.
+document rather than per page. Anything inside the container is replaced on
+every navigation, so page-level behaviour is bound per container: each
+component is listed in `PAGE_COMPONENTS` in `src/scripts/site.js`, with the
+selector that marks it, and anything it leaves running registers an undo with
+`registerPageCleanup()`. `data-page-name` comes from each page's `pageName`
+prop.
+
+### Class names
+
+Classes style, `data-*` attributes are what scripts hook onto, and state is a
+`data-*` value or an `is--*` modifier. Components follow BEM:
+`.block__element`, `.block.is--variant`. Components that started life as
+third-party snippets carry names for what they are here — `.action-button`,
+`.contact-button`, `.accordion`, `.marquee` — rather than the supplier's.
 
 ### Stylesheets and scripts
 
@@ -100,6 +114,11 @@ navigation onto that page.
 - `site.js` is bundled as a module, importing `marquee.js` and
   `animated-grid.js`. GSAP, Barba and Lenis stay on the jsDelivr CDN and are
   loaded as classic scripts ahead of it, so they are globals by the time it runs.
+  Lenis's small stylesheet is bundled with the site CSS (`src/styles/lenis.css`)
+  rather than fetched as a separate render-blocking request; keep it in step
+  with the Lenis version.
+- One inline script sits in `<head>`: it classifies the document load before
+  the first paint (see *Page transitions* below).
 - Neither bundle is minified (see `astro.config.mjs`): the minifiers rewrite
   code for their target browsers, which would change how the site behaves in
   some of the browsers it supports today. Vercel compresses both in transit.
@@ -120,8 +139,16 @@ navigation onto that page.
   `public/assets/logo.svg`.
 - **Page transitions** — [Barba](https://barba.js.org/) 2.10.3. A panel wipes up
   over the page, shows the incoming page's name, then continues up to reveal it.
-  The first document load plays the logo loader instead. Both honour
-  `prefers-reduced-motion` with an immediate swap.
+  The logo intro plays once per browsing session: on the first page the visitor
+  lands on, whichever it is, and again only on a genuine reload. Any other
+  document load in the session — Barba falling back to a full load, a
+  back/forward that misses the bfcache, a typed URL — opens on the wipe's
+  reveal instead. The inline script in `<head>` makes that call before the
+  first paint and writes it to `<html data-arrival>`; see *ARRIVAL* in
+  `src/scripts/site.js`. A Back or Forward pressed while a transition is still
+  running is held and replayed when it finishes, rather than letting Barba turn
+  it into a full page load. Both honour `prefers-reduced-motion` with an
+  immediate swap.
 - **Smooth scroll** — [Lenis](https://github.com/darkroomengineering/lenis) 1.2.3,
   driven by the GSAP ticker rather than `autoRaf`, so the transition can stop and
   restart it around a navigation.

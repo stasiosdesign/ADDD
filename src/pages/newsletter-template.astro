@@ -1,7 +1,24 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "../components/ActionButton.astro";
+import ClosingCta from "../components/ClosingCta.astro";
+import InsightSlider from "../components/InsightSlider.astro";
+
+const related = [
+  { href: "newsletter-template.html", image: "assets/images/allister-gesture-close.jpg", category: "Strategy", title: "Why practices lag on strategy", meta: ["December 2024"] },
+  { href: "newsletter-template.html", image: "assets/images/conference-keynote.jpg", category: "Technology", title: "AEC software development cycles", meta: ["November 2024"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-presenting.jpg", category: "Workflows", title: "Understanding technology costs", meta: ["October 2024"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-presenting.jpg", category: "Strategy", title: "Digital transformation in practice", meta: ["September 2024"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Building better workflows", meta: ["August 2024"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Software selection reality", meta: ["July 2024"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-headshot-bw.png", category: "Data", title: "Data structures that matter", meta: ["June 2024"] },
+];
 ---
-<BaseLayout title="AI in architecture — ADDD" pageName="AI in Architecture">
+<BaseLayout
+  title="AI in architecture — ADDD"
+  description="Artificial intelligence arrives in architecture not as a replacement for thinking, but as a tool that demands clearer thinking first."
+  pageName="AI in Architecture"
+>
 <main>
 
   <section class="pg-hero">
@@ -21,7 +38,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
     </div>
   </section>
-  <div class="band band--short" role="img" aria-label="Image placeholder"></div>
+  <div class="band band--short"></div>
 
   <section class="section">
     <div class="container">
@@ -36,7 +53,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <div class="band band--short" role="img" aria-label="Image placeholder"></div>
+  <div class="band band--short"></div>
 
   <section class="section section--light">
     <div class="container">
@@ -84,7 +101,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     </div>
   </section>
 
-  <div class="band band--short" role="img" aria-label="Image placeholder"></div>
+  <div class="band band--short"></div>
 
   <section class="section">
     <div class="container">
@@ -94,152 +111,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <h2 class="h2">More from the ADDDitive</h2>
           <p>Continue exploring architecture technology and practice strategy</p>
         </div>
-        <a href="newsletter.html" class="button-043 is--secondary">
-          <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-          <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">View all</span></span></span>
-        </a>
+        <ActionButton href="newsletter.html" variant="secondary">View all</ActionButton>
       </div>
 
-      <div data-slider="" data-scale="0.72" data-rotate="-5" class="insight-slider">
-        <div data-slider-viewport="" class="insight-slider__viewport">
-          <div data-slider-list="" class="insight-slider__list">
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-gesture-close.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Strategy</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Why practices lag on strategy</h3>
-                  <span class="insight-card__meta"><span>December 2024</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/conference-keynote.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Technology</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">AEC software development cycles</h3>
-                  <span class="insight-card__meta"><span>November 2024</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-presenting.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Workflows</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Understanding technology costs</h3>
-                  <span class="insight-card__meta"><span>October 2024</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-presenting.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Strategy</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Digital transformation in practice</h3>
-                  <span class="insight-card__meta"><span>September 2024</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-podium-portrait.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Workflows</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Building better workflows</h3>
-                  <span class="insight-card__meta"><span>August 2024</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-keynote-stage.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Technology</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Software selection reality</h3>
-                  <span class="insight-card__meta"><span>July 2024</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-headshot-bw.png" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Data</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Data structures that matter</h3>
-                  <span class="insight-card__meta"><span>June 2024</span></span>
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div data-slider-controls="" class="insight-slider__controls">
-          <div class="dots">
-            <button type="button" data-slider-dot="" class="is-active" aria-label="Go to slide 1"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 2"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 3"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 4"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 5"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 6"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 7"></button>
-          </div>
-          <div class="arrows">
-            <button type="button" data-slider-prev="" aria-label="Previous"><img class="icon" src="assets/icons/chevron_right.svg" alt="" style="transform:rotate(180deg)"></button>
-            <button type="button" data-slider-next="" aria-label="Next"><img class="icon" src="assets/icons/chevron_right.svg" alt=""></button>
-          </div>
-        </div>
-      </div>
+      <InsightSlider items={related} />
     </div>
   </section>
 
-  <section class="cta">
-    <div class="cta__grid">
-      <p class="tagline tagline--sm cta__label">For architecture practices</p>
-      <div class="cta__body">
-        <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
-        <div class="actions actions--tight">
-          <a data-button-043="" href="stack-diagnostic.html" class="button-043">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner">
-              <span class="button-043__mask"><span class="button-043__text">Free Tech Stacks</span></span>
-              <span class="button-043__icon-wrap">
-                <span class="button-043__icon-bg"></span>
-                <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-              </span>
-            </span>
-          </a>
-          <a href="contact.html" class="button-043 is--secondary">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Talk to Us</span></span></span>
-          </a>
-        </div>
-      </div>
-      <span class="cta__mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-    </div>
-  </section>
+  <ClosingCta />
 
 </main>
 </BaseLayout>

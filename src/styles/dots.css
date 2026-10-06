@@ -1,6 +1,6 @@
 /* ============================================================
-   Dotted grid background — one shared implementation, used by
-   the first-load loader and the page-transition panel.
+   Dotted grid background — the static dots behind the first-load
+   intro.
 
    A pure-CSS take on the Osmo interactive dots grid: same even
    circular grid (0.125em dots on a 1em gap, so a 1.125em pitch)

@@ -1,7 +1,22 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Accordion from "../components/Accordion.astro";
+import ActionButton from "../components/ActionButton.astro";
+import ClosingCta from "../components/ClosingCta.astro";
+
+const faq = [
+  { question: "Who should be involved from our side?", answer: "A sponsor at partner or director level, plus whoever owns BIM, IT and operations. Project leads join for the interview stage." },
+  { question: "How much time does it take from our team?", answer: "Roughly six to ten hours per participant across the eight weeks, mostly in the discovery stage." },
+  { question: "What do we actually receive?", answer: "A written blueprint with findings, a cost picture, prioritised recommendations and a sequenced two to three-year roadmap." },
+  { question: "Do you implement the roadmap?", answer: "The blueprint is strategy, not delivery. Ongoing support continues through Advisory." },
+  { question: "Should we start with a workshop instead?", answer: "If the problem is isolated to one workflow or project, start with a workshop. If it spans the practice, start here." },
+];
 ---
-<BaseLayout title="Technology Blueprint — ADDD" pageName="Technology Blueprint">
+<BaseLayout
+  title="Technology Blueprint — ADDD"
+  description="A technology blueprint is how established architecture practices move from scattered tools and unclear spending to a sequenced roadmap that works."
+  pageName="Technology Blueprint"
+>
 <main>
 
   <section class="pg-hero">
@@ -14,23 +29,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="pg-hero__col">
           <p class="text-md">A technology blueprint is how established architecture practices move from scattered tools and unclear spending to a sequenced roadmap that works. We examine your workflows, software, infrastructure, costs, data, roles and AI readiness, then hand you back a strategy you can actually act on. One practice cut their software spend by 40% and reclaimed two days a week. That&rsquo;s what happens when you see what you actually have.</p>
           <div class="actions">
-            <a data-button-043="" href="contact.html" class="button-043">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner">
-                <span class="button-043__mask"><span class="button-043__text">Contact</span></span>
-                <span class="button-043__icon-wrap">
-                  <span class="button-043__icon-bg"></span>
-                  <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-                </span>
-              </span>
-            </a>
+            <ActionButton href="contact.html">Contact</ActionButton>
             <a class="btn btn--link" href="#delivery">Learn more <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
       </div>
     </div>
   </section>
-  <div class="band band--wide" role="img" aria-label="Image placeholder"></div>
+  <div class="band band--wide"></div>
 
   <section class="section">
     <div class="container">
@@ -71,7 +77,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       </div>
 
       <div class="filters">
-        <button type="button" class="is-active">Workflows</button>
+        <button type="button" data-filter-status="active">Workflows</button>
         <button type="button">Software</button>
         <button type="button">Infrastructure</button>
         <button type="button">AI capability</button>
@@ -87,7 +93,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <p>We trace real project delivery from brief through to completion, finding where tools connect and where teams improvise around gaps. This reveals which workflows are intentional and which are fragile.</p>
           </div>
         </div>
-        <div class="card__media" role="img" aria-label="Image placeholder"></div>
+        <div class="card__media"></div>
       </div>
     </div>
   </section>
@@ -98,10 +104,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <p class="tagline">Delivery</p>
         <h2 class="h2" style="max-width:16ch">From current reality to a clear roadmap</h2>
         <div class="actions">
-          <a href="contact.html" class="button-043 is--secondary">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Explore</span></span></span>
-          </a>
+          <ActionButton href="contact.html" variant="secondary">Explore</ActionButton>
           <a class="btn btn--link" href="about.html">Learn <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </div>
       </div>
@@ -173,8 +176,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </div>
         <div class="pg-hero__col">
           <form class="form" style="width:100%" onsubmit="return false">
-            <div class="field"><label for="bp-name">Name</label><input id="bp-name" type="text"></div>
-            <div class="field"><label for="bp-email">Email</label><input id="bp-email" type="email"></div>
+            <div class="field"><label for="bp-name">Name</label><input id="bp-name" type="text" autocomplete="name"></div>
+            <div class="field"><label for="bp-email">Email</label><input id="bp-email" type="email" autocomplete="email"></div>
             <div class="field"><label for="bp-msg">Message</label><textarea id="bp-msg" placeholder="Tell us about your practice"></textarea></div>
             <label class="checkbox"><input type="checkbox"> I agree to the privacy policy</label>
             <button class="btn btn--dark" type="submit" style="align-self:flex-start">Send</button>
@@ -187,103 +190,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <section class="section section--light">
     <div class="container">
       <h2 class="h2">Answers</h2>
-      <div data-accordion-close-siblings="true" data-accordion-css-init="" class="accordion-css">
-        <ul class="accordion-css__list">
-          <li data-accordion-status="active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="true">
-              <h3 class="accordion-css__item-h3">Who should be involved from our side?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">A sponsor at partner or director level, plus whoever owns BIM, IT and operations. Project leads join for the interview stage.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">How much time does it take from our team?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">Roughly six to ten hours per participant across the eight weeks, mostly in the discovery stage.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">What do we actually receive?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">A written blueprint with findings, a cost picture, prioritised recommendations and a sequenced two to three-year roadmap.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">Do you implement the roadmap?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">The blueprint is strategy, not delivery. Ongoing support continues through Advisory.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">Should we start with a workshop instead?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">If the problem is isolated to one workflow or project, start with a workshop. If it spans the practice, start here.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
+      <Accordion id="faq" items={faq} />
     </div>
   </section>
 
-  <section class="cta">
-    <div class="cta__grid">
-      <p class="tagline tagline--sm cta__label">For architecture practices</p>
-      <div class="cta__body">
-        <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
-        <div class="actions actions--tight">
-          <a data-button-043="" href="stack-diagnostic.html" class="button-043">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner">
-              <span class="button-043__mask"><span class="button-043__text">Free Tech Stacks</span></span>
-              <span class="button-043__icon-wrap">
-                <span class="button-043__icon-bg"></span>
-                <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-              </span>
-            </span>
-          </a>
-          <a href="contact.html" class="button-043 is--secondary">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Talk to Us</span></span></span>
-          </a>
-        </div>
-      </div>
-      <span class="cta__mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-    </div>
-  </section>
+  <ClosingCta />
 
 </main>
 </BaseLayout>

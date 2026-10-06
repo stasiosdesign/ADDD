@@ -14,8 +14,8 @@
      highlight states site-wide. One token — nothing declares a red of
      its own. */
   --c-red: #C40000;
+  /* the soft fill every quiet control takes on hover */
   --c-btn-soft: rgba(20, 20, 20, 0.05);
-  --c-btn-soft-strong: rgba(0, 0, 0, 0.14);
   --c-placeholder: #141414;
 
   /* type */
@@ -81,18 +81,10 @@ html {
    Lenis calls preventDefault on wheel and touch while stopped. */
 html.lenis.lenis-stopped { overflow-y: scroll; }
 
-/*width*/
-::-webkit-scrollbar {
-width:6px;
-}
-/*track*/
-::-webkit-scrollbar-track {
-background:rgb(0, 0, 0);
-}
-/*thumb*/
-::-webkit-scrollbar-thumb {
-background:rgb(200, 200, 200);
-}
+/* scrollbar: a thin light thumb on a black track */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: rgb(0, 0, 0); }
+::-webkit-scrollbar-thumb { background: rgb(200, 200, 200); }
 
 body {
   margin: 0;
@@ -228,7 +220,6 @@ button, input { font: inherit; color: inherit; }
   border-radius: var(--radius);
   width: 100%;
 }
-.ph--square { border-radius: 0; }
 
 /* ============================================================
    buttons
@@ -250,10 +241,7 @@ button, input { font: inherit; color: inherit; }
 }
 .btn:hover { opacity: .85; }
 .btn--dark { background: var(--c-text); color: var(--c-white); border-color: var(--c-text); }
-.btn--soft { background: var(--c-btn-soft); color: var(--c-text); }
-.btn--soft-strong { background: var(--c-btn-soft-strong); color: var(--c-text); }
 .btn--white { background: var(--c-white); color: var(--c-text); border-color: var(--c-white); }
-.btn--near-dark { background: #141414; color: var(--c-white); }
 .btn--ghost-dark { background: rgba(255,255,255,.1); color: var(--c-white); }
 .btn--link { padding: 0; background: none; border: none; }
 /* The accent as a rest-state fill — the newsletter's Subscribe, and
@@ -422,7 +410,7 @@ button, input { font: inherit; color: inherit; }
 .hero__arrow:hover { opacity: .6; }
 
 /* Interactive dots background — canvas, drawn by initInteractiveDotsGrid
-   in assets/site.js. It lives inside .hero__media now rather than the
+   in src/scripts/site.js. It lives inside .hero__media now rather than the
    hero itself, so the pattern covers the upper area and stops with it;
    the lower half of the hero is plain page white. It sits under the
    picture, which is lifted to z-index 1, and takes no pointer events.
@@ -431,9 +419,9 @@ button, input { font: inherit; color: inherit; }
    ink colour rather than the reference's flat black, via the
    data-dots-color-* attributes the component already reads.
 
-   Related but separate from .dots-grid in assets/dots.css — that is the
-   static CSS grid the loader and the transition panel use. Same 1em gap
-   and 0.125em dot, so the two read as one motif. */
+   Related but separate from .dots-grid in dots.css — that is the static
+   CSS grid behind the first-load intro. Same 1em gap and 0.125em dot, so
+   the two read as one motif. */
 .interactive-dots-grid {
   pointer-events: none;
   width: 100%;
@@ -525,8 +513,6 @@ button, input { font: inherit; color: inherit; }
    ============================================================ */
 .logos { padding: 142px 0; text-align: center; }
 .logos__title { margin-bottom: 58px; }
-.logos__track { overflow: hidden; }
-.logos__row { display: flex; }
 .logo-tile {
   flex: none;
   width: 201px;
@@ -536,15 +522,14 @@ button, input { font: inherit; color: inherit; }
   align-items: center;
   justify-content: center;
 }
-.logo-tile__mark { background: var(--c-placeholder); }
 
-/* Reusable GSAP marquee (see assets/marquee.js) — logo-style continuously
-   scrolling carousels only. */
-.marquee-advanced { overflow: hidden; }
-.marquee-advanced__scroll { display: flex; }
-.marquee-advanced__collection { display: flex; flex: none; align-items: center; }
+/* Reusable GSAP marquee (see src/scripts/marquee.js) — logo-style
+   continuously scrolling carousels only. */
+.marquee { overflow: hidden; }
+.marquee__scroll { display: flex; }
+.marquee__collection { display: flex; flex: none; align-items: center; }
 /* Include the seam gap in the collection's width so a 100% loop is exact. */
-.logos .marquee-advanced__collection { gap: 12px; padding-right: 12px; }
+.logos .marquee__collection { gap: 12px; padding-right: 12px; }
 
 /* ============================================================
    3 — problems
@@ -566,7 +551,7 @@ button, input { font: inherit; color: inherit; }
 }
 .card__media { aspect-ratio: 864 / 486; background: var(--c-placeholder); }
 /* ------------------------------------------------------------
-   industry problems (see assets/site.js — initProblemGrid)
+   industry problems (see src/scripts/site.js — initProblemGrid)
    ------------------------------------------------------------
    The section opens on the hero's composition: the supporting
    copy holds the left edge with its label under it, and the
@@ -595,8 +580,10 @@ button, input { font: inherit; color: inherit; }
   gap: 24px;
 }
 /* Pushed to the right edge the way the hero headline is, and held
-   to a measure that wraps it onto two lines. */
-.problem-head__h {
+   to a measure that wraps it onto two lines. The routes heading is the
+   same heading in the next section. */
+.problem-head__h,
+.routes__h {
   flex: 0 1 auto;
   margin: 0 0 0 auto;
   font-family: var(--font-display);
@@ -722,7 +709,8 @@ button, input { font: inherit; color: inherit; }
 @media screen and (max-width: 991px) {
   .problem-head { flex-direction: column; gap: 32px; }
   .problem-head__lede { flex: none; width: 100%; }
-  .problem-head__h { margin-left: 0; max-width: none; }
+  .problem-head__h,
+  .routes__h { margin-left: 0; max-width: none; }
   .problem-grid { grid-template-columns: 1fr; gap: 24px; margin-top: 48px; }
   .problem-card:nth-child(2),
   .problem-card:nth-child(3) { margin-top: 0; }
@@ -732,11 +720,8 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    4 — approach
    ============================================================ */
-/* Shared with the credentials block further down the homepage. */
-.approach__title { display: flex; flex-direction: column; gap: 16px; }
-.approach__title .h2 { max-width: 392px; line-height: 0.92; }
 /* ------------------------------------------------------------
-   approach slides (see assets/site.js — initApproachSlides)
+   approach slides (see src/scripts/site.js — initApproachSlides)
    ------------------------------------------------------------
    The reference effect's structure is kept exactly: each step is a
    100vh slide whose wrapper is pinned while the card inside it tips
@@ -774,7 +759,7 @@ button, input { font: inherit; color: inherit; }
 }
 
 /* ------------------------------------------------------------
-   shutter scroll transition (see assets/site.js)
+   shutter scroll transition (see src/scripts/site.js)
    ------------------------------------------------------------
    The reference component, dropped onto the last approach step in
    its "cover" mode: rows grow from the bottom of the step as it
@@ -793,12 +778,12 @@ button, input { font: inherit; color: inherit; }
   position: absolute;
   inset: auto 0% 0%;
 }
-[data-shutter-scroll-panel] {
+.shutter-scroll-transition__panel {
   display: flex;
   flex-direction: column;
   width: 100%;
 }
-[data-shutter-scroll-row] {
+.shutter-scroll-transition__row {
   height: 6svh;
   width: 100%;
   background-color: currentColor;
@@ -961,21 +946,11 @@ button, input { font: inherit; color: inherit; }
   flex-direction: column;
   gap: 40px;
 }
-.routes__h {
-  flex: 0 1 auto;
-  margin: 0 0 0 auto;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: clamp(32px, 4.2vw, 60px);
-  line-height: 1.05;
-  letter-spacing: -0.03em;
-  /* Held well inside the column it is pushed to the right of. The
-     heading breaks after "needs" anywhere from 9em to 12em, so the
-     narrower measure keeps the two lines and spends the difference on
-     the space between the heading and the lede — the hero's interval
-     between its own two columns. */
-  max-width: 9.5em;
-}
+/* The heading is .problem-head__h's, set with it above. Held well inside
+   the column it is pushed to the right of: it breaks after "needs"
+   anywhere from 9em to 12em, so the narrower measure keeps the two lines
+   and spends the difference on the space between the heading and the
+   lede — the hero's interval between its own two columns. */
 
 /* ------------------------------------------------------------
    routes cards
@@ -1090,7 +1065,6 @@ button, input { font: inherit; color: inherit; }
      the gap between the lede and the heading under it. */
   .routes__head { flex-direction: column; gap: 56px; }
   .routes__lede { flex: none; width: 100%; gap: 32px; }
-  .routes__h { margin-left: 0; max-width: none; }
 }
 @media screen and (max-width: 767px) {
   .routes__grid { grid-template-columns: 1fr; }
@@ -1133,7 +1107,7 @@ button, input { font: inherit; color: inherit; }
 .avatar__name { font-weight: var(--fw-body); }
 
 /* ------------------------------------------------------------
-   testimonial carousel (see assets/site.js — initLineRevealTestimonials)
+   testimonial carousel (see src/scripts/site.js — initLineRevealTestimonials)
    ------------------------------------------------------------
    The reference component's structure and behaviour are kept: the
    items sit in one grid cell, only the active one is visible, and
@@ -1227,7 +1201,7 @@ button, input { font: inherit; color: inherit; }
   background: var(--c-light-fg);
   color: var(--c-text);
 }
-.testimonial-lines__h {
+.testimonial-lines__quote {
   margin: 0;
   max-width: 16em;
   font-family: var(--font-display);
@@ -1285,6 +1259,8 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    7 — credentials
    ============================================================ */
+.creds__title { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
+.creds__title .h2 { max-width: 392px; line-height: 0.92; }
 .creds__grid { display: flex; gap: 64px; align-items: flex-start; margin-top: 40px; }
 .creds__media { flex: 0 0 696px; display: flex; gap: 32px; align-items: flex-start; }
 .creds__media .ph:first-child { margin-top: 104px; height: 439px; }
@@ -1339,12 +1315,13 @@ button, input { font: inherit; color: inherit; }
    top-right, same body proportions. Everything structural is shared
    with .route-card above; only what the image and the metadata line
    need is declared here. */
-.insight-card { height: 100%; text-align: left; }
 /* A contained card rather than a picture with copy loose underneath
    it: a tint a step off the page white, and a hairline to close it.
    Light enough that a row of them still reads as content on the page
    and not as a row of grey panels. */
 .insight-card {
+  height: 100%;
+  text-align: left;
   background: #fafafa;
   border: 1px solid rgba(20, 20, 20, .08);
 }
@@ -1352,13 +1329,12 @@ button, input { font: inherit; color: inherit; }
 /* Shorter than the square the routes panel uses — the picture is
    framing the piece, not carrying it, and the square was making the
    card overshoot. */
-.insight-card__media { aspect-ratio: 4 / 3; }
+.insight-card__media { aspect-ratio: 4 / 3; overflow: hidden; }
 /* A step more compact all round, with the type and the hierarchy
-   inside it untouched. */
-.insight-card__body { gap: 6px; padding: 20px; }
+   inside it untouched. The body takes the slack so a row of cards ends
+   on one line, and the metadata is pinned to the bottom of it. */
+.insight-card__body { gap: 6px; padding: 20px; flex: 1 0 auto; }
 .insight-card__h { font-size: 20px; }
-.insight-card__meta { padding-top: 10px; }
-.insight-card__media { overflow: hidden; }
 /* The image fills the media area rather than sitting inside it as a
    framed picture — the card reads as one object, with the two chips
    riding on the image the way they ride on the routes panel. */
@@ -1372,9 +1348,6 @@ button, input { font: inherit; color: inherit; }
 }
 .insight-card__label,
 .insight-card__arrow { z-index: 1; }
-/* The body takes the slack so a row of cards ends on one line, and
-   the metadata is pinned to the bottom of it. */
-.insight-card__body { flex: 1 0 auto; }
 .insight-card__meta {
   margin-top: auto;
   padding-top: 12px;
@@ -1462,7 +1435,7 @@ button, input { font: inherit; color: inherit; }
   background: rgba(20, 20, 20, 0.2);
   cursor: pointer;
 }
-.dots button.is-active { background: var(--c-text); }
+.dots button.is--active { background: var(--c-text); }
 .arrows button[disabled] { opacity: .35; cursor: default; }
 .arrows button[disabled]:hover { background: var(--c-light-fg); }
 
@@ -1471,7 +1444,6 @@ button, input { font: inherit; color: inherit; }
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  margin-top: 32px;
 }
 .dots { display: flex; gap: 8px; }
 .arrows { display: flex; gap: 16px; }
@@ -1548,7 +1520,7 @@ button, input { font: inherit; color: inherit; }
 }
 .cta__label { margin-top: 0.2em; }
 .cta .btn,
-.cta .button-043 { position: relative; z-index: 2; }
+.cta .action-button { position: relative; z-index: 2; }
 
 /* ============================================================
    11 — footer
@@ -1751,14 +1723,6 @@ button, input { font: inherit; color: inherit; }
 }
 
 /* ============================================================
-   placeholder pages
-   ============================================================ */
-.page-hero { padding: 190px var(--page-pad) var(--sec-lg); }
-.page-hero .h1 { max-width: 900px; }
-.page-hero p { margin-top: 24px; max-width: 560px; font-size: var(--t-md); }
-.page-hero .tagline { margin-bottom: 16px; display: block; }
-
-/* ============================================================
    responsive
    ============================================================ */
 @media (max-width: 1200px) {
@@ -1800,7 +1764,6 @@ button, input { font: inherit; color: inherit; }
     min-height: 0;
     display: block;
   }
-  .page-hero { padding-top: 140px; }
   .hero__grid { flex-direction: column; align-items: flex-start; gap: 24px; margin-top: 40px; }
   .hero__col--lede { flex: 0 0 auto; width: 100%; }
   .hero__cta-row { margin-top: 32px; }

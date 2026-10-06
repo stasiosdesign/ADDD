@@ -1,7 +1,24 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "../components/ActionButton.astro";
+import ArrowIcon from "../components/ArrowIcon.astro";
+import ClosingCta from "../components/ClosingCta.astro";
+import InsightSlider from "../components/InsightSlider.astro";
+
+const related = [
+  { href: "report-template.html", image: "assets/images/allister-podium-full.jpg", category: "Technology", title: "The state of AI in architecture", description: "How generative tools are reshaping design practice and what firms need to know", meta: ["Report", "12 min read"] },
+  { href: "report-template.html", image: "assets/images/allister-headshot-bw.png", category: "BIM", title: "BIM maturity and implementation strategy", description: "A framework for assessing where your practice stands and what comes next", meta: ["Report", "9 min read"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-keynote-stage.jpg", category: "Strategy", title: "Implementing AI without losing your identity", description: "How firms can adopt emerging tools while keeping their own approach and values", meta: ["Newsletter", "8 min read"] },
+  { href: "report-template.html", image: "assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Software selection for architecture teams", description: "Practical guidance on evaluating tools and building your technology stack", meta: ["Report", "8 min read"] },
+  { href: "newsletter-template.html", image: "assets/images/allister-gesture-warm.jpg", category: "Workflow", title: "The cost of poor software integration", description: "Why disconnected tools drain resources and how to fix it before it becomes a problem", meta: ["Newsletter", "6 min read"] },
+  { href: "report-template.html", image: "assets/images/conference-keynote.jpg", category: "AI", title: "Governance and risk in AI adoption", description: "What architecture practices need to consider before implementing AI tools", meta: ["Report", "7 min read"] },
+];
 ---
-<BaseLayout title="ADDD — Technology strategy for architecture practices" pageName="Home">
+<BaseLayout
+  title="ADDD — Technology strategy for architecture practices"
+  description="See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow. Independent technology strategy for architecture practices."
+  pageName="Home"
+>
 <main>
 
   <!-- ========== 1. HERO ========== -->
@@ -55,29 +72,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <div class="hero__grid">
         <div class="hero__col hero__col--lede">
           <p class="text-md">See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow.</p>
-          <p class="tagline tagline--sm hero__label">Independent tech strategy</p>
+          <p class="tagline tagline--sm">Independent tech strategy</p>
         </div>
         <div class="hero__col hero__col--heading">
           <h1 class="h1 hero__heading">Technology strategy for architecture practices</h1>
 
           <div class="hero__cta-row">
             <div class="actions actions--tight">
-              <a data-button-043="" href="stack-diagnostic.html" class="button-043">
-                <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-                <span class="button-043__inner">
-                  <span class="button-043__mask"><span class="button-043__text">Free Tech Stacks</span></span>
-                  <span class="button-043__icon-wrap">
-                    <span class="button-043__icon-bg"></span>
-                    <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-                  </span>
-                </span>
-              </a>
-              <a href="contact.html" class="button-043 is--secondary">
-                <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-                <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Talk to Us</span></span></span>
-              </a>
+              <ActionButton href="stack-diagnostic.html">Free Tech Stacks</ActionButton>
+              <ActionButton href="contact.html" variant="secondary">Talk to Us</ActionButton>
             </div>
-            <a class="hero__arrow" href="#approach" aria-label="Scroll to the ADDD approach"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></a>
+            <a class="hero__arrow" href="#approach" aria-label="Scroll to the ADDD approach"><ArrowIcon aria-hidden="true" /></a>
           </div>
         </div>
       </div>
@@ -88,7 +93,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <section class="logos">
     <p class="tagline logos__title">Trusted by leading practices across the UK</p>
     <div
-      class="logos__track marquee-advanced"
+      class="marquee"
       data-marquee-duplicate="2"
       data-marquee-scroll-direction-target
       data-marquee-direction="left"
@@ -96,8 +101,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       data-marquee-speed="15"
       data-marquee-scroll-speed="10"
     >
-      <div class="logos__row marquee-advanced__scroll" data-marquee-scroll-target>
-        <div class="marquee-advanced__collection" data-marquee-collection-target>
+      <div class="marquee__scroll" data-marquee-scroll-target>
+        <div class="marquee__collection" data-marquee-collection-target>
           <div class="logo-tile"><img src="assets/logos/Black/ADAM-Logo.png" alt="ADAM Architecture"></div>
           <div class="logo-tile"><img src="assets/logos/Black/studio-seilern-logo.png" alt="Studio Seilern Architects"></div>
           <div class="logo-tile"><img src="assets/logos/Black/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins"></div>
@@ -114,19 +119,19 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   </section>
 
   <!-- ========== 3. INDUSTRY PROBLEMS ========== -->
-  <section class="section problem-section">
+  <section class="section">
     <div class="container">
       <div class="problem-head">
         <div class="problem-head__lede">
           <p class="text-md">Tools multiply. Workflows drift. Information fragments. AI gets added without clear direction or ownership.</p>
-          <p class="tagline tagline--sm problem-head__label">Industry problems</p>
+          <p class="tagline tagline--sm">Industry problems</p>
         </div>
         <h2 class="problem-head__h">What actually costs you time</h2>
       </div>
 
       <div data-problem-grid-init class="problem-grid">
 
-        <article data-problem-grid-item class="problem-card">
+        <article class="problem-card">
           <div class="problem-card__media">
             <img src="assets/images/conference-keynote.jpg" loading="lazy" alt="" class="problem-card__image">
             <span class="problem-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
@@ -137,7 +142,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </div>
         </article>
 
-        <article data-problem-grid-item class="problem-card">
+        <article class="problem-card">
           <div class="problem-card__media">
             <img src="assets/images/allister-keynote-stage.jpg" loading="lazy" alt="" class="problem-card__image">
             <span class="problem-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
@@ -148,7 +153,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           </div>
         </article>
 
-        <article data-problem-grid-item class="problem-card">
+        <article class="problem-card">
           <div class="problem-card__media">
             <img src="assets/images/allister-presenting.jpg" loading="lazy" alt="" class="problem-card__image">
             <span class="problem-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
@@ -182,7 +187,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <div class="approach__card is--ink">
             <div class="approach__card-top">
               <h3 class="approach__card-h">Understand</h3>
-              <span class="approach__card-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
             </div>
             <div class="approach__card-bottom">
               <p class="approach__card-p">Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.</p>
@@ -200,7 +205,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <div class="approach__card is--dark">
             <div class="approach__card-top">
               <h3 class="approach__card-h">Diagnose</h3>
-              <span class="approach__card-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
             </div>
             <div class="approach__card-bottom">
               <p class="approach__card-p">Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.</p>
@@ -218,7 +223,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
           <div class="approach__card is--grey">
             <div class="approach__card-top">
               <h3 class="approach__card-h">Prioritise</h3>
-              <span class="approach__card-mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
             </div>
             <div class="approach__card-bottom">
               <p class="approach__card-p">Turn what we find into clear priorities: what should change first, who should own it and where investment will have the most impact.</p>
@@ -245,7 +250,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
       <div class="routes__head">
         <div class="routes__lede">
           <p class="text-md" style="max-width:350px">From a focused workflow problem to practice-wide strategy, ongoing advice or software costs. Choose the route that fits the issue.</p>
-          <p class="tagline tagline--sm routes__label">Ways to work with ADDD</p>
+          <p class="tagline tagline--sm">Ways to work with ADDD</p>
         </div>
         <h2 class="routes__h">Start with what needs solving</h2>
       </div>
@@ -254,51 +259,51 @@ import BaseLayout from "../layouts/BaseLayout.astro";
     <div class="routes__grid">
 
         <a class="route-card" href="workshops-audits.html">
-          <span class="route-card__media">
+          <div class="route-card__media">
             <span class="tagline tagline--sm route-card__label">A focused issue</span>
-            <span class="route-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg></span>
-          </span>
-          <span class="route-card__body">
+          </div>
+          <div class="route-card__body">
             <h3 class="route-card__h">Workshop</h3>
             <p class="route-card__p">A four-hour, in-person diagnostic on a live project, followed by a tailored report.</p>
-          </span>
+          </div>
         </a>
 
         <a class="route-card" href="technology-blueprint.html">
-          <span class="route-card__media">
+          <div class="route-card__media">
             <span class="tagline tagline--sm route-card__label">A practice-wide issue</span>
-            <span class="route-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
-          </span>
-          <span class="route-card__body">
+          </div>
+          <div class="route-card__body">
             <h3 class="route-card__h">Tech-Blueprint</h3>
             <p class="route-card__p">One evidence-based view across the practice, turned into a prioritised roadmap.</p>
-          </span>
+          </div>
         </a>
 
         <a class="route-card" href="advisory.html">
-          <span class="route-card__media">
+          <div class="route-card__media">
             <span class="tagline tagline--sm route-card__label">Recurring decisions</span>
-            <span class="route-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-          </span>
-          <span class="route-card__body">
+          </div>
+          <div class="route-card__body">
             <h3 class="route-card__h">ADDDvisory</h3>
             <p class="route-card__p">Monthly guidance on AI, BIM, software and digital priorities for practice leaders.</p>
-          </span>
+          </div>
         </a>
 
         <a class="route-card" href="software-licensing-audit.html">
-          <span class="route-card__media">
+          <div class="route-card__media">
             <span class="tagline tagline--sm route-card__label">Cost optimisation</span>
-            <span class="route-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
-          </span>
-          <span class="route-card__body">
+          </div>
+          <div class="route-card__body">
             <h3 class="route-card__h">Software &amp; Licensing Audit</h3>
             <p class="route-card__p">Every seat, renewal and overlap set against real usage.</p>
-          </span>
+          </div>
         </a>
 
     </div>
@@ -324,7 +329,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             </div>
           </div>
           <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__h">We thought our problem was choosing between software platforms. It turned out we had no shared understanding of what we actually needed.</blockquote>
+            <blockquote data-testimonial-text="" class="testimonial-lines__quote">We thought our problem was choosing between software platforms. It turned out we had no shared understanding of what we actually needed.</blockquote>
           </div>
         </div>
 
@@ -342,7 +347,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             </div>
           </div>
           <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__h">ADAM Architecture had three separate software systems doing the same job. The blueprint showed us how to consolidate without losing capability, and we recovered nearly half a day per project.</blockquote>
+            <blockquote data-testimonial-text="" class="testimonial-lines__quote">ADAM Architecture had three separate software systems doing the same job. The blueprint showed us how to consolidate without losing capability, and we recovered nearly half a day per project.</blockquote>
           </div>
         </div>
 
@@ -360,7 +365,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             </div>
           </div>
           <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__h">We thought we needed better software. The workshop showed us we needed better workflows.</blockquote>
+            <blockquote data-testimonial-text="" class="testimonial-lines__quote">We thought we needed better software. The workshop showed us we needed better workflows.</blockquote>
           </div>
         </div>
 
@@ -383,23 +388,20 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <!-- ========== 7. CREDENTIALS ========== -->
   <section class="section">
     <div class="container">
-      <div class="approach__title" style="max-width:560px">
+      <div class="creds__title">
         <p class="tagline tagline--plain">Credentials</p>
         <h2 class="h2">Strategy built on real architecture practice</h2>
       </div>
 
       <div class="creds__grid">
         <div class="creds__media">
-          <div class="ph" role="img" aria-label="Portrait placeholder"></div>
-          <div class="ph" role="img" aria-label="Portrait placeholder"></div>
+          <div class="ph"></div>
+          <div class="ph"></div>
         </div>
         <div class="creds__text">
           <p>Allister combines 25 years of architecture experience with BIM, Head of Technology and AEC software product expertise. His advice is grounded in how projects are actually delivered, how teams use tools and how vendor products perform in practice.</p>
           <div class="actions">
-            <a href="about.html" class="button-043 is--secondary">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">About Allister</span></span></span>
-            </a>
+            <ActionButton href="about.html" variant="secondary">About Allister</ActionButton>
           </div>
         </div>
       </div>
@@ -421,9 +423,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="compare__card">
           <h3 class="h4">Best suited to</h3>
           <ul class="compare__list">
-            <li><p>Established architecture practices, usually around 25-200 people.</p><img class="icon icon--check" src="assets/icons/check.svg" alt="Yes"></li>
-            <li><p>Practices facing connected questions around workflows, software, costs, data, AI or ownership.</p><img class="icon icon--check" src="assets/icons/check.svg" alt="Yes"></li>
-            <li><p>Firms ready to act, but unclear about what should happen first.</p><img class="icon icon--check" src="assets/icons/check.svg" alt="Yes"></li>
+            <li><p>Established architecture practices, usually around 25-200 people.</p><img class="icon" src="assets/icons/check.svg" alt="Yes"></li>
+            <li><p>Practices facing connected questions around workflows, software, costs, data, AI or ownership.</p><img class="icon" src="assets/icons/check.svg" alt="Yes"></li>
+            <li><p>Firms ready to act, but unclear about what should happen first.</p><img class="icon" src="assets/icons/check.svg" alt="Yes"></li>
           </ul>
         </div>
         <div class="compare__card">
@@ -448,139 +450,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         </div>
       </div>
 
-      <div data-slider="" data-scale="0.72" data-rotate="-5" class="insight-slider">
-        <div data-slider-viewport="" class="insight-slider__viewport">
-          <div data-slider-list="" class="insight-slider__list">
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="report-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-podium-full.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Technology</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">The state of AI in architecture</h3>
-                  <p class="insight-card__p">How generative tools are reshaping design practice and what firms need to know</p>
-                  <span class="insight-card__meta"><span>Report</span><span>12 min read</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="report-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-headshot-bw.png" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">BIM</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">BIM maturity and implementation strategy</h3>
-                  <p class="insight-card__p">A framework for assessing where your practice stands and what comes next</p>
-                  <span class="insight-card__meta"><span>Report</span><span>9 min read</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-keynote-stage.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Strategy</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Implementing AI without losing your identity</h3>
-                  <p class="insight-card__p">How firms can adopt emerging tools while keeping their own approach and values</p>
-                  <span class="insight-card__meta"><span>Newsletter</span><span>8 min read</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="report-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-podium-portrait.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Workflows</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Software selection for architecture teams</h3>
-                  <p class="insight-card__p">Practical guidance on evaluating tools and building your technology stack</p>
-                  <span class="insight-card__meta"><span>Report</span><span>8 min read</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="newsletter-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/allister-gesture-warm.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">Workflow</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">The cost of poor software integration</h3>
-                  <p class="insight-card__p">Why disconnected tools drain resources and how to fix it before it becomes a problem</p>
-                  <span class="insight-card__meta"><span>Newsletter</span><span>6 min read</span></span>
-                </span>
-              </a>
-            </div>
-            <div data-slider-item="" class="insight-slider__item">
-              <a class="insight-card" href="report-template.html">
-                <span class="insight-card__media">
-                  <img class="insight-card__img" src="assets/images/conference-keynote.jpg" alt="" loading="lazy">
-                  <span class="tagline tagline--sm insight-card__label">AI</span>
-                  <span class="insight-card__arrow" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                </span>
-                <span class="insight-card__body">
-                  <h3 class="insight-card__h">Governance and risk in AI adoption</h3>
-                  <p class="insight-card__p">What architecture practices need to consider before implementing AI tools</p>
-                  <span class="insight-card__meta"><span>Report</span><span>7 min read</span></span>
-                </span>
-              </a>
-            </div>
-          </div>
-        </div>
-        <div data-slider-controls="" class="insight-slider__controls">
-          <div class="dots">
-            <button type="button" data-slider-dot="" class="is-active" aria-label="Go to slide 1"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 2"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 3"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 4"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 5"></button>
-            <button type="button" data-slider-dot="" class="" aria-label="Go to slide 6"></button>
-          </div>
-          <div class="arrows">
-            <button type="button" data-slider-prev="" aria-label="Previous"><img class="icon" src="assets/icons/chevron_right.svg" alt="" style="transform:rotate(180deg)"></button>
-            <button type="button" data-slider-next="" aria-label="Next"><img class="icon" src="assets/icons/chevron_right.svg" alt=""></button>
-          </div>
-        </div>
-      </div>
+      <InsightSlider items={related} />
     </div>
   </section>
 
   <!-- ========== 10. CTA ========== -->
-  <section class="cta">
-    <div class="cta__grid">
-      <p class="tagline tagline--sm cta__label">For architecture practices</p>
-      <div class="cta__body">
-        <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
-        <div class="actions actions--tight">
-          <a data-button-043="" href="stack-diagnostic.html" class="button-043">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner">
-              <span class="button-043__mask"><span class="button-043__text">Free Tech Stacks</span></span>
-              <span class="button-043__icon-wrap">
-                <span class="button-043__icon-bg"></span>
-                <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-              </span>
-            </span>
-          </a>
-          <a href="contact.html" class="button-043 is--secondary">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Talk to Us</span></span></span>
-          </a>
-        </div>
-      </div>
-      <span class="cta__mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-    </div>
-  </section>
+  <ClosingCta />
 
 </main>
 </BaseLayout>

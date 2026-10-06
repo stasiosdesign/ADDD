@@ -5,7 +5,6 @@
 /* page hero: two columns, same rhythm as the homepage hero */
 .pg-hero { padding: 205px var(--page-pad) var(--sec-lg); }
 .pg-hero--dark { background: var(--c-dark-bg); color: var(--c-white); }
-.pg-hero--light { background: var(--c-light-fg); }
 .pg-hero__grid { display: flex; gap: 80px; align-items: flex-start; }
 .pg-hero__col { flex: 1 0 0; min-width: 0; display: flex; flex-direction: column; gap: 32px; align-items: flex-start; }
 .pg-hero__col .h1, .pg-hero__col .h2 { max-width: 13ch; }
@@ -89,7 +88,7 @@
 .table th, .table td { text-align: left; padding: 20px 16px; border-bottom: 1px solid var(--c-border); }
 .table th { font-weight: 400; }
 .table td + td, .table th + th { text-align: center; width: 180px; }
-.section--dark .table th { border-color: var(--c-border-dark); }
+.section--dark .table th,
 .section--dark .table td { border-color: var(--c-border-dark); }
 
 /* filter pills */
@@ -240,7 +239,7 @@
    and the closing CTA already paint themselves from that token, so
    they follow without a rule of their own and the page reads as one
    continuous field instead of a stack of near-identical bands.
-   The nav picks the class up too (see nav.css). */
+   The nav — bar and dropdown — picks the class up too (see nav.css). */
 .page--dark {
   --c-dark-bg: var(--c-dark-fg);
   background: var(--c-dark-fg);
@@ -248,12 +247,11 @@
   /* native controls — checkboxes, radios, the select's own list —
      render for the surface they are actually sitting on */
   color-scheme: dark;
+  /* rules and dividers flip to the light-on-dark pair */
+  --c-border: var(--c-border-dark);
 }
 /* The hero and any plain section let the page's own ink through
    rather than painting white over it. */
 .page--dark .pg-hero,
 .page--dark .section { background: transparent; }
-.page--dark .pg-hero--light,
 .page--dark .section--light { background: rgba(255, 255, 255, .06); }
-/* Rules and dividers flip to the light-on-dark pair. */
-.page--dark { --c-border: var(--c-border-dark); }

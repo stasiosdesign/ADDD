@@ -1,0 +1,36 @@
+---
+/*
+  A report or newsletter card: the featured image with the category chip
+  and the arrow chip riding on it, then the title, an optional line of
+  description and the metadata row.
+
+  `filter` makes the card an item of an archive filter group
+  (initFilterGroups() in src/scripts/site.js): the category chip doubles
+  as the card's filter token, so the token is never written out twice.
+*/
+import ArrowIcon from "./ArrowIcon.astro";
+
+export interface Props {
+  href: string;
+  image: string;
+  category: string;
+  title: string;
+  description?: string;
+  meta: string[];
+  filter?: boolean;
+}
+
+const { href, image, category, title, description, meta, filter = false } = Astro.props;
+---
+<a class:list={["insight-card", { "filter-item": filter }]} data-filter-name={filter ? "" : undefined} href={href}>
+  <div class="insight-card__media">
+    <img class="insight-card__img" src={image} alt="" loading="lazy">
+    <span class="tagline tagline--sm insight-card__label" data-filter-name-collect={filter ? category.toLowerCase() : undefined}>{category}</span>
+    <span class="insight-card__arrow" aria-hidden="true"><ArrowIcon /></span>
+  </div>
+  <div class="insight-card__body">
+    <h3 class="insight-card__h">{title}</h3>
+    {description && <p class="insight-card__p">{description}</p>}
+    <span class="insight-card__meta">{meta.map((item) => <span>{item}</span>)}</span>
+  </div>
+</a>

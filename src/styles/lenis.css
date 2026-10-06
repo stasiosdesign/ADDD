@@ -1,0 +1,4 @@
+/* Lenis 1.2.3 — the library's own stylesheet (lenis/dist/lenis.css), bundled
+   with the site's CSS rather than fetched as a separate render-blocking
+   request. Keep it in step with the Lenis version in BaseLayout.astro. */
+html.lenis,html.lenis body{height:auto}.lenis.lenis-smooth [data-lenis-prevent]{overscroll-behavior:contain}.lenis.lenis-stopped{overflow:clip}.lenis.lenis-smooth iframe{pointer-events:none}

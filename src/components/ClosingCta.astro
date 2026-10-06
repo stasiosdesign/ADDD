@@ -1,0 +1,22 @@
+---
+/*
+  The closing call to action every content page ends on, set the way the
+  hero and the routes intro are: a label holding the left edge, the heading
+  and its buttons set in from it, and the arrow out on the right gutter.
+*/
+import ActionButton from "./ActionButton.astro";
+import ArrowIcon from "./ArrowIcon.astro";
+---
+<section class="cta">
+  <div class="cta__grid">
+    <p class="tagline tagline--sm cta__label">For architecture practices</p>
+    <div class="cta__body">
+      <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
+      <div class="actions actions--tight">
+        <ActionButton href="stack-diagnostic.html">Free Tech Stacks</ActionButton>
+        <ActionButton href="contact.html" variant="secondary">Talk to Us</ActionButton>
+      </div>
+    </div>
+    <span class="cta__mark" aria-hidden="true"><ArrowIcon /></span>
+  </div>
+</section>

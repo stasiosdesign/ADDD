@@ -64,8 +64,12 @@ export function initMarqueeScrollDirection(root) {
     if (duplicateAmount > 0) {
       const fragment = document.createDocumentFragment();
 
+      // The copies only exist to fill the loop; assistive tech reads the
+      // original set once.
       for (let i = 0; i < duplicateAmount; i++) {
-        fragment.appendChild(marqueeContent.cloneNode(true));
+        const copy = marqueeContent.cloneNode(true);
+        copy.setAttribute('aria-hidden', 'true');
+        fragment.appendChild(copy);
       }
 
       marqueeScroll.appendChild(fragment);

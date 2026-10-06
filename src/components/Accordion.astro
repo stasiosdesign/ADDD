@@ -1,0 +1,43 @@
+---
+/*
+  Question-and-answer accordion (src/styles/accordion.css, initAccordions()
+  in src/scripts/site.js). The first item starts open, and opening one item
+  closes the others.
+
+  Each question is a real <button> inside an <h3>, so the questions sit in
+  the page's heading outline and the browser supplies the keyboard and
+  focus behaviour. `id` prefixes the ids that tie each toggle to its answer;
+  it only has to be unique on the page.
+*/
+interface Props {
+  id: string;
+  items: { question: string; answer: string }[];
+}
+
+const { id, items } = Astro.props;
+---
+<div data-accordion-init data-accordion-close-siblings="true" class="accordion">
+  <ul class="accordion__list">
+    {items.map(({ question, answer }, i) => {
+      const open = i === 0;
+      const answerId = `${id}-answer-${i + 1}`;
+      return (
+        <li data-accordion-status={open ? "active" : "not-active"} class="accordion__item">
+          <h3 class="accordion__heading">
+            <button type="button" data-accordion-toggle aria-expanded={open ? "true" : "false"} aria-controls={answerId} class="accordion__toggle">
+              {question}
+              <span class="accordion__icon" aria-hidden="true"><svg class="accordion__icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></span>
+            </button>
+          </h3>
+          <div id={answerId} class="accordion__panel">
+            <div class="accordion__panel-inner">
+              <div class="accordion__content">
+                <p class="accordion__text">{answer}</p>
+              </div>
+            </div>
+          </div>
+        </li>
+      );
+    })}
+  </ul>
+</div>

@@ -1,7 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "../components/ActionButton.astro";
 ---
-<BaseLayout title="Tech Firms — ADDD" pageName="Tech Firms">
+<BaseLayout
+  title="Tech Firms — ADDD"
+  description="We’re putting together what ADDD offers technology firms working with architecture practices. In the meantime, get in touch and we’ll talk it through."
+  pageName="Tech Firms"
+>
 <main>
 
   <!-- Holding page: the Tech Firms section is still being written. -->
@@ -15,20 +20,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="pg-hero__col">
           <p class="text-md">We&rsquo;re putting together what ADDD offers technology firms working with architecture practices. In the meantime, get in touch and we&rsquo;ll talk it through.</p>
           <div class="actions">
-            <a data-button-043="" href="contact.html" class="button-043">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner">
-                <span class="button-043__mask"><span class="button-043__text">Get in touch</span></span>
-                <span class="button-043__icon-wrap">
-                  <span class="button-043__icon-bg"></span>
-                  <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-                </span>
-              </span>
-            </a>
-            <a href="index.html" class="button-043 is--secondary">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Back home</span></span></span>
-            </a>
+            <ActionButton href="contact.html">Get in touch</ActionButton>
+            <ActionButton href="index.html" variant="secondary">Back home</ActionButton>
           </div>
         </div>
       </div>

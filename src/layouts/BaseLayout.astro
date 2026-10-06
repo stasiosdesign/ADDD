@@ -3,7 +3,7 @@
   The shell every page shares. Its shape is what Barba needs:
 
     body[data-barba="wrapper"]
-      .loader                — first-load logo reveal, outside the container
+      .loader                — first-load logo intro, outside the container
       .transition            — the wipe panel, outside the container
       nav.mega-nav           — persistent, outside the container
       .animated-grid         — Shift + G layout overlay
@@ -13,13 +13,15 @@
 
   The nav sits outside the container so it survives navigation: its GSAP
   timelines and the Contact button's width measurement are wired up once per
-  session rather than per page. Anything inside the container is replaced on
-  every navigation, so page-level behaviour is re-bound in
-  initBeforeEnterFunctions() in src/scripts/site.js.
+  document rather than per page. Anything inside the container is replaced on
+  every navigation, so page-level behaviour is bound in initPage() in
+  src/scripts/site.js.
 
   Barba swaps only the container, never <head>, so every page must load the
   same stylesheets and scripts. They are all declared here, once, and no page
-  or component carries a <style> or <script> of its own.
+  or component carries a <style> or <script> of its own. For the same reason
+  the inline script in <head> runs on document loads only — never on a Barba
+  navigation — which is exactly what it is for.
 */
 import Loader from "../components/Loader.astro";
 import Transition from "../components/Transition.astro";
@@ -30,13 +32,14 @@ import { BUILD_STAMP } from "../build-stamp.js";
 
 // Site stylesheets, bundled into one file in this order — the cascade order
 // the pages have always loaded them in.
+import "../styles/lenis.css";
 import "../styles/styles.css";
 import "../styles/pages.css";
 import "../styles/nav.css";
 import "../styles/media.css";
-import "../styles/button-059.css";
-import "../styles/button-043.css";
-import "../styles/accordion-css.css";
+import "../styles/contact-button.css";
+import "../styles/action-button.css";
+import "../styles/accordion.css";
 import "../styles/dots.css";
 import "../styles/transition.css";
 import "../styles/loader.css";
@@ -45,11 +48,14 @@ import "../styles/animated-grid.css";
 interface Props {
   /** The document <title>. */
   title: string;
-  /** The page's display name, carried on the Barba container. */
+  /** The search-result summary, taken from the page's own opening copy. */
+  description: string;
+  /** The page's display name, carried on the Barba container and shown on
+      the wipe panel. */
   pageName: string;
 }
 
-const { title, pageName } = Astro.props;
+const { title, description, pageName } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="en-GB">
@@ -57,15 +63,34 @@ const { title, pageName } = Astro.props;
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
+<meta name="description" content={description}>
 <meta name="build" content={BUILD_STAMP}>
-<link rel="icon" href="assets/logo.svg">
+{/* How this document load arrives — the logo intro or the wipe's reveal —
+    decided before the first paint, so a loader that is not going to play is
+    never shown. The intro belongs to the session's first page load and to a
+    genuine reload; every other load in the session reveals. Ahead of the
+    stylesheets, which an inline script would otherwise wait on. See ARRIVAL
+    in src/scripts/site.js. */}
+<script is:inline>
+  (function () {
+    var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
+    var reload = nav ? nav.type === "reload" : (performance.navigation || {}).type === 1;
+    var seen = false;
+    try {
+      seen = sessionStorage.getItem("addd:intro") === "played";
+      sessionStorage.setItem("addd:intro", "played");
+    } catch (err) {}
+    document.documentElement.dataset.arrival = reload || !seen ? "intro" : "reveal";
+  })();
+</script>
+<noscript><style>.loader { display: none; }</style></noscript>
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.css">
 </head>
 <body data-barba="wrapper">
 <Loader />
-<Transition />
+<Transition pageName={pageName} />
 <Nav />
 <AnimatedGrid />
 <div data-barba="container" data-page-name={pageName}>

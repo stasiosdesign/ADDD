@@ -23,6 +23,11 @@
   left: 0;
 }
 
+/* A "reveal" arrival (see ARRIVAL in site.js) opens on the panel already
+   covering the page — the state leave() ends on — and the enter animation
+   carries it on up from there. */
+[data-arrival="reveal"] .transition__panel { transform: translateY(-100%); }
+
 /* The page name takes the site's label voice — DM Mono, uppercase,
    from the shared rule in styles.css. Only size, colour and placement
    live here. */

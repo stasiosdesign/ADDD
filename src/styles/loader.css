@@ -1,5 +1,5 @@
 /* ============================================================
-   First-load logo reveal — sits above the page-name wipe so it
+   First-load logo intro — sits above the page-name wipe so it
    covers the whole viewport on the initial paint.
    ============================================================ */
 .loader {
@@ -10,6 +10,10 @@
   inset: 0 0 auto;
   overflow: clip;
 }
+
+/* Any later document load in the session arrives as a "reveal" (see
+   ARRIVAL in site.js), and never paints the intro at all. */
+[data-arrival="reveal"] .loader { display: none; }
 
 .loader__bg {
   background-color: var(--c-dark-fg);

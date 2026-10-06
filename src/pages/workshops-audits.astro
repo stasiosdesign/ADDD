@@ -1,7 +1,22 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Accordion from "../components/Accordion.astro";
+import ActionButton from "../components/ActionButton.astro";
+import ClosingCta from "../components/ClosingCta.astro";
+
+const faq = [
+  { question: "Who should attend the workshop?", answer: "Anyone who shapes how work moves through the practice — a director or partner, the project lead for the chosen project, and whoever owns BIM, IT or operations." },
+  { question: "How many people should come?", answer: "Between four and eight. Enough perspectives to see the whole flow, few enough that everyone contributes." },
+  { question: "What preparation is required?", answer: "A short questionnaire and the selection of one real project. Nothing else needs to be produced in advance." },
+  { question: "Does it have to be in person?", answer: "Yes. The workshop works because people are in the room together, working through a real project. Remote doesn’t create the same clarity." },
+  { question: "When do we get the report?", answer: "Within two weeks of the session." },
+];
 ---
-<BaseLayout title="Workshops & Audits — ADDD" pageName="Workshops & Audits">
+<BaseLayout
+  title="Workshops & Audits — ADDD"
+  description="A half-day session with your team around a real project. Map how work moves through the practice, find where workflows and tools create friction, and receive a written report."
+  pageName="Workshops & Audits"
+>
 <main>
 
   <section class="pg-hero">
@@ -14,26 +29,14 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="pg-hero__col">
           <p class="text-md">A half-day session with your team around a real project. You&rsquo;ll map how work moves through the practice, identify where workflows and tools create friction, and receive a written report with findings and priorities</p>
           <div class="actions">
-            <a data-button-043="" href="contact.html" class="button-043">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner">
-                <span class="button-043__mask"><span class="button-043__text">Contact</span></span>
-                <span class="button-043__icon-wrap">
-                  <span class="button-043__icon-bg"></span>
-                  <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-                </span>
-              </span>
-            </a>
-            <a href="#pricing" class="button-043 is--secondary">
-              <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-              <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Workshop Pricing</span></span></span>
-            </a>
+            <ActionButton href="contact.html">Contact</ActionButton>
+            <ActionButton href="#pricing" variant="secondary">Workshop Pricing</ActionButton>
           </div>
         </div>
       </div>
     </div>
   </section>
-  <div class="band band--wide" role="img" aria-label="Image placeholder"></div>
+  <div class="band band--wide"></div>
 
   <section class="section">
     <div class="container">
@@ -204,16 +207,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
             <li>Practical recommendations &mdash; quick wins and next steps</li>
             <li>Optional executive readout &mdash; leadership-facing presentation of findings</li>
           </ul>
-          <a data-button-043="" href="contact.html" class="button-043">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner">
-              <span class="button-043__mask"><span class="button-043__text">Enquire about a workshop</span></span>
-              <span class="button-043__icon-wrap">
-                <span class="button-043__icon-bg"></span>
-                <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-              </span>
-            </span>
-          </a>
+          <ActionButton href="contact.html">Enquire about a workshop</ActionButton>
         </article>
 
         <article class="price-card price-card--dark">
@@ -241,103 +235,11 @@ import BaseLayout from "../layouts/BaseLayout.astro";
   <section class="section section--light">
     <div class="container">
       <h2 class="h2">Common Questions</h2>
-      <div data-accordion-close-siblings="true" data-accordion-css-init="" class="accordion-css">
-        <ul class="accordion-css__list">
-          <li data-accordion-status="active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="true">
-              <h3 class="accordion-css__item-h3">Who should attend the workshop?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">Anyone who shapes how work moves through the practice &mdash; a director or partner, the project lead for the chosen project, and whoever owns BIM, IT or operations.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">How many people should come?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">Between four and eight. Enough perspectives to see the whole flow, few enough that everyone contributes.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">What preparation is required?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">A short questionnaire and the selection of one real project. Nothing else needs to be produced in advance.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">Does it have to be in person?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">Yes. The workshop works because people are in the room together, working through a real project. Remote doesn&rsquo;t create the same clarity.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-          <li data-accordion-status="not-active" class="accordion-css__item">
-            <div data-hover="" data-accordion-toggle="" class="accordion-css__item-top" role="button" tabindex="0" aria-expanded="false">
-              <h3 class="accordion-css__item-h3">When do we get the report?</h3>
-              <div class="accordion-css__item-icon"><svg class="accordion-css__item-icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none" aria-hidden="true"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></div>
-            </div>
-            <div class="accordion-css__item-bottom">
-              <div class="accordion-css__item-bottom-wrap">
-                <div class="accordion-css__item-bottom-content">
-                  <p class="accordion-css__item-p">Within two weeks of the session.</p>
-                </div>
-              </div>
-            </div>
-          </li>
-        </ul>
-      </div>
+      <Accordion id="faq" items={faq} />
     </div>
   </section>
 
-  <section class="cta">
-    <div class="cta__grid">
-      <p class="tagline tagline--sm cta__label">For architecture practices</p>
-      <div class="cta__body">
-        <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
-        <div class="actions actions--tight">
-          <a data-button-043="" href="stack-diagnostic.html" class="button-043">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner">
-              <span class="button-043__mask"><span class="button-043__text">Free Tech Stacks</span></span>
-              <span class="button-043__icon-wrap">
-                <span class="button-043__icon-bg"></span>
-                <span class="button-043__icon-mask"><span class="button-043__icon-list"><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg><svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="button-043__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg></span></span>
-              </span>
-            </span>
-          </a>
-          <a href="contact.html" class="button-043 is--secondary">
-            <span class="button-043__bg"><span class="button-043__bg-hover"></span></span>
-            <span class="button-043__inner"><span class="button-043__mask"><span class="button-043__text">Talk to Us</span></span></span>
-          </a>
-        </div>
-      </div>
-      <span class="cta__mark" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-    </div>
-  </section>
+  <ClosingCta />
 
 </main>
 </BaseLayout>

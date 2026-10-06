@@ -1,0 +1,140 @@
+/* ============================================================
+   Contact button — the nav's Contact block (markup:
+   src/components/Nav.astro, widths: initContactButton() in
+   src/scripts/site.js)
+   ============================================================
+
+   Two copies of the label sit between three bars. At rest the
+   default label is open and the hover label is collapsed to a bar;
+   on hover the two trade widths, each to the label width the script
+   measures into --contact-button-width. The light lines between the
+   blocks are the column gaps showing the bar through.
+
+   It stretches to the full bar height and sits flush to the right
+   edge, and is painted from the bar's own theme variables (nav.css)
+   so it inverts with the bar on a dark page.
+   ============================================================ */
+.contact-button {
+  --contact-button-padding: 0 2em;
+  /* thickness of the bars, and of a label collapsed to one */
+  --contact-button-block-width: 9px;
+  --contact-button-ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  grid-column-gap: 4px;
+  grid-row-gap: 4px;
+  color: var(--nav-cta-fg);
+  -webkit-user-select: none;
+  user-select: none;
+  background-color: #0000;
+  outline-style: none;
+  justify-content: flex-start;
+  align-items: stretch;
+  align-self: stretch;
+  padding: 0;
+  font-family: var(--font-body);
+  font-size: 1.0625em;
+  font-weight: 400;
+  line-height: 1;
+  text-decoration: none;
+  display: inline-flex;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.contact-button::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: .125em;
+  transition: box-shadow 0.3s var(--contact-button-ease);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.contact-button:focus-visible::after {
+  box-shadow: 0 0 0 0.125em var(--nav-cta-bg);
+}
+
+.contact-button__block {
+  pointer-events: none;
+  background-color: var(--nav-cta-bg);
+  width: var(--contact-button-block-width);
+  padding: 0;
+}
+
+.contact-button__element {
+  pointer-events: none;
+  background-color: var(--nav-cta-bg);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  overflow: clip;
+  will-change: width;
+  transition: width 0.3s var(--contact-button-ease);
+}
+
+.contact-button__element.is--default {
+  width: var(--contact-button-width);
+}
+
+.contact-button__element.is--default .contact-button__text {
+  transform-origin: left;
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s, scale 0.2s var(--contact-button-ease);
+}
+
+.contact-button__element.is--hover {
+  width: var(--contact-button-block-width);
+}
+
+.contact-button__element.is--hover .contact-button__text {
+  opacity: 0;
+  filter: blur(0.1875em);
+  scale: 0.8;
+  transform-origin: right;
+  transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1), filter 0.2s, scale 0.2s var(--contact-button-ease);
+}
+
+/* text is centred by the element, so padding only sets the measured width */
+.contact-button__text {
+  white-space: nowrap;
+  padding: var(--contact-button-padding);
+  line-height: 1.5;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .contact-button:is(:hover, :focus-visible) .contact-button__element {
+    transition: width 0.5s var(--contact-button-ease);
+    transition-delay: 0.05s;
+  }
+
+  .contact-button:is(:hover, :focus-visible) .contact-button__element.is--default {
+    width: var(--contact-button-block-width);
+  }
+
+  .contact-button:is(:hover, :focus-visible) .contact-button__element.is--default .contact-button__text {
+    opacity: 0;
+    filter: blur(0.1875em);
+    scale: 0.8;
+    transition-delay: 0.05s;
+  }
+
+  .contact-button:is(:hover, :focus-visible) .contact-button__element.is--hover {
+    width: var(--contact-button-width);
+  }
+
+  .contact-button:is(:hover, :focus-visible) .contact-button__element.is--hover .contact-button__text {
+    opacity: 1;
+    filter: blur(0);
+    scale: 1;
+    transition-delay: 0.125s;
+  }
+}
+
+@media screen and (max-width: 991px) {
+  .contact-button {
+    --contact-button-padding: 1em 2em;
+    align-self: auto;
+    justify-content: center;
+    flex: 1;
+  }
+}

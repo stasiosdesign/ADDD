@@ -1,7 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 ---
-<BaseLayout title="Contact — ADDD" pageName="Contact">
+<BaseLayout
+  title="Contact — ADDD"
+  description="Send your enquiry to ADDD. Tell us what you need."
+  pageName="Contact"
+>
 <main class="page--dark">
 
   <section class="pg-hero">
@@ -21,12 +25,12 @@ import BaseLayout from "../layouts/BaseLayout.astro";
         <div class="pg-hero__col">
           <form class="form" style="width:100%" onsubmit="return false">
             <div class="form__row">
-              <div class="field"><label for="fn">First name</label><input id="fn" type="text"></div>
-              <div class="field"><label for="ln">Last name</label><input id="ln" type="text"></div>
+              <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name"></div>
+              <div class="field"><label for="ln">Last name</label><input id="ln" type="text" autocomplete="family-name"></div>
             </div>
             <div class="form__row">
-              <div class="field"><label for="em">Email address</label><input id="em" type="email"></div>
-              <div class="field"><label for="ph">Phone number</label><input id="ph" type="tel"></div>
+              <div class="field"><label for="em">Email address</label><input id="em" type="email" autocomplete="email"></div>
+              <div class="field"><label for="ph">Phone number</label><input id="ph" type="tel" autocomplete="tel"></div>
             </div>
 
             <div class="field">
@@ -41,8 +45,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
               </select>
             </div>
 
-            <div class="field">
-              <span>Your role at the practice</span>
+            <div class="field" role="radiogroup" aria-labelledby="role-label">
+              <span id="role-label">Your role at the practice</span>
               <div class="radio-grid">
                 <label><input type="radio" name="role"> Director or partner</label>
                 <label><input type="radio" name="role"> Technology lead</label>

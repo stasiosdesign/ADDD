@@ -1,0 +1,35 @@
+---
+/*
+  The site's action button (src/styles/action-button.css), in its two
+  variants:
+
+    primary    ink, with the arrow chip; sweeps to the accent on hover
+    secondary  quiet grey, no chip; never takes the accent
+
+  The label is the slot. The arrow is a filmstrip of three identical
+  icons that slides one icon along on hover. Any other attributes —
+  target, rel — pass through to the link.
+*/
+interface Props {
+  href: string;
+  variant?: "primary" | "secondary";
+  [attr: string]: unknown;
+}
+
+const { href, variant = "primary", ...attrs } = Astro.props;
+const secondary = variant === "secondary";
+---
+<a href={href} class:list={["action-button", { "is--secondary": secondary }]} {...attrs}>
+  <span class="action-button__bg"><span class="action-button__bg-hover"></span></span>
+  <span class="action-button__inner">
+    <span class="action-button__mask"><span class="action-button__text"><slot /></span></span>
+    {!secondary && (
+      <span class="action-button__icon-wrap">
+        <span class="action-button__icon-bg"></span>
+        <span class="action-button__icon-mask"><span class="action-button__icon-list">{[0, 1, 2].map(() => (
+          <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="action-button__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg>
+        ))}</span></span>
+      </span>
+    )}
+  </span>
+</a>

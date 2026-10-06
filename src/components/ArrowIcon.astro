@@ -1,0 +1,10 @@
+---
+/*
+  The site's arrow — the stroke mark the cards, the closing CTA, the
+  approach steps and the nav's service cards all carry. Drawn in
+  currentColor at 24px; each place sizes and turns it from its own CSS.
+  Any extra attributes (aria-hidden on a bare link icon) pass through.
+*/
+const attrs = Astro.props;
+---
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...attrs}><path d="M14 19L21 12L14 5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M21 12H2" stroke="currentColor" stroke-miterlimit="10"></path></svg>

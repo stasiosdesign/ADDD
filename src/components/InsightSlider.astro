@@ -1,0 +1,37 @@
+---
+/*
+  The dragged deck of insight cards (initInsightSlider() in
+  src/scripts/site.js): the cards, then one dot per card and the
+  previous / next arrows. data-scale and data-rotate are the rest scale
+  and tilt of a card once it has stacked at the left edge.
+*/
+import InsightCard, { type Props as Card } from "./InsightCard.astro";
+
+interface Props {
+  items: Card[];
+}
+
+const { items } = Astro.props;
+---
+<div data-slider data-scale="0.72" data-rotate="-5" class="insight-slider">
+  <div data-slider-viewport class="insight-slider__viewport">
+    <div data-slider-list class="insight-slider__list">
+      {items.map((item) => (
+        <div data-slider-item class="insight-slider__item">
+          <InsightCard {...item} />
+        </div>
+      ))}
+    </div>
+  </div>
+  <div data-slider-controls class="insight-slider__controls">
+    <div class="dots">
+      {items.map((_, i) => (
+        <button type="button" data-slider-dot class:list={[{ "is--active": i === 0 }]} aria-label={`Go to slide ${i + 1}`}></button>
+      ))}
+    </div>
+    <div class="arrows">
+      <button type="button" data-slider-prev aria-label="Previous slide"><img class="icon" src="assets/icons/chevron_right.svg" alt="" style="transform:rotate(180deg)"></button>
+      <button type="button" data-slider-next aria-label="Next slide"><img class="icon" src="assets/icons/chevron_right.svg" alt=""></button>
+    </div>
+  </div>
+</div>
