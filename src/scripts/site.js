@@ -1035,6 +1035,29 @@ function initMegaNav() {
     return tl;
   }
 
+  // MOBILE — page scroll lock
+  // The page scrolls on <html>, not <body>, so body's overflow cannot hold
+  // it still under the open drawer. Stopped, Lenis blocks wheel and touch
+  // scrolling everywhere except inside an element marked data-lenis-prevent
+  // — which the drawer and the panels are given only while they are taller
+  // than the screen, so they still scroll then, and a swipe on one that fits
+  // is blocked like the rest of the page.
+  const scrollAreas = [navList, ...panels];
+  let pageScrollLocked = false;
+
+  function lockPageScroll() {
+    pageScrollLocked = true;
+    lenis.stop();
+    scrollAreas.forEach((el) => el.toggleAttribute("data-lenis-prevent", el.scrollHeight > el.clientHeight));
+  }
+
+  function unlockPageScroll() {
+    if (!pageScrollLocked) return;
+    pageScrollLocked = false;
+    scrollAreas.forEach((el) => el.removeAttribute("data-lenis-prevent"));
+    lenis.start();
+  }
+
   // MOBILE — open/close menu
   function openMobileMenu() {
     killMobile();
@@ -1042,6 +1065,7 @@ function initMegaNav() {
     menuWrap.setAttribute("data-menu-open", "true");
     burger.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
+    lockPageScroll();
 
     const tl = gsap.timeline();
     state.mobileTl = tl;
@@ -1071,6 +1095,7 @@ function initMegaNav() {
     const tl = gsap.timeline({
       onComplete() {
         document.body.style.overflow = "";
+        unlockPageScroll();
         state.mobileTl = null;
         setupMobile();
       },
@@ -1197,6 +1222,8 @@ function initMegaNav() {
         });
 
         burger.setAttribute("aria-expanded", "false");
+        // also covers a close that was still animating when it was killed
+        unlockPageScroll();
         state.mobileMenuOpen = false;
         state.mobilePanelActive = null;
         document.body.style.overflow = "";
@@ -2209,9 +2236,17 @@ function initInteractiveDotsGrid(container) {
    load — the start is pinned to the current scroll position
    instead of a point above it, so the panel is never caught
    mid-animation with nowhere left to scroll.
+
+   The travel is a quarter of the panel, which on desktop — where
+   the panel stands a viewport tall — is a quarter of the screen.
+   Stacked on a phone or tablet the panel runs to two viewports or
+   more, and a quarter of it would drag the newsletter several
+   hundred pixels behind the scroll; there it travels the same
+   quarter of the screen instead.
    ============================================================ */
 function initFooterParallax(container) {
   const wraps = container.querySelectorAll("[data-footer-parallax]");
+  const stacked = window.matchMedia("(max-width: 991px)");
 
   const timelines = [];
 
@@ -2225,12 +2260,19 @@ function initFooterParallax(container) {
         trigger: wrap,
         start: "clamp(top bottom)",
         end: "clamp(top top)",
-        scrub: true
+        scrub: true,
+        // re-reads the travel below when the layout changes; both ends of
+        // each tween are explicit, so re-recording them is always safe
+        invalidateOnRefresh: true
       }
     });
 
-    if (inner) tl.from(inner, { yPercent: -25, ease: "none" });
-    if (scrim) tl.from(scrim, { opacity: 0.5, ease: "none" }, "<");
+    const travel = () => stacked.matches && inner.offsetHeight
+      ? -25 * window.innerHeight / inner.offsetHeight
+      : -25;
+
+    if (inner) tl.fromTo(inner, { yPercent: travel }, { yPercent: 0, ease: "none" });
+    if (scrim) tl.fromTo(scrim, { opacity: 0.5 }, { opacity: 0, ease: "none" }, "<");
 
     timelines.push(tl);
   });

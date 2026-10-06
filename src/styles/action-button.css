@@ -104,7 +104,12 @@
   display: flex;
 }
 
+/* Always one line: the roll is a text-shadow copy one line-height down,
+   so a wrapped label would show its copy under the first line. Keeping
+   it unbroken also means a row that runs out of room never squeezes the
+   button narrower than its label. */
 .action-button__text {
+  white-space: nowrap;
   transition: transform 0.525s var(--action-button-ease-hover);
   text-shadow: 0px var(--action-button-text-duplicate-distance) currentColor;
 }

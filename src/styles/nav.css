@@ -528,6 +528,12 @@ body:has(.page--dark) .mega-nav,
 .mega-nav__signup input::placeholder { color: var(--nav-muted); }
 .mega-nav__signup input:focus { border-color: var(--nav-rule-focus); }
 .mega-nav__signup .btn { height: 2.75em; padding: 0 1em; font-size: .9375em; }
+/* On touch the pair steps up to the body size — below 16px iOS zooms
+   the page in when the field takes focus — and so to a 44px row. */
+@media (pointer: coarse) {
+  .mega-nav__signup input,
+  .mega-nav__signup .btn { font-size: 1em; }
+}
 
 /* Centre the link list against the bar itself rather than the space
    left over between the logo and the actions. Taking it out of flow
@@ -622,6 +628,8 @@ body:has(.page--dark) .mega-nav,
     padding: 2em 1.25em;
     position: fixed;
     overflow: auto;
+    /* scrolling the drawer to its end never carries on into the page */
+    overscroll-behavior: contain;
   }
 
   .mega-nav__backdrop { display: none; }
@@ -634,7 +642,7 @@ body:has(.page--dark) .mega-nav,
   }
   .mega-nav__dropdown-container { height: 100%; overflow: auto; }
   .mega-nav__dropdown-bg { display: none; }
-  .mega-nav__dropdown-panel { background-color: var(--nav-bg); bottom: 0; overflow: auto; }
+  .mega-nav__dropdown-panel { background-color: var(--nav-bg); bottom: 0; overflow: auto; overscroll-behavior: contain; }
   .mega-nav__dropdown-inner { flex-flow: column; }
 
   .mega-nav__panel-col {
@@ -644,7 +652,10 @@ body:has(.page--dark) .mega-nav,
     padding: 1.75em 1.25em;
   }
   .mega-nav__panel-col.is--colored { flex: 1; }
-  .mega-nav__panel-label { width: 100%; }
+  /* A column's own label only. The service cards' chips and the
+     featured report's label share the class but sit inside a card, and
+     at full width the chip ran out past the card's right edge. */
+  .mega-nav__panel-col > .mega-nav__panel-label { width: 100%; }
 
   /* Stacked, each pathway keeping its shape — only the band shortens, so
      a column of four still fits the slide-over panel. */

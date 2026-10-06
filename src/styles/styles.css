@@ -326,8 +326,11 @@ button, input { font: inherit; color: inherit; }
   flex-direction: column;
   /* Its own gutter, tighter than --page-pad, so the composition runs
      close to the page edges. Section-scoped: the rest of the page keeps
-     the standard measure. */
-  padding: var(--nav-h) 32px 48px;
+     the standard measure. Never wider than --page-pad, though: on a
+     phone the page gutter is already the tighter of the two, and the
+     hero keeps to it so its left edge lines up with the sections below. */
+  --hero-gutter: min(32px, var(--page-pad));
+  padding: var(--nav-h) var(--hero-gutter) 48px;
   overflow: hidden;
 }
 /* Full-bleed inside the hero — the 1280px cap would pull the bands
@@ -345,7 +348,7 @@ button, input { font: inherit; color: inherit; }
    viewport edges, and the only place the pattern appears. */
 .hero__media {
   position: relative;
-  margin: 0 -32px;
+  margin: 0 calc(-1 * var(--hero-gutter));
   height: clamp(220px, 43vh, 430px);
   background: var(--c-light-fg);
   /* clips the schematic where the band stops, whatever its height */
@@ -512,7 +515,9 @@ button, input { font: inherit; color: inherit; }
    2 — logo strip
    ============================================================ */
 .logos { padding: 142px 0; text-align: center; }
-.logos__title { margin-bottom: 58px; }
+/* The strip runs edge to edge, but its title keeps the page gutter, so
+   on a phone it wraps inside the margins rather than touching them. */
+.logos__title { margin-bottom: 58px; padding: 0 var(--page-pad); }
 .logo-tile {
   flex: none;
   width: 201px;
@@ -736,8 +741,13 @@ button, input { font: inherit; color: inherit; }
    ------------------------------------------------------------ */
 /* No trailing space any more: the last step does not pin, so there is
    nothing left to play out after it. It simply scrolls on and the next
-   section follows it up the page. */
-.approach__slides { position: relative; }
+   section follows it up the page.
+
+   Clipped across, never down. On a narrow screen a card tipping back in
+   perspective swings its near edge wider than the viewport, which would
+   widen the whole page; the pinned wrappers still need to run past the
+   bottom of their slides, so only the x axis is clipped. */
+.approach__slides { position: relative; overflow-x: clip; }
 
 /* The last step carries the shutter, so it needs to be the positioned,
    clipped box the rows are anchored inside. */
@@ -835,13 +845,14 @@ button, input { font: inherit; color: inherit; }
   gap: 40px;
 }
 /* Display-scale, as the reference sets it — a card is the whole
-   viewport, so the step name carries it. */
+   viewport, so the step name carries it. The floor eases off below a
+   375px screen, so the longest name still clears the arrow beside it. */
 .approach__card-h,
 .approach__card-num {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: clamp(48px, 9vw, 148px);
+  font-size: clamp(min(48px, 12.8vw), 9vw, 148px);
   line-height: 0.9;
   letter-spacing: -0.05em;
 }
@@ -904,12 +915,22 @@ button, input { font: inherit; color: inherit; }
     gap: 24px;
     padding: 32px var(--page-pad);
   }
+  /* The card's own interval, so the name keeps clear of the arrow. */
+  .approach__card-top { gap: 24px; }
+  /* Held to a share of the height as well as the width, which only
+     tells on a phone turned on its side: the card is a viewport tall,
+     and a name sized off the width alone would fill it. */
+  .approach__card-h { font-size: clamp(min(48px, 12.8vw), min(9vw, 15svh), 148px); }
   .approach__card-num { display: none; }
   /* Stacked and full-bleed inside the card's own padding, so the inset
-     the desktop row carries would throw the picture off centre. */
-  .approach__card-bottom { flex-direction: column; align-items: stretch; gap: 24px; padding: 0; }
+     the desktop row carries would throw the picture off centre.
+     Nothing may run past the card's foot, so where the screen is short
+     the picture gives up height, cropped from its 16:10, rather than
+     the copy being pushed out over the next card. */
+  .approach__card-bottom { flex: 0 1 auto; min-height: 0; flex-direction: column; align-items: stretch; gap: 24px; padding: 0; }
+  .approach__card-aside { flex: 0 1 auto; min-height: 0; flex-direction: column; align-items: stretch; }
   .approach__card-p { width: 100%; max-width: none; order: 2; margin-bottom: 0; }
-  .approach__card-image { width: 100%; max-width: none; aspect-ratio: 16 / 10; }
+  .approach__card-image { flex: 0 1 auto; min-height: 0; width: 100%; max-width: none; aspect-ratio: 16 / 10; }
 }
 
 /* ============================================================
@@ -1243,13 +1264,22 @@ button, input { font: inherit; color: inherit; }
   cursor: pointer;
   transition: background-color .25s ease, border-color .25s ease;
 }
-.testimonial-lines__button:hover { background: var(--c-red); border-color: var(--c-red); color: var(--c-white); }
+/* Hover only where there is a pointer to hover with: on a touch screen
+   the state would stick to the button after the tap that moved the
+   slide, and read as the button being switched on. */
+@media (hover: hover) {
+  .testimonial-lines__button:hover { background: var(--c-red); border-color: var(--c-red); color: var(--c-white); }
+}
 .testimonial-lines__arrow { width: 12px; height: 12px; display: block; }
 
 @media screen and (max-width: 991px) {
   .testimonials { margin-top: var(--sec-lg); }
   .testimonials__title { margin-left: var(--page-pad); margin-bottom: 24px; }
-  .testimonial-lines__item { grid-template-columns: 1fr; min-height: 0; }
+  /* Stacked, every slide shares the height of the tallest quote. The
+     slack all goes to the quote panel, so the line between ink and
+     off-white stays put as the slides change, the way the split does
+     side by side. */
+  .testimonial-lines__item { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 0; }
   .testimonial-lines__aside { padding: 40px var(--page-pad); }
   .testimonial-lines__firm { margin-left: 0; gap: 24px; }
   .testimonial-lines__body { padding: 40px var(--page-pad) 104px; }
@@ -1279,6 +1309,13 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    8 — comparison
    ============================================================ */
+/* A step roomier than a standard section — 135px against --sec-lg's
+   112px — and scaled from the token, so it closes up with every other
+   section on smaller screens instead of holding its desktop height. */
+.section.compare {
+  padding-top: calc(var(--sec-lg) * 135 / 112);
+  padding-bottom: calc(var(--sec-lg) * 135 / 112);
+}
 .compare__grid {
   display: flex;
   gap: 32px;
@@ -1437,10 +1474,13 @@ button, input { font: inherit; color: inherit; }
 }
 .dots button.is--active { background: var(--c-text); }
 .arrows button[disabled] { opacity: .35; cursor: default; }
-.arrows button[disabled]:hover { background: var(--c-light-fg); }
 
+/* Wraps once the intro and its button stop fitting side by side, so on
+   a phone the button drops under the intro instead of squeezing it into
+   a narrow column beside it. */
 .research__controls {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
@@ -1456,7 +1496,12 @@ button, input { font: inherit; color: inherit; }
   cursor: pointer;
   transition: background-color .2s ease;
 }
-.arrows button:hover { background: #e6e6e6; }
+/* Pointer hover only, as on the testimonial buttons — a tap would
+   otherwise leave the arrow shaded after the deck has moved. */
+@media (hover: hover) {
+  .arrows button:hover { background: #e6e6e6; }
+  .arrows button[disabled]:hover { background: var(--c-light-fg); }
+}
 
 /* ============================================================
    10 — CTA
@@ -1723,6 +1768,56 @@ button, input { font: inherit; color: inherit; }
 }
 
 /* ============================================================
+   touch targets
+   ============================================================ */
+/* On a touch screen the small controls keep the size they are drawn at
+   and take an invisible hit area around them, centred, reaching the 44px
+   a fingertip needs. Where a control sits in a row its area is held to
+   the pitch of the row — its own width plus the gap — so no two areas
+   overlap and a tap always lands on the control nearest to it. */
+@media (pointer: coarse) {
+  .mega-nav__burger,
+  .hero__arrow,
+  .testimonial-lines__button,
+  .dots button,
+  .filters button,
+  .btn--link,
+  .site-footer__social a { position: relative; }
+
+  .mega-nav__burger::after,
+  .hero__arrow::after,
+  .testimonial-lines__button::after,
+  .dots button::after,
+  .filters button::after,
+  .btn--link::after,
+  .site-footer__social a::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+  /* 8px dots 8px apart */
+  .dots button::after { width: 16px; }
+  /* pills 8px apart */
+  .filters button::after { width: calc(100% + 8px); }
+  /* a text link: taller only, never wider than its label */
+  .btn--link::after { width: 100%; }
+  /* 18px marks 14px apart */
+  .site-footer__social a::after { width: 32px; }
+
+  /* The footer's link lists are the site map on a phone. Set as close as
+     they are for a pointer, a fingertip covers two links at once, so on
+     touch each row opens to a comfortable target instead. */
+  .site-footer__links,
+  .site-footer__legal { gap: 0; }
+  .site-footer__links a,
+  .site-footer__legal a { padding-block: 8px; }
+}
+
+/* ============================================================
    responsive
    ============================================================ */
 @media (max-width: 1200px) {
@@ -1744,7 +1839,10 @@ button, input { font: inherit; color: inherit; }
      eyebrow lead and the supporting copy follows it — order reverses
      the two, since the markup puts the left column first. */
   .section-title { display: flex; flex-direction: column; gap: 0; }
-  .section-title__body { order: 1; }
+  /* The auto margin that pushes the heading out to the right is a
+     desktop move; stacked, it would push a short heading across to the
+     right edge, away from the copy under it. */
+  .section-title__body { order: 1; margin-left: 0; }
   /* Back in flow: stacked, there is no alignment row for it to stay
      out of, and nothing above it to hang into. */
   .section-title__body > .tagline,
@@ -1764,9 +1862,24 @@ button, input { font: inherit; color: inherit; }
     min-height: 0;
     display: block;
   }
+  /* The band's 220px floor never claims more than its own 43% of the
+     screen: on a phone turned on its side it would otherwise fill
+     everything under the bar and push all of the copy below the fold. */
+  .hero__media { height: clamp(min(220px, 43vh), 43vh, 430px); }
   .hero__grid { flex-direction: column; align-items: flex-start; gap: 24px; margin-top: 40px; }
   .hero__col--lede { flex: 0 0 auto; width: 100%; }
+  /* Back on the left edge with the lede, as the problem and routes
+     headings go when they stack, and full width so the arrow still ends
+     on the right gutter. */
+  .hero__col--heading { margin-left: 0; width: 100%; }
   .hero__cta-row { margin-top: 32px; }
+
+  /* A row of buttons that no longer fits the column wraps onto the next
+     line rather than squeezing its buttons narrower than their labels. */
+  .actions { flex-wrap: wrap; }
+  /* A long label wraps inside its button rather than pushing the button
+     out past its card. */
+  .btn { white-space: normal; text-align: center; }
 
   .compare__grid, .creds__grid { flex-direction: column; }
   .creds__media { flex: none; width: 100%; }
@@ -1784,7 +1897,9 @@ button, input { font: inherit; color: inherit; }
   .site-footer__signup, .site-footer__groups { grid-column: auto; }
   .site-footer__groups { grid-template-columns: 1fr 1fr; gap: 40px 24px; }
   .site-footer__bottom { row-gap: 20px; }
-  .site-footer__end { justify-content: flex-start; }
+  /* On the narrowest phones the social marks drop under the line
+     rather than running past the gutter. */
+  .site-footer__end { justify-content: flex-start; flex-wrap: wrap; row-gap: 12px; }
 
   .logos { padding: 80px 0; }
   .cta { padding: 120px var(--page-pad); }
@@ -1808,4 +1923,7 @@ button, input { font: inherit; color: inherit; }
   .cta__body { gap: 32px; }
   .site-footer__groups { grid-template-columns: 1fr; }
   .site-footer__signup .newsletter-form { flex-direction: column; align-items: stretch; }
+  /* Stacked, the field keeps its own height: the shared form's
+     flex-basis of 0 is a width in a row, but would be its height here. */
+  .site-footer__signup .newsletter-form input { flex: none; }
 }
