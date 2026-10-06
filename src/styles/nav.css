@@ -519,6 +519,18 @@ body:has(.page--dark) .mega-nav,
   }
 }
 
+/* Below 1280px the links no longer fit centred on the bar without running
+   into Sign in / Contact, so they go back into flow and centre in the
+   space actually left between the logo and the actions: the auto margin
+   here and the one on the actions split that space evenly. */
+@media screen and (min-width: 992px) and (max-width: 1279px) {
+  .mega-nav__bar-inner > .mega-nav__bar-list:not(.is--actions) {
+    position: static;
+    transform: none;
+    margin-left: auto;
+  }
+}
+
 @media screen and (max-width: 1200px) {
   .mega-nav__bar-list { grid-column-gap: 1.25em; }
   .mega-nav__bar-cta { padding: 0 1.5em; }

@@ -40,6 +40,7 @@ are unchanged.
 | `/report-template.html` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
 | `/newsletter.html` | `src/pages/newsletter.astro` — Newsletter index |
 | `/newsletter-template.html` | `src/pages/newsletter-template.astro` — "AI in architecture" |
+| `/tech-firms.html` | `src/pages/tech-firms.astro` — Tech Firms (holding page) |
 | `/about.html` | `src/pages/about.astro` |
 | `/contact.html` | `src/pages/contact.astro` |
 
