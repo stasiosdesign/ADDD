@@ -1,0 +1,140 @@
+---
+/*
+  The opening hero: the off-white band with its pattern, then the lede on
+  the left and the headline with its buttons on the right. Styles are the
+  "1 — hero" block in src/styles/styles.css. The arrow is the scroll cue, so
+  each page points it at the section it wants read next.
+
+  The band carries one of two patterns:
+    - "dots" (the default): the dotted canvas drawn by
+      initInteractiveDotsGrid in src/scripts/site.js, under the schematic
+      lines, with the labels set in the lines' SVG over the run each
+      belongs to;
+    - "slash" (the homepage): the Slash Field (src/scripts/slash-field.js),
+      a grid of / | \ strokes running on past the band's edges, which crop
+      it, a small cluster of which darkens under the pointer. No lines: the
+      technology words are real text placed in the field itself, each on
+      its own spot in the band, on the grid, with the pattern running on
+      behind it. One at a time they come online — a signal runs to the word
+      through the strokes, the word bursts and decodes, the strokes around
+      it answer — and resting the pointer on a word does the same.
+*/
+import ActionButton from "./ActionButton.astro";
+import ArrowIcon from "./ArrowIcon.astro";
+
+interface Props {
+  /** The scroll cue's in-page target, e.g. "#approach". */
+  arrowHref: string;
+  /** The scroll cue's accessible name, saying where it goes. */
+  arrowLabel: string;
+  /** The band's pattern: the dotted canvas, or the Slash Field. */
+  pattern?: "dots" | "slash";
+}
+
+const { arrowHref, arrowLabel, pattern = "dots" } = Astro.props;
+const slash = pattern === "slash";
+
+// The technology labels on the dotted band, each one pitch above the run it
+// belongs to: x is its left edge and y its baseline, in the lines' own pixel
+// coordinates.
+const labels = [
+  { text: "BIM", x: 36, y: 145 },
+  { text: "Software", x: 738, y: 199 },
+  { text: "Infrastructure", x: 1008, y: 127 },
+  { text: "Artificial intelligence", x: 1242, y: 343 },
+];
+
+// The Slash Field's vocabulary: the same four, and the practice's other
+// subjects — two from the hero's own copy, four from the tools around it.
+// Each has a spot of its own, as fractions of the band (its centre),
+// scattered high and low across its width so none fall into a row or a
+// list; from is the narrowest band, in px, a word appears in, so a phone's
+// field carries six words rather than ten.
+const fieldWords = [
+  { text: "BIM", spot: [0.07, 0.26] },
+  { text: "Software", spot: [0.56, 0.2] },
+  { text: "Infrastructure", spot: [0.86, 0.66] },
+  { text: "Artificial intelligence", spot: [0.33, 0.78] },
+  { text: "Data", spot: [0.27, 0.4] },
+  { text: "Workflows", spot: [0.74, 0.34] },
+  { text: "Automation", spot: [0.94, 0.12], from: 740 },
+  { text: "Computation", spot: [0.44, 0.52], from: 740 },
+  { text: "Visualisation", spot: [0.62, 0.86], from: 740 },
+  { text: "Digital fabrication", spot: [0.13, 0.64], from: 740 },
+];
+---
+<section class="hero">
+  <div class="hero__media" data-slash-field={slash ? "" : undefined}>
+    {slash ? (
+      <ul class="hero__labels">
+        {fieldWords.map(({ text, spot: [fx, fy], from }) => (
+          <li data-slash-label data-slash-spot={`${fx},${fy}`} data-slash-from={from} class="hero__label" style={`left:${fx * 100}%;top:${fy * 100}%`}>{text}</li>
+        ))}
+      </ul>
+    ) : (
+      <div
+        data-dots-canvas-init=""
+        data-dots-color-inactive="rgba(20, 20, 20, 0.18)"
+        data-dots-color-active="rgba(20, 20, 20, 0.75)"
+        aria-hidden="true"
+        class="interactive-dots-grid"
+      ></div>
+    )}
+    {!slash && (<Fragment>
+    <!-- Schematic lines — drawn on the same 18px pitch as the dots
+         (the 0.125em dot plus 1em gap at the pinned 16px), anchored to
+         the band's top-left like the canvas is, so every straight run
+         passes through a column or row of dots and the corners turn on
+         one pitch. Absolute pixel coordinates, no viewBox scaling: the
+         grid never stretches, so neither do the lines. -->
+    <svg class="hero__lines" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1980" height="450">
+      <!-- Every run enters from one edge of the band and leaves by
+           another — long runs are drawn well past any viewport width
+           and any band height and clipped by the band, so nothing
+           ever stops mid-field. Echoes are the same path shifted one
+           pitch, so their leading -18 keeps them starting on the edge. -->
+      <!-- 1 · the main run — heaviest, with its one-pitch echo. In from
+           the left, out through the bottom. -->
+      <path class="hero__line hero__line--heavy" pathLength="1" d="M0 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
+      <path class="hero__line hero__line--thin" pathLength="1" transform="translate(18 18)" d="M-18 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
+      <!-- 2 · the upper run — in from the top, out through the right -->
+      <path class="hero__line hero__line--medium" pathLength="1" d="M450 0V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
+      <path class="hero__line hero__line--thin" pathLength="1" transform="translate(18 18)" d="M450 -18V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
+      <!-- 3 · a short spur, lower left — in from the left, out through the bottom -->
+      <path class="hero__line hero__line--medium" pathLength="1" d="M0 306H180a18 18 0 0 1 18 18V520"/>
+      <!-- 4 · a short spur, far right — in from the top, out through the right -->
+      <path class="hero__line hero__line--thin" pathLength="1" d="M1782 0V90a18 18 0 0 0 18 18H4000"/>
+      <!-- the pulses: one short dash per run, riding the same geometry -->
+      <path class="hero__pulse" pathLength="1" d="M0 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
+      <path class="hero__pulse" pathLength="1" d="M450 0V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
+      <path class="hero__pulse" pathLength="1" d="M0 306H180a18 18 0 0 1 18 18V520"/>
+      <path class="hero__pulse" pathLength="1" transform="translate(18 18)" d="M-18 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
+      <path class="hero__pulse" pathLength="1" transform="translate(18 18)" d="M450 -18V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
+      <!-- labels, sitting one pitch above the run they belong to -->
+      {labels.map(({ text, x, y }) => (
+        <text class="hero__line-label" x={x} y={y}>{text}</text>
+      ))}
+    </svg>
+    </Fragment>)}
+  </div>
+
+  <div class="container">
+    <div class="hero__grid">
+      <div class="hero__col hero__col--lede">
+        <p class="text-md">See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow.</p>
+        <p class="tagline tagline--sm">Independent tech strategy</p>
+      </div>
+      <div class="hero__col hero__col--heading">
+        <h1 class="h1 hero__heading">Technology strategy for architecture practices</h1>
+
+        <div class="hero__cta-row">
+          <div class="actions actions--blocks">
+            <ActionButton href="stack-diagnostic.html" variant="secondary" block>Free Tech Stacks</ActionButton>
+            <ActionButton href="contact.html" block>Work With Us</ActionButton>
+          </div>
+          <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

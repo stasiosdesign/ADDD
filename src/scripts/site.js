@@ -12,13 +12,15 @@
 //   COMPONENTS         the persistent nav and Contact button, then everything
 //                      that lives inside the Barba container
 
-import { initMarqueeScrollDirection, destroyMarqueeScrollDirection } from "./marquee.js";
-import { initAnimatedGrid } from "./animated-grid.js";
+import { initWavyMarquee } from "./wavy-marquee.js";
+import { initColumnGrid } from "./column-grid.js";
+import { initLogoStackLoader } from "./logo-stack-loader.js";
+import { mountSlashField } from "./slash-field.js";
+import { mountApproachStack } from "./approach-stack.js";
 
-gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin);
+gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
 
 CustomEase.create("osmo", "0.625, 0.05, 0, 1");
-CustomEase.create("loader", "0.65, 0.01, 0.05, 0.99");
 gsap.defaults({ ease: "osmo", duration: 0.6 });
 
 history.scrollRestoration = "manual";
@@ -28,8 +30,10 @@ let reducedMotion = reducedMotionQuery.matches;
 reducedMotionQuery.addEventListener("change", e => (reducedMotion = e.matches));
 
 // Smooth scroll, driven by the GSAP ticker rather than its own rAF so the
-// transition can stop and restart it around a navigation.
-const lenis = new Lenis({ lerp: 0.165, wheelMultiplier: 1.25 });
+// transition can stop and restart it around a navigation. The lerp sets the
+// glide: at 0.14 a wheel step settles in about a third of a second — a touch
+// smoother than 0.165, still quick enough not to trail the hand.
+const lenis = new Lenis({ lerp: 0.14, wheelMultiplier: 1.25 });
 lenis.on("scroll", ScrollTrigger.update);
 gsap.ticker.add(time => lenis.raf(time * 1000));
 gsap.ticker.lagSmoothing(0);
@@ -85,34 +89,17 @@ function runReveal(next) {
   return runPageEnterAnimation(next);
 }
 
-// First-load logo reveal. The full-opacity logo is wiped in over a low-opacity
-// copy of itself with a clip-path while the bottom bar fills; the content then
-// fades, the background slides up out of view and the page rises into place
-// behind it with the same motion runPageEnterAnimation uses, so the hand-off
-// reads as the start of the site's normal transition.
+// First-load logo intro: the Logo Stack Loader. The page is set up underneath
+// it from the first frame, so the loader's background clears straight onto
+// the settled page. Nested in this timeline so once() waits for all of it,
+// which keeps Barba from starting a navigation while the intro is playing.
 function runIntro(next) {
-  const loader = document.querySelector("[data-load-wrap]");
   const tl = gsap.timeline();
 
   tl.call(resetPage, [next], 0);
 
-  if (loader && !reducedMotion) {
-    const bar = loader.querySelector("[data-load-progress]");
-
-    tl.add(gsap
-      .timeline({ defaults: { ease: "loader", duration: 0.9 } })
-      .to(bar, { scaleX: 1 })
-      .to(loader.querySelector("[data-load-logo]"), { clipPath: "inset(0% 0% 0% 0%)" }, "<")
-      .to(loader.querySelector("[data-load-container]"), { autoAlpha: 0, duration: 0.2 })
-      .to(bar, { scaleX: 0, transformOrigin: "right center", duration: 0.2 }, "<")
-      .add("hideContent", "<")
-      .to(loader.querySelector("[data-load-bg]"), { yPercent: -101, duration: 0.4 }, "hideContent")
-      // Out of the pointer's way as soon as it is off screen, rather than
-      // at the end of the page's rise.
-      .set(loader, { display: "none" })
-      // The same rise the destination page makes on an internal navigation.
-      .from(next, { y: "15vh", duration: 1, ease: "osmo" }, "hideContent"), 0);
-  }
+  const loader = initLogoStackLoader();
+  if (loader) tl.add(loader, 0);
 
   // Once it has played, the loader leaves the document for good. It sits
   // outside the Barba container, so anything that touched its styles later —
@@ -125,7 +112,7 @@ function runIntro(next) {
 // Tweens are killed first so nothing still queued can write style back onto a
 // detached node.
 function removeLoader() {
-  const loader = document.querySelector("[data-load-wrap]");
+  const loader = document.querySelector("[data-logo-loader-init]");
   if (!loader) return;
 
   gsap.killTweensOf([loader, ...loader.querySelectorAll("*")]);
@@ -293,14 +280,17 @@ function resetPage(container) {
 const PAGE_COMPONENTS = [
   ["[data-slider]", initInsightSlider],
   ["[data-approach-slides-init]", initApproachSlides],
+  ["[data-approach-stack]", initApproachStack],
   ["[data-problem-grid-init]", initProblemGrid],
   ["[data-testimonial-wrap]", initLineRevealTestimonials],
   ["[data-shutter-scroll-transition]", initShutterScrollTransition],
   ["[data-accordion-init]", initAccordions],
   ["[data-dots-canvas-init]", initInteractiveDotsGrid],
+  ["[data-slash-field]", initSlashField],
   ["[data-filter-group]", initFilterGroups],
   ["[data-footer-parallax]", initFooterParallax],
-  ["[data-marquee-scroll-direction-target]", initMarquee],
+  ["[data-wavy-marquee-init]", initLogoMarquee],
+  [".nav-link", initNavLinks],
 ];
 
 function initPage(container) {
@@ -321,7 +311,8 @@ function initPage(container) {
 // Page-scoped teardown. Anything a page-level init leaves behind that would
 // outlive the DOM it was built from — GSAP tweens, ScrollTriggers, listeners
 // on window/document, timers, observers — registers an undo here, and it is
-// run against the outgoing page in beforeLeave, before the next page inits.
+// run against the outgoing page in afterLeave, once the panel covers it and
+// before the next page inits.
 let pageCleanups = [];
 
 function registerPageCleanup(fn) {
@@ -369,25 +360,34 @@ barba.hooks.beforeEnter(data => {
   ScrollTrigger.refresh();
 });
 
-// Safety net for anything the page cleanups missed. Only triggers whose
+// The outgoing page is torn down only once the panel has covered it — leave()
+// has resolved and removed the container — and still before beforeEnter, so
+// it is gone before the incoming page builds anything of its own. Teardown
+// is not invisible: killing a pin drops its spacer, a revert puts split text
+// and the shutter's rows back, the slider's cards return to the start. Run on
+// the click, it all landed a frame before the wipe, as a jump in the page.
+//
+// Then the safety net for anything the cleanups missed. Only triggers whose
 // element has left the document are stale — never a blanket kill, which would
 // take the incoming page's triggers with it the moment anything (a slow fetch,
 // a future sync transition) puts beforeEnter ahead of this hook.
 barba.hooks.afterLeave(() => {
+  runPageCleanups();
+
   ScrollTrigger.getAll().forEach(trigger => {
     const el = trigger.trigger || trigger.vars.trigger;
     if (!el || !document.contains(el)) trigger.kill();
   });
 });
 
-// Hold the document height for the length of the transition. Without it the
-// page briefly has no in-flow content — the outgoing container is removed and
-// the incoming one is position:fixed — so the scrollbar drops out and returns,
-// shifting the layout by its width twice.
+// The transition takes the page over as it is, the moment a link is clicked:
+// the smooth scroll stops where it is rather than gliding on under the wipe,
+// and the document height is held for the length of the transition. Without
+// the hold the page briefly has no in-flow content — the outgoing container
+// is removed and the incoming one is position:fixed — so the scrollbar drops
+// out and returns, shifting the layout by its width twice.
 barba.hooks.beforeLeave(() => {
-  // Runs before beforeEnter, so the outgoing page is torn down before the
-  // incoming one builds anything of its own.
-  runPageCleanups();
+  lenis.stop();
 
   const height = Math.max(
     document.body.scrollHeight,
@@ -431,7 +431,9 @@ barba.hooks.afterOnce(replayHeldHistoryStep);
 // container, so they survive every navigation and are wired up once per
 // document load.
 initMegaNav();
-initAnimatedGrid();
+initNavReveal();
+initColumnGrid();
+initNavLinks(document.querySelector("[data-menu-wrap]"));
 // The width measurement waits on the webfont so the label is not measured
 // against the fallback face.
 document.fonts.ready.then(initContactButton);
@@ -473,9 +475,11 @@ barba.init({
 // COMPONENTS
 // -----------------------------------------
 
-function initMarquee(container) {
-  initMarqueeScrollDirection(container);
-  registerPageCleanup(destroyMarqueeScrollDirection);
+function initLogoMarquee(container) {
+  container.querySelectorAll("[data-wavy-marquee-init]").forEach((el) => {
+    const marquee = initWavyMarquee(el);
+    if (marquee) registerPageCleanup(marquee.destroy);
+  });
 }
 
 /* ============================================================
@@ -1273,6 +1277,100 @@ function initMegaNav() {
 }
 
 /* ============================================================
+   Nav reveal — the bar steps out of the way on the way down
+   ============================================================
+   Scrolling down, the nav slides up out of view; the moment the
+   page moves back up, it slides back in. It is always there within
+   its own height of the top of the page, while a menu or dropdown
+   is open, whenever focus is inside it, and on every new page.
+
+   Read off window scroll, which Lenis drives for the wheel and a
+   trackpad and the browser does natively for touch, so all three
+   behave the same. A few pixels of travel in one direction count
+   before it turns, so a jittery trackpad or a scroll bouncing off
+   the end of the page never flickers it. The slide is a GSAP tween
+   of the nav's own y; once it is back, the transform is cleared,
+   because a transformed nav would become the containing block for
+   the fixed drawer and backdrop inside it.
+   ============================================================ */
+function initNavReveal() {
+  const nav = document.querySelector("[data-menu-wrap]");
+  if (!nav) return;
+
+  const TRAVEL = 6;
+  let hidden = false;
+  let lastY = window.scrollY;
+  let travel = 0;
+
+  const duration = () => (reducedMotionQuery.matches ? 0 : 0.45);
+
+  // How far up it goes: its own height, rounded up to whole device pixels.
+  // The bar's height is fluid (4.3em on the scaling system's size), so it is
+  // rarely a whole number of device pixels — 68.79px is 103.19 of them at
+  // 1.5x. Moved up by exactly that, its last, partly covered row of pixels
+  // ends on the screen's top edge, and once the compositor snaps the layer
+  // to the pixel grid that row shows as a sliver of the bar. Rounding the
+  // distance up to the next whole device pixel takes that row with it.
+  const outOfView = () => {
+    const dpr = window.devicePixelRatio || 1;
+    return -Math.ceil(nav.getBoundingClientRect().height * dpr) / dpr;
+  };
+
+  function show(immediate) {
+    if (!hidden && !immediate) return;
+    hidden = false;
+    gsap.to(nav, {
+      y: 0,
+      duration: immediate ? 0 : duration(),
+      ease: "power3.out",
+      overwrite: true,
+      onComplete: () => gsap.set(nav, { clearProps: "transform" }),
+    });
+  }
+
+  function hide() {
+    if (hidden) return;
+    // nothing that is open, or being used, goes out of view
+    if (nav.getAttribute("data-menu-open") === "true" || nav.contains(document.activeElement)) return;
+    hidden = true;
+    gsap.to(nav, { y: outOfView(), duration: duration(), ease: "power3.out", overwrite: true });
+  }
+
+  // the bar's height and the pixel ratio both change with the window (and
+  // with the browser's zoom), so a hidden bar is put back out of view
+  window.addEventListener("resize", () => {
+    if (hidden) gsap.set(nav, { y: outOfView(), overwrite: true });
+  });
+
+  function onScroll() {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    // overscroll at either end of the page is not a change of direction
+    const y = Math.min(Math.max(window.scrollY, 0), Math.max(max, 0));
+    const dy = y - lastY;
+    lastY = y;
+
+    if (y <= nav.offsetHeight) {
+      travel = 0;
+      show();
+      return;
+    }
+    if (!dy) return;
+    travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy;
+    if (travel > TRAVEL) hide();
+    else if (travel < -TRAVEL) show();
+  }
+
+  window.addEventListener("scroll", onScroll, { passive: true });
+  nav.addEventListener("focusin", () => show());
+  // a new page always opens with the nav in place
+  barba.hooks.beforeEnter(() => {
+    lastY = 0;
+    travel = 0;
+    show(true);
+  });
+}
+
+/* ============================================================
    Contact button — the nav's block-swap button. Each label is
    measured so the two halves can trade widths on hover; the CSS
    reads the measurement back from --contact-button-width.
@@ -1296,8 +1394,107 @@ function initContactButton() {
 }
 
 /* ============================================================
+   Sliding-box links — the nav's and the footer's links
+   ============================================================
+   nav-link.css slides the block in from below and out the same way.
+   For a mouse, this makes it follow the pointer: in through the edge
+   it came in by, out through the edge it leaves by, judged against
+   the link's vertical midpoint. As supplied, the move is set inline —
+   the transition taken off, the block put at the entry edge, a
+   reflow, the transition back, and the block brought to rest — and
+   once the block is out it is handed back to the stylesheet, so a
+   link that takes keyboard focus shows its block at once. A link
+   already showing its block for keyboard focus is left as it is. Only
+   hover and focus ever show it: the link to the page being viewed
+   rests like any other. On touch there is no hover to follow, and the
+   stylesheet's states are all there is.
+
+   The nav's links are bound once, since the nav outlives every page,
+   and the footer's with each page through the registry; a link is
+   never bound twice. Their listeners live on the links themselves, so
+   they leave with the footer.
+   ============================================================ */
+function initNavLinks(root) {
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  const out = {
+    top: "translateY(calc(-100% - 1px))",
+    bottom: "translateY(calc(100% + 1px))",
+  };
+
+  root.querySelectorAll(".nav-link").forEach((link) => {
+    const bg = link.querySelector(".nav-link__bg");
+    if (!bg || link.navLinkBound) return;
+    link.navLinkBound = true;
+
+    let leaving = 0;
+    const edge = (event) => {
+      const box = link.getBoundingClientRect();
+      return event.clientY < box.top + box.height / 2 ? "top" : "bottom";
+    };
+    const held = () => link.matches(":focus-visible");
+    // back to the stylesheet's own state, without a move
+    const handBack = () => {
+      clearTimeout(leaving);
+      leaving = 0;
+      bg.style.transition = "none";
+      bg.style.transform = "";
+      void bg.offsetWidth;
+      bg.style.transition = "";
+    };
+
+    link.addEventListener("mouseenter", (event) => {
+      if (!finePointer.matches) return;
+      if (held()) return handBack();
+      if (leaving) {
+        // caught on its way out: it turns round from where it is
+        clearTimeout(leaving);
+        leaving = 0;
+      } else {
+        bg.style.transition = "none";
+        bg.style.transform = out[edge(event)];
+        void bg.offsetWidth;
+        bg.style.transition = "";
+      }
+      bg.style.transform = "translateY(0)";
+    });
+
+    link.addEventListener("mouseleave", (event) => {
+      if (!finePointer.matches) return;
+      if (held()) return handBack();
+      bg.style.transform = out[edge(event)];
+      clearTimeout(leaving);
+      leaving = setTimeout(handBack, 650);
+    });
+
+    // keyboard focus brings the block in from wherever it is
+    link.addEventListener("focus", () => {
+      clearTimeout(leaving);
+      leaving = 0;
+      bg.style.transform = "";
+    });
+  });
+}
+
+/* ============================================================
+   Approach stack — the homepage's steps (approach-stack.js)
+   ============================================================
+   Mounted per page from the registry and torn down with it, like
+   the Slash Field. Lenis is handed in for the rail's velocity
+   trail, which reads its speed.
+   ============================================================ */
+function initApproachStack(container) {
+  container.querySelectorAll("[data-approach-stack]").forEach((el) => {
+    const stack = mountApproachStack(el, { lenis });
+    registerPageCleanup(() => stack.destroy());
+  });
+}
+
+/* ============================================================
    Approach slides — each step pinned, tipped back and faded
    ============================================================
+   The homepage's original approach cards, kept on the Tech Firms
+   page since the homepage moved to the approach stack above.
+
    The reference effect is kept as shipped: the slide's wrapper is
    pinned for one viewport while the card inside it rotates back on
    X, twists a few degrees on Z and shrinks, then a second scrubbed
@@ -1306,7 +1503,7 @@ function initContactButton() {
 
      - it is queried against the Barba container, not document, and
        is called from the page registry instead of DOMContentLoaded,
-       so it rebinds on every navigation to the homepage;
+       so it rebinds on every navigation to the page;
      - its ScrollTriggers are killed through registerPageCleanup,
        which is what unpins the wrappers when the container goes;
      - Lenis and ScrollTrigger are already wired up by the page
@@ -1710,8 +1907,8 @@ function initLineRevealTestimonials(container) {
        so it rebinds on every navigation;
      - the trigger is the nearest [data-shutter-scroll-section] when
        there is one, falling back to the reference's closest section.
-       Here the shutter belongs to one step of the approach stack,
-       not to the whole section it sits in;
+       Here the shutter belongs to the last of the approach slides
+       (Tech Firms), not to the whole section it sits in;
      - the matchMedia context is reverted through registerPageCleanup,
        which tears the rows and their triggers down with it, and GSAP
        and ScrollTrigger are the ones the page has already loaded.
@@ -1949,6 +2146,28 @@ function initAccordions(container) {
     });
   });
 }
+
+/* ============================================================
+   Slash field — the homepage hero's pattern (slash-field.js)
+   ============================================================
+   Mounted per page, like everything in the registry, and torn
+   down with it. The page registry runs while the transition panel
+   still covers the viewport and the container is mid-flight, so,
+   as with the dots grid below, one more layout is taken on the far
+   side of the next paint, once the hero has its settled size.
+   ============================================================ */
+function initSlashField(container) {
+  container.querySelectorAll("[data-slash-field]").forEach((el) => {
+    const field = mountSlashField(el);
+    const settle = requestAnimationFrame(() => requestAnimationFrame(() => field.refresh()));
+    registerPageCleanup(() => {
+      cancelAnimationFrame(settle);
+      field.destroy();
+    });
+  });
+}
+
+
 
 /* ============================================================
    Interactive dots grid — canvas background behind the hero

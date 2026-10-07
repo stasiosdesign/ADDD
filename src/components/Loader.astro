@@ -1,39 +1,28 @@
 ---
 /*
-  First-load logo intro (runIntro() in src/scripts/site.js). Purely visual,
-  so it is hidden from assistive tech. It leaves the document once it has
-  played, and is never painted on a "reveal" arrival.
+  First-load logo intro: the Logo Stack Loader (src/scripts/logo-stack-loader.js,
+  started by runIntro() in src/scripts/site.js). The script builds the stack
+  by copying the logo behind itself, so the ADDD mark is the only one placed
+  here. Purely visual, so hidden from assistive tech. It leaves the document
+  once it has played, and is never painted on a "reveal" arrival.
 */
 ---
-<div data-load-wrap class="loader" aria-hidden="true">
-  <div data-load-bg class="loader__bg">
-    <div class="dots-grid"></div>
-    <div data-load-progress class="loader__bg-bar"></div>
-  </div>
-  <div data-load-container class="loader__container">
-    <div class="loader__logo-wrap">
-      <div class="loader__logo-item is--base">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="loader__logo-img">
-          <circle cx="51" cy="50.3" r="40.2" fill="#C40000"/>
-          <g fill="#FFFFFF">
-            <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>
-            <polygon points="34.7,42.7 49.7,50.7 34.7,58.7"/>
-            <polygon points="50.7,42.7 66.4,50.7 50.7,58.7"/>
-            <polygon points="66.8,42.7 82.4,50.7 66.8,58.7"/>
-          </g>
-        </svg>
-      </div>
-      <div data-load-logo class="loader__logo-item is--top">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="loader__logo-img">
-          <circle cx="51" cy="50.3" r="40.2" fill="#C40000"/>
-          <g fill="#FFFFFF">
-            <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>
-            <polygon points="34.7,42.7 49.7,50.7 34.7,58.7"/>
-            <polygon points="50.7,42.7 66.4,50.7 50.7,58.7"/>
-            <polygon points="66.8,42.7 82.4,50.7 66.8,58.7"/>
-          </g>
-        </svg>
-      </div>
+<div data-logo-loader-init aria-hidden="true" class="logo-loader">
+  <div data-logo-loader-bg class="logo-loader__bg"></div>
+  <div data-logo-loader-stack data-logo-loader-reset class="logo-loader__stack">
+    <div data-logo-loader-logo class="logo-loader__logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" class="logo-loader__logo-svg">
+        <circle cx="51" cy="50.3" r="40.2" fill="#C40000"/>
+        <g fill="#FFFFFF">
+          <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>
+          <polygon points="34.7,42.7 49.7,50.7 34.7,58.7"/>
+          <polygon points="50.7,42.7 66.4,50.7 50.7,58.7"/>
+          <polygon points="66.8,42.7 82.4,50.7 66.8,58.7"/>
+        </g>
+      </svg>
     </div>
+  </div>
+  <div data-logo-loader-track class="logo-loader__track">
+    <div data-logo-loader-bar class="logo-loader__bar"></div>
   </div>
 </div>

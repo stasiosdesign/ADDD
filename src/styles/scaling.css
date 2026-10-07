@@ -1,0 +1,56 @@
+/* ============================================================
+   Scaling System by Osmo — the site's sizing unit
+   ------------------------------------------------------------
+   The supplied system, as supplied, below. --size-font is the
+   design's 16px body size, scaled with the viewport: it is exactly
+   16px at each range's ideal width (1440, 834, 550 and 390), and
+   grows and shrinks in proportion between that range's min and max.
+
+   It is applied as the documentation says, as the font-size of the
+   <body> (styles.css). The root takes the same value, so rem is that
+   unit as well: a size written as px / 16 in rem is the design's px
+   at the ideal width, and scales with the page from there without
+   compounding through nested font-sizes the way em does. The Osmo
+   components already written in em (the nav, the loader) scale from
+   the body's size, which is the same value.
+   ============================================================ */
+html { font-size: var(--size-font); }
+
+/* ------------------------- Scaling System by Osmo [https://osmo.supply/] -------------------------  */
+
+/* Desktop */
+:root {
+  --size-unit: 16; /* body font-size in design - no px */
+  --size-container-ideal: 1440; /* screen-size in design - no px */
+  --size-container-min: 992px;
+  --size-container-max: 1920px;
+  --size-container: clamp(var(--size-container-min), 100vw, var(--size-container-max));
+  --size-font: calc(var(--size-container) / (var(--size-container-ideal) / var(--size-unit)));
+}
+
+/* Tablet */
+@media screen and (max-width: 991px) {
+  :root {
+    --size-container-ideal: 834; /* screen-size in design - no px */
+    --size-container-min: 768px;
+    --size-container-max: 991px;
+  }
+}
+
+/* Mobile Landscape */
+@media screen and (max-width: 767px) {
+  :root {
+    --size-container-ideal: 550; /* screen-size in design - no px */
+    --size-container-min: 480px;
+    --size-container-max: 767px;
+  }
+}
+
+/* Mobile Portrait */
+@media screen and (max-width: 479px) {
+  :root {
+    --size-container-ideal: 390; /* screen-size in design - no px */
+    --size-container-min: 320px;
+    --size-container-max: 479px;
+  }
+}

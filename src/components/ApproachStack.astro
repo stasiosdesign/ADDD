@@ -1,0 +1,203 @@
+---
+/*
+  The homepage's approach section: "Fix the system, not the symptoms", then
+  the three steps as a scroll-driven stack. Built on the supplied Scroll-driven
+  Stack Timeline spec (after the stack section on sui.io), adapted to three
+  cards and to the site: the steps zig-zag either side of a centre rail, and a
+  short window of the rail's dotted line rides at the middle of the viewport
+  with a cube in it, passing each card in turn. Every card is open, with its
+  step drawn as a small live schematic that draws in as the card comes into
+  view.
+
+  Styles: src/styles/approach-stack.css. Behaviour: src/scripts/
+  approach-stack.js, mounted by the page registry in src/scripts/site.js.
+  Without the script the schematics show their static drawing.
+
+  The steps are data, so the copy, the layout and the script all read the
+  same list. Each step's schematic is drawn in a 400 × 256 viewBox:
+
+    - map    Understand: the route work actually takes past the tools and
+             the information, against the straight line it is meant to;
+    - trace  Diagnose: the eight areas the copy names around a shared
+             cause, a few symptoms at a time traced back into it;
+    - rank   Prioritise: findings ranked by impact, each with an owner,
+             re-sorting as the picture changes, the first in red.
+*/
+
+const steps = [
+  {
+    n: "01",
+    title: "Understand",
+    text: "Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.",
+    schematic: "map",
+  },
+  {
+    n: "02",
+    title: "Diagnose",
+    text: "Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.",
+    schematic: "trace",
+  },
+  {
+    n: "03",
+    title: "Prioritise",
+    text: "Turn what we find into clear priorities: what should change first, who should own it and where investment will have the most impact.",
+    schematic: "rank",
+  },
+];
+
+// Understand. "at" is how far along the actual route each node sits (its
+// share of the path's length), so the signal can light it as it passes.
+const map = {
+  intended: "M32 128H368",
+  actual: "M32 128H88V56H184V200H280V88H336V128H368",
+  nodes: [
+    { x: 32, y: 128, at: 0, label: "Work", lx: 27, ly: 152, anchor: "start" },
+    { x: 136, y: 56, at: 0.25, label: "Tools", lx: 136, ly: 40, anchor: "middle" },
+    { x: 232, y: 200, at: 0.591, label: "Information", lx: 232, ly: 226, anchor: "middle" },
+    { x: 368, y: 128, at: 1, label: "Decisions", lx: 373, ly: 152, anchor: "end" },
+  ],
+  routes: [
+    { text: "Intended", x: 232, y: 120, kind: "ghost" },
+    { text: "Actual", x: 308, y: 79, kind: "actual" },
+  ],
+};
+
+// Diagnose: the eight areas on a ring around the cause, each with the trace
+// that runs from it into the centre.
+const trace = {
+  areas: [
+    { x: 200, y: 44, label: "Workflows", lx: 200, ly: 30, anchor: "middle", d: "M200 44V120" },
+    { x: 285, y: 69, label: "BIM", lx: 297, ly: 73, anchor: "start", d: "M285 69V128H208" },
+    { x: 320, y: 128, label: "Software", lx: 332, ly: 132, anchor: "start", d: "M320 128H208" },
+    { x: 285, y: 187, label: "Costs", lx: 297, ly: 191, anchor: "start", d: "M285 187V128H208" },
+    { x: 200, y: 212, label: "Infrastructure", lx: 200, ly: 236, anchor: "middle", d: "M200 212V136" },
+    { x: 115, y: 187, label: "Data", lx: 103, ly: 191, anchor: "end", d: "M115 187V128H192" },
+    { x: 80, y: 128, label: "AI", lx: 68, ly: 132, anchor: "end", d: "M80 128H192" },
+    { x: 115, y: 69, label: "Roles", lx: 103, ly: 73, anchor: "end", d: "M115 69V128H192" },
+  ],
+};
+
+// Prioritise: four findings, each with its owner, in four ranked slots. The
+// bars' widths here are the ranked picture the card shows without its script;
+// the script runs its own figures.
+const rank = {
+  slots: [80, 124, 168, 212],
+  owners: ["Principals", "BIM lead", "Studio", "IT"],
+  rest: [209, 172, 136, 84],
+};
+---
+<section class="approach-stack" id="approach" data-approach-stack>
+  <div class="approach-stack__intro">
+    <h2 class="approach-stack__h">Fix the system, not the symptoms</h2>
+    <div class="approach-stack__lede">
+      <p class="text-md">Technology problems rarely exist in isolation. ADDD looks across the practice to understand what is connected, what is causing friction, and what should change first.</p>
+      <p class="tagline tagline--sm">The ADDD approach</p>
+    </div>
+  </div>
+
+  <div class="approach-stack__grid">
+    <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
+      <div class="approach-stack__window" data-approach-stack-window>
+        <span class="approach-stack__dots" data-approach-stack-dots></span>
+        <span class="approach-stack__trail is--top" data-approach-stack-trail="top"></span>
+        <span class="approach-stack__cube"></span>
+        <span class="approach-stack__trail is--bottom" data-approach-stack-trail="bottom"></span>
+      </div>
+    </div>
+
+    <ol class="approach-stack__list" role="list" style={`--steps:${steps.length}`}>
+      {steps.map((step, i) => (
+        <li class={`approach-stack__slot ${i % 2 ? "is--right" : "is--left"}`} style={`--step:${i + 1}`} data-approach-stack-slot>
+          <article class="step-card" data-step-card>
+            <header class="step-card__head">
+              <span class="step-card__badge">{step.n}</span>
+              <h3 class="step-card__title">{step.title}</h3>
+            </header>
+
+            <div class="step-card__panel">
+              <div class="step-card__media">
+                {step.schematic === "map" && (
+                  <svg class="schematic" data-schematic="map" viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                    <defs>
+                      <pattern id={`schematic-dots-${i}`} width="16" height="16" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="1.5" height="1.5" /></pattern>
+                    </defs>
+                    <rect class="schematic__grid" data-s="grid" width="400" height="256" fill={`url(#schematic-dots-${i})`} />
+                    <path class="schematic__line is--ghost" data-s="intended" d={map.intended} />
+                    <path class="schematic__line" data-s="actual" d={map.actual} pathLength="1" />
+                    <path class="schematic__pulse is--ghost" data-s="intended-pulse" d={map.intended} pathLength="1" />
+                    <path class="schematic__pulse" data-s="actual-pulse" d={map.actual} pathLength="1" />
+                    {map.routes.map((r) => (
+                      <text class={`schematic__label is--route is--${r.kind}`} data-s="route" x={r.x} y={r.y} text-anchor="middle">{r.text}</text>
+                    ))}
+                    {map.nodes.map((node) => (
+                      <g data-s="node" data-at={node.at}>
+                        <rect class="schematic__node" x={node.x - 5} y={node.y - 5} width="10" height="10" />
+                        <text class="schematic__label" x={node.lx} y={node.ly} text-anchor={node.anchor}>{node.label}</text>
+                      </g>
+                    ))}
+                  </svg>
+                )}
+
+                {step.schematic === "trace" && (
+                  <svg class="schematic" data-schematic="trace" viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                    <defs>
+                      <pattern id={`schematic-dots-${i}`} width="16" height="16" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="1.5" height="1.5" /></pattern>
+                    </defs>
+                    <rect class="schematic__grid" data-s="grid" width="400" height="256" fill={`url(#schematic-dots-${i})`} />
+                    {trace.areas.map((area) => (
+                      <path class="schematic__line is--guide" data-s="guide" d={area.d} />
+                    ))}
+                    {trace.areas.map((area) => (
+                      <path class="schematic__line is--trace" data-s="trace" d={area.d} pathLength="1" />
+                    ))}
+                    <rect class="schematic__ping" data-s="ping" x="192" y="120" width="16" height="16" />
+                    <rect class="schematic__node is--cause" data-s="cause" x="192" y="120" width="16" height="16" />
+                    <text class="schematic__label is--cause" data-s="cause-label" x="214" y="114">Cause</text>
+                    {trace.areas.map((area) => (
+                      <g data-s="area">
+                        <rect class="schematic__node" x={area.x - 5} y={area.y - 5} width="10" height="10" />
+                        <text class="schematic__label" x={area.lx} y={area.ly} text-anchor={area.anchor}>{area.label}</text>
+                      </g>
+                    ))}
+                  </svg>
+                )}
+
+                {step.schematic === "rank" && (
+                  <svg class="schematic" data-schematic="rank" data-slots={rank.slots.join(",")} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                    <defs>
+                      <pattern id={`schematic-dots-${i}`} width="16" height="16" patternUnits="userSpaceOnUse"><rect x="0" y="0" width="1.5" height="1.5" /></pattern>
+                    </defs>
+                    <rect class="schematic__grid" data-s="grid" width="400" height="256" fill={`url(#schematic-dots-${i})`} />
+                    <g data-s="head">
+                      <text class="schematic__label" x="20" y="36">Rank</text>
+                      <text class="schematic__label" x="64" y="36">Impact</text>
+                      <text class="schematic__label" x="380" y="36" text-anchor="end">Owner</text>
+                      <path class="schematic__line" d="M20 48H380" />
+                    </g>
+                    {rank.slots.map((y, k) => (
+                      <g data-s="slot">
+                        <text class={`schematic__label is--rank${k === 0 ? " is--first" : ""}`} x="20" y={y + 4}>{`0${k + 1}`}</text>
+                        <rect class="schematic__track" x="64" y={y - 4} width="220" height="8" />
+                      </g>
+                    ))}
+                    {rank.owners.map((owner, k) => (
+                      <g data-s="row" transform={`translate(0 ${rank.slots[k]})`}>
+                        <rect class={`schematic__bar${k === 0 ? " is--first" : ""}`} data-s="bar" x="64" y="-4" width={rank.rest[k]} height="8" />
+                        <text class="schematic__label" x="380" y="4" text-anchor="end">{owner}</text>
+                      </g>
+                    ))}
+                  </svg>
+                )}
+              </div>
+            </div>
+
+            <div class="step-card__foot">
+              <span class="step-card__elbow" aria-hidden="true"></span>
+              <p class="step-card__p">{step.text}</p>
+            </div>
+          </article>
+        </li>
+      ))}
+    </ol>
+  </div>
+</section>

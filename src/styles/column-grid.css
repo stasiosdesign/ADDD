@@ -1,0 +1,96 @@
+/* ============================================================
+   12-Column Grid — the layout reference (Shift + G)
+   ------------------------------------------------------------
+   The system is the 12-Column Grid; each column is a Grid Column,
+   1 to 12 from the left ([data-grid-column="1"] … ="12"). Its
+   geometry lives in the --grid-* tokens below, so anything that has
+   to line up with a Grid Column is set from the same numbers as the
+   overlay draws. From 992px up, across the full width of the
+   viewport:
+
+     one Grid Column  = (100% - 2 × --grid-margin - 11 × --grid-gutter) / 12
+     Grid Column N    starts at --grid-margin + (N - 1) × (column + --grid-gutter)
+     Grid Column 6    ends at 50% - --grid-gutter / 2
+
+   Two references, then. The margin is the outer gutter, twice the
+   edge: Grid Column 1 starts there and Grid Column 12 ends there, and
+   it is the line text and normal content align to. The edge is where
+   the columns used to start and end before the margin was widened,
+   kept as a single line either side on the overlay: the reference for
+   a full-bleed part (a row of cards, an image, a band) that runs out
+   past the text on purpose. Nothing has to use the edge; a part that
+   should line up with the content stays on the columns.
+
+   Every size is in rem, so it is the design's px at the scaling
+   system's ideal width and scales with the page (scaling.css). Below
+   992px the overlay draws 6 columns, and below 768px 4, on the same
+   tokens. The overlay itself is a fixed, inert layer: it never takes
+   space or changes the page under it.
+   ============================================================ */
+:root {
+  --grid-columns: 12;
+  --grid-edge: 1rem;
+  --grid-margin: calc(2 * var(--grid-edge));
+  --grid-gutter: 1.125rem;
+}
+@media (max-width: 991px) {
+  :root { --grid-columns: 6; }
+}
+@media (max-width: 767px) {
+  :root { --grid-columns: 4; --grid-edge: 0.75rem; --grid-gutter: 0.75rem; }
+}
+
+.column-grid {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  padding-inline: var(--grid-margin);
+  pointer-events: none;
+}
+.column-grid__container { height: 100%; max-width: none; }
+.column-grid__row {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  gap: var(--grid-gutter);
+  height: 100%;
+  overflow: clip;
+}
+.column-grid__column {
+  height: 100%;
+  min-height: 100%;
+  /* The number sits just under the nav bar, clear of its links. */
+  padding-top: calc(var(--nav-h) + 1.5em);
+  /* #d9d9d9 at 20%, as a fill rather than the element's opacity, so
+     the number on the column keeps its own. */
+  background: rgba(217, 217, 217, 0.2);
+  text-align: center;
+}
+/* The edge lines: one hairline each side, --grid-edge in from the
+   viewport, in the labels' mid-grey so they read on light pages and
+   dark ones alike. */
+.column-grid__edge {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #8c8c8c;
+}
+.column-grid__edge.is--left { left: var(--grid-edge); }
+.column-grid__edge.is--right { right: var(--grid-edge); }
+/* Mid-grey, so it reads on the light pages and the dark ones alike. */
+.column-grid__label {
+  display: block;
+  color: #8c8c8c;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  line-height: 1;
+  letter-spacing: var(--label-tracking);
+}
+@media (max-width: 991px) {
+  .column-grid__column:nth-child(n + 7) { display: none; }
+}
+@media (max-width: 767px) {
+  .column-grid__column:nth-child(n + 5) { display: none; }
+}

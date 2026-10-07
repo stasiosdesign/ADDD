@@ -1,70 +1,81 @@
 /* ============================================================
-   First-load logo intro — sits above the page-name wipe so it
-   covers the whole viewport on the initial paint.
+   First-load logo intro — the Logo Stack Loader, as supplied,
+   on black, with the site's white. It sits above the page-name
+   wipe (200) and the nav (100) so it covers the whole viewport on
+   the initial paint; at the supplied z-index of 100 the nav,
+   later in the document, would paint over it.
    ============================================================ */
-.loader {
-  z-index: 300;
-  width: 100%;
-  height: 100dvh;
+.logo-loader {
+  /* The logo's size against the supplied one. The stack takes it as its
+     font-size, which also sets how far apart the script spaces the
+     copies (in the stack's em), and the perspective scales with it, so
+     the whole animation plays exactly as supplied, only smaller. */
+  --logo-loader-scale: .5;
   position: fixed;
-  inset: 0 0 auto;
-  overflow: clip;
+  inset: 0%;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-white);
+  perspective: calc(40em * var(--logo-loader-scale));
 }
 
 /* Any later document load in the session arrives as a "reveal" (see
    ARRIVAL in site.js), and never paints the intro at all. */
-[data-arrival="reveal"] .loader { display: none; }
+[data-arrival="reveal"] .logo-loader { display: none; }
 
-.loader__bg {
-  background-color: var(--c-dark-fg);
-  width: 100%;
-  height: 100%;
+/* Hidden until the timeline's first step shows it, so nothing flashes
+   before GSAP starts. */
+[data-logo-loader-reset] { opacity: 0; }
+
+.logo-loader__bg {
   position: absolute;
-  inset: 0;
+  inset: 0%;
+  z-index: 0;
+  background-color: #000;
+  transform-origin: 50% 0%;
 }
 
-.loader__bg-bar {
+.logo-loader__stack {
+  position: relative;
   z-index: 1;
-  transform-origin: 0% 50%;
-  background-color: var(--c-red);
-  width: 100%;
-  height: 4px;
-  position: absolute;
-  inset: auto 0 0;
-  transform: scaleX(0);
+  display: grid;
+  font-size: calc(1em * var(--logo-loader-scale));
+  width: 12em;
+  transform-style: preserve-3d;
 }
 
-.loader__container {
-  z-index: 2;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  position: relative;
+.logo-loader__logo {
+  grid-column: 1;
+  grid-row: 1;
 }
 
-.loader__logo-wrap {
-  width: 104px;
-  height: 104px;
-  position: relative;
-}
-
-.loader__logo-item {
-  width: 100%;
-  position: absolute;
-  inset: 0;
-}
-
-.loader__logo-item.is--base { opacity: 0.2; }
-
-.loader__logo-item.is--top { clip-path: inset(0% 100% 0% 0%); }
-
-.loader__logo-img {
-  width: 100%;
+.logo-loader__logo-svg {
   display: block;
+  width: 100%;
+  height: auto;
 }
 
-@media (max-width: 991px) {
-  .loader__logo-wrap { width: 76px; height: 76px; }
+.logo-loader__track {
+  position: absolute;
+  bottom: 3.5em;
+  left: 0%;
+  right: 0%;
+  z-index: 1;
+  width: 8em;
+  height: 0.25em;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+  border-radius: 100em;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.logo-loader__bar {
+  position: absolute;
+  inset: 0%;
+  background-color: var(--c-white);
+  transform-origin: 0% 50%;
+  transform: scaleX(0);
 }

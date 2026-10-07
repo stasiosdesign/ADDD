@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ActionButton from "../components/ActionButton.astro";
+import ArrowIcon from "../components/ArrowIcon.astro";
+import Hero from "../components/Hero.astro";
 ---
 <BaseLayout
   title="Tech Firms — ADDD"
@@ -9,22 +10,76 @@ import ActionButton from "../components/ActionButton.astro";
 >
 <main>
 
-  <!-- Holding page: the Tech Firms section is still being written. -->
-  <section class="pg-hero">
-    <div class="container">
-      <div class="pg-hero__grid">
-        <div class="pg-hero__col">
-          <p class="tagline">Tech Firms</p>
-          <h1 class="h2">This page is on its way.</h1>
-        </div>
-        <div class="pg-hero__col">
-          <p class="text-md">We&rsquo;re putting together what ADDD offers technology firms working with architecture practices. In the meantime, get in touch and we&rsquo;ll talk it through.</p>
-          <div class="actions">
-            <ActionButton href="contact.html">Get in touch</ActionButton>
-            <ActionButton href="index.html" variant="secondary">Back home</ActionButton>
+  <Hero arrowHref="#tech-firms-content" arrowLabel="Scroll down the page" />
+
+  <!-- The approach cards that used to open the homepage's approach section
+       (Understand, Diagnose, Prioritise), kept here as they were while the
+       rest of the Tech Firms page is written: each step pinned in turn and
+       tipped away as the next arrives, the last closed over by the shutter
+       (initApproachSlides and initShutterScrollTransition in
+       src/scripts/site.js). -->
+  <section class="approach" id="tech-firms-content">
+    <div data-approach-slides-init class="approach__slides">
+
+      <div class="approach__slide">
+        <div class="approach__slide-wrapper">
+          <div class="approach__card is--ink">
+            <div class="approach__card-top">
+              <h3 class="approach__card-h">Understand</h3>
+              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
+            </div>
+            <div class="approach__card-bottom">
+              <p class="approach__card-p">Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.</p>
+              <div class="approach__card-aside">
+                <p class="approach__card-num">(01)</p>
+                <img src="assets/images/allister-podium-portrait.jpg" loading="lazy" alt="" class="approach__card-image is--crop-left">
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
+      <div class="approach__slide">
+        <div class="approach__slide-wrapper">
+          <div class="approach__card is--dark">
+            <div class="approach__card-top">
+              <h3 class="approach__card-h">Diagnose</h3>
+              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
+            </div>
+            <div class="approach__card-bottom">
+              <p class="approach__card-p">Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.</p>
+              <div class="approach__card-aside">
+                <p class="approach__card-num">(02)</p>
+                <img src="assets/images/allister-gesture-close.jpg" loading="lazy" alt="" class="approach__card-image is--crop-centre">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-shutter-scroll-section class="approach__slide">
+        <div class="approach__slide-wrapper">
+          <div class="approach__card is--grey">
+            <div class="approach__card-top">
+              <h3 class="approach__card-h">Prioritise</h3>
+              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
+            </div>
+            <div class="approach__card-bottom">
+              <p class="approach__card-p">Turn what we find into clear priorities: what should change first, who should own it and where investment will have the most impact.</p>
+              <div class="approach__card-aside">
+                <p class="approach__card-num">(03)</p>
+                <img src="assets/images/allister-gesture-warm.jpg" loading="lazy" alt="" class="approach__card-image is--crop-right">
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Started 40% of a viewport before the step's bottom reaches the
+             fold rather than at it, which buys the rows 40% more scroll to
+             close in. The first of them grow below the fold, which is what
+             gives the move its run-up. -->
+        <div data-shutter-scroll-transition="" data-rows="22" data-rows-tablet="14" data-rows-mobile="10" data-scroll-start="bottom bottom+=40%" class="shutter-scroll-transition"></div>
+      </div>
+
     </div>
   </section>
 

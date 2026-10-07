@@ -1,9 +1,14 @@
+// The 12-Column Grid overlay (src/components/ColumnGrid.astro): Shift + G
+// wipes the Grid Columns in from the left, and again out to the right. The
+// two edge lines ride the same wipe, the left one first and the right one
+// last, in document order.
+
 // The same reduced-motion query site.js reads; MediaQueryList.matches is live.
 const rmMQ = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-export function initAnimatedGrid() {
-  const grid = document.querySelector('[data-animated-grid]');
-  const cols = grid?.querySelectorAll('[data-animated-grid-col]');
+export function initColumnGrid() {
+  const grid = document.querySelector('[data-column-grid]');
+  const cols = grid?.querySelectorAll('[data-grid-column], [data-grid-edge]');
   if (!cols?.length || grid.dataset.gridReady) return;
   grid.dataset.gridReady = 'true';
 

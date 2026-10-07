@@ -40,7 +40,7 @@ are unchanged.
 | `/report-template.html` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
 | `/newsletter.html` | `src/pages/newsletter.astro` — Newsletter index |
 | `/newsletter-template.html` | `src/pages/newsletter-template.astro` — "AI in architecture" |
-| `/tech-firms.html` | `src/pages/tech-firms.astro` — Tech Firms (holding page) |
+| `/tech-firms.html` | `src/pages/tech-firms.astro` — Tech Firms (the homepage hero, then the original approach cards from the homepage — Understand, Diagnose, Prioritise — kept there while the page is written) |
 | `/about.html` | `src/pages/about.astro` |
 | `/contact.html` | `src/pages/contact.astro` |
 
@@ -55,15 +55,17 @@ src/
                              panel, nav, grid overlay, Barba container, footer,
                              stylesheets and scripts
   components/                the shell's parts — Loader, Transition, Nav,
-                             AnimatedGrid, Footer — and the pieces pages share:
-                             ActionButton, ClosingCta, Accordion, InsightCard,
-                             InsightSlider, ArrowIcon
+                             ColumnGrid, Footer — and the pieces pages share:
+                             Hero, ActionButton, ClosingCta, Accordion,
+                             InsightCard, InsightSlider, ArrowIcon, and the
+                             homepage's ApproachStack
   pages/*.astro              one per page — its title, description, Barba page
                              name and <main>; repeated content (cards, FAQs)
                              sits in a data array in the frontmatter
   styles/*.css               the site stylesheets, imported by the layout
   scripts/                   site.js (Barba lifecycle and every interaction),
-                             marquee.js, animated-grid.js
+                             logo-stack-loader.js, wavy-marquee.js,
+                             column-grid.js, slash-field.js, approach-stack.js
 public/assets/               images, logos, icons and logo.svg, served as-is at
                              /assets/…
 astro.config.mjs
@@ -73,10 +75,10 @@ Each page renders as:
 
 ```html
 <body data-barba="wrapper">
-  <div data-load-wrap>…</div>           <!-- the session's logo intro -->
+  <div data-logo-loader-init>…</div>    <!-- the session's logo intro -->
   <div data-transition-wrap>…</div>     <!-- wipe panel, outside the container -->
   <nav class="mega-nav">…</nav>         <!-- persistent, outside the container -->
-  <div data-animated-grid>…</div>       <!-- Shift + G layout overlay -->
+  <div data-column-grid>…</div>         <!-- the 12-Column Grid (Shift + G) -->
   <div data-barba="container" data-page-name="Home">
     <main>…</main>
     <footer>…</footer>                  <!-- inside, so it animates with the page -->
@@ -99,7 +101,31 @@ Classes style, `data-*` attributes are what scripts hook onto, and state is a
 `data-*` value or an `is--*` modifier. Components follow BEM:
 `.block__element`, `.block.is--variant`. Components that started life as
 third-party snippets carry names for what they are here — `.action-button`,
-`.contact-button`, `.accordion`, `.marquee` — rather than the supplier's.
+`.contact-button`, `.accordion` — rather than the supplier's. Osmo's Wavy
+Marquee keeps its own `.wavy-marquee` names and `data-wavy-marquee-*` hooks.
+
+### Sizing — the Osmo scaling system
+
+Every size scales with the viewport through Osmo's scaling system
+(`src/styles/scaling.css`, as supplied, loaded first). It defines
+`--size-font`: the design's 16px body size at each range's ideal width
+(1440 desktop, 834 tablet, 550 a phone on its side, 390 upright), scaled in
+proportion between that range's min and max and held above 1920px. The body
+takes it as its font-size, as the system's documentation applies it, and the
+root takes it too, so sizes are written in `rem` as the design's px / 16:
+`1.5rem` is 24px at the ideal width and scales from there, without
+compounding through nested font-sizes the way `em` does. The Osmo components
+written in `em` (the nav, the loader, the buttons) scale from the body.
+
+- The breakpoints are the system's: 991, 767 and 479px. Each range's values
+  are its design at the ideal width; a narrower desktop needs no sizes of its
+  own, because the system already shrinks the 1440 design for it.
+- Fixed pixels are kept where they are the point: hairlines and borders, the
+  corner radius, shadows, motion offsets, the scrollbar, 44px touch targets,
+  and the hero's patterns (the dots, the Slash Field) and schematic lines,
+  which are drawn on a fixed pitch.
+- Below 992px each range starts at its own ideal, so sizes step at the
+  breakpoints themselves (most visibly from 991 to 992px, and 767 to 768px).
 
 ### Stylesheets and scripts
 
@@ -111,9 +137,11 @@ navigation onto that page.
 
 - The stylesheets are imported in their cascade order and bundled into a single
   hashed file.
-- `site.js` is bundled as a module, importing `marquee.js` and
-  `animated-grid.js`. GSAP, Barba and Lenis stay on the jsDelivr CDN and are
-  loaded as classic scripts ahead of it, so they are globals by the time it runs.
+- `site.js` is bundled as a module, importing `logo-stack-loader.js`,
+  `wavy-marquee.js`, `column-grid.js`, `slash-field.js` and
+  `approach-stack.js`. GSAP (with its plugins, ScrambleTextPlugin among
+  them), Barba and Lenis stay on the jsDelivr CDN and are loaded as classic
+  scripts ahead of it, so they are globals by the time it runs.
   Lenis's small stylesheet is bundled with the site CSS (`src/styles/lenis.css`)
   rather than fetched as a separate render-blocking request; keep it in step
   with the Lenis version.
@@ -134,25 +162,185 @@ navigation onto that page.
   `allister-presenting.jpg` as a `background-image` from `src/styles/media.css`;
   giving a slot its own artwork means overriding `background-image` on that
   selector only.
+- **Email signup** — every form that asks for an email (the newsletter in the
+  Resources dropdown, the footer and the newsletter page, and the report
+  downloads) is the one `.newsletter-form` in `styles.css`: a white field and
+  a red submit block (`.newsletter-form__submit`) inside one ink border, square.
+  The submit drops under the field, full width, where the row is too narrow.
+  The dropdown and the footer only set its height and width.
 - **Logos** — client logos live in `public/assets/logos/`, with `Black/`,
   `White/` and `SVGs/` variants of each practice mark. The ADDD brand mark is
-  `public/assets/logo.svg`.
+  `public/assets/logo.svg`. The homepage strip under the hero runs on Osmo's
+  Wavy Marquee (`src/scripts/wavy-marquee.js`): a seamless loop that scroll
+  speed and dragging push along (the drag through `ScrollTrigger.observe`,
+  ScrollTrigger's built-in Observer), without its wave: the tiles run level,
+  one straight row.
 - **Page transitions** — [Barba](https://barba.js.org/) 2.10.3. A panel wipes up
   over the page, shows the incoming page's name, then continues up to reveal it.
-  The logo intro plays once per browsing session: on the first page the visitor
-  lands on, whichever it is, and again only on a genuine reload. Any other
-  document load in the session — Barba falling back to a full load, a
-  back/forward that misses the bfcache, a typed URL — opens on the wipe's
-  reveal instead. The inline script in `<head>` makes that call before the
+  The logo intro — Osmo's Logo Stack Loader, with the ADDD mark — plays once
+  per browsing session: on the first page the visitor lands on, whichever it
+  is, and again only on a genuine reload. Any other document load in the
+  session — Barba falling back to a full load, a back/forward that misses the
+  bfcache, a typed URL — opens on the wipe's reveal instead, and so does any
+  load that arrives from one of the site's own pages, even in a tab with no
+  record of the intro. The inline script in `<head>` makes that call before the
   first paint and writes it to `<html data-arrival>`; see *ARRIVAL* in
-  `src/scripts/site.js`. A Back or Forward pressed while a transition is still
+  `src/scripts/site.js`. On a click the page is held exactly as it is — the
+  smooth scroll stops and the document height is kept — and the outgoing
+  page's components are torn down only once the panel covers it (`afterLeave`),
+  since killing pins and reverting splits or the slider's cards would
+  otherwise show as a jump before the wipe; the next page is scrolled to the
+  top while still covered. A Back or Forward pressed while a transition is still
   running is held and replayed when it finishes, rather than letting Barba turn
-  it into a full page load. Both honour `prefers-reduced-motion` with an
-  immediate swap.
+  it into a full page load. Both honour `prefers-reduced-motion`: the wipe
+  becomes an immediate swap, and the intro shows the mark without the stack
+  and fades out.
+- **Hero pattern** — the hero's band carries one of two patterns
+  (`src/components/Hero.astro`, `pattern` prop). The homepage has the Slash
+  Field (`src/scripts/slash-field.js`), and no schematic lines: a stable grid
+  of thin `/ | \` canvas strokes running to the band's edges, of which a small
+  cluster by the pointer steps up to a firmer ink and fades back, mounted per
+  page by the registry in `site.js`. Ten technology words (six on a phone,
+  `data-slash-from`) are real text placed in the field at the pattern's own
+  weight: each on its own spot in the band (`data-slash-spot`) and its own
+  row, snapped to the grid, the pattern stopping around it (its cells and one
+  either side left empty) so no stroke runs through the letters. The pattern
+  runs on past the band's edges — the canvas is a couple of cells larger than
+  the band on every side, at the spec's cell size, and the band's overflow
+  crops it, each edge cutting through the strokes part-way — so it carries on
+  behind the band rather than being made to fit it. On its own the field runs
+  as a network of systems coming online, in one continuous chain: each word,
+  partway through coming online, sends a signal on to a neighbour — one of
+  the nearest few, the nearer the likelier, rarely the way it went last time,
+  so the route wanders rather than repeating — routed through the strokes
+  like a trace, along its row, down or up a column and along the next word's
+  row; the next word starts decoding as the signal reaches it
+  (GSAP's ScrambleTextPlugin, set up as in Osmo's Text Scramble — split,
+  scrambled to its own text, reverted). As the signal lands, the word bursts:
+  the strokes framing it flare to a near-black ink, a few holding the red a
+  moment, short traces fly out of it on every side (the one on along its row
+  red-headed, the rest ink), and a ring of light runs out through the strokes
+  around it, reaching further towards the word it hands on to, before
+  everything settles back. The word is held forward (`data-slash-active`) and
+  settles back slowly, and now and then it also pings a second word, which
+  answers with a smaller burst (`data-slash-active="minor"`). The chain takes
+  an occasional short breath, and under it all packets of traffic run from
+  words to their neighbours, so the field is never still. The site's red is only ever the signal and the heart
+  of a burst — the head of a signal, the frame and lead trace as it lands, a
+  word's characters while they decode — with the wider answer in ink, and it
+  always resolves into ink. The words, their order, the routes, the pace and
+  the pauses all vary, and only one word is ever fully coming online.
+  Resting the pointer on a word brings it online the same way, and the chain
+  carries on from it; while the pointer moves in the field the chain stops
+  handing on, picking up again from the last word, and a word under the
+  pointer also comes forward
+  (`data-slash-lit`). The sequence runs only while the band is on screen and
+  the page has arrived, and never under reduced motion. On the homepage the
+  band is 94% of the dotted band's height (`--hero-band-scale`), and sits
+  recessed between the bar and the copy: a close, light shade under the
+  bar's edge and a fainter one along the bottom. The colours and reach are
+  `--slash-*` properties in `styles.css`; the timing of the chain, its
+  hand-offs and choice of neighbour, and the traffic is `SEQUENCE`, the decode's `DECODE`, the burst `BURST`, and
+  the strokes' answer `RIPPLE` and `SCAN`, in the script. Tech Firms keeps
+  the dotted canvas and its lines.
+- **Approach stack** — the homepage's "Fix the system, not the symptoms"
+  section (`src/components/ApproachStack.astro`, `approach-stack.css`,
+  `approach-stack.js`), built on the supplied Scroll-driven Stack Timeline
+  spec and adapted to three steps. On an ink band, the heading starts on Grid
+  Column 2 and the lede on Grid Column 7, dropped one heading line. Below them
+  the steps (data in the component) zig-zag either side of a centre rail from
+  992px — Understand and Prioritise on Grid Columns 2–5, Diagnose on 8–11 —
+  on a ladder of rungs (`--stack-step`, 26rem): each card starts a rung below
+  the last, so the spacing between them is that one value. Only a short window
+  of the rail's dotted line shows, held at the middle of the viewport with a
+  cube in it; the dots are moved against the scroll, so they run past the
+  cube, and a solid trail grows out of the cube with the scroll's speed
+  (Lenis's velocity), behind it either way. Every card is open, its step drawn
+  as a live schematic — the route work actually takes against the intended
+  one, symptoms traced back into a shared cause, findings re-ranking by impact
+  with their owners. Each card rises into place as it comes up the screen, and
+  its schematic draws in the first time the card is in view, then loops while
+  it is on screen. From 768 to 991px the cards are one column (6rem apart)
+  with the rail down Grid Column 1; below 768px they are one column (3.5rem
+  apart) with no rail. Under reduced motion the schematics are still and
+  nothing moves on scroll. The previous approach cards — pinned, tipping
+  slides closed over by the shutter — now live on the Tech Firms page,
+  unchanged.
 - **Smooth scroll** — [Lenis](https://github.com/darkroomengineering/lenis) 1.2.3,
   driven by the GSAP ticker rather than `autoRaf`, so the transition can stop and
   restart it around a navigation.
 - **Navigation** — mega nav with directional hover dropdowns, mobile slide-over
-  panels and an animated burger, built on GSAP 3.15 via CDN.
-- **Layout grid** — Shift + G toggles a 12-column overlay (6 on tablet, 4 on
-  mobile). It always starts hidden.
+  panels and an animated burger, built on GSAP 3.15 via CDN. From 992px the bar
+  is a row of full-height blocks: the logo block (the ADDD triangles on the
+  Contact button's fill, running to the end of Grid Column 1), the Tech Firms
+  feature block "For Tech Firms" (on a near-white grey, running to the end of
+  Grid Column 5, its label at the block's end), the links and Sign in set
+  together on one lighter ground as one compact run across Grid Columns 7–10 —
+  starting where the hero's headline does, each label centred in its own share
+  of the run, the gaps between them even — then the Contact button, from the
+  end of Grid Column 11 to the bar's edge. The logo
+  is the link home; there is no Home item. Every item takes one type treatment,
+  the `--nav-text-*` tokens (the drawer redeclares only the size), and every
+  colour is a `--nav-*` token in `src/styles/nav.css`, redeclared for the dark
+  state. In the drawer, "For Tech Firms" leads the list. The dropdowns are the
+  bar continued downwards and, like it, built from blocks told apart by tone
+  rather than ruled off by lines: the four Services cards are two-tone blocks
+  (the feature block's grey for the band, the group's lighter grey for the
+  wording) on Grid Columns 1–3, 4–6, 7–9 and 10–12, a gutter apart; the three
+  Resources columns are thirds of the grid stepping from the nav's ground to
+  the group's grey to the feature block's, with the latest report as a block
+  of the ground on its grey. Stacked in the drawer, the cards sit a gutter
+  apart and the columns become bands of their tone. Scrolling down, the nav
+  slides up out of view, and comes back the moment the page moves up; it
+  stays while a menu is open or focus is inside it, and every page opens with
+  it in place (`initNavReveal` in `site.js`). It goes up by its height
+  rounded up to whole device pixels: the bar's height is fluid, so moved by
+  exactly that it would leave its last, partly covered row of pixels on the
+  top edge of the screen.
+- **Buttons** — `ActionButton.astro` in two variants, primary (ink) and
+  secondary (quiet grey), and two shapes: the button (the primary with its
+  arrow chip) and, with `block`, a slab in the label face, in capitals, with
+  the site's arrow at its far end. The hero and the closing CTA lead with a
+  pair of blocks — Free Tech Stacks (secondary, light grey) and Work With Us
+  (primary, ink) — in equal shares of the row a gutter apart
+  (`.actions--blocks`): in the hero across Grid Columns 7–11, in the CTA
+  three Grid Columns each. On the dark CTA band the pair inverts, as the nav's
+  Contact does on a dark page: Work With Us white, Free Tech Stacks a quiet
+  lift off the band. Only the primary takes the red sweep on hover.
+- **Links** — the nav's items (For Tech Firms, the two toggles, AEC Jobs,
+  About, Sign in) and the footer's link lists are one sliding-box link
+  (`.nav-link`, `src/styles/nav-link.css`, with `NavLinkLabel.astro` for the
+  inside): on hover a block in the link's ink slides into a small box round
+  the label and the label takes the ground's colour, in through the edge the
+  pointer came in by and out through the edge it leaves by (`initNavLinks` in
+  `site.js`; CSS alone slides it from below). `--fg`/`--bg` set the block
+  and the label on it for each context, so it inverts on the light bar, the
+  dark bar and the footer alike. Each link keeps its own hit area — the bar's
+  items stay full height — and the box gives its padding back in negative
+  margin, so no label moves. Only hover and keyboard focus invert a link —
+  the link to the page being viewed rests like the others — and focus adds a
+  ring.
+  Buttons, cards, the logo and the social marks keep their own hovers.
+- **12-Column Grid** — the layout reference. Shift + G toggles the overlay
+  (`src/components/ColumnGrid.astro`); it always starts hidden and never
+  affects the layout. The columns are **Grid Column 1** to **Grid Column 12**
+  from the left, numbered on the overlay and marked `data-grid-column="1"` …
+  `"12"`, so a position can be named directly ("start at Grid Column 3",
+  "span Grid Columns 4–8"). The geometry is in the `--grid-columns`,
+  `--grid-edge`, `--grid-margin` and `--grid-gutter` tokens in
+  `src/styles/column-grid.css`, which also gives the formula for where any Grid
+  Column starts and ends. The margin, where Grid Column 1 starts and Grid
+  Column 12 ends, is twice the edge: it is the line text and normal content
+  align to. The edge, drawn on the overlay as one line either side, is where the
+  columns used to start and end, kept as the reference for full-bleed parts that
+  run out past the text on purpose. Below 992px the overlay shows 6 columns, and
+  below 768px 4.
+- **Pages on the grid** — a page whose `<main>` has `class="page--grid"` (the
+  homepage, for now) takes its horizontal layout from the 12-Column Grid instead
+  of the 1280px container (`src/styles/page-grid.css`). The page gutter becomes
+  the grid margin, full-width parts hold Grid Columns 1–12 (the routes cards
+  run out to the edge instead, as a full-bleed row), and contained
+  sections lay their container out as the grid itself and sit in Grid Columns
+  2–11, with rows placed by Grid Column number (`grid-column: 7 / 12` is Grid
+  Columns 7–11). Intro headings start on Grid Column 7, except the approach
+  stack's, which opens on the left on Grid Column 2.

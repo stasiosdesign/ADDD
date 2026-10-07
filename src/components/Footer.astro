@@ -10,7 +10,12 @@
   the newsletter takes the left half, the link groups the right, and the
   brand, copyright, legal links and social marks sit on the same columns
   along the foot.
+
+  The link groups and the legal links are the site's sliding-box links
+  (.nav-link, NavLinkLabel.astro), as in the nav; the brand and the social
+  marks keep their own hovers.
 */
+import NavLinkLabel from "./NavLinkLabel.astro";
 ---
 <div data-footer-parallax="" class="footer-wrap">
   <footer data-footer-parallax-inner="" class="site-footer">
@@ -21,9 +26,9 @@
           <p class="site-footer__eyebrow">ADDDitive newsletter</p>
           <p class="site-footer__title">Get ADDDitive<br>in your inbox</p>
           <p class="site-footer__desc">Regular thinking on technology, AI and digital practice.</p>
-          <form class="newsletter-form is--dark is--split" onsubmit="return false">
-            <input type="email" placeholder="E-mail address" aria-label="E-mail address" required>
-            <button class="btn btn--red" type="submit">Subscribe</button>
+          <form class="newsletter-form" onsubmit="return false">
+            <input type="email" placeholder="Your email" aria-label="Your email" required>
+            <button class="newsletter-form__submit" type="submit">Subscribe</button>
           </form>
         </div>
 
@@ -31,37 +36,37 @@
           <div class="site-footer__group">
             <p class="site-footer__eyebrow">Services</p>
             <ul class="site-footer__links">
-              <li><a data-underline-link="" href="workshops-audits.html">Workshops &amp; Audits</a></li>
-              <li><a data-underline-link="" href="software-licensing-audit.html">Software &amp; Licensing Audit</a></li>
-              <li><a data-underline-link="" href="technology-blueprint.html">Technology Blueprint</a></li>
-              <li><a data-underline-link="" href="advisory.html">ADDDvisory</a></li>
+              <li><a class="nav-link" href="workshops-audits.html"><NavLinkLabel>Workshops &amp; Audits</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="software-licensing-audit.html"><NavLinkLabel>Software &amp; Licensing Audit</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="technology-blueprint.html"><NavLinkLabel>Technology Blueprint</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="advisory.html"><NavLinkLabel>ADDDvisory</NavLinkLabel></a></li>
             </ul>
           </div>
           <div class="site-footer__group">
             <p class="site-footer__eyebrow">Resources</p>
             <ul class="site-footer__links">
-              <li><a data-underline-link="" href="stack-diagnostic.html">Free Tech Stacks</a></li>
-              <li><a data-underline-link="" href="https://app.addd.io/" target="_blank" rel="noopener">Software Database &#8599;</a></li>
-              <li><a data-underline-link="" href="reports.html">Reports &amp; Guides</a></li>
-              <li><a data-underline-link="" href="newsletter.html">ADDDitive Newsletter</a></li>
-              <li><a data-underline-link="" href="https://aectechjobs.com/" target="_blank" rel="noopener">AEC Jobs &#8599;</a></li>
+              <li><a class="nav-link" href="stack-diagnostic.html"><NavLinkLabel>Free Tech Stacks</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="https://app.addd.io/" target="_blank" rel="noopener"><NavLinkLabel>Software Database &#8599;</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="reports.html"><NavLinkLabel>Reports &amp; Guides</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="newsletter.html"><NavLinkLabel>ADDDitive Newsletter</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="https://aectechjobs.com/" target="_blank" rel="noopener"><NavLinkLabel>AEC Jobs &#8599;</NavLinkLabel></a></li>
             </ul>
           </div>
           <div class="site-footer__group">
             <p class="site-footer__eyebrow">Company</p>
             <ul class="site-footer__links">
-              <li><a data-underline-link="" href="index.html">Home</a></li>
-              <li><a data-underline-link="" href="about.html">About</a></li>
-              <li><a data-underline-link="" href="contact.html">Contact</a></li>
-              <li><a data-underline-link="" href="https://app.addd.io/login" target="_blank" rel="noopener">Sign in &#8599;</a></li>
+              <li><a class="nav-link" href="index.html"><NavLinkLabel>Home</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="about.html"><NavLinkLabel>About</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="contact.html"><NavLinkLabel>Contact</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="https://app.addd.io/login" target="_blank" rel="noopener"><NavLinkLabel>Sign in &#8599;</NavLinkLabel></a></li>
             </ul>
           </div>
           <div class="site-footer__group">
             <p class="site-footer__eyebrow">Contact</p>
             <ul class="site-footer__links">
-              <li><a data-underline-link="" href="mailto:allister@addd.io">allister@addd.io</a></li>
-              <li><a data-underline-link="" href="tel:+442071833675">+44 (0) 207 183 3675</a></li>
-              <li><a data-underline-link="" href="contact.html">Book a call</a></li>
+              <li><a class="nav-link" href="mailto:allister@addd.io"><NavLinkLabel>allister@addd.io</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="tel:+442071833675"><NavLinkLabel>+44 (0) 207 183 3675</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="contact.html"><NavLinkLabel>Book a call</NavLinkLabel></a></li>
             </ul>
           </div>
         </div>
@@ -74,9 +79,9 @@
         </a>
         <p class="site-footer__copy">&copy; 2026 ADDD</p>
         <ul class="site-footer__legal">
-          <li><a data-underline-link="" href="#">Privacy policy</a></li>
-          <li><a data-underline-link="" href="#">Terms of service</a></li>
-          <li><a data-underline-link="" href="#">Cookie settings</a></li>
+          <li><a class="nav-link" href="#"><NavLinkLabel>Privacy policy</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="#"><NavLinkLabel>Terms of service</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="#"><NavLinkLabel>Cookie settings</NavLinkLabel></a></li>
         </ul>
         <div class="site-footer__end">
           <p>All rights reserved.</p>

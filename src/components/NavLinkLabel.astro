@@ -1,0 +1,16 @@
+---
+/*
+  The inside of a sliding-box link (src/styles/nav-link.css, initNavLinks()
+  in src/scripts/site.js): the box drawn round the label, the block that
+  slides into it, and the label over the block. The link around it — an <a>,
+  or a dropdown toggle in the bar, carrying .nav-link — keeps its own size
+  and hit area, and an icon beside the label stays outside the box. class
+  goes on the label.
+*/
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+<span class="nav-link__box"><span class="nav-link__bg" aria-hidden="true"></span><span class:list={["nav-link__text", className]}><slot /></span></span>

@@ -1,6 +1,7 @@
 /* ============================================================
-   ADDD mega nav — full-width bar with full-height Sign in /
-   Contact blocks and a mega dropdown
+   ADDD mega nav — a bar built from full-height blocks (logo,
+   feature, the grouped links and Sign in, Contact) over a mega
+   dropdown
    ============================================================ */
 
 /* Two navigation states, one implementation.
@@ -15,7 +16,7 @@
    own --nav-bg and its text --nav-fg, and the ink-filled chips are the
    pair the other way round, so each of them inverts with the bar. */
 .mega-nav {
-  --nav-height: 4.6em;
+  --nav-height: 4.3em;
 
   --nav-bg: var(--c-white);
   --nav-fg: var(--c-text);
@@ -24,14 +25,30 @@
   --nav-cta-fg: var(--c-white);
   --nav-alt-bg: var(--c-white);
   --nav-alt-fg: var(--c-text);
-  --nav-alt-hover: var(--c-light-fg);
   --nav-burger-bg: var(--c-light-fg);
-  /* dropdown: the tinted column, media bands and quiet chips */
+  /* blocks: the feature block, a near-white grey a step darker than the
+     group beside it, and the group — the links and Sign in set together
+     on one lighter ground. */
+  --nav-feature-bg: #e5e5e5;
+  --nav-feature-fg: var(--c-text);
+  --nav-group-bg: var(--c-light-fg);
+  --nav-block-pad: 1.25em;
+  /* the space between the group's items, and at either end of it */
+  --nav-item-gap: 1.5em;
+  /* The one type treatment every item takes — For Tech Firms, the links,
+     Sign in and Contact: one face, weight, size and leading. The drawer
+     redeclares the size below 992px, one larger size for every row in
+     it, which is the only way it differs. */
+  --nav-text-size: .9375em;
+  --nav-text-weight: 500;
+  --nav-text-leading: 1.5;
+  /* dropdown: the Reports column, the service cards' wording and the
+     quiet chips (the newsletter column and the cards' bands take the
+     feature block's grey, --nav-feature-bg) */
   --nav-tint: var(--c-light-fg);
   /* dropdown: descriptions and small labels */
   --nav-muted: #6b6b6b;
-  /* dropdown: a card's border on hover, and a field's on focus */
-  --nav-rule-hover: rgba(20, 20, 20, .35);
+  /* dropdown: a field's border on focus */
   --nav-rule-focus: rgba(20, 20, 20, .5);
   /* dropdown: the accent as text — the featured report's call to read */
   --nav-accent-text: var(--c-red);
@@ -51,22 +68,26 @@ body:has(.page--dark) .mega-nav,
   --nav-cta-fg: var(--c-text);
   --nav-alt-bg: transparent;
   --nav-alt-fg: var(--c-white);
-  --nav-alt-hover: rgba(255, 255, 255, .1);
   --nav-burger-bg: rgba(255, 255, 255, .12);
+  /* the group lifts one step off the bar, and the feature block further,
+     so it still reads as the block after the logo */
+  --nav-feature-bg: rgba(255, 255, 255, .14);
+  --nav-feature-fg: var(--c-white);
+  --nav-group-bg: rgba(255, 255, 255, .06);
   /* the one-step-off fill the dark sections already use for tiles */
   --nav-tint: rgba(255, 255, 255, .06);
   --nav-muted: rgba(255, 255, 255, .6);
-  --nav-rule-hover: rgba(255, 255, 255, .4);
   --nav-rule-focus: rgba(255, 255, 255, .6);
   /* the accent red is not legible as text on the near-black, so the
      call to read takes the nav's own white */
   --nav-accent-text: var(--c-white);
 }
 
+/* No rule along the bottom: the bar meets the page directly, with
+   --nav-h (styles.css) the bar's own height. */
 .mega-nav__bar {
   z-index: 3;
   background-color: var(--nav-bg);
-  border-bottom: 1px solid var(--nav-rule);
   width: 100%;
   position: relative;
 }
@@ -75,7 +96,7 @@ body:has(.page--dark) .mega-nav,
   height: var(--nav-height);
   justify-content: space-between;
   align-items: stretch;
-  padding: 0 0 0 1.5em;
+  padding: 0;
   display: flex;
 }
 
@@ -87,15 +108,47 @@ body:has(.page--dark) .mega-nav,
   position: relative;
 }
 
+/* The logo block: from the bar's left edge to the end of Grid Column 1
+   — the grid margin plus one Grid Column, from the same tokens the
+   overlay is drawn with (column-grid.css), so it holds that line at
+   every width and on every breakpoint's grid. On the Contact button's
+   own fill, so the two inverting together on a dark page bracket the
+   bar from either end, with the mark in the block's foreground. */
 .mega-nav__bar-logo {
   flex: none;
-  width: 3.125em;
-  align-self: center;
+  width: calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
+  align-self: stretch;
+  justify-content: center;
+  align-items: center;
+  color: var(--nav-cta-fg);
+  background-color: var(--nav-cta-bg);
   display: flex;
 }
-.mega-nav__bar-logo img { width: 100%; height: auto; }
+/* The triangles a step under twice the size they had inside the round
+   mark, centred in the block and held the grid's edge clear of either
+   side where the block is narrowest. */
+.mega-nav__bar-logo-mark { width: min(3.5em, 100% - 2 * var(--grid-edge)); height: auto; display: block; }
 
-/* centre group */
+/* The feature block — the Tech Firms link. The near-white fill, with the
+   label and its arrow set at the block's far end, the block's padding
+   clear of its edge; its width is set from 992px up, under "Blocks"
+   below. */
+.mega-nav__feature {
+  color: var(--nav-feature-fg);
+  background-color: var(--nav-feature-bg);
+  justify-content: flex-end;
+  align-items: center;
+  gap: .5em;
+  padding: 0 var(--nav-block-pad);
+  font-family: var(--font-body);
+  text-decoration: none;
+  white-space: nowrap;
+  display: flex;
+}
+.mega-nav__feature-icon { width: 1.25em; height: auto; flex: none; }
+
+/* everything after the logo: the feature block, the group and Contact on
+   the bar; the drawer below 992px */
 .mega-nav__bar-inner {
   grid-column-gap: 0;
   justify-content: center;
@@ -108,9 +161,9 @@ body:has(.page--dark) .mega-nav,
 }
 
 .mega-nav__bar-list {
-  grid-column-gap: 1.75em;
+  grid-column-gap: var(--nav-item-gap);
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
   margin: 0;
   padding-left: 0;
   list-style: none;
@@ -138,9 +191,15 @@ body:has(.page--dark) .mega-nav,
   display: flex;
   font-family: var(--font-body);
 }
-.mega-nav__bar-link:hover { opacity: .6; }
+/* The hover is the site's sliding-box link (nav-link.css): the block
+   inverts the label, never the block it stands in. */
 
-.mega-nav__bar-link-label { font-size: 1.0625em; font-weight: 400; line-height: 1.5; }
+.mega-nav__bar-link-label {
+  font-family: var(--font-body);
+  font-size: var(--nav-text-size);
+  font-weight: var(--nav-text-weight);
+  line-height: var(--nav-text-leading);
+}
 .mega-nav__bar-link-icon { width: 1.25em; flex: none; }
 
 .mega-nav__bar-end {
@@ -150,24 +209,20 @@ body:has(.page--dark) .mega-nav,
   display: none;
 }
 
-/* Sign in — the quiet block beside Contact (contact-button.css). The two
-   invert as a pair in the dark state, so Contact stays the one that reads
-   as filled against whatever the bar is painted. */
+/* Sign in — beside Contact (contact-button.css). On the bar it is the
+   last item of the group (see "Blocks" below); in the drawer it is a
+   quiet block on the alt pair, which inverts with Contact in the dark
+   state, so Contact stays the one that reads as filled. */
 .mega-nav__bar-cta {
   color: var(--nav-alt-fg);
-  background-color: var(--nav-alt-bg);
-  border-left: 1px solid var(--nav-rule);
   justify-content: center;
   align-items: center;
   gap: .25em;
-  padding: 0 2.5em;
+  padding: 0;
   text-decoration: none;
   display: flex;
-  font-weight: 400;
   white-space: nowrap;
 }
-.mega-nav__bar-cta:hover { background-color: var(--nav-alt-hover); }
-.mega-nav__bar-cta .mega-nav__bar-link-label { font-size: 1.0625em; font-weight: 400; }
 
 .mega-nav__burger {
   grid-row-gap: .2em;
@@ -194,12 +249,14 @@ body:has(.page--dark) .mega-nav,
   position: relative;
 }
 
+/* Stands in for the logo block while a drawer panel is open, inset by
+   the bar's gutter. */
 .mega-nav__back {
   z-index: 2;
   opacity: 0;
   visibility: hidden;
   position: absolute;
-  left: 0;
+  left: 1.25em;
   align-self: center;
 }
 .mega-nav__back button { background: none; border: 0; cursor: pointer; }
@@ -233,10 +290,11 @@ body:has(.page--dark) .mega-nav,
 
 .mega-nav__dropdown-container { position: relative; overflow: hidden; }
 
+/* No rule along its foot: the dropdown ends where its blocks do, over
+   the dimmed page. */
 .mega-nav__dropdown-bg {
   will-change: transform;
   background-color: var(--nav-bg);
-  border-bottom: 1px solid var(--nav-rule);
   position: absolute;
   inset: 0;
 }
@@ -252,11 +310,16 @@ body:has(.page--dark) .mega-nav,
 
 /* The dropdown is as tall as whichever panel is open — each panel sets
    its own height from its content, and the container animates between
-   the two. */
+   the two.
+
+   It is the bar continued downwards, and like the bar it is built from
+   blocks told apart by their tone rather than ruled off by lines: the
+   Resources columns are three blocks, a step darker each from the
+   nav's own ground to the feature block's grey, and the Services cards
+   are blocks of those two greys set on the 12-Column Grid. */
 .mega-nav__dropdown-inner { display: flex; align-items: stretch; }
 
 .mega-nav__panel-col {
-  border-right: 1px solid var(--nav-rule);
   flex-flow: column;
   flex: 1;
   justify-content: flex-start;
@@ -266,13 +329,10 @@ body:has(.page--dark) .mega-nav,
   padding: 2.5em 3em;
   display: flex;
 }
-.mega-nav__panel-col:last-of-type { border-right: none; }
-/* The newsletter panel: tinted, and a fixed width, so the two research
-   columns split what is left evenly. */
-.mega-nav__panel-col.is--colored {
-  background-color: var(--nav-tint);
-  flex: 0 0 24em;
-}
+/* Reports, on the group's light grey; the newsletter, on the feature
+   block's grey a step darker. */
+.mega-nav__panel-col.is--tint { background-color: var(--nav-tint); }
+.mega-nav__panel-col.is--colored { background-color: var(--nav-feature-bg); }
 
 .mega-nav__panel-label {
   color: var(--nav-fg);
@@ -280,22 +340,16 @@ body:has(.page--dark) .mega-nav,
   line-height: 1;
 }
 
+/* Rows held apart by space alone. */
 .mega-nav__panel-list {
   flex-flow: column;
   align-items: stretch;
-  gap: 1.25em;
+  gap: 1.75em;
   width: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
   display: flex;
-}
-/* A list of plain rows rules them off from each other. */
-.mega-nav__panel-list.is--divided { gap: 0; }
-.mega-nav__panel-list.is--divided > li + li {
-  margin-top: 1.5em;
-  padding-top: 1.5em;
-  border-top: 1px solid var(--nav-rule);
 }
 
 /* Icon chip on the left, wording on the right, the two centred on each
@@ -354,27 +408,28 @@ body:has(.page--dark) .mega-nav,
 /* Lead item in a column — the same row, one step up in size. */
 .mega-nav__panel-link.is--lead .mega-nav__panel-link-text { font-size: 1.25em; }
 
-/* Services panel — the four pathways as four panels built into the
-   dropdown, on the language of the routes cards on the home page: a
-   light-tinted media area carrying the engagement label as a chip
-   top-left, the arrow chip top-right and the service's own icon in the
-   middle, then the name and one line of description on white beneath.
-   The same icon stands for the same service in both places.
+/* Services panel — the four pathways as four blocks, on the language of
+   the routes cards on the home page: a media band carrying the
+   engagement label as a chip top-left, the arrow chip top-right and the
+   service's own icon in the middle, then the name and one line of
+   description beneath. The same icon stands for the same service in both
+   places.
 
-   Unlike the routes row there is no gutter and no outer frame. The four
-   run edge to edge and full height, ruled off from each other by a
-   hairline, so they read as one dropdown in four parts rather than as
-   cards sitting inside it. */
+   Laid out as the routes row is: on the 12-Column Grid, three Grid
+   Columns each and a gutter apart, inside the grid margin. Each is two
+   blocks of the bar's own greys — the band on the feature block's,
+   the wording on the group's lighter one — on the nav's ground, so the
+   four are told apart by their edges, never by a line. */
 .mega-nav__panel-col.is--services {
   flex: 1;
   gap: 0;
-  padding: 0;
+  padding: var(--grid-gutter) var(--grid-margin) var(--grid-margin);
   align-items: stretch;
 }
 
 .mega-nav__service-grid {
   grid-template-columns: repeat(4, 1fr);
-  gap: 0;
+  gap: var(--grid-gutter);
   align-items: stretch;
   width: 100%;
   display: grid;
@@ -382,14 +437,12 @@ body:has(.page--dark) .mega-nav,
 
 .mega-nav__service-card {
   flex-flow: column;
-  border-right: 1px solid var(--nav-rule);
-  background-color: var(--nav-bg);
+  background-color: var(--nav-tint);
   color: var(--nav-fg);
   min-width: 0;
   text-decoration: none;
   display: flex;
 }
-.mega-nav__service-card:last-child { border-right: none; }
 /* No lift on hover, unlike the routes cards: the panel animates these
    very elements in, so GSAP owns their transform and a CSS one would
    never apply. The nav's own hover language carries it instead — the
@@ -404,7 +457,7 @@ body:has(.page--dark) .mega-nav,
   /* the icon centres in the space the chips leave, not in the whole
      band */
   padding-top: 1.25em;
-  background-color: var(--nav-tint);
+  background-color: var(--nav-feature-bg);
   display: flex;
 }
 /* The engagement label, sitting on the band as a chip. Inset so its
@@ -456,11 +509,12 @@ body:has(.page--dark) .mega-nav,
 /* Featured report — the latest report as one focal card under the
    Reports link, on the insight card's parts at thumbnail scale: the
    real cover image bleeding to the card's left edge at a report cover's
-   proportion, and the label, title and a call to read it beside it. */
+   proportion, and the label, title and a call to read it beside it. A
+   block of the nav's own ground on the Reports column's grey, so its
+   edge is the change of tone rather than a border. */
 .mega-nav__featured {
   color: var(--nav-fg);
   background-color: var(--nav-bg);
-  border: 1px solid var(--nav-rule);
   border-radius: var(--radius);
   align-items: stretch;
   width: 100%;
@@ -468,9 +522,7 @@ body:has(.page--dark) .mega-nav,
   text-decoration: none;
   display: flex;
   overflow: hidden;
-  transition: border-color .25s ease;
 }
-.mega-nav__featured:hover { border-color: var(--nav-rule-hover); }
 .mega-nav__featured:hover .mega-nav__panel-link-text { opacity: .6; }
 .mega-nav__featured-media {
   position: relative;
@@ -514,63 +566,90 @@ body:has(.page--dark) .mega-nav,
    featured report beside it. The form is the shared .newsletter-form
    from styles.css, the same one the footer uses. */
 /* The signup, sitting under the newsletter row as part of it rather
-   than as a block of its own: the site's own newsletter-form at a
-   height that matches the list's rhythm, so the column stays the same
-   weight as the two beside it. */
-.mega-nav__signup { margin-top: 1.25em; }
-.mega-nav__signup input {
-  height: 2.75em;
-  font-size: .9375em;
-  background: var(--nav-bg);
-  border-color: var(--nav-rule);
-  color: var(--nav-fg);
-}
-.mega-nav__signup input::placeholder { color: var(--nav-muted); }
-.mega-nav__signup input:focus { border-color: var(--nav-rule-focus); }
-.mega-nav__signup .btn { height: 2.75em; padding: 0 1em; font-size: .9375em; }
+   than as a block of its own: the site's own signup across the column,
+   at a height that matches the list's rhythm, so the column stays the
+   same weight as the two beside it. */
+.mega-nav__signup { --signup-h: 2.75em; margin-top: 1.25em; max-width: none; }
+.mega-nav__signup input,
+.mega-nav__signup .newsletter-form__submit { font-size: .9375em; }
+.mega-nav__signup .newsletter-form__submit { padding: 0 1.25em; }
 /* On touch the pair steps up to the body size — below 16px iOS zooms
    the page in when the field takes focus — and so to a 44px row. */
 @media (pointer: coarse) {
   .mega-nav__signup input,
-  .mega-nav__signup .btn { font-size: 1em; }
+  .mega-nav__signup .newsletter-form__submit { font-size: 1em; }
 }
 
-/* Centre the link list against the bar itself rather than the space
-   left over between the logo and the actions. Taking it out of flow
-   means the logo and the Sign in / Contact block keep their positions.
-   The 0.75em offset compensates for the container's left padding, so
-   50% lands on the true centre of the bar. */
+/* Blocks — the bar from 992px up. Every functional area is a block of
+   its own, full bar height and flush to the next: the logo, the feature
+   block, the group, then the Contact button.
+
+   The feature block starts where the logo block ends, at the end of
+   Grid Column 1, and runs to the end of Grid Column 5 (column-grid.css):
+   four column pitches (a Grid Column and its gutter). This row starts
+   at the end of Grid Column 1, so measured across it one pitch is
+   (100% - --grid-margin) / 11. It is the one block that gives up width
+   when the bar is tight, down to its own label, so the group never has
+   to.
+
+   The group is the links and Sign in set together on the lighter
+   ground, from the feature block to Contact, as one compact run across
+   Grid Columns 7 to 10: it starts where Grid Column 7 does — the column
+   the hero's headline starts on — and ends where Grid Column 10 does,
+   Grid Column 6 lying open between it and the feature block. Each of the
+   five takes its label's width and an equal share of what is left of the
+   four columns, its label centred in it, so the gaps between them are
+   even. The two lists they sit in step aside (display: contents) for
+   this, so the five are one row. Contact takes Grid Columns 11 and 12
+   and the margin, its block at the far end, keeping the bar's own colour
+   in its seams. A Grid Column is measured off the bar's own width
+   (--nav-col, in cqw), the width the overlay is drawn across. */
 @media screen and (min-width: 992px) {
-  .mega-nav__bar-inner > .mega-nav__bar-list:not(.is--actions) {
-    position: absolute;
-    top: 50%;
-    left: calc(50% - .75em);
-    transform: translate(-50%, -50%);
+  .mega-nav__bar-start {
+    container-type: inline-size;
+    --nav-col: calc((100cqw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
   }
-}
 
-/* Below 1280px the links no longer fit centred on the bar without running
-   into Sign in / Contact, so they go back into flow and centre in the
-   space actually left between the logo and the actions: the auto margin
-   here and the one on the actions split that space evenly. */
-@media screen and (min-width: 992px) and (max-width: 1279px) {
-  .mega-nav__bar-inner > .mega-nav__bar-list:not(.is--actions) {
-    position: static;
-    transform: none;
-    margin-left: auto;
+  .mega-nav__feature {
+    flex: 0 1 calc((100% - var(--grid-margin)) * 4 / 11);
   }
-}
 
-@media screen and (max-width: 1200px) {
-  .mega-nav__bar-list { grid-column-gap: 1.25em; }
-  .mega-nav__bar-cta { padding: 0 1.5em; }
-  .mega-nav__panel-col { padding: 2em; }
-  .mega-nav__panel-col.is--colored { flex: 0 0 20em; }
-  .mega-nav__service-card-media { height: 10em; }
+  .mega-nav__bar-inner { background-color: var(--nav-group-bg); }
+  .mega-nav__bar-inner > .mega-nav__bar-list { display: contents; }
+
+  /* Services to Sign in, after Grid Column 6 and its two gutters */
+  .mega-nav__bar-inner > .mega-nav__bar-list > li {
+    flex: 1 1 auto;
+    display: flex;
+    justify-content: center;
+    white-space: nowrap;
+  }
+  .mega-nav__bar-inner > .mega-nav__bar-list:not(.is--actions) > li:first-child {
+    margin-left: calc(var(--nav-col) + 2 * var(--grid-gutter));
+  }
+
+  /* Contact: Grid Columns 11 and 12, their gutters and the margin */
+  .mega-nav__bar-inner .mega-nav__bar-action:not(.is--grouped) {
+    flex: 0 0 calc(2 * (var(--nav-col) + var(--grid-gutter)) + var(--grid-margin));
+    justify-content: flex-end;
+  }
+
+  /* The Resources columns: thirds of the 12-Column Grid, Grid Columns
+     1–4, 5–8 and 9–12, the outer two out to the edges and the two
+     changes of tone on the middle of a gutter. Reports takes what the
+     other two leave, which is its four columns and gutters. */
+  .mega-nav__dropdown-inner {
+    --nav-dropdown-col: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+  }
+  .mega-nav__panel-col:not(.is--services, .is--tint) {
+    flex: 0 0 calc(var(--grid-margin) + 4 * var(--nav-dropdown-col) + 3.5 * var(--grid-gutter));
+  }
 }
 
 @media screen and (max-width: 991px) {
-  .mega-nav__container { padding: 0 1.25em; align-items: center; }
+  /* The logo block stays flush left and full height, measured against
+     the whole bar; the burger keeps its gutter on its own side. */
+  .mega-nav__container { padding: 0; align-items: stretch; }
   .mega-nav__bar-start { justify-content: space-between; align-items: center; }
 
   .mega-nav__bar-list {
@@ -593,22 +672,42 @@ body:has(.page--dark) .mega-nav,
     width: 100%;
     padding: .75em 0;
   }
-  .mega-nav__bar-link:hover { opacity: 1; }
   .mega-nav__bar-link.is--dropdown { justify-content: space-between; align-items: center; }
   .mega-nav__bar-link.is--back { border-bottom-style: none; }
-  .mega-nav__bar-link-label { font-size: 1.25em; }
+  .mega-nav { --nav-text-size: 1.25em; }
   .mega-nav__bar-link-icon { width: 1.5em; }
   .mega-nav__bar-link-icon.is--dropdown { transform: rotate(-90deg); }
 
-  .mega-nav__bar-end { display: flex; }
+  /* The feature block leads the drawer: the same block as a full-width
+     row, its arrow at the far end like the dropdown rows' chevrons. */
+  .mega-nav__feature {
+    flex: none;
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 1em;
+    padding: .875em 1em;
+    border-radius: var(--radius);
+  }
+
+  .mega-nav__bar-end { display: flex; padding-right: 1.25em; }
   .mega-nav__bar-action { flex: 1; }
   .mega-nav__bar-cta {
+    background-color: var(--nav-alt-bg);
     border-radius: var(--radius);
-    padding: .875em 1em;
+    padding: 0;
     flex: 1;
     text-align: center;
   }
   .mega-nav__bar-cta { border: 1px solid var(--nav-rule); }
+  /* Here Sign in is one of the two buttons at the foot, so its box is the
+     whole button and the block fills it. */
+  .mega-nav__bar-cta .nav-link__box {
+    flex: 1;
+    align-self: stretch;
+    justify-content: center;
+    margin: 0;
+    padding: .875em 1em;
+  }
 
   .mega-nav__bar-inner {
     opacity: 0;
@@ -623,7 +722,7 @@ body:has(.page--dark) .mega-nav,
        disappear into. */
     background-color: var(--nav-bg);
     flex-flow: column;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     padding: 2em 1.25em;
     position: fixed;
@@ -631,6 +730,9 @@ body:has(.page--dark) .mega-nav,
     /* scrolling the drawer to its end never carries on into the page */
     overscroll-behavior: contain;
   }
+  /* The feature block and the links run from the top, and Sign in and
+     Contact hold the foot. */
+  .mega-nav__bar-list.is--actions { margin-top: auto; }
 
   .mega-nav__backdrop { display: none; }
 
@@ -645,9 +747,9 @@ body:has(.page--dark) .mega-nav,
   .mega-nav__dropdown-panel { background-color: var(--nav-bg); bottom: 0; overflow: auto; overscroll-behavior: contain; }
   .mega-nav__dropdown-inner { flex-flow: column; }
 
+  /* Stacked, the columns are bands of their own tone, one under the
+     next. */
   .mega-nav__panel-col {
-    border-bottom: 1px solid var(--nav-rule);
-    border-right-style: none;
     gap: 1.25em;
     padding: 1.75em 1.25em;
   }
@@ -657,16 +759,15 @@ body:has(.page--dark) .mega-nav,
      at full width the chip ran out past the card's right edge. */
   .mega-nav__panel-col > .mega-nav__panel-label { width: 100%; }
 
-  /* Stacked, each pathway keeping its shape — only the band shortens, so
-     a column of four still fits the slide-over panel. */
-  .mega-nav__panel-col.is--services { padding: 0; }
+  /* Stacked, each pathway keeping its shape, a gutter apart inside the
+     drawer's own inset — only the band shortens, so a column of four
+     still fits the slide-over panel. */
+  .mega-nav__panel-col.is--services { padding: 1.25em; }
   .mega-nav__service-grid { grid-template-columns: 1fr; }
-  .mega-nav__service-card { border-right: none; border-bottom: 1px solid var(--nav-rule); }
-  .mega-nav__service-card:last-child { border-bottom: none; }
   .mega-nav__service-card-media { height: 6.5em; }
 }
 
 @media screen and (max-width: 479px) {
-  .mega-nav__bar-link-label { font-size: 1.0625em; }
+  .mega-nav { --nav-text-size: 1.0625em; }
   .mega-nav__bar-link-icon { width: 1.375em; }
 }

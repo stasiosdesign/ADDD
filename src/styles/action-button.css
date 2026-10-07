@@ -3,10 +3,10 @@
    (markup: src/components/ActionButton.astro)
    ============================================================
 
-   One component, two variants. Both carry the same squared shape,
-   the same 44px box as the .btn utility, and the same text-roll on
-   hover, so a primary and a secondary sitting in one .actions row
-   read as a pair.
+   One component, two variants, in two shapes (the button and the
+   block). All carry the same squared shape, the same 44px box as the
+   .btn utility, and the same text-roll on hover, so the buttons
+   sitting in one .actions row read as a set.
 
    The red only ever belongs to the primary, and only on hover: the
    __bg-hover panel is parked off the bottom edge, tipped, until it
@@ -22,7 +22,7 @@
   /* 13px block keeps the 44px box the .btn utility measures, so the
      two sit level in a shared row; the left inset is .btn's 24px and
      the right is tightened to sit against the arrow chip */
-  --action-button-padding: 13px 13px 13px 24px;
+  --action-button-padding: 0.8125rem 0.8125rem 0.8125rem 1.5rem;
   --action-button-text-duplicate-distance: 1.5em;
   --action-button-ease-hover: var(--ease-osmo);
   --action-button-ease-focus: cubic-bezier(0.32, 0.72, 0, 1);
@@ -199,5 +199,58 @@
   /* one extra pixel each side: with no 18px arrow chip setting the height,
      the 16px text has to make up the difference to stay level with a
      primary in the same row */
-  --action-button-padding: 14px 24px;
+  --action-button-padding: 0.875rem 1.5rem;
+}
+
+/* Block — the second shape, for a pair that leads a section (the hero and
+   the closing CTA): a slab rather than a button, the label face in
+   capitals at its start and the site's arrow at its far end, at the
+   pair's 44px. The row gives it its width (.actions--blocks, styles.css).
+   Its colours are the variant's, so the pair keeps one lead: the primary
+   is the ink block, the secondary the light grey one, each with its own
+   sweep, and the arrow steps on with the text-roll. */
+.action-button.is--block {
+  /* the 20px arrow sets the height, so 12px either side keeps the 44px */
+  --action-button-padding: 0.75rem 1.25rem;
+  font-family: var(--font-mono);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+.action-button.is--block .action-button__inner { justify-content: space-between; gap: 1.5rem; }
+/* The site's stroke arrow, drawn a little heavier than its 1-unit line so
+   it holds at this size. Positioned, as the primary's chip is, so it
+   paints over the positioned fill behind it. */
+.action-button__arrow {
+  position: relative;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 0.525s var(--action-button-ease-hover);
+}
+.action-button__arrow path { stroke-width: 1.5; }
+/* The sweep is parked flatter and further down than on the primary: a
+   block is several times as wide, and at the primary's 15 degrees the
+   tilt would lift the panel's near corner up into it at rest. */
+.action-button.is--block .action-button__bg-hover { transform: translate3d(0, 200%, 0) rotate(4deg); }
+
+/* On the dark CTA band the pair inverts, as the nav's Contact button does
+   on a dark page, so the lead stays the strongest thing on its ground: the
+   primary turns white with ink text (and white text on its red sweep), the
+   secondary a quiet lift off the band. */
+.cta .action-button.is--block {
+  --action-button-color: var(--c-text);
+  --action-button-color-background: var(--c-white);
+  --action-button-color-focus: var(--c-white);
+}
+.cta .action-button.is--block.is--secondary {
+  --action-button-color: var(--c-white);
+  --action-button-color-background: rgba(255, 255, 255, 0.1);
+  --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .action-button.is--block:is(:hover, :focus-visible) .action-button__bg-hover { transform: translate3d(0, 0, 0) rotate(0deg); }
+  .action-button:is(:hover, :focus-visible) .action-button__arrow { transform: translateX(0.25rem); }
+  .cta .action-button.is--block:not(.is--secondary):is(:hover, :focus-visible) { --action-button-color: var(--c-white); }
 }

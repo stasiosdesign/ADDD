@@ -19,15 +19,15 @@
    ============================================================ */
 .accordion {
   /* the old .faq measure, kept so the answers do not run long */
-  max-width: 900px;
-  margin-top: 48px;
+  max-width: 56.25rem;
+  margin-top: 3rem;
   position: relative;
 }
 
 .accordion__list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .accordion__item {
@@ -51,10 +51,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 24px;
+  gap: 1.5rem;
   width: 100%;
   margin: 0;
-  padding: 20px 20px 20px 24px;
+  padding: 1.25rem 1.25rem 1.25rem 1.5rem;
   border: 0;
   background: none;
   text-align: left;
@@ -72,8 +72,8 @@
   flex-shrink: 0;
   justify-content: center;
   align-items: center;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   border-radius: var(--radius);
   background-color: var(--c-white);
   color: var(--c-text);
@@ -82,7 +82,7 @@
               background-color .3s ease, color .3s ease;
 }
 
-.accordion__icon-svg { width: 16px; }
+.accordion__icon-svg { width: 1rem; }
 
 /* Scoped through .accordion__item so the open chip outranks the
    per-section chip fills below — as a bare attribute selector it ties
@@ -114,7 +114,7 @@
 }
 
 .accordion__content {
-  padding: 0 24px 24px;
+  padding: 0 1.5rem 1.5rem;
   max-width: 70ch;
 }
 
@@ -142,8 +142,8 @@
 .section--dark .accordion__toggle:focus-visible { outline-color: var(--c-white); }
 
 @media screen and (max-width: 767px) {
-  .accordion { margin-top: 32px; }
-  .accordion__toggle { gap: 16px; padding: 16px; }
-  .accordion__content { padding: 0 16px 16px; }
+  .accordion { margin-top: 2rem; }
+  .accordion__toggle { gap: 1rem; padding: 1rem; }
+  .accordion__content { padding: 0 1rem 1rem; }
   .accordion__heading { font-size: var(--t-rg); }
 }

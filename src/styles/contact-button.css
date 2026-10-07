@@ -15,25 +15,31 @@
    so it inverts with the bar on a dark page.
    ============================================================ */
 .contact-button {
-  --contact-button-padding: 0 2em;
+  /* the label's inset, in rem so it holds whatever size the nav's type is
+     set at */
+  --contact-button-padding: 0 1.25rem;
   /* thickness of the bars, and of a label collapsed to one */
-  --contact-button-block-width: 9px;
+  --contact-button-block-width: 0.5625rem;
   --contact-button-ease: cubic-bezier(0.32, 0.72, 0, 1);
 
-  grid-column-gap: 4px;
-  grid-row-gap: 4px;
+  grid-column-gap: 0.25rem;
+  grid-row-gap: 0.25rem;
   color: var(--nav-cta-fg);
   -webkit-user-select: none;
   user-select: none;
-  background-color: #0000;
+  /* the bar's own colour, showing in the seams between the blocks
+     whatever ground the button stands on */
+  background-color: var(--nav-bg);
   outline-style: none;
   justify-content: flex-start;
   align-items: stretch;
   align-self: stretch;
   padding: 0;
+  /* the nav's one type treatment (nav.css), so Contact reads as one of
+     the bar's items */
   font-family: var(--font-body);
-  font-size: 1.0625em;
-  font-weight: 400;
+  font-size: var(--nav-text-size);
+  font-weight: var(--nav-text-weight);
   line-height: 1;
   text-decoration: none;
   display: inline-flex;
@@ -98,7 +104,7 @@
 .contact-button__text {
   white-space: nowrap;
   padding: var(--contact-button-padding);
-  line-height: 1.5;
+  line-height: var(--nav-text-leading);
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -132,7 +138,7 @@
 
 @media screen and (max-width: 991px) {
   .contact-button {
-    --contact-button-padding: 1em 2em;
+    --contact-button-padding: 1.0625rem 2.125rem;
     align-self: auto;
     justify-content: center;
     flex: 1;

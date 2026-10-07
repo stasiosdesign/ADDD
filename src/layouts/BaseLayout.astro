@@ -3,10 +3,10 @@
   The shell every page shares. Its shape is what Barba needs:
 
     body[data-barba="wrapper"]
-      .loader                — first-load logo intro, outside the container
+      .logo-loader           — first-load logo intro, outside the container
       .transition            — the wipe panel, outside the container
       nav.mega-nav           — persistent, outside the container
-      .animated-grid         — Shift + G layout overlay
+      .column-grid           — the 12-Column Grid overlay (Shift + G)
       div[data-barba="container"][data-page-name]
         main                 — the page body (the slot)
         footer               — swapped with the page so it animates with it
@@ -26,24 +26,28 @@
 import Loader from "../components/Loader.astro";
 import Transition from "../components/Transition.astro";
 import Nav from "../components/Nav.astro";
-import AnimatedGrid from "../components/AnimatedGrid.astro";
+import ColumnGrid from "../components/ColumnGrid.astro";
 import Footer from "../components/Footer.astro";
 import { BUILD_STAMP } from "../build-stamp.js";
 
 // Site stylesheets, bundled into one file in this order — the cascade order
-// the pages have always loaded them in.
+// the pages have always loaded them in, after the scaling system that sets
+// the size every other sheet is measured in.
+import "../styles/scaling.css";
 import "../styles/lenis.css";
 import "../styles/styles.css";
 import "../styles/pages.css";
 import "../styles/nav.css";
+import "../styles/nav-link.css";
 import "../styles/media.css";
 import "../styles/contact-button.css";
 import "../styles/action-button.css";
 import "../styles/accordion.css";
-import "../styles/dots.css";
 import "../styles/transition.css";
 import "../styles/loader.css";
-import "../styles/animated-grid.css";
+import "../styles/column-grid.css";
+import "../styles/page-grid.css";
+import "../styles/approach-stack.css";
 
 interface Props {
   /** The document <title>. */
@@ -80,10 +84,16 @@ const { title, description, pageName } = Astro.props;
       seen = sessionStorage.getItem("addd:intro") === "played";
       sessionStorage.setItem("addd:intro", "played");
     } catch (err) {}
+    // Arriving from one of the site's own pages is a move within the site,
+    // even when sessionStorage holds no record of the intro: a link opened
+    // in a new tab can start without it, and storage can be blocked outright.
+    try {
+      seen = seen || new URL(document.referrer).origin === location.origin;
+    } catch (err) {}
     document.documentElement.dataset.arrival = reload || !seen ? "intro" : "reveal";
   })();
 </script>
-<noscript><style>.loader { display: none; }</style></noscript>
+<noscript><style>.logo-loader { display: none; }</style></noscript>
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
@@ -92,7 +102,7 @@ const { title, description, pageName } = Astro.props;
 <Loader />
 <Transition pageName={pageName} />
 <Nav />
-<AnimatedGrid />
+<ColumnGrid />
 <div data-barba="container" data-page-name={pageName}>
 <slot />
 <Footer />
@@ -103,6 +113,7 @@ const { title, description, pageName } = Astro.props;
 <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/CustomEase.min.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrollTrigger.min.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/SplitText.min.js"></script>
+<script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/ScrambleTextPlugin.min.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/Draggable.min.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/InertiaPlugin.min.js"></script>
 {/* Bundled as a module, so it runs once the document has parsed — after the

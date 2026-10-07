@@ -1,8 +1,10 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
+import ApproachStack from "../components/ApproachStack.astro";
 import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 
 const related = [
@@ -19,106 +21,36 @@ const related = [
   description="See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow. Independent technology strategy for architecture practices."
   pageName="Home"
 >
-<main>
+<main class="page--grid">
 
   <!-- ========== 1. HERO ========== -->
-  <section class="hero">
-    <div class="hero__media">
-      <div
-        data-dots-canvas-init=""
-        data-dots-color-inactive="rgba(20, 20, 20, 0.18)"
-        data-dots-color-active="rgba(20, 20, 20, 0.75)"
-        aria-hidden="true"
-        class="interactive-dots-grid"
-      ></div>
-      <!-- Schematic lines — drawn on the same 18px pitch as the dots
-           (the 0.125em dot plus 1em gap at the pinned 16px), anchored to
-           the band's top-left like the canvas is, so every straight run
-           passes through a column or row of dots and the corners turn on
-           one pitch. Absolute pixel coordinates, no viewBox scaling: the
-           grid never stretches, so neither do the lines. -->
-      <svg class="hero__lines" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="1980" height="450">
-        <!-- Every run enters from one edge of the band and leaves by
-             another — long runs are drawn well past any viewport width
-             and any band height and clipped by the band, so nothing
-             ever stops mid-field. Echoes are the same path shifted one
-             pitch, so their leading -18 keeps them starting on the edge. -->
-        <!-- 1 · the main run — heaviest, with its one-pitch echo. In from
-             the left, out through the bottom. -->
-        <path class="hero__line hero__line--heavy" pathLength="1" d="M0 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
-        <path class="hero__line hero__line--thin" pathLength="1" transform="translate(18 18)" d="M-18 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
-        <!-- 2 · the upper run — in from the top, out through the right -->
-        <path class="hero__line hero__line--medium" pathLength="1" d="M450 0V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
-        <path class="hero__line hero__line--thin" pathLength="1" transform="translate(18 18)" d="M450 -18V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
-        <!-- 3 · a short spur, lower left — in from the left, out through the bottom -->
-        <path class="hero__line hero__line--medium" pathLength="1" d="M0 306H180a18 18 0 0 1 18 18V520"/>
-        <!-- 4 · a short spur, far right — in from the top, out through the right -->
-        <path class="hero__line hero__line--thin" pathLength="1" d="M1782 0V90a18 18 0 0 0 18 18H4000"/>
-        <!-- the pulses: one short dash per run, riding the same geometry -->
-        <path class="hero__pulse" pathLength="1" d="M0 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
-        <path class="hero__pulse" pathLength="1" d="M450 0V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
-        <path class="hero__pulse" pathLength="1" d="M0 306H180a18 18 0 0 1 18 18V520"/>
-        <path class="hero__pulse" pathLength="1" transform="translate(18 18)" d="M-18 162H342a18 18 0 0 1 18 18V360a18 18 0 0 0 18 18H684a18 18 0 0 0 18-18V234a18 18 0 0 1 18-18H1170a18 18 0 0 1 18 18V342a18 18 0 0 0 18 18H1476a18 18 0 0 1 18 18V520"/>
-        <path class="hero__pulse" pathLength="1" transform="translate(18 18)" d="M450 -18V54a18 18 0 0 0 18 18H954a18 18 0 0 1 18 18V126a18 18 0 0 0 18 18H1530a18 18 0 0 1 18 18V306a18 18 0 0 0 18 18H4000"/>
-        <!-- labels, sitting one pitch above the run they belong to -->
-        <text class="hero__line-label" x="36" y="145">BIM</text>
-        <text class="hero__line-label" x="738" y="199">Software</text>
-        <text class="hero__line-label" x="1008" y="127">Infrastructure</text>
-        <text class="hero__line-label" x="1242" y="343">Artificial intelligence</text>
-      </svg>
-    </div>
-
-    <div class="container">
-      <div class="hero__grid">
-        <div class="hero__col hero__col--lede">
-          <p class="text-md">See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow.</p>
-          <p class="tagline tagline--sm">Independent tech strategy</p>
-        </div>
-        <div class="hero__col hero__col--heading">
-          <h1 class="h1 hero__heading">Technology strategy for architecture practices</h1>
-
-          <div class="hero__cta-row">
-            <div class="actions actions--tight">
-              <ActionButton href="stack-diagnostic.html">Free Tech Stacks</ActionButton>
-              <ActionButton href="contact.html" variant="secondary">Talk to Us</ActionButton>
-            </div>
-            <a class="hero__arrow" href="#approach" aria-label="Scroll to the ADDD approach"><ArrowIcon aria-hidden="true" /></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <Hero arrowHref="#approach" arrowLabel="Scroll to the ADDD approach" pattern="slash" />
 
   <!-- ========== 2. LOGO STRIP ========== -->
   <section class="logos">
     <p class="tagline logos__title">Trusted by leading practices across the UK</p>
-    <div
-      class="marquee"
-      data-marquee-duplicate="2"
-      data-marquee-scroll-direction-target
-      data-marquee-direction="left"
-      data-marquee-status="normal"
-      data-marquee-speed="15"
-      data-marquee-scroll-speed="10"
-    >
-      <div class="marquee__scroll" data-marquee-scroll-target>
-        <div class="marquee__collection" data-marquee-collection-target>
-          <div class="logo-tile"><img src="assets/logos/Black/ADAM-Logo.png" alt="ADAM Architecture"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/studio-seilern-logo.png" alt="Studio Seilern Architects"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/epr-architects-logo.png" alt="EPR Architects"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/Morris-Company-Logo.png" alt="Morris + Company"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/Architecture-PLB-Logo.png" alt="Architecture PLB"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/ackroyd-lowrie-logo.png" alt="Ackroyd Lowrie"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/dmwr-architects-logo.png" alt="DMWR Architects"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/Ormsss-Logo.png" alt="ORMS"></div>
-          <div class="logo-tile"><img src="assets/logos/Black/SHH-logo.png" alt="SHH"></div>
+    <div data-wavy-marquee-init class="wavy-marquee">
+      <div class="wavy-marquee__collection">
+        <div data-wavy-marquee-list class="wavy-marquee__list">
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/ADAM-Logo.png" alt="ADAM Architecture" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/studio-seilern-logo.png" alt="Studio Seilern Architects" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/epr-architects-logo.png" alt="EPR Architects" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Morris-Company-Logo.png" alt="Morris + Company" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Architecture-PLB-Logo.png" alt="Architecture PLB" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/ackroyd-lowrie-logo.png" alt="Ackroyd Lowrie" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/dmwr-architects-logo.png" alt="DMWR Architects" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Ormsss-Logo.png" alt="ORMS" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/SHH-logo.png" alt="SHH" draggable="false"></div></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ========== 3. INDUSTRY PROBLEMS ========== -->
+  <!-- ========== 3. APPROACH ========== -->
+  <ApproachStack />
+
+  <!-- ========== 4. INDUSTRY PROBLEMS ========== -->
   <section class="section">
     <div class="container">
       <div class="problem-head">
@@ -167,89 +99,13 @@ const related = [
       </div>
     </div>
   </section>
-  <!-- ========== 4. APPROACH ========== -->
-  <section class="approach" id="approach">
-    <div class="section approach__intro">
-      <div class="container">
-        <div class="section-title">
-          <p class="text-md">Technology problems rarely exist in isolation. ADDD looks across the practice to understand what is connected, what is causing friction, and what should change first.</p>
-          <div class="section-title__body">
-            <p class="tagline">The ADDD approach</p>
-            <h2 class="h2">Fix the system, not the symptoms</h2>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div data-approach-slides-init class="approach__slides">
-
-      <div class="approach__slide">
-        <div class="approach__slide-wrapper">
-          <div class="approach__card is--ink">
-            <div class="approach__card-top">
-              <h3 class="approach__card-h">Understand</h3>
-              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
-            </div>
-            <div class="approach__card-bottom">
-              <p class="approach__card-p">Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.</p>
-              <div class="approach__card-aside">
-                <p class="approach__card-num">(01)</p>
-                <img src="assets/images/allister-podium-portrait.jpg" loading="lazy" alt="" class="approach__card-image is--crop-left">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="approach__slide">
-        <div class="approach__slide-wrapper">
-          <div class="approach__card is--dark">
-            <div class="approach__card-top">
-              <h3 class="approach__card-h">Diagnose</h3>
-              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
-            </div>
-            <div class="approach__card-bottom">
-              <p class="approach__card-p">Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.</p>
-              <div class="approach__card-aside">
-                <p class="approach__card-num">(02)</p>
-                <img src="assets/images/allister-gesture-close.jpg" loading="lazy" alt="" class="approach__card-image is--crop-centre">
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div data-shutter-scroll-section class="approach__slide">
-        <div class="approach__slide-wrapper">
-          <div class="approach__card is--grey">
-            <div class="approach__card-top">
-              <h3 class="approach__card-h">Prioritise</h3>
-              <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
-            </div>
-            <div class="approach__card-bottom">
-              <p class="approach__card-p">Turn what we find into clear priorities: what should change first, who should own it and where investment will have the most impact.</p>
-              <div class="approach__card-aside">
-                <p class="approach__card-num">(03)</p>
-                <img src="assets/images/allister-gesture-warm.jpg" loading="lazy" alt="" class="approach__card-image is--crop-right">
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- Started 40% of a viewport before the step's bottom reaches the
-             fold rather than at it, which buys the rows 40% more scroll to
-             close in. The first of them grow below the fold, which is what
-             gives the move its run-up. -->
-        <div data-shutter-scroll-transition="" data-rows="22" data-rows-tablet="14" data-rows-mobile="10" data-scroll-start="bottom bottom+=40%" class="shutter-scroll-transition"></div>
-      </div>
-
-    </div>
-  </section>
 
   <!-- ========== 5. ROUTES ========== -->
   <section class="section section--dark routes">
     <div class="container">
       <div class="routes__head">
         <div class="routes__lede">
-          <p class="text-md" style="max-width:350px">From a focused workflow problem to practice-wide strategy, ongoing advice or software costs. Choose the route that fits the issue.</p>
+          <p class="text-md" style="max-width:21.875rem">From a focused workflow problem to practice-wide strategy, ongoing advice or software costs. Choose the route that fits the issue.</p>
           <p class="tagline tagline--sm">Ways to work with ADDD</p>
         </div>
         <h2 class="routes__h">Start with what needs solving</h2>
@@ -415,7 +271,7 @@ const related = [
         <p class="text-md">ADDD is most useful when the problem is no longer isolated to one tool, one project or one team.</p>
         <div class="section-title__body">
           <p class="tagline--plain">Fit</p>
-          <h2 class="h2" style="max-width:730px">For practices where technology is now a leadership issue.</h2>
+          <h2 class="h2" style="max-width:45.625rem">For practices where technology is now a leadership issue.</h2>
         </div>
       </div>
 

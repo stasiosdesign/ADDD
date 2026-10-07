@@ -1,0 +1,34 @@
+---
+/*
+  The 12-Column Grid — the site's layout reference, toggled with Shift + G
+  (initColumnGrid() in src/scripts/column-grid.js, styles and geometry in
+  src/styles/column-grid.css).
+
+  Each column is a Grid Column, numbered 1 to 12 from the left. The number
+  is drawn on the column and carried as data-grid-column, so a position can
+  be named directly: "Grid Column 9", "from Grid Column 6 to Grid Column 9".
+  Below 992px the overlay shows the first six columns, and below 768px the
+  first four, still numbered from 1.
+
+  Either side of the columns, a single line marks the edge: where the
+  columns started and ended before the outer margin was widened, kept as
+  the reference for full-bleed parts (data-grid-edge).
+
+  A reference overlay only: fixed over the page, out of flow, inert to the
+  pointer and hidden from assistive tech, so it never changes the layout.
+*/
+const columns = Array.from({ length: 12 }, (_, i) => i + 1);
+---
+<div id="column-grid" data-column-grid class="column-grid" aria-hidden="true">
+  <span data-grid-edge="left" class="column-grid__edge is--left"></span>
+  <div class="container column-grid__container">
+    <div class="column-grid__row">
+      {columns.map((n) => (
+        <div data-grid-column={n} class="column-grid__column">
+          <span class="column-grid__label">{n}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+  <span data-grid-edge="right" class="column-grid__edge is--right"></span>
+</div>

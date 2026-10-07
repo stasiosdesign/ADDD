@@ -34,22 +34,22 @@
   /* uppercase mono needs positive tracking to stay legible */
   --label-tracking: 0.03em;
 
-  --t-h1: 72px;
-  --t-h2: 52px;
-  --t-h3: 44px;
-  --t-h4: 36px;
-  --t-md: 18px;
-  --t-rg: 16px;
-  --t-sm: 14px;
-  --t-xs: 12px;
+  --t-h1: 4.5rem;
+  --t-h2: 3.25rem;
+  --t-h3: 2.75rem;
+  --t-h4: 2.25rem;
+  --t-md: 1.125rem;
+  --t-rg: 1rem;
+  --t-sm: 0.875rem;
+  --t-xs: 0.75rem;
 
   /* layout */
-  --page-pad: 64px;
-  /* the fixed nav bar: 4.6em tall plus its bottom rule */
-  --nav-h: calc(4.6em + 1px);
-  --container: 1280px;
-  --sec-lg: 112px;
-  --sec-md: 80px;
+  --page-pad: 4rem;
+  /* the fixed nav bar: 4.3em tall, with no rule along its bottom */
+  --nav-h: 4.3rem;
+  --container: 80rem;
+  --sec-lg: 7rem;
+  --sec-md: 5rem;
   /* corner radius — one value for cards, buttons, media and inputs;
      enough to soften a corner, not enough to read as a rounded UI */
   --radius: 2px;
@@ -92,7 +92,9 @@ body {
   color: var(--c-text);
   font-family: var(--font-body);
   font-weight: var(--fw-body);
-  font-size: var(--t-rg);
+  /* the Osmo scaling system's unit (scaling.css), as its documentation
+     applies it */
+  font-size: var(--size-font);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -145,10 +147,10 @@ button, input { font: inherit; color: inherit; }
 }
 
 .tagline {
-  font-size: 15px;
+  font-size: 0.9375rem;
   line-height: 1.5;
 }
-.tagline--sm { font-size: 13px; }
+.tagline--sm { font-size: 0.8125rem; }
 /* Kept as a size step below .tagline rather than a different face. */
 .tagline--plain { font-size: var(--t-rg); }
 
@@ -180,14 +182,14 @@ button, input { font: inherit; color: inherit; }
   max-width: var(--container);
   margin: 0;
   display: flex;
-  gap: 64px;
+  gap: 4rem;
   align-items: flex-start;
   text-align: left;
 }
 /* The hero's lede measure, so the two openings share one left column. */
 .section-title > .text-md,
 .section-title > p:not([class]) {
-  flex: 0 0 clamp(280px, 24vw, 400px);
+  flex: 0 0 21.6rem;
   /* Optical, not box, alignment: the paragraph's 1.5 line-height opens
      more space above its caps than the display face's 1.2 does, so each
      side is pulled back by its own half-leading and the two line up on
@@ -208,7 +210,7 @@ button, input { font: inherit; color: inherit; }
   position: absolute;
   left: 0;
   bottom: 100%;
-  margin-bottom: 14px;
+  margin-bottom: 0.875rem;
   white-space: nowrap;
 }
 .section-title .h1,
@@ -228,8 +230,8 @@ button, input { font: inherit; color: inherit; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
   border-radius: var(--radius);
   border: 1px solid transparent;
   font-weight: var(--fw-body);
@@ -244,68 +246,75 @@ button, input { font: inherit; color: inherit; }
 .btn--white { background: var(--c-white); color: var(--c-text); border-color: var(--c-white); }
 .btn--ghost-dark { background: rgba(255,255,255,.1); color: var(--c-white); }
 .btn--link { padding: 0; background: none; border: none; }
-/* The accent as a rest-state fill — the newsletter's Subscribe, and
-   only that. Hover darkens it from within rather than declaring a
-   second red. */
-.btn--red {
-  background: var(--c-red);
-  color: var(--c-white);
-  border-color: var(--c-red);
-  transition: opacity .15s ease, background-color .15s ease, box-shadow .15s ease;
-}
-.btn--red:hover { opacity: 1; box-shadow: inset 0 0 0 100px rgba(0, 0, 0, 0.16); }
 
 /* ------------------------------------------------------------
-   newsletter signup — one form, used in the Resources dropdown
-   and in the footer. The field and the button are one joined
-   row: the field takes the width and the button sits flush on
-   its right end. The dark modifier restyles the field for the
-   footer's ground, and the split modifier opens a gap between
-   the two so the button stands on its own.
+   email signup — one control wherever the site asks for an email:
+   the newsletter in the Resources dropdown, the footer and the
+   newsletter page, and the report downloads. A white field and a
+   block of the accent red for the submit, square, inside one ink
+   border, so the two read as a single control on any ground. The
+   field takes the row; where the row runs out of room the submit
+   drops under it, full width, still inside the border. Typing in
+   the field rings the control in the context's own text colour, as
+   a focused nav link is ringed.
    ------------------------------------------------------------ */
 .newsletter-form {
+  --signup-h: 3.25rem;
   display: flex;
-  align-items: stretch;
+  flex-wrap: wrap;
   width: 100%;
-}
-.newsletter-form input {
-  flex: 1 0 0;
-  min-width: 0;
-  height: 44px;
-  padding: 0 14px;
+  max-width: 28.75rem;
   background: var(--c-white);
-  border: 1px solid var(--c-border);
-  border-right: 0;
-  border-radius: var(--radius) 0 0 var(--radius);
+  border: 1px solid var(--c-text);
+}
+.newsletter-form:has(input:focus-visible) { outline: 1px solid currentColor; outline-offset: 2px; }
+.newsletter-form input {
+  flex: 999 1 10rem;
+  min-width: 0;
+  height: var(--signup-h);
+  padding: 0 1rem;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
   font-family: var(--font-body);
   font-size: var(--t-rg);
   color: var(--c-text);
   outline: none;
-  transition: border-color .2s ease;
 }
 .newsletter-form input::placeholder { color: #6b6b6b; }
-.newsletter-form input:focus { border-color: rgba(20, 20, 20, 0.5); }
-.newsletter-form .btn {
-  flex: none;
-  height: 44px;
-  padding: 0 20px;
-  border-radius: 0 var(--radius) var(--radius) 0;
+/* Hover darkens the red from within rather than declaring a second red. */
+.newsletter-form__submit {
+  flex: 1 0 auto;
+  height: var(--signup-h);
+  padding: 0 1.75rem;
+  background: var(--c-red);
+  border: 0;
+  border-radius: 0;
+  color: var(--c-text);
+  font-size: var(--t-rg);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: box-shadow .15s ease;
 }
-.newsletter-form.is--split { gap: 12px; }
-.newsletter-form.is--split input { border-right: 1px solid var(--c-border); border-radius: var(--radius); }
-.newsletter-form.is--split .btn { border-radius: var(--radius); }
-.newsletter-form.is--dark input {
-  background: transparent;
-  border-color: var(--c-border-dark);
-  color: var(--c-white);
-}
-.newsletter-form.is--dark input::placeholder { color: rgba(255, 255, 255, 0.5); }
-.newsletter-form.is--dark input:focus { border-color: rgba(255, 255, 255, 0.6); }
+.newsletter-form__submit:hover { box-shadow: inset 0 0 0 100px rgba(0, 0, 0, 0.16); }
+.newsletter-form__submit:focus-visible { outline: 1px solid var(--c-text); outline-offset: -5px; }
 
-/* icons are exported at their exact Figma dimensions — let them size intrinsically */
-.icon { flex: none; }
-.actions { display: flex; align-items: center; gap: 24px; }
-.actions--tight { gap: 5px; align-items: flex-start; }
+/* Icons are exported at their exact Figma dimensions. Each is held to
+   that width in rem, so it is its Figma size at the ideal width and
+   scales with the text beside it; the height follows the file. */
+.icon { flex: none; height: auto; }
+.icon[src$="/check.svg"] { width: 0.9915rem; }
+.icon[src$="/chevron_right.svg"] { width: 0.4182rem; }
+.icon[src$="/close.svg"] { width: 0.8219rem; }
+.actions { display: flex; align-items: center; gap: 1.5rem; }
+/* A pair of block buttons (ActionButton block): equal shares of the row,
+   a gutter apart. Each keeps a width its label fits, so where the row
+   is too narrow for both side by side (it wraps below 992px) each takes
+   the full row. */
+.actions--blocks { gap: var(--grid-gutter); align-items: stretch; }
+.actions--blocks > .action-button { flex: 1 1 0; min-width: 15rem; }
 
 /* ============================================================
    1 — hero
@@ -329,8 +338,8 @@ button, input { font: inherit; color: inherit; }
      the standard measure. Never wider than --page-pad, though: on a
      phone the page gutter is already the tighter of the two, and the
      hero keeps to it so its left edge lines up with the sections below. */
-  --hero-gutter: min(32px, var(--page-pad));
-  padding: var(--nav-h) var(--hero-gutter) 48px;
+  --hero-gutter: min(2rem, var(--page-pad));
+  padding: var(--nav-h) var(--hero-gutter) 3rem;
   overflow: hidden;
 }
 /* Full-bleed inside the hero — the 1280px cap would pull the bands
@@ -349,7 +358,8 @@ button, input { font: inherit; color: inherit; }
 .hero__media {
   position: relative;
   margin: 0 calc(-1 * var(--hero-gutter));
-  height: clamp(220px, 43vh, 430px);
+  /* --hero-band-scale shortens the band in proportion at every size */
+  height: calc(var(--hero-band-scale, 1) * clamp(13.75rem, 43vh, 26.875rem));
   background: var(--c-light-fg);
   /* clips the schematic where the band stops, whatever its height */
   overflow: hidden;
@@ -362,28 +372,27 @@ button, input { font: inherit; color: inherit; }
    the text it belongs to. */
 .hero__grid {
   display: flex;
-  gap: 64px;
+  gap: 4rem;
   align-items: stretch;
   flex: 1;
-  margin-top: 48px;
+  margin-top: 3rem;
 }
 .hero__col {
   min-width: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 40px;
+  gap: 2.5rem;
 }
-.hero__col--lede { flex: 0 0 clamp(280px, 24vw, 400px); }
+.hero__col--lede { flex: 0 0 21.6rem; }
 /* Pushed to the right edge, so the headline starts around two fifths
    across and the space between it and the lede is the composition. */
 .hero__col--heading { flex: 0 1 auto; margin-left: auto; }
 .hero__heading {
   /* Still the largest type on the site, but a controlled step above
-     --t-h1 rather than the display size it was. Fluid, and capped
-     because the column stops growing on a wide display while a
-     vw-only size would not. */
-  font-size: clamp(36px, 4.4vw, 64px);
+     --t-h1 rather than the display size it was. It scales with the page
+     (scaling.css), which stops growing at 1920px with everything else. */
+  font-size: 3.96rem;
   line-height: 1.05;
   letter-spacing: -0.03em;
   /* Holds the wrap at two lines across the right-hand column. */
@@ -397,20 +406,25 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 32px;
+  gap: 2rem;
 }
+/* The pair of blocks share the row up to the arrow (on the 12-Column
+   Grid, to the end of Grid Column 11 — page-grid.css). */
+.hero__cta-row .actions { flex: 1; }
 /* Rotated a quarter turn so it points down the page: it is the scroll
    cue, and it jumps to the section the page is asking you to read. */
 .hero__arrow {
   flex: none;
   display: flex;
-  width: 24px;
-  height: 24px;
+  width: 1.5rem;
+  height: 1.5rem;
   color: var(--c-text);
   transform: rotate(90deg);
   transition: opacity .2s ease;
 }
 .hero__arrow:hover { opacity: .6; }
+/* the box's size, so the 24px mark scales with it */
+.hero__arrow svg { width: 100%; height: auto; }
 
 /* Interactive dots background — canvas, drawn by initInteractiveDotsGrid
    in src/scripts/site.js. It lives inside .hero__media now rather than the
@@ -420,12 +434,13 @@ button, input { font: inherit; color: inherit; }
 
    The light treatment: dark dots on the page's own white, keyed to the
    ink colour rather than the reference's flat black, via the
-   data-dots-color-* attributes the component already reads.
-
-   Related but separate from .dots-grid in dots.css — that is the static
-   CSS grid behind the first-load intro. Same 1em gap and 0.125em dot, so
-   the two read as one motif. */
+   data-dots-color-* attributes the component already reads. */
 .interactive-dots-grid {
+  /* The canvas measures its dots and gap in em, and the schematic
+     lines over it are drawn in absolute pixels on that pitch, so it
+     keeps the 16px it was drawn at rather than the scaled body size;
+     at any other size the dots would drift off the lines. */
+  font-size: 16px;
   pointer-events: none;
   width: 100%;
   height: 100%;
@@ -477,6 +492,110 @@ button, input { font: inherit; color: inherit; }
   opacity: 0;
   animation: hero-label-in .6s ease 1.4s forwards;
 }
+
+/* The Slash Field — the homepage band's pattern (src/scripts/slash-field.js),
+   in place of the dots. It runs on past the band's edges, under them, and
+   the band's overflow crops it. The strokes take the ink tint the dots were
+   drawn in. The hover is held back: a small cluster by the pointer (a 30px
+   reach, twice as tall as it is wide) steps up to a firmer tint of the same
+   ink (--slash-hot), and fades back in under half a second. The pattern's
+   own options are its spec's.
+
+   The words sit at about the pattern's own weight (--slash-word). They come
+   online in a chain, each handing a signal on to a neighbour through the
+   strokes: as the signal lands the word bursts — the strokes round it
+   flaring to a near-black (--slash-ink) with short traces flying out of it —
+   and decodes, held forward (--slash-word-active, data-slash-active), then
+   it settles back; a word answering a ping comes forward a step less. The
+   site's red (--slash-signal) is the signal and the heart of each burst,
+   nothing else — the head of a signal on its way, the strokes framing a word
+   as it lands, the characters still decoding (--slash-word-decoding) — and
+   it always resolves into ink. A word also comes forward (--slash-word-lit)
+   while the pointer is over it — the script sets data-slash-lit. */
+.hero__media[data-slash-field] {
+  /* a little under the dotted band's height, so the hero still sits
+     compact but the field has room to work */
+  --hero-band-scale: 0.94;
+  --slash-base: rgba(20, 20, 20, 0.18);
+  --slash-hot: rgba(20, 20, 20, 0.42);
+  /* the near-black the strokes reach only where the system is most
+     active — a burst, the head of a signal — past the hover's highlight */
+  --slash-ink: rgba(20, 20, 20, 0.86);
+  --slash-signal: var(--c-red);
+  --slash-radius: 30;
+  --slash-stretch: 2;
+  --slash-fade: 450;
+  --slash-word: rgba(20, 20, 20, 0.36);
+  --slash-word-lit: rgba(20, 20, 20, 0.66);
+  --slash-word-active: rgba(20, 20, 20, 0.88);
+  /* the characters still decoding: the signal's red, a little muted */
+  --slash-word-decoding: color-mix(in srgb, var(--c-red) 76%, rgb(20 20 20 / 0.6));
+}
+/* The band sits a step back, between two sheets in front of it — the bar
+   above and the hero's copy below — as a recess cut into the page, lit
+   from above. The bar's edge shades the floor under it: a close, darker
+   line where the two meet, falling off softly over a few pixels. The copy's
+   sheet, on the lit side, leaves only a fainter, shorter shade along the
+   bottom. Both are eased gradients rather than a box-shadow, so the fall-off
+   is even and never reads as a card's drop shadow; they lie over the
+   pattern and the words alike, as a shade inside the recess would. Kept
+   light: a physical step between the sheets, not a shadow cast on them. */
+.hero__media[data-slash-field]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom,
+      rgba(20, 20, 20, 0.085) 0,
+      rgba(20, 20, 20, 0.055) 1px,
+      rgba(20, 20, 20, 0.032) 3px,
+      rgba(20, 20, 20, 0.017) 6px,
+      rgba(20, 20, 20, 0.008) 10px,
+      rgba(20, 20, 20, 0.003) 14px,
+      rgba(20, 20, 20, 0) 18px) top / 100% 18px no-repeat,
+    linear-gradient(to top,
+      rgba(20, 20, 20, 0.05) 0,
+      rgba(20, 20, 20, 0.026) 1px,
+      rgba(20, 20, 20, 0.01) 3px,
+      rgba(20, 20, 20, 0.003) 6px,
+      rgba(20, 20, 20, 0) 8px) bottom / 100% 8px no-repeat;
+}
+/* The words on the field: real text in the lines' old label face, placed
+   on the grid by the script, with the pattern stopping around each one,
+   in the ink of the pattern itself so they read as part of it. Centred
+   on the row the script gives each; until then, at its own spot. A word
+   steps forward quickly and settles back slowly. */
+.hero__label {
+  position: absolute;
+  z-index: 2;
+  transform: translateY(-50%);
+  color: var(--slash-word);
+  transition: color 1.6s ease;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: var(--fw-label);
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  animation: hero-label-in .6s ease 1.4s forwards;
+}
+.hero__label[data-slash-lit] { color: var(--slash-word-lit); transition-duration: .5s; }
+.hero__label[data-slash-active] { color: var(--slash-word-active); transition-duration: .25s; }
+/* a word answering a ping comes forward a step less */
+.hero__label[data-slash-active="minor"] { color: var(--slash-word-lit); }
+/* While a word decodes (ScrambleTextPlugin's oldClass and newClass, set by
+   the script): the characters still to resolve carry the signal's red,
+   muted, and the one at the front of the decode — the head of the signal,
+   passing through — takes it at full strength; behind the front the word
+   resolves to ink. A block container, so it has a first letter; one
+   character wide, as every character is in this face. */
+.hero__label .is--decoding { color: var(--slash-word-decoding); }
+.hero__label .is--front { display: inline-block; }
+.hero__label .is--front::first-letter { color: var(--slash-signal); }
 /* The pulse — a short dash of the same red, a touch wider and soft,
    riding each run once every few seconds. pathLength="1" makes the
    dash a fraction of the run, so the offset sweep is one full traverse
@@ -506,7 +625,7 @@ button, input { font: inherit; color: inherit; }
 @keyframes hero-line-draw { to { stroke-dashoffset: 0; } }
 @keyframes hero-label-in  { to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .hero__line, .hero__line-label { animation: none; stroke-dashoffset: 0; opacity: 1; }
+  .hero__line, .hero__line-label, .hero__label { animation: none; stroke-dashoffset: 0; opacity: 1; }
   .hero__pulse { animation: none; }
   .hero__line--thin { opacity: .45; }
 }
@@ -514,27 +633,47 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    2 — logo strip
    ============================================================ */
-.logos { padding: 142px 0; text-align: center; }
+.logos { padding: 8.875rem 0; text-align: center; }
 /* The strip runs edge to edge, but its title keeps the page gutter, so
    on a phone it wraps inside the margins rather than touching them. */
-.logos__title { margin-bottom: 58px; padding: 0 var(--page-pad); }
+.logos__title { margin-bottom: 3.625rem; padding: 0 var(--page-pad); }
 .logo-tile {
   flex: none;
-  width: 201px;
-  height: 178px;
+  width: 12.5625rem;
+  height: 11.125rem;
   background: var(--c-light-fg);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Reusable GSAP marquee (see src/scripts/marquee.js) — logo-style
-   continuously scrolling carousels only. */
-.marquee { overflow: hidden; }
-.marquee__scroll { display: flex; }
-.marquee__collection { display: flex; flex: none; align-items: center; }
-/* Include the seam gap in the collection's width so a 100% loop is exact. */
-.logos .marquee__collection { gap: 12px; padding-right: 12px; }
+/* The strip's motion: Osmo's Wavy Marquee (src/scripts/wavy-marquee.js),
+   without its wave — the tiles run level, one straight row. Clipped
+   across only; the script measures the loop from the tiles' own offsets,
+   so the gap is part of it. */
+.wavy-marquee {
+  position: relative;
+  width: 100%;
+  overflow-x: clip;
+}
+.wavy-marquee__collection {
+  position: relative;
+  width: 100%;
+}
+.wavy-marquee__list {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: max-content;
+  touch-action: pan-y;
+}
+.wavy-marquee__item {
+  position: relative;
+  flex: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
 
 /* ============================================================
    3 — problems
@@ -544,16 +683,18 @@ button, input { font: inherit; color: inherit; }
   border-radius: var(--radius);
   overflow: hidden;
 }
-.card__body { padding: 32px; display: flex; flex-direction: column; gap: 24px; flex: 1; justify-content: center; }
-.card__body--lg { padding: 48px; gap: 32px; justify-content: flex-start; }
-.card__text { display: flex; flex-direction: column; gap: 16px; }
+.card__body { padding: 2rem; display: flex; flex-direction: column; gap: 1.5rem; flex: 1; justify-content: center; }
+.card__body--lg { padding: 3rem; gap: 2rem; justify-content: flex-start; }
+.card__text { display: flex; flex-direction: column; gap: 1rem; }
 .card__icon {
-  width: 48px;
-  height: 48px;
+  width: 3rem;
+  height: 3rem;
   display: flex;
   align-items: center;
   justify-content: flex-start;
 }
+/* the icon's own Figma width, in rem like .icon */
+.card__icon img { width: 2.7221rem; height: auto; }
 .card__media { aspect-ratio: 864 / 486; background: var(--c-placeholder); }
 /* ------------------------------------------------------------
    industry problems (see src/scripts/site.js — initProblemGrid)
@@ -573,27 +714,29 @@ button, input { font: inherit; color: inherit; }
    ------------------------------------------------------------ */
 .problem-head {
   display: flex;
-  gap: 64px;
+  gap: 4rem;
   align-items: flex-start;
 }
 /* The hero's proportion, one step narrower — this column carries
    four short sentences rather than the hero's single one. */
 .problem-head__lede {
-  flex: 0 0 clamp(260px, 22vw, 360px);
+  flex: 0 0 19.8rem;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.5rem;
 }
 /* Pushed to the right edge the way the hero headline is, and held
    to a measure that wraps it onto two lines. The routes heading is the
-   same heading in the next section. */
+   same heading in the next section, and the approach stack's heading
+   (approach-stack.css) takes its size, placed on the left instead. */
 .problem-head__h,
-.routes__h {
+.routes__h,
+.approach-stack__h {
   flex: 0 1 auto;
   margin: 0 0 0 auto;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: clamp(32px, 4.2vw, 60px);
+  font-size: 3.75rem;
   line-height: 1.05;
   letter-spacing: -0.03em;
   /* Held just under the width of "What actually costs", so the
@@ -608,14 +751,14 @@ button, input { font: inherit; color: inherit; }
   grid-template-columns: repeat(3, 1fr);
   /* the routes row's gutter, so the cards space like every other
      card row on the page */
-  gap: 20px;
+  gap: 1.25rem;
   align-items: start;
-  margin-top: 96px;
+  margin-top: 6rem;
 }
 /* The stagger. Held to two steps of the same size so the row
    descends evenly — offset, not scattered. */
-.problem-card:nth-child(2) { margin-top: 64px; }
-.problem-card:nth-child(3) { margin-top: 128px; }
+.problem-card:nth-child(2) { margin-top: 4rem; }
+.problem-card:nth-child(3) { margin-top: 8rem; }
 
 .problem-card {
   display: flex;
@@ -644,13 +787,13 @@ button, input { font: inherit; color: inherit; }
    exactly one place and at one size. */
 .problem-card__icon {
   position: absolute;
-  top: 16px;
-  left: 16px;
+  top: 1rem;
+  left: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 2.5rem;
+  height: 2.5rem;
   border-radius: var(--radius);
   /* a hairline, the card's own, so the chip still reads where the
      photograph behind it is pale */
@@ -658,19 +801,19 @@ button, input { font: inherit; color: inherit; }
   background: var(--c-white);
   color: var(--c-text);
 }
-.problem-card__icon svg { width: 22px; height: 22px; display: block; }
+.problem-card__icon svg { width: 1.375rem; height: 1.375rem; display: block; }
 
 .problem-card__body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 24px;
+  gap: 0.5rem;
+  padding: 1.5rem;
 }
 .problem-card__h {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -704,19 +847,14 @@ button, input { font: inherit; color: inherit; }
   }
 }
 
-@media screen and (max-width: 1200px) {
-  .problem-head { gap: 40px; }
-  .problem-card:nth-child(2) { margin-top: 48px; }
-  .problem-card:nth-child(3) { margin-top: 96px; }
-}
 /* Stacked, and the stagger goes with the row — a step means nothing
    in a single column. */
 @media screen and (max-width: 991px) {
-  .problem-head { flex-direction: column; gap: 32px; }
+  .problem-head { flex-direction: column; gap: 2rem; }
   .problem-head__lede { flex: none; width: 100%; }
   .problem-head__h,
   .routes__h { margin-left: 0; max-width: none; }
-  .problem-grid { grid-template-columns: 1fr; gap: 24px; margin-top: 48px; }
+  .problem-grid { grid-template-columns: 1fr; gap: 1.5rem; margin-top: 3rem; }
   .problem-card:nth-child(2),
   .problem-card:nth-child(3) { margin-top: 0; }
   .problem-card__media { aspect-ratio: 16 / 10; }
@@ -728,6 +866,9 @@ button, input { font: inherit; color: inherit; }
 /* ------------------------------------------------------------
    approach slides (see src/scripts/site.js — initApproachSlides)
    ------------------------------------------------------------
+   The homepage's original approach cards, now on the Tech Firms
+   page (the homepage has the approach stack, approach-stack.css).
+
    The reference effect's structure is kept exactly: each step is a
    100vh slide whose wrapper is pinned while the card inside it tips
    back in 3D and fades, so the next step scrolls in over the one
@@ -736,8 +877,7 @@ button, input { font: inherit; color: inherit; }
    What is ours is the surface. The cards are the site's own three
    tones — light, ink, white — carrying the display face for the
    step name, the mono label for its number and .text-md for the
-   copy. The intro above them stays on the same white as the problem
-   section before it, so the two read as one argument.
+   copy. The shutter hands the last step back to the page white.
    ------------------------------------------------------------ */
 /* No trailing space any more: the last step does not pin, so there is
    nothing left to play out after it. It simply scrolls on and the next
@@ -758,7 +898,7 @@ button, input { font: inherit; color: inherit; }
      a viewport, and the extra is breathing room under it before the
      shutter closes over both. Painted the same grey as the card itself
      (not page white), so the ground is continuous until the shutter
-     hands off to the dark routes section. */
+     hands off to the page white. */
   height: calc(100vh - var(--nav-h) + 30vh);
   height: calc(100svh - var(--nav-h) + 30svh);
   background: #d8d8d8;
@@ -774,8 +914,8 @@ button, input { font: inherit; color: inherit; }
    The reference component, dropped onto the last approach step in
    its "cover" mode: rows grow from the bottom of the step as it
    scrolls out, so the card is closed over rather than simply
-   leaving. currentColor is the routes section's own ground, which
-   is what makes the two read as one move.
+   leaving. currentColor is the ground that follows — the page
+   white — which is what makes the two read as one move.
 
    One adaptation: the row height is a slice of the viewport rather
    than a fixed em, because the step is a viewport tall — 18 rows at
@@ -784,7 +924,7 @@ button, input { font: inherit; color: inherit; }
 .shutter-scroll-transition {
   z-index: 10;
   pointer-events: none;
-  color: var(--c-dark-fg);
+  color: var(--c-white);
   position: absolute;
   inset: auto 0% 0%;
 }
@@ -827,8 +967,8 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 40px;
-  padding: 40px;
+  gap: 2.5rem;
+  padding: 2.5rem;
   box-shadow: 0 -12px 40px rgba(20, 20, 20, 0.12);
 }
 /* Three tones, stepping lighter as the steps progress: the first
@@ -842,24 +982,23 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 40px;
+  gap: 2.5rem;
 }
 /* Display-scale, as the reference sets it — a card is the whole
-   viewport, so the step name carries it. The floor eases off below a
-   375px screen, so the longest name still clears the arrow beside it. */
+   viewport, so the step name carries it. */
 .approach__card-h,
 .approach__card-num {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: clamp(min(48px, 12.8vw), 9vw, 148px);
+  font-size: 8.1rem;
   line-height: 0.9;
   letter-spacing: -0.05em;
 }
 .approach__card-mark {
   flex: none;
   display: block;
-  width: clamp(40px, 4vw, 64px);
+  width: 3.6rem;
 }
 .approach__card-mark svg { width: 100%; height: auto; display: block; }
 
@@ -871,18 +1010,18 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 40px;
-  padding: 0 0 24px 24px;
+  gap: 2.5rem;
+  padding: 0 0 1.5rem 1.5rem;
 }
 .approach__card-p {
-  /* the reference measure — roughly a third of the viewport */
-  width: 32vw;
+  /* the reference measure — a third of the 1440 design */
+  width: 28.8rem;
   /* Lifted well clear of the card's foot: bottom-aligned with the
      picture the line sat too low in the frame, so it now rides up to
      around the middle of the aside and the corner is left open. */
-  margin-bottom: clamp(48px, 9vh, 120px);
-  max-width: 520px;
-  font-size: clamp(16px, 1.6vw, 24px);
+  margin-bottom: clamp(3rem, 9vh, 7.5rem);
+  max-width: 32.5rem;
+  font-size: 1.44rem;
   line-height: 1.25;
   letter-spacing: -0.02em;
 }
@@ -893,12 +1032,12 @@ button, input { font: inherit; color: inherit; }
 .approach__card-aside {
   display: flex;
   align-items: flex-end;
-  gap: 32px;
+  gap: 2rem;
 }
 .approach__card-image {
   flex: none;
-  width: 25vw;
-  max-width: 420px;
+  width: 22.5rem;
+  max-width: 26.25rem;
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: var(--radius);
@@ -909,25 +1048,49 @@ button, input { font: inherit; color: inherit; }
 .approach__card-image.is--crop-centre { object-position: 50% 35%; }
 .approach__card-image.is--crop-right { object-position: 80% 45%; }
 
+/* From 992px the card is laid out on the 12-Column Grid, wherever it is
+   placed: the step name and the copy on the start of Grid Column 1, the
+   arrow and the picture on the end of Grid Column 12. The card runs the
+   full width, so its side padding is the grid margin and its bottom row
+   is the grid's twelve tracks. The copy takes Grid Columns 1–4; the
+   picture Grid Columns 10–12, which is three of the aside's eight
+   columns and two of its gutters. */
+@media screen and (min-width: 992px) {
+  .approach__card { padding-left: var(--grid-margin); padding-right: var(--grid-margin); }
+  .approach__card-bottom {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--grid-gutter);
+    align-items: end;
+    padding-left: 0;
+  }
+  .approach__card-p { grid-column: 1 / 5; width: auto; max-width: none; }
+  .approach__card-aside { grid-column: 5 / -1; justify-content: flex-end; }
+  .approach__card-image {
+    width: calc((100% - 7 * var(--grid-gutter)) * 3 / 8 + 2 * var(--grid-gutter));
+    max-width: none;
+  }
+}
+
 @media screen and (max-width: 991px) {
   .approach__card {
     justify-content: flex-start;
-    gap: 24px;
-    padding: 32px var(--page-pad);
+    gap: 1.5rem;
+    padding: 2rem var(--page-pad);
   }
   /* The card's own interval, so the name keeps clear of the arrow. */
-  .approach__card-top { gap: 24px; }
+  .approach__card-top { gap: 1.5rem; }
   /* Held to a share of the height as well as the width, which only
      tells on a phone turned on its side: the card is a viewport tall,
      and a name sized off the width alone would fill it. */
-  .approach__card-h { font-size: clamp(min(48px, 12.8vw), min(9vw, 15svh), 148px); }
+  .approach__card-h { font-size: clamp(3rem, min(4.6913rem, 15svh), 9.25rem); }
   .approach__card-num { display: none; }
   /* Stacked and full-bleed inside the card's own padding, so the inset
      the desktop row carries would throw the picture off centre.
      Nothing may run past the card's foot, so where the screen is short
      the picture gives up height, cropped from its 16:10, rather than
      the copy being pushed out over the next card. */
-  .approach__card-bottom { flex: 0 1 auto; min-height: 0; flex-direction: column; align-items: stretch; gap: 24px; padding: 0; }
+  .approach__card-bottom { flex: 0 1 auto; min-height: 0; flex-direction: column; align-items: stretch; gap: 1.5rem; padding: 0; }
   .approach__card-aside { flex: 0 1 auto; min-height: 0; flex-direction: column; align-items: stretch; }
   .approach__card-p { width: 100%; max-width: none; order: 2; margin-bottom: 0; }
   .approach__card-image { flex: 0 1 auto; min-height: 0; width: 100%; max-width: none; aspect-ratio: 16 / 10; }
@@ -936,14 +1099,12 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    5 — routes
    ============================================================ */
-/* The section the shutter hands over to — the same ink the rows are
-   painted in, so the two meet as one field rather than two panels.
-   A touch more room above the eyebrow than the section default, which
-   is the separation after the last card. */
+/* A touch more room above the eyebrow than the section default, which
+   is the separation from the white section before it. */
 /* The row runs the width of the screen, so the section drops its own
    side padding and the header keeps its container. */
 .routes {
-  padding-top: 118px;
+  padding-top: 7.375rem;
   padding-left: 0;
   padding-right: 0;
   background: var(--c-dark-fg);
@@ -956,16 +1117,16 @@ button, input { font: inherit; color: inherit; }
    .section-title stack used elsewhere. */
 .routes__head {
   display: flex;
-  gap: 64px;
+  gap: 4rem;
   align-items: flex-start;
 }
 /* The hero's own interval between the lede and the label beneath it,
    so the left column reads as two placed pieces rather than a block. */
 .routes__lede {
-  flex: 0 0 clamp(260px, 22vw, 360px);
+  flex: 0 0 19.8rem;
   display: flex;
   flex-direction: column;
-  gap: 40px;
+  gap: 2.5rem;
 }
 /* The heading is .problem-head__h's, set with it above. Held well inside
    the column it is pushed to the right of: it breaks after "needs"
@@ -984,12 +1145,12 @@ button, input { font: inherit; color: inherit; }
 /* One gutter value everywhere: the same 20px between the cards and
    from the outer cards to the viewport edges. */
 .routes__grid {
-  --routes-gutter: 20px;
+  --routes-gutter: 1.25rem;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--routes-gutter);
   /* Clear of the intro rather than tucked under it. */
-  margin-top: 72px;
+  margin-top: 4.5rem;
   padding: 0 var(--routes-gutter);
 }
 .route-card,
@@ -1022,9 +1183,9 @@ button, input { font: inherit; color: inherit; }
 .route-card__label,
 .insight-card__label {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  padding: 5px 8px;
+  top: 1rem;
+  left: 1rem;
+  padding: 0.3125rem 0.5rem;
   border-radius: var(--radius);
   background: var(--c-white);
 }
@@ -1034,39 +1195,39 @@ button, input { font: inherit; color: inherit; }
 .route-card__arrow,
 .insight-card__arrow {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 1rem;
+  right: 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   border-radius: var(--radius);
   background: var(--c-text);
   color: var(--c-white);
   transition: background-color .25s ease;
 }
 .route-card__arrow svg,
-.insight-card__arrow svg { width: 18px; height: 18px; transform: rotate(-45deg); }
+.insight-card__arrow svg { width: 1.125rem; height: 1.125rem; transform: rotate(-45deg); }
 .route-card:hover .route-card__arrow,
 .insight-card:hover .insight-card__arrow { background: var(--c-red); }
 
 .route-card__icon { display: block; color: var(--c-text); }
-.route-card__icon svg { width: 56px; height: 56px; display: block; }
+.route-card__icon svg { width: 3.5rem; height: 3.5rem; display: block; }
 
 .route-card__body,
 .insight-card__body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 24px;
+  gap: 0.5rem;
+  padding: 1.5rem;
 }
 .route-card__h,
 .insight-card__h {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: 22px;
+  font-size: 1.375rem;
   line-height: 1.2;
   letter-spacing: -0.02em;
 }
@@ -1084,8 +1245,8 @@ button, input { font: inherit; color: inherit; }
 @media screen and (max-width: 991px) {
   /* Stacked, so the interval the two columns held side by side becomes
      the gap between the lede and the heading under it. */
-  .routes__head { flex-direction: column; gap: 56px; }
-  .routes__lede { flex: none; width: 100%; gap: 32px; }
+  .routes__head { flex-direction: column; gap: 3.5rem; }
+  .routes__lede { flex: none; width: 100%; gap: 2rem; }
 }
 @media screen and (max-width: 767px) {
   .routes__grid { grid-template-columns: 1fr; }
@@ -1096,35 +1257,35 @@ button, input { font: inherit; color: inherit; }
    6 — case study / testimonial
    ============================================================ */
 .case__panel {
-  margin-top: 80px;
+  margin-top: 5rem;
   background: var(--c-light-fg);
   border-radius: var(--radius);
   overflow: hidden;
 }
 .case__quote-wrap {
-  min-height: 480px;
+  min-height: 30rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 85px 64px 48px;
+  padding: 5.3125rem 4rem 3rem;
 }
 .case__quote-inner {
-  max-width: 768px;
+  max-width: 48rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 2rem;
 }
 .quote {
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: 30px;
+  font-size: 1.875rem;
   line-height: 1.3;
   letter-spacing: -0.02em;
 }
-.avatar { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.avatar__img { width: 56px; height: 56px; border-radius: 50%; background: var(--c-placeholder); }
+.avatar { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.avatar__img { width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--c-placeholder); }
 .avatar__name { font-weight: var(--fw-body); }
 
 /* ------------------------------------------------------------
@@ -1151,11 +1312,11 @@ button, input { font: inherit; color: inherit; }
   margin-top: calc(var(--sec-lg) + var(--sec-md));
 }
 .testimonials__title {
-  margin: 0 0 40px calc(40% + var(--page-pad));
+  margin: 0 0 2.5rem calc(40% + var(--page-pad));
   /* The routes heading's size, so the two section heads carry the same
      weight. Its leading comes with it: .h4's 1.3 is right at 36px and
      far too airy at this scale. */
-  font-size: clamp(32px, 4.2vw, 60px);
+  font-size: 3.75rem;
   line-height: 1.05;
 }
 .testimonial-lines { position: relative; }
@@ -1168,7 +1329,7 @@ button, input { font: inherit; color: inherit; }
   display: grid;
   grid-template-columns: 40% 1fr;
   width: 100%;
-  min-height: 620px;
+  min-height: 38.75rem;
   opacity: 0;
   visibility: hidden;
 }
@@ -1177,14 +1338,14 @@ button, input { font: inherit; color: inherit; }
 .testimonial-lines__aside {
   display: flex;
   flex-direction: column;
-  padding: 56px var(--page-pad);
+  padding: 3.5rem var(--page-pad);
   background: var(--c-dark-fg);
   color: var(--c-white);
 }
 .testimonial-lines__mark {
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 64px;
+  font-size: 4rem;
   line-height: .8;
 }
 /* Set in from the panel's edge, the way the reference sits its
@@ -1193,32 +1354,32 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 28px;
-  margin: 40px 0 0 22%;
+  gap: 1.75rem;
+  margin: 2.5rem 0 0 22%;
 }
 .testimonial-lines__logo {
   display: flex;
   align-items: center;
-  height: 30px;
+  height: 1.875rem;
 }
 /* contained, never stretched — logos are transparent-PNG wordmarks,
    so no box or fill sits behind them */
 .testimonial-lines__logo img {
-  max-width: 160px;
+  max-width: 10rem;
   max-height: 100%;
   width: auto;
   height: 100%;
   object-fit: contain;
   object-position: left center;
 }
-.testimonial-lines__meta { display: flex; flex-direction: column; gap: 6px; }
+.testimonial-lines__meta { display: flex; flex-direction: column; gap: 0.375rem; }
 .testimonial-lines__name { font-size: var(--t-rg); line-height: 1.3; }
 .testimonial-lines__role { color: rgba(255, 255, 255, .6); }
 
 .testimonial-lines__body {
   display: flex;
   align-items: flex-start;
-  padding: 56px var(--page-pad);
+  padding: 3.5rem var(--page-pad);
   background: var(--c-light-fg);
   color: var(--c-text);
 }
@@ -1227,7 +1388,7 @@ button, input { font: inherit; color: inherit; }
   max-width: 16em;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: clamp(26px, 2.8vw, 42px);
+  font-size: 2.52rem;
   line-height: 1.15;
   letter-spacing: -0.03em;
 }
@@ -1241,21 +1402,21 @@ button, input { font: inherit; color: inherit; }
 .testimonial-lines__controls {
   position: absolute;
   left: calc(40% + var(--page-pad));
-  bottom: 56px;
+  bottom: 3.5rem;
   z-index: 2;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 1.25rem;
   color: var(--c-text);
 }
 .testimonial-lines__count { color: #6b6b6b; }
-.testimonial-lines__buttons { display: flex; gap: 8px; }
+.testimonial-lines__buttons { display: flex; gap: 0.5rem; }
 .testimonial-lines__button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   padding: 0;
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
@@ -1270,39 +1431,39 @@ button, input { font: inherit; color: inherit; }
 @media (hover: hover) {
   .testimonial-lines__button:hover { background: var(--c-red); border-color: var(--c-red); color: var(--c-white); }
 }
-.testimonial-lines__arrow { width: 12px; height: 12px; display: block; }
+.testimonial-lines__arrow { width: 0.75rem; height: 0.75rem; display: block; }
 
 @media screen and (max-width: 991px) {
   .testimonials { margin-top: var(--sec-lg); }
-  .testimonials__title { margin-left: var(--page-pad); margin-bottom: 24px; }
+  .testimonials__title { margin-left: var(--page-pad); margin-bottom: 1.5rem; }
   /* Stacked, every slide shares the height of the tallest quote. The
      slack all goes to the quote panel, so the line between ink and
      off-white stays put as the slides change, the way the split does
      side by side. */
   .testimonial-lines__item { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 0; }
-  .testimonial-lines__aside { padding: 40px var(--page-pad); }
-  .testimonial-lines__firm { margin-left: 0; gap: 24px; }
-  .testimonial-lines__body { padding: 40px var(--page-pad) 104px; }
-  .testimonial-lines__controls { left: var(--page-pad); bottom: 40px; }
+  .testimonial-lines__aside { padding: 2.5rem var(--page-pad); }
+  .testimonial-lines__firm { margin-left: 0; gap: 1.5rem; }
+  .testimonial-lines__body { padding: 2.5rem var(--page-pad) 6.5rem; }
+  .testimonial-lines__controls { left: var(--page-pad); bottom: 2.5rem; }
 }
 
 /* ============================================================
    7 — credentials
    ============================================================ */
-.creds__title { display: flex; flex-direction: column; gap: 16px; max-width: 560px; }
-.creds__title .h2 { max-width: 392px; line-height: 0.92; }
-.creds__grid { display: flex; gap: 64px; align-items: flex-start; margin-top: 40px; }
-.creds__media { flex: 0 0 696px; display: flex; gap: 32px; align-items: flex-start; }
-.creds__media .ph:first-child { margin-top: 104px; height: 439px; }
-.creds__media .ph:last-child { height: 436px; }
+.creds__title { display: flex; flex-direction: column; gap: 1rem; max-width: 35rem; }
+.creds__title .h2 { max-width: 24.5rem; line-height: 0.92; }
+.creds__grid { display: flex; gap: 4rem; align-items: flex-start; margin-top: 2.5rem; }
+.creds__media { flex: 0 0 43.5rem; display: flex; gap: 2rem; align-items: flex-start; }
+.creds__media .ph:first-child { margin-top: 6.5rem; height: 27.4375rem; }
+.creds__media .ph:last-child { height: 27.25rem; }
 .creds__media > * { flex: 1 0 0; min-width: 0; }
 .creds__text {
   flex: 1 0 0;
   min-width: 0;
-  padding-top: 305px;
+  padding-top: 19.0625rem;
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 2rem;
   align-items: flex-start;
 }
 
@@ -1318,27 +1479,27 @@ button, input { font: inherit; color: inherit; }
 }
 .compare__grid {
   display: flex;
-  gap: 32px;
+  gap: 2rem;
   align-items: flex-start;
-  max-width: 1024px;
-  margin: 80px auto 0;
+  max-width: 64rem;
+  margin: 5rem auto 0;
 }
 .compare__card {
   flex: 1 0 0;
   min-width: 0;
   background: var(--c-white);
   border-radius: var(--radius);
-  padding: 46px;
+  padding: 2.875rem;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 1.5rem;
 }
 .compare__list { border-top: 1px solid var(--c-border); }
 .compare__list li {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 24px 0;
+  gap: 1rem;
+  padding: 1.5rem 0;
   border-bottom: 1px solid var(--c-border);
 }
 .compare__list li p { flex: 1 0 0; min-width: 0; }
@@ -1370,8 +1531,8 @@ button, input { font: inherit; color: inherit; }
 /* A step more compact all round, with the type and the hierarchy
    inside it untouched. The body takes the slack so a row of cards ends
    on one line, and the metadata is pinned to the bottom of it. */
-.insight-card__body { gap: 6px; padding: 20px; flex: 1 0 auto; }
-.insight-card__h { font-size: 20px; }
+.insight-card__body { gap: 0.375rem; padding: 1.25rem; flex: 1 0 auto; }
+.insight-card__h { font-size: 1.25rem; }
 /* The image fills the media area rather than sitting inside it as a
    framed picture — the card reads as one object, with the two chips
    riding on the image the way they ride on the routes panel. */
@@ -1387,7 +1548,7 @@ button, input { font: inherit; color: inherit; }
 .insight-card__arrow { z-index: 1; }
 .insight-card__meta {
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 0.75rem;
   font-size: var(--t-xs);
   line-height: 1.5;
   color: #6b6b6b;
@@ -1395,9 +1556,9 @@ button, input { font: inherit; color: inherit; }
 .insight-card__meta span + span::before {
   content: "";
   display: inline-block;
-  width: 3px;
-  height: 3px;
-  margin: 0 8px 3px;
+  width: 0.1875rem;
+  height: 0.1875rem;
+  margin: 0 0.5rem 0.1875rem;
   border-radius: 50%;
   background: currentColor;
 }
@@ -1416,9 +1577,9 @@ button, input { font: inherit; color: inherit; }
    values gives it that without letting the deck run past the
    container on the right.
    ------------------------------------------------------------ */
-.insight-slider { --insight-gutter: 20px; width: 100%; }
-.research__head + .insight-slider { margin-top: 56px; }
-.research__controls + .insight-slider { margin-top: 48px; }
+.insight-slider { --insight-gutter: 1.25rem; width: 100%; }
+.research__head + .insight-slider { margin-top: 3.5rem; }
+.research__controls + .insight-slider { margin-top: 3rem; }
 .insight-slider__viewport {
   position: relative;
   display: flex;
@@ -1440,7 +1601,7 @@ button, input { font: inherit; color: inherit; }
 .insight-slider__list:active { cursor: grabbing; }
 .insight-slider__item {
   flex: none;
-  width: 340px;
+  width: 21.25rem;
   max-width: 78vw;
   margin-right: var(--insight-gutter);
   /* the deck relies on paint order: a card still to arrive covers the
@@ -1460,12 +1621,12 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  margin-top: 32px;
+  gap: 1.5rem;
+  margin-top: 2rem;
 }
 .dots button {
-  width: 8px;
-  height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
   padding: 0;
   border: 0;
   border-radius: 50%;
@@ -1483,12 +1644,12 @@ button, input { font: inherit; color: inherit; }
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 1.5rem;
 }
-.dots { display: flex; gap: 8px; }
-.arrows { display: flex; gap: 16px; }
+.dots { display: flex; gap: 0.5rem; }
+.arrows { display: flex; gap: 1rem; }
 .arrows button {
-  width: 48px; height: 48px;
+  width: 3rem; height: 3rem;
   border-radius: var(--radius);
   border: 0;
   background: var(--c-light-fg);
@@ -1509,7 +1670,7 @@ button, input { font: inherit; color: inherit; }
 .cta {
   background: var(--c-dark-bg);
   color: var(--c-white);
-  padding: 186px var(--page-pad);
+  padding: 11.625rem var(--page-pad);
 }
 /* The page's closing composition, set the way the hero and the routes
    intro are rather than as a centred stack: a label holding the left
@@ -1518,7 +1679,7 @@ button, input { font: inherit; color: inherit; }
 .cta__grid {
   display: flex;
   align-items: flex-start;
-  gap: 64px;
+  gap: 4rem;
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
@@ -1526,7 +1687,7 @@ button, input { font: inherit; color: inherit; }
 }
 /* The hero's own lede width, so the closing heading starts on roughly
    the line the opening one does. */
-.cta__label { flex: 0 0 clamp(280px, 24vw, 400px); }
+.cta__label { flex: 0 0 21.6rem; }
 /* Takes the slack, so the mark is carried out to the right edge while
    the heading and the buttons stay on one left edge of their own. */
 .cta__body {
@@ -1538,14 +1699,14 @@ button, input { font: inherit; color: inherit; }
   /* Text-led now that the portrait is gone, so the buttons sit a
      normal heading-to-actions step below the line rather than the
      clearance the picture used to need. */
-  gap: 48px;
+  gap: 3rem;
 }
 /* The same arrow the approach cards carry, at the same size, turned to
    point back down into the buttons. */
 .cta__mark {
   flex: none;
   display: block;
-  width: clamp(40px, 4vw, 64px);
+  width: 3.6rem;
   transform: rotate(135deg);
 }
 .cta__mark svg { width: 100%; height: auto; display: block; }
@@ -1554,8 +1715,8 @@ button, input { font: inherit; color: inherit; }
    read as one block, and capped so it breaks there rather than running
    the full width of the body column. */
 .cta__heading {
-  max-width: 720px;
-  font-size: clamp(34px, 4.1vw, 58px);
+  max-width: 45rem;
+  font-size: 3.625rem;
   line-height: 1.08;
   letter-spacing: -0.03em;
   /* Optical top alignment with the label opposite: the heading's line
@@ -1566,6 +1727,9 @@ button, input { font: inherit; color: inherit; }
 .cta__label { margin-top: 0.2em; }
 .cta .btn,
 .cta .action-button { position: relative; z-index: 2; }
+/* The pair of blocks share the width of the body, out to the heading's
+   right edge: on the 12-Column Grid, three Grid Columns each. */
+.cta .actions { align-self: stretch; }
 
 /* ============================================================
    11 — footer
@@ -1616,14 +1780,14 @@ button, input { font: inherit; color: inherit; }
   color: var(--c-white);
   /* the fixed bar sits over the top of the panel when the page is
      scrolled to its end, so the content starts clear of it */
-  padding: calc(var(--nav-h) + 28px) var(--page-pad) 36px;
+  padding: calc(var(--nav-h) + 1.75rem) var(--page-pad) 2.25rem;
 }
 .site-footer__inner {
   display: flex;
   flex-direction: column;
   flex: 1;
   width: 100%;
-  gap: 96px;
+  gap: 6rem;
 }
 /* The shared grid: the left half for the signup, the right half
    split between two link columns. */
@@ -1631,7 +1795,7 @@ button, input { font: inherit; color: inherit; }
 .site-footer__bottom {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr);
-  column-gap: 32px;
+  column-gap: 2rem;
 }
 .site-footer__top { align-items: start; }
 
@@ -1649,13 +1813,13 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 20px;
-  max-width: 620px;
+  gap: 1.25rem;
+  max-width: 38.75rem;
 }
 .site-footer__title {
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: clamp(30px, 2.7vw, 40px);
+  font-size: 2.43rem;
   line-height: 1.1;
   letter-spacing: -0.025em;
 }
@@ -1665,11 +1829,8 @@ button, input { font: inherit; color: inherit; }
   color: rgba(255, 255, 255, 0.6);
   max-width: 36em;
 }
-/* The shared form, a size up from the dropdown's: the reference's
-   52px field with the button standing on its own beside it. */
-.site-footer__signup .newsletter-form { margin-top: 12px; }
-.site-footer__signup .newsletter-form input { height: 52px; padding: 0 16px; }
-.site-footer__signup .newsletter-form .btn { height: 52px; padding: 0 32px; }
+/* The shared signup, at its own size, across the column. */
+.site-footer__signup .newsletter-form { margin-top: 0.75rem; max-width: none; }
 
 /* link groups — a nested grid on the outer grid's right-hand pair of
    columns, the same ratio and gutter, so its columns fall on theirs */
@@ -1677,24 +1838,24 @@ button, input { font: inherit; color: inherit; }
   grid-column: 3 / 5;
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-  gap: 88px 32px;
+  gap: 5.5rem 2rem;
   align-items: start;
 }
 .site-footer__group {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.75rem;
   min-width: 0;
 }
 .site-footer__links {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 5px;
+  gap: 0.3125rem;
 }
 .site-footer__links a {
   display: inline-block;
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1.35;
   white-space: nowrap;
 }
@@ -1707,19 +1868,17 @@ button, input { font: inherit; color: inherit; }
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.5);
 }
-.site-footer__bottom a { transition: color .2s ease; }
-.site-footer__bottom a:hover { color: var(--c-white); }
 .site-footer__brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   color: var(--c-white);
 }
-.site-footer__brand img { width: 40px; height: 40px; flex: none; }
+.site-footer__brand img { width: 2.5rem; height: 2.5rem; flex: none; }
 .site-footer__brand-name {
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 30px;
+  font-size: 1.875rem;
   line-height: 1;
   letter-spacing: -0.02em;
 }
@@ -1727,45 +1886,21 @@ button, input { font: inherit; color: inherit; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 0.125rem;
 }
 .site-footer__legal a { display: inline-block; }
 .site-footer__end {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 24px;
+  gap: 1.5rem;
   white-space: nowrap;
 }
-.site-footer__social { display: flex; gap: 14px; }
-.site-footer__social a { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; opacity: 0.55; transition: opacity .15s ease; }
+.site-footer__social { display: flex; gap: 0.875rem; }
+.site-footer__social a { width: 1.125rem; height: 1.125rem; display: flex; align-items: center; justify-content: center; opacity: 0.55; transition: opacity .15s ease; }
 .site-footer__social a:hover { opacity: 1; }
-.site-footer__social img { filter: brightness(0) invert(1); }
-
-/* ------------------------------------------------------------
-   underline-on-hover link — the rule wipes in from the left and
-   out to the right, so a pointer crossing a column of links
-   reads as one continuous gesture.
-   ------------------------------------------------------------ */
-[data-underline-link] { position: relative; text-decoration: none; }
-[data-underline-link]::before {
-  content: "";
-  position: absolute;
-  bottom: -0.0625em;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background-color: currentColor;
-  transform: scaleX(0) rotate(0.001deg);
-  transform-origin: right;
-  transition: transform .735s cubic-bezier(0.625, 0.05, 0, 1);
-}
-@media (hover: hover) and (pointer: fine) {
-  [data-underline-link]:hover::before {
-    transform: scaleX(1) rotate(0.001deg);
-    transform-origin: left;
-  }
-}
+/* the box's width, which each mark already filled, so they scale with it */
+.site-footer__social img { width: 100%; height: auto; filter: brightness(0) invert(1); }
 
 /* ============================================================
    touch targets
@@ -1800,13 +1935,13 @@ button, input { font: inherit; color: inherit; }
     transform: translate(-50%, -50%);
   }
   /* 8px dots 8px apart */
-  .dots button::after { width: 16px; }
+  .dots button::after { width: 1rem; }
   /* pills 8px apart */
-  .filters button::after { width: calc(100% + 8px); }
+  .filters button::after { width: calc(100% + 0.5rem); }
   /* a text link: taller only, never wider than its label */
   .btn--link::after { width: 100%; }
   /* 18px marks 14px apart */
-  .site-footer__social a::after { width: 32px; }
+  .site-footer__social a::after { width: 2rem; }
 
   /* The footer's link lists are the site map on a phone. Set as close as
      they are for a pointer, a fingertip covers two links at once, so on
@@ -1814,26 +1949,32 @@ button, input { font: inherit; color: inherit; }
   .site-footer__links,
   .site-footer__legal { gap: 0; }
   .site-footer__links a,
-  .site-footer__legal a { padding-block: 8px; }
+  .site-footer__legal a { padding-block: 0.5rem; }
 }
 
 /* ============================================================
    responsive
    ============================================================ */
-@media (max-width: 1200px) {
-  :root { --t-h1: 60px; --t-h2: 46px; --t-h3: 38px; --t-h4: 32px; --page-pad: 40px; }
-
-  /* Narrower desktops: the right-hand block and the gutter give ground so
-     the headline keeps enough measure to stay oversized. */
-  .hero__grid { gap: 48px; }
-  .hero__col--lede { flex-basis: 280px; }
-
-  .creds__media { flex: 1 0 0; }
-  .creds__text { padding-top: 200px; }
-}
-
+/* The breakpoints are the scaling system's (scaling.css): each range is
+   its design at the ideal width, scaled in proportion across the range.
+   So a narrower desktop needs no sizes of its own — the system shrinks
+   the 1440 design for it — and the values below are each range's design
+   at its ideal width: 834 for tablet, 550 for a phone on its side and
+   390 upright. The display sizes that used to be fluid in vw take their
+   value at that width. */
 @media (max-width: 991px) {
-  :root { --t-h1: 48px; --t-h2: 38px; --t-h3: 32px; --t-h4: 28px; --sec-lg: 80px; --sec-md: 64px; --page-pad: 32px; }
+  :root { --t-h1: 3rem; --t-h2: 2.375rem; --t-h3: 2rem; --t-h4: 1.75rem; --sec-lg: 5rem; --sec-md: 4rem; --page-pad: 2rem; }
+
+  .hero__heading { font-size: 2.2935rem; }
+  .problem-head__h,
+  .routes__h,
+  .approach-stack__h,
+  .testimonials__title { font-size: 2.1893rem; }
+  .testimonial-lines__quote { font-size: 1.625rem; }
+  .cta__heading { font-size: 2.1371rem; }
+  .site-footer__title { font-size: 1.875rem; }
+  .approach__card-mark { width: 2.5rem; }
+  .approach__card-p { font-size: 1rem; }
 
   /* The split is a desktop composition. Stacked, the heading and its
      eyebrow lead and the supporting copy follows it — order reverses
@@ -1848,13 +1989,13 @@ button, input { font: inherit; color: inherit; }
   .section-title__body > .tagline,
   .section-title__body > .tagline--plain {
     position: static;
-    margin: 0 0 12px;
+    margin: 0 0 0.75rem;
     white-space: normal;
   }
   .section-title .h1,
   .section-title .h2 { margin-top: 0; }
   .section-title > .text-md,
-  .section-title > p:not([class]) { order: 2; flex: none; margin-top: 20px; max-width: 640px; }
+  .section-title > p:not([class]) { order: 2; flex: none; margin-top: 1.25rem; max-width: 40rem; }
 
   /* The split is a desktop composition. Below this the hero goes back to
      ordinary flow and the three parts stack in reading order. */
@@ -1865,14 +2006,14 @@ button, input { font: inherit; color: inherit; }
   /* The band's 220px floor never claims more than its own 43% of the
      screen: on a phone turned on its side it would otherwise fill
      everything under the bar and push all of the copy below the fold. */
-  .hero__media { height: clamp(min(220px, 43vh), 43vh, 430px); }
-  .hero__grid { flex-direction: column; align-items: flex-start; gap: 24px; margin-top: 40px; }
+  .hero__media { height: calc(var(--hero-band-scale, 1) * clamp(min(13.75rem, 43vh), 43vh, 26.875rem)); }
+  .hero__grid { flex-direction: column; align-items: flex-start; gap: 1.5rem; margin-top: 2.5rem; }
   .hero__col--lede { flex: 0 0 auto; width: 100%; }
   /* Back on the left edge with the lede, as the problem and routes
      headings go when they stack, and full width so the arrow still ends
      on the right gutter. */
   .hero__col--heading { margin-left: 0; width: 100%; }
-  .hero__cta-row { margin-top: 32px; }
+  .hero__cta-row { margin-top: 2rem; }
 
   /* A row of buttons that no longer fits the column wraps onto the next
      line rather than squeezing its buttons narrower than their labels. */
@@ -1884,46 +2025,54 @@ button, input { font: inherit; color: inherit; }
   .compare__grid, .creds__grid { flex-direction: column; }
   .creds__media { flex: none; width: 100%; }
   .creds__text { padding-top: 0; }
-  .creds__media .ph:first-child { margin-top: 0; height: 320px; }
-  .creds__media .ph:last-child { height: 320px; }
+  .creds__media .ph:first-child { margin-top: 0; height: 20rem; }
+  .creds__media .ph:last-child { height: 20rem; }
 
   /* The split composition is a desktop one. Below this the panel goes
      back to ordinary flow: signup, then the link groups two across, then
      the bottom row stacked. */
-  .site-footer { min-height: 0; padding-top: 64px; }
-  .site-footer__inner { gap: 64px; }
+  .site-footer { min-height: 0; padding-top: 4rem; }
+  .site-footer__inner { gap: 4rem; }
   .site-footer__top, .site-footer__bottom { grid-template-columns: 1fr; }
-  .site-footer__top { row-gap: 48px; }
+  .site-footer__top { row-gap: 3rem; }
   .site-footer__signup, .site-footer__groups { grid-column: auto; }
-  .site-footer__groups { grid-template-columns: 1fr 1fr; gap: 40px 24px; }
-  .site-footer__bottom { row-gap: 20px; }
+  .site-footer__groups { grid-template-columns: 1fr 1fr; gap: 2.5rem 1.5rem; }
+  .site-footer__bottom { row-gap: 1.25rem; }
   /* On the narrowest phones the social marks drop under the line
      rather than running past the gutter. */
-  .site-footer__end { justify-content: flex-start; flex-wrap: wrap; row-gap: 12px; }
+  .site-footer__end { justify-content: flex-start; flex-wrap: wrap; row-gap: 0.75rem; }
 
-  .logos { padding: 80px 0; }
-  .cta { padding: 120px var(--page-pad); }
+  .logos { padding: 5rem 0; }
+  .cta { padding: 7.5rem var(--page-pad); }
   /* The split is a desktop composition, as it is in the hero: stacked,
      the label leads and the mark has no gutter left to sit in. */
-  .cta__grid { flex-direction: column; gap: 32px; }
+  .cta__grid { flex-direction: column; gap: 2rem; }
   .cta__label { flex: none; }
-  .cta__body { margin-right: 0; gap: 40px; }
+  .cta__body { margin-right: 0; gap: 2.5rem; }
   .cta__mark { display: none; }
   .cta__heading { max-width: none; }
 
-  .case__quote-wrap { padding: 56px 32px 40px; min-height: 0; }
-  .quote { font-size: 24px; }
+  .case__quote-wrap { padding: 3.5rem 2rem 2.5rem; min-height: 0; }
+  .quote { font-size: 1.5rem; }
 }
 
-@media (max-width: 640px) {
-  :root { --t-h1: 38px; --t-h2: 32px; --t-h3: 28px; --t-h4: 24px; --page-pad: 20px; }
-  .tagline { font-size: 13px; }
-  .card__body--lg { padding: 28px; }
-  .compare__card { padding: 28px; }
-  .cta__body { gap: 32px; }
+@media (max-width: 767px) {
+  :root { --t-h1: 2.375rem; --t-h2: 2rem; --t-h3: 1.75rem; --t-h4: 1.5rem; --page-pad: 1.25rem; }
+  .hero__heading { font-size: 2.25rem; }
+  .problem-head__h,
+  .routes__h,
+  .approach-stack__h,
+  .testimonials__title { font-size: 2rem; }
+  .cta__heading { font-size: 2.125rem; }
+  /* Held to a share of the height, as on tablet, for a phone on its side. */
+  .approach__card-h { font-size: min(3.0938rem, 15svh); }
+  .tagline { font-size: 0.8125rem; }
+  .card__body--lg { padding: 1.75rem; }
+  .compare__card { padding: 1.75rem; }
+  .cta__body { gap: 2rem; }
   .site-footer__groups { grid-template-columns: 1fr; }
-  .site-footer__signup .newsletter-form { flex-direction: column; align-items: stretch; }
-  /* Stacked, the field keeps its own height: the shared form's
-     flex-basis of 0 is a width in a row, but would be its height here. */
-  .site-footer__signup .newsletter-form input { flex: none; }
+}
+
+@media (max-width: 479px) {
+  .approach__card-h { font-size: min(3rem, 15svh); }
 }

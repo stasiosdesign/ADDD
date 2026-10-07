@@ -40,22 +40,22 @@
   width: auto;
   height: auto;
   max-width: 70%;
-  max-height: 64px;
+  max-height: 4rem;
   object-fit: contain;
 }
 
 /* Optical sizing for the homepage: balance each mark's lettering, weight and
    transparent padding, not just its image bounds. Auto height keeps proportions;
    these selectors also apply to the marquee's cloned tiles. */
-.logos .logo-tile img { max-width: 90%; max-height: 88px; }
-.logos .logo-tile img[src$="/ADAM-Logo.png"] { width: 130px; }
-.logos .logo-tile img[src$="/studio-seilern-logo.png"] { width: 166px; }
-.logos .logo-tile img[src$="/Haworth-Tompkins-Logo.png"] { width: 174px; }
-.logos .logo-tile img[src$="/epr-architects-logo.png"] { width: 84px; }
-.logos .logo-tile img[src$="/Morris-Company-Logo.png"] { width: 181px; }
-.logos .logo-tile img[src$="/Architecture-PLB-Logo.png"] { width: 136px; }
-.logos .logo-tile img[src$="/ackroyd-lowrie-logo.png"] { width: 88px; }
-.logos .logo-tile img[src$="/dmwr-architects-logo.png"] { width: 100px; }
-.logos .logo-tile img[src$="/Ormsss-Logo.png"] { width: 115px; }
-.logos .logo-tile img[src$="/SHH-logo.png"] { width: 48px; }
+.logos .logo-tile img { max-width: 90%; max-height: 5.5rem; }
+.logos .logo-tile img[src$="/ADAM-Logo.png"] { width: 8.125rem; }
+.logos .logo-tile img[src$="/studio-seilern-logo.png"] { width: 10.375rem; }
+.logos .logo-tile img[src$="/Haworth-Tompkins-Logo.png"] { width: 10.875rem; }
+.logos .logo-tile img[src$="/epr-architects-logo.png"] { width: 5.25rem; }
+.logos .logo-tile img[src$="/Morris-Company-Logo.png"] { width: 11.3125rem; }
+.logos .logo-tile img[src$="/Architecture-PLB-Logo.png"] { width: 8.5rem; }
+.logos .logo-tile img[src$="/ackroyd-lowrie-logo.png"] { width: 5.5rem; }
+.logos .logo-tile img[src$="/dmwr-architects-logo.png"] { width: 6.25rem; }
+.logos .logo-tile img[src$="/Ormsss-Logo.png"] { width: 7.1875rem; }
+.logos .logo-tile img[src$="/SHH-logo.png"] { width: 3rem; }
 

@@ -1,0 +1,81 @@
+/* ============================================================
+   Sliding-box link — the site's navigation links, in the nav and
+   the footer
+   ============================================================
+   On hover a block in the link's ink slides into a small box round
+   its label and the label takes the ground's colour, so the link
+   inverts; on the way out the block slides on out of the box. --fg
+   is the block (the ink) and --bg the label on it (the ground), set
+   for each context at the end of this file, so the one rule inverts
+   on the light bar, the dark bar and the dark footer alike.
+
+   The supplied structure, with one step between: the link
+   (.nav-link — an <a>, or a dropdown toggle in the bar) keeps its own
+   size, so the bar's full-height hit areas and its hover-to-open
+   toggles stay as they were, and the box (.nav-link__box,
+   NavLinkLabel.astro) is drawn round the label alone, clipping the
+   block (.nav-link__bg) that slides into it. The box reaches a little
+   past the glyphs and gives that back in negative margin, so no label
+   moves.
+
+   CSS alone is the fallback: the block rises in from below and drops
+   out the same way. initNavLinks() in site.js makes it follow a mouse
+   — in through the edge the pointer came in by, out through the edge
+   it leaves by. Hover only where there is one to follow.
+
+   Only hover and keyboard focus invert a link — the link to the page
+   being viewed rests like any other. Focus takes a ring round the box
+   as well, so it never rests on colour alone.
+   ============================================================ */
+.nav-link {
+  --fg: var(--c-text);
+  --bg: var(--c-white);
+  /* the block reaches this far past the glyphs: across, and above and
+     below the line's own leading */
+  --nav-link-pad-x: 0.25em;
+  --nav-link-pad-y: 0.125em;
+  text-decoration: none;
+}
+.nav-link:focus-visible { outline: none; }
+
+.nav-link__box {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  padding: var(--nav-link-pad-y) var(--nav-link-pad-x);
+  margin: calc(-1 * var(--nav-link-pad-y)) calc(-1 * var(--nav-link-pad-x));
+  transition: color 0.6s ease-out;
+}
+/* At rest the block waits just below the box — the extra pixel keeps a
+   sub-pixel hairline of it from showing along the bottom edge. */
+.nav-link__bg {
+  position: absolute;
+  inset: 0;
+  background-color: var(--fg);
+  pointer-events: none;
+  transform: translateY(calc(100% + 1px));
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nav-link__text { position: relative; }
+
+@media (hover: hover) {
+  .nav-link:hover .nav-link__box { color: var(--bg); }
+  .nav-link:hover .nav-link__bg { transform: translateY(0); }
+}
+.nav-link:focus-visible .nav-link__box {
+  color: var(--bg);
+  outline: 1px solid var(--fg);
+  outline-offset: 2px;
+}
+.nav-link:focus-visible .nav-link__bg { transform: translateY(0); }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-link__box,
+  .nav-link__bg { transition: none; }
+}
+
+/* contexts: the nav's own ink and ground, which swap in its dark state,
+   and the footer's */
+.mega-nav .nav-link { --fg: var(--nav-fg); --bg: var(--nav-bg); }
+.site-footer .nav-link { --fg: var(--c-white); --bg: var(--c-dark-fg); }
