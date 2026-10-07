@@ -24,24 +24,39 @@ const related = [
 <main class="page--grid">
 
   <!-- ========== 1. HERO ========== -->
-  <Hero arrowHref="#approach" arrowLabel="Scroll to the ADDD approach" pattern="slash" />
+  <!-- In a clipping wrap, so the logos section closes over it as it
+       leaves (initHeroParallax in src/scripts/site.js) -->
+  <div data-hero-parallax class="hero-wrap">
+    <div data-hero-parallax-inner>
+      <Hero arrowHref="#approach" arrowLabel="Scroll to the ADDD approach" pattern="slash" />
+    </div>
+    <div data-hero-parallax-dark class="hero-wrap__dark"></div>
+  </div>
+
+  <!-- The logo strip and the approach are one ink band, on one ground
+       (.ink-band, styles.css), so where the two sections meet the page's
+       white can never show between them. -->
+  <div class="ink-band">
 
   <!-- ========== 2. LOGO STRIP ========== -->
   <section class="logos">
     <p class="tagline logos__title">Trusted by leading practices across the UK</p>
     <div data-wavy-marquee-init class="wavy-marquee">
       <div class="wavy-marquee__collection">
+        <!-- Wide single-line wordmarks alternate with compact, stacked
+             marks, five of each, so no two of a kind meet — across the
+             loop's seam either. -->
         <div data-wavy-marquee-list class="wavy-marquee__list">
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/ADAM-Logo.png" alt="ADAM Architecture" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/studio-seilern-logo.png" alt="Studio Seilern Architects" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/epr-architects-logo.png" alt="EPR Architects" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Morris-Company-Logo.png" alt="Morris + Company" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Architecture-PLB-Logo.png" alt="Architecture PLB" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/ackroyd-lowrie-logo.png" alt="Ackroyd Lowrie" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/dmwr-architects-logo.png" alt="DMWR Architects" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/Ormsss-Logo.png" alt="ORMS" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/Black/SHH-logo.png" alt="SHH" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/ADAM-Logo.png" alt="ADAM Architecture" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/epr-architects-logo.png" alt="EPR Architects" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/studio-seilern-logo.png" alt="Studio Seilern Architects" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Architecture-PLB-Logo.png" alt="Architecture PLB" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/ackroyd-lowrie-logo.png" alt="Ackroyd Lowrie" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Morris-Company-Logo.png" alt="Morris + Company" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/dmwr-architects-logo.png" alt="DMWR Architects" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Ormsss-Logo.png" alt="ORMS" draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/SHH-logo.png" alt="SHH" draggable="false"></div></div>
         </div>
       </div>
     </div>
@@ -50,6 +65,7 @@ const related = [
   <!-- ========== 3. APPROACH ========== -->
   <ApproachStack />
 
+  </div>
   <!-- ========== 4. INDUSTRY PROBLEMS ========== -->
   <section class="section">
     <div class="container">

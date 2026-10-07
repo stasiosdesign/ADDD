@@ -22,7 +22,8 @@
        only move along it.
    ============================================================ */
 
-const AUTO_SPEED = 100;
+// px per second at desktop, before scroll and drag push it on
+const AUTO_SPEED = 80;
 // [min width, speed multiplier]
 const VIEWPORT = [
   [992, 1],

@@ -54,7 +54,7 @@ src/
   layouts/BaseLayout.astro   the shell every page shares: <head>, loader, wipe
                              panel, nav, grid overlay, Barba container, footer,
                              stylesheets and scripts
-  components/                the shell's parts — Loader, Transition, Nav,
+  components/                the shell's parts — Loader, MorphLoader, Transition, Nav,
                              ColumnGrid, Footer — and the pieces pages share:
                              Hero, ActionButton, ClosingCta, Accordion,
                              InsightCard, InsightSlider, ArrowIcon, and the
@@ -64,6 +64,7 @@ src/
                              sits in a data array in the frontmatter
   styles/*.css               the site stylesheets, imported by the layout
   scripts/                   site.js (Barba lifecycle and every interaction),
+                             logo-morph-loader.js, logo-morph.js,
                              logo-stack-loader.js, wavy-marquee.js,
                              column-grid.js, slash-field.js, approach-stack.js
 public/assets/               images, logos, icons and logo.svg, served as-is at
@@ -137,7 +138,8 @@ navigation onto that page.
 
 - The stylesheets are imported in their cascade order and bundled into a single
   hashed file.
-- `site.js` is bundled as a module, importing `logo-stack-loader.js`,
+- `site.js` is bundled as a module, importing `logo-morph-loader.js` (and,
+  through it and the nav's logo, `logo-morph.js`), `logo-stack-loader.js`,
   `wavy-marquee.js`, `column-grid.js`, `slash-field.js` and
   `approach-stack.js`. GSAP (with its plugins, ScrambleTextPlugin among
   them), Barba and Lenis stay on the jsDelivr CDN and are loaded as classic
@@ -177,7 +179,11 @@ navigation onto that page.
   one straight row.
 - **Page transitions** — [Barba](https://barba.js.org/) 2.10.3. A panel wipes up
   over the page, shows the incoming page's name, then continues up to reveal it.
-  The logo intro — Osmo's Logo Stack Loader, with the ADDD mark — plays once
+  The logo intro — the Logo Morph Loader (`MorphLoader.astro`,
+  `logo-morph-loader.js`, `logo-morph.js`): A D D D drawn into the logo's
+  forms and the red disc opening behind them, which on the homepage plays out
+  in the hero's own Slash Field and flies into the nav's logo slot; Osmo's
+  Logo Stack Loader is kept behind `?loader=stack` — plays once
   per browsing session: on the first page the visitor lands on, whichever it
   is, and again only on a genuine reload. Any other document load in the
   session — Barba falling back to a full load, a back/forward that misses the
@@ -198,51 +204,46 @@ navigation onto that page.
 - **Hero pattern** — the hero's band carries one of two patterns
   (`src/components/Hero.astro`, `pattern` prop). The homepage has the Slash
   Field (`src/scripts/slash-field.js`), and no schematic lines: a stable grid
-  of thin `/ | \` canvas strokes running to the band's edges, of which a small
-  cluster by the pointer steps up to a firmer ink and fades back, mounted per
-  page by the registry in `site.js`. Ten technology words (six on a phone,
+  of thin `/ | \` canvas strokes on 7 × 15px cells, running to the band's
+  edges, mounted per page by the registry in `site.js`. It has no hover: it
+  runs entirely by itself. Ten technology words (six on a phone,
   `data-slash-from`) are real text placed in the field at the pattern's own
   weight: each on its own spot in the band (`data-slash-spot`) and its own
   row, snapped to the grid, the pattern stopping around it (its cells and one
   either side left empty) so no stroke runs through the letters. The pattern
   runs on past the band's edges — the canvas is a couple of cells larger than
-  the band on every side, at the spec's cell size, and the band's overflow
-  crops it, each edge cutting through the strokes part-way — so it carries on
-  behind the band rather than being made to fit it. On its own the field runs
-  as a network of systems coming online, in one continuous chain: each word,
-  partway through coming online, sends a signal on to a neighbour — one of
-  the nearest few, the nearer the likelier, rarely the way it went last time,
-  so the route wanders rather than repeating — routed through the strokes
-  like a trace, along its row, down or up a column and along the next word's
-  row; the next word starts decoding as the signal reaches it
-  (GSAP's ScrambleTextPlugin, set up as in Osmo's Text Scramble — split,
-  scrambled to its own text, reverted). As the signal lands, the word bursts:
-  the strokes framing it flare to a near-black ink, a few holding the red a
-  moment, short traces fly out of it on every side (the one on along its row
-  red-headed, the rest ink), and a ring of light runs out through the strokes
-  around it, reaching further towards the word it hands on to, before
-  everything settles back. The word is held forward (`data-slash-active`) and
-  settles back slowly, and now and then it also pings a second word, which
-  answers with a smaller burst (`data-slash-active="minor"`). The chain takes
-  an occasional short breath, and under it all packets of traffic run from
-  words to their neighbours, so the field is never still. The site's red is only ever the signal and the heart
-  of a burst — the head of a signal, the frame and lead trace as it lands, a
-  word's characters while they decode — with the wider answer in ink, and it
-  always resolves into ink. The words, their order, the routes, the pace and
-  the pauses all vary, and only one word is ever fully coming online.
-  Resting the pointer on a word brings it online the same way, and the chain
-  carries on from it; while the pointer moves in the field the chain stops
-  handing on, picking up again from the last word, and a word under the
-  pointer also comes forward
-  (`data-slash-lit`). The sequence runs only while the band is on screen and
-  the page has arrived, and never under reduced motion. On the homepage the
-  band is 94% of the dotted band's height (`--hero-band-scale`), and sits
-  recessed between the bar and the copy: a close, light shade under the
-  bar's edge and a fainter one along the bottom. The colours and reach are
-  `--slash-*` properties in `styles.css`; the timing of the chain, its
-  hand-offs and choice of neighbour, and the traffic is `SEQUENCE`, the decode's `DECODE`, the burst `BURST`, and
-  the strokes' answer `RIPPLE` and `SCAN`, in the script. Tech Firms keeps
-  the dotted canvas and its lines.
+  the band on every side, and the band's overflow crops it — so it carries on
+  behind the band rather than being made to fit it: shifted across so each
+  side cuts its strokes part-way, and its rows sized a hair either way so the
+  top and foot each leave about 85% of a row's strokes showing, never a stub
+  of a tip. On its own the field runs as a calm chain reaction of systems
+  coming online: a word near the middle bursts — its frame of strokes lighting
+  up, a few short traces out along its row and columns, a touch of red at
+  its heart — and decodes (GSAP's ScrambleTextPlugin, set up as in Osmo's
+  Text Scramble — split, scrambled to its own text, reverted); a beat later
+  its shockwave, a sparse grey ring, runs out through the strokes, furthest
+  towards a neighbour — one of the nearest few, the nearer the likelier,
+  rarely the way it went last time — and sets that word off as it arrives.
+  Nothing is ever drawn between two words, so it reads as discrete events
+  rather than a line travelling through the field; about one a second and a
+  bit, with faint packets of traffic under it all. The word is held forward
+  (`data-slash-active`) and settles back slowly; now and then the wave also
+  sets off a nearer word it passes, which answers more briefly
+  (`data-slash-active="minor"`). The site's red is only ever the heart of a
+  burst and a decoding word's characters, and it always resolves into ink.
+  The sequence runs only while the band is on screen and the page has
+  arrived, and never under reduced motion. Arriving from another page, the
+  words are taken out of the field while the wipe covers it and decoded back
+  in from the foot of the band up as it lifts. The canvas only redraws the
+  rows that changed each frame, so a quiet field costs next to nothing. On
+  the homepage the band is 102% of the dotted band's height
+  (`--hero-band-scale`), and sits recessed between the bar and the copy: a
+  close, light shade under the bar's edge and a fainter one along the
+  bottom. The colours and cell size are `--slash-*` properties in
+  `styles.css`; the chain's timing and choice of neighbour and the traffic
+  are `SEQUENCE`, the decode's `DECODE`, the burst `BURST`, the shockwave
+  `SHOCK`, and the strokes' smaller answers `RIPPLE` and `SCAN`, in the
+  script. Tech Firms keeps the dotted canvas and its lines.
 - **Approach stack** — the homepage's "Fix the system, not the symptoms"
   section (`src/components/ApproachStack.astro`, `approach-stack.css`,
   `approach-stack.js`), built on the supplied Scroll-driven Stack Timeline
@@ -297,16 +298,16 @@ navigation onto that page.
   rounded up to whole device pixels: the bar's height is fluid, so moved by
   exactly that it would leave its last, partly covered row of pixels on the
   top edge of the screen.
-- **Buttons** — `ActionButton.astro` in two variants, primary (ink) and
-  secondary (quiet grey), and two shapes: the button (the primary with its
-  arrow chip) and, with `block`, a slab in the label face, in capitals, with
-  the site's arrow at its far end. The hero and the closing CTA lead with a
-  pair of blocks — Free Tech Stacks (secondary, light grey) and Work With Us
-  (primary, ink) — in equal shares of the row a gutter apart
-  (`.actions--blocks`): in the hero across Grid Columns 7–11, in the CTA
-  three Grid Columns each. On the dark CTA band the pair inverts, as the nav's
-  Contact does on a dark page: Work With Us white, Free Tech Stacks a quiet
-  lift off the band. Only the primary takes the red sweep on hover.
+- **Buttons** — every CTA is `ActionButton.astro`: one compact slab, as long
+  as its label, in the label face in capitals at 13px with the site's arrow
+  at its far end, in two variants, primary (ink) and secondary (light grey).
+  Without an `href` it renders a `<button>`, for form submits. A pair sits a
+  gutter apart (`.actions--pair`) — the hero and the closing CTA lead with
+  Free Tech Stacks (primary) and Work With Us (secondary). On a dark ground
+  (the CTA band, a dark page, section, hero or price card) the pair inverts,
+  as the nav's Contact does on a dark page: the primary white, the secondary
+  a quiet lift off the ground. Only the primary takes the red sweep on hover.
+  `.btn` remains only for the chevron text links (`.btn--link`).
 - **Links** — the nav's items (For Tech Firms, the two toggles, AEC Jobs,
   About, Sign in) and the footer's link lists are one sliding-box link
   (`.nav-link`, `src/styles/nav-link.css`, with `NavLinkLabel.astro` for the

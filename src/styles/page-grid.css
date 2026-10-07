@@ -66,8 +66,8 @@
      arrow at the end of Grid Column 12. */
   .page--grid .hero__col--lede { grid-column: 1 / 4; }
   .page--grid .hero__col--heading { grid-column: 7 / -1; margin-left: 0; }
-  /* the pair of blocks across Grid Columns 7–11, ending on Grid Column
-     11, so the arrow has Grid Column 12 to itself */
+  /* the pair of blocks from Grid Column 7, kept within Grid Column 11,
+     so the arrow has Grid Column 12 to itself */
   .page--grid .hero__cta-row .actions { flex: 0 0 calc((500% - var(--grid-gutter)) / 6); }
 
   /* --- Intros: the lede in Grid Columns 2–4 -------------------- */

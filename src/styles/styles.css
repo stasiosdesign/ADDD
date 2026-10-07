@@ -242,9 +242,7 @@ button, input { font: inherit; color: inherit; }
   transition: opacity .15s ease, background-color .15s ease;
 }
 .btn:hover { opacity: .85; }
-.btn--dark { background: var(--c-text); color: var(--c-white); border-color: var(--c-text); }
-.btn--white { background: var(--c-white); color: var(--c-text); border-color: var(--c-white); }
-.btn--ghost-dark { background: rgba(255,255,255,.1); color: var(--c-white); }
+/* The text link with its chevron. The site's CTAs are ActionButton. */
 .btn--link { padding: 0; background: none; border: none; }
 
 /* ------------------------------------------------------------
@@ -309,12 +307,11 @@ button, input { font: inherit; color: inherit; }
 .icon[src$="/chevron_right.svg"] { width: 0.4182rem; }
 .icon[src$="/close.svg"] { width: 0.8219rem; }
 .actions { display: flex; align-items: center; gap: 1.5rem; }
-/* A pair of block buttons (ActionButton block): equal shares of the row,
-   a gutter apart. Each keeps a width its label fits, so where the row
-   is too narrow for both side by side (it wraps below 992px) each takes
-   the full row. */
-.actions--blocks { gap: var(--grid-gutter); align-items: stretch; }
-.actions--blocks > .action-button { flex: 1 1 0; min-width: 15rem; }
+/* A pair of CTAs (ActionButton), primary then secondary, a gutter apart.
+   Each is as long as its own label, never stretched to the row, so the
+   pair is two lengths; where the row is too narrow for both side by side
+   the second drops under the first. */
+.actions--pair { gap: var(--grid-gutter); align-items: stretch; }
 
 /* ============================================================
    1 — hero
@@ -327,6 +324,16 @@ button, input { font: inherit; color: inherit; }
 
    Top padding is exactly the nav's height, so the band starts
    where the bar stops with nothing between them. */
+/* On the homepage the hero leaves with the footer's parallax run in
+   reverse (initHeroParallax, site.js): it drops back inside this wrap
+   under a scrim (.hero-wrap__dark, with the footer's) while the logos
+   section closes over it. Clipped rather than hidden, so focus moving
+   to a link the wrap has cropped can never scroll the wrap itself. */
+.hero-wrap {
+  position: relative;
+  overflow: hidden;
+  overflow: clip;
+}
 .hero {
   position: relative;
   min-height: 100vh;
@@ -408,8 +415,8 @@ button, input { font: inherit; color: inherit; }
   justify-content: space-between;
   gap: 2rem;
 }
-/* The pair of blocks share the row up to the arrow (on the 12-Column
-   Grid, to the end of Grid Column 11 — page-grid.css). */
+/* The pair of blocks sit in the row up to the arrow (on the 12-Column
+   Grid, within Grid Column 11 — page-grid.css). */
 .hero__cta-row .actions { flex: 1; }
 /* Rotated a quarter turn so it points down the page: it is the scroll
    cue, and it jumps to the section the page is asking you to read. */
@@ -496,34 +503,35 @@ button, input { font: inherit; color: inherit; }
 /* The Slash Field — the homepage band's pattern (src/scripts/slash-field.js),
    in place of the dots. It runs on past the band's edges, under them, and
    the band's overflow crops it. The strokes take the ink tint the dots were
-   drawn in. The hover is held back: a small cluster by the pointer (a 30px
-   reach, twice as tall as it is wide) steps up to a firmer tint of the same
-   ink (--slash-hot), and fades back in under half a second. The pattern's
-   own options are its spec's.
+   drawn in, and step up to a firmer tint of it (--slash-hot) where the
+   system lights them. It has no hover: the pointer changes nothing in it.
+   The pattern's other options are its spec's.
 
    The words sit at about the pattern's own weight (--slash-word). They come
-   online in a chain, each handing a signal on to a neighbour through the
-   strokes: as the signal lands the word bursts — the strokes round it
-   flaring to a near-black (--slash-ink) with short traces flying out of it —
-   and decodes, held forward (--slash-word-active, data-slash-active), then
-   it settles back; a word answering a ping comes forward a step less. The
-   site's red (--slash-signal) is the signal and the heart of each burst,
-   nothing else — the head of a signal on its way, the strokes framing a word
-   as it lands, the characters still decoding (--slash-word-decoding) — and
-   it always resolves into ink. A word also comes forward (--slash-word-lit)
-   while the pointer is over it — the script sets data-slash-lit. */
+   online in a chain reaction, each setting off a neighbour: a word bursts —
+   the strokes round it flaring to a near-black (--slash-ink) with short
+   traces flying out of it — and decodes, held forward (--slash-word-active,
+   data-slash-active), while its shockwave runs out through the strokes to
+   the next; then it settles back. A word answering a passing wave comes
+   forward a step less. The site's red (--slash-signal) is the heart of each
+   burst, nothing else — the strokes framing a word as it lands, the
+   characters still decoding (--slash-word-decoding) — and it always
+   resolves into ink. */
 .hero__media[data-slash-field] {
-  /* a little under the dotted band's height, so the hero still sits
-     compact but the field has room to work */
-  --hero-band-scale: 0.94;
+  /* a touch over the dotted band's height, so the field has room to
+     work while the hero still sits compact */
+  --hero-band-scale: 1.02;
+  /* A finer grid than the spec's 10 × 22: more rows, more detail, and
+     the homepage intro's name — sized from the rows (logo-morph-loader.js)
+     — set at a size that sits in the field rather than over it. */
+  --slash-cell-w: 7;
+  --slash-cell-h: 15;
   --slash-base: rgba(20, 20, 20, 0.18);
   --slash-hot: rgba(20, 20, 20, 0.42);
   /* the near-black the strokes reach only where the system is most
-     active — a burst, the head of a signal — past the hover's highlight */
+     active — the heart of a burst — past the firmer tint */
   --slash-ink: rgba(20, 20, 20, 0.86);
   --slash-signal: var(--c-red);
-  --slash-radius: 30;
-  --slash-stretch: 2;
   --slash-fade: 450;
   --slash-word: rgba(20, 20, 20, 0.36);
   --slash-word-lit: rgba(20, 20, 20, 0.66);
@@ -566,7 +574,10 @@ button, input { font: inherit; color: inherit; }
    on the grid by the script, with the pattern stopping around each one,
    in the ink of the pattern itself so they read as part of it. Centred
    on the row the script gives each; until then, at its own spot. A word
-   steps forward quickly and settles back slowly. */
+   steps forward quickly and settles back slowly. They have no entrance of
+   their own: the field brings them in with the page's, decoding each one
+   into its place (slash-field.js — the intro's pulse on a first load, and
+   enter() on any other arrival). */
 .hero__label {
   position: absolute;
   z-index: 2;
@@ -580,10 +591,9 @@ button, input { font: inherit; color: inherit; }
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
-  opacity: 0;
-  animation: hero-label-in .6s ease 1.4s forwards;
 }
-.hero__label[data-slash-lit] { color: var(--slash-word-lit); transition-duration: .5s; }
+/* while the page comes in, a word is hidden until the field brings it in */
+.hero__media[data-slash-entering] .hero__label:not([data-slash-born]) { visibility: hidden; }
 .hero__label[data-slash-active] { color: var(--slash-word-active); transition-duration: .25s; }
 /* a word answering a ping comes forward a step less */
 .hero__label[data-slash-active="minor"] { color: var(--slash-word-lit); }
@@ -625,7 +635,7 @@ button, input { font: inherit; color: inherit; }
 @keyframes hero-line-draw { to { stroke-dashoffset: 0; } }
 @keyframes hero-label-in  { to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .hero__line, .hero__line-label, .hero__label { animation: none; stroke-dashoffset: 0; opacity: 1; }
+  .hero__line, .hero__line-label { animation: none; stroke-dashoffset: 0; opacity: 1; }
   .hero__pulse { animation: none; }
   .hero__line--thin { opacity: .45; }
 }
@@ -633,15 +643,32 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    2 — logo strip
    ============================================================ */
-.logos { padding: 8.875rem 0; text-align: center; }
+/* The logo strip and the approach stack under it are one band of the
+   site's ink, painted once behind both (index.astro). Each section
+   still has its own ink, but their heights are in the scaling system's
+   rems, so the line they meet on rarely falls on a whole pixel; drawn
+   as two boxes over the page's white, that shared row of pixels was only
+   partly covered by each, and the white showed through it as a thin
+   line. Over one ground, the row can only ever be ink. */
+.ink-band { background: var(--c-dark-fg); }
+
+/* On the site's ink, the band the approach stack below it carries, with
+   the marks in their white versions (assets/logos/White). */
+.logos {
+  padding: 8.875rem 0;
+  text-align: center;
+  background: var(--c-dark-fg);
+  color: var(--c-white);
+}
 /* The strip runs edge to edge, but its title keeps the page gutter, so
    on a phone it wraps inside the margins rather than touching them. */
 .logos__title { margin-bottom: 3.625rem; padding: 0 var(--page-pad); }
+/* No box: each mark stands on the band on its own. The tile keeps its
+   size, so the strip keeps its pitch and the mark its centre. */
 .logo-tile {
   flex: none;
   width: 12.5625rem;
   height: 11.125rem;
-  background: var(--c-light-fg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -664,7 +691,7 @@ button, input { font: inherit; color: inherit; }
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 2rem;
   width: max-content;
   touch-action: pan-y;
 }
@@ -1727,8 +1754,8 @@ button, input { font: inherit; color: inherit; }
 .cta__label { margin-top: 0.2em; }
 .cta .btn,
 .cta .action-button { position: relative; z-index: 2; }
-/* The pair of blocks share the width of the body, out to the heading's
-   right edge: on the 12-Column Grid, three Grid Columns each. */
+/* The pair of blocks wrap within the body, out to the heading's right
+   edge, and start on its left edge. */
 .cta .actions { align-self: stretch; }
 
 /* ============================================================
@@ -1745,7 +1772,9 @@ button, input { font: inherit; color: inherit; }
   overflow: hidden;
   background: var(--c-dark-fg);
 }
-.footer-wrap__dark {
+/* the scrim, here and over the homepage hero as it leaves */
+.footer-wrap__dark,
+.hero-wrap__dark {
   position: absolute;
   inset: 0;
   z-index: 2;

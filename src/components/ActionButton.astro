@@ -1,45 +1,34 @@
 ---
 /*
-  The site's action button (src/styles/action-button.css), in two
-  variants:
+  The site's CTA (src/styles/action-button.css): a compact slab as long
+  as its label, the label face in capitals and the site's arrow at its
+  far end, in two variants —
 
-    primary    ink, with the arrow chip; sweeps to the accent on hover
-    secondary  quiet grey, no chip; never takes the accent
+    primary    ink; sweeps to the accent on hover
+    secondary  light grey; never takes the accent
 
-  and, with block, in a second shape: a slab that fills its share of the
-  row, the label face in capitals and the site's arrow at its far end, in
-  the same two variants — the primary dark, the secondary light — so a
-  pair of them reads as one system with one clear lead.
+  — so a pair of them reads as one system with one clear lead. On a dark
+  ground the pair inverts by itself.
 
-  The label is the slot. The primary's chip arrow is a filmstrip of three
-  identical icons that slides one icon along on hover. Any other
-  attributes — target, rel — pass through to the link.
+  The label is the slot. With an href it is a link; without one it is a
+  <button>, for a form's submit (pass type="submit"). Any other
+  attributes — target, rel, type — pass through.
 */
 import ArrowIcon from "./ArrowIcon.astro";
 
 interface Props {
-  href: string;
+  href?: string;
   variant?: "primary" | "secondary";
-  block?: boolean;
   [attr: string]: unknown;
 }
 
-const { href, variant = "primary", block = false, ...attrs } = Astro.props;
-const secondary = variant === "secondary";
+const { href, variant = "primary", ...attrs } = Astro.props;
+const Tag = href ? "a" : "button";
 ---
-<a href={href} class:list={["action-button", { "is--secondary": secondary, "is--block": block }]} {...attrs}>
+<Tag href={href} class:list={["action-button", { "is--secondary": variant === "secondary" }]} {...attrs}>
   <span class="action-button__bg"><span class="action-button__bg-hover"></span></span>
   <span class="action-button__inner">
     <span class="action-button__mask"><span class="action-button__text"><slot /></span></span>
-    {block ? (
-      <ArrowIcon class="action-button__arrow" aria-hidden="true" />
-    ) : !secondary && (
-      <span class="action-button__icon-wrap">
-        <span class="action-button__icon-bg"></span>
-        <span class="action-button__icon-mask"><span class="action-button__icon-list">{[0, 1, 2].map(() => (
-          <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 24 24" fill="none" aria-hidden="true" class="action-button__icon"><path d="M10.685 3.42h3.776l7.862 8.583-7.862 8.583h-3.776l7.083-7.193h-16.1v-2.748H17.8L10.685 3.42Z" fill="currentColor"></path></svg>
-        ))}</span></span>
-      </span>
-    )}
+    <ArrowIcon class="action-button__arrow" aria-hidden="true" />
   </span>
-</a>
+</Tag>

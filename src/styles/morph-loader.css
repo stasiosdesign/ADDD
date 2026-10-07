@@ -1,0 +1,97 @@
+/* ============================================================
+   First-load logo intro, second iteration — the Logo Morph Loader
+   (src/components/MorphLoader.astro, src/scripts/logo-morph-loader.js)
+   ------------------------------------------------------------
+   The stack loader's ground (loader.css), with the mark drawn from the
+   name instead of stacked. Above the page-name wipe (200)
+   and the nav (100), as the stack loader is, so it covers the whole
+   viewport on the initial paint.
+   ============================================================ */
+.morph-loader {
+  position: fixed;
+  inset: 0%;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Only one intro plays in a document load: the inline script in the
+   layout's <head> marks which (data-loader, "morph" unless the URL asks
+   for ?loader=stack), and the other is never painted. Neither is on a
+   "reveal" arrival (see ARRIVAL in site.js). */
+[data-loader="stack"] .morph-loader,
+[data-loader="morph"] .logo-loader,
+[data-arrival="reveal"] .morph-loader { display: none; }
+
+.morph-loader__bg {
+  position: absolute;
+  inset: 0%;
+  background-color: #000;
+  transform-origin: 50% 0%;
+}
+
+/* The mark a little larger than the stack loader's, so the morph reads.
+   Hidden until the timeline's first step has placed every part of it, so
+   nothing is seen before the animation starts. */
+.morph-loader__logo {
+  position: relative;
+  display: block;
+  width: 8.5rem;
+  height: 8.5rem;
+  overflow: visible;
+  visibility: hidden;
+}
+
+/* The red shape the disc becomes on its way into the nav's logo slot:
+   the whole screen in red, cut by the script to the disc and then to the
+   slot (clip-path). Under the mark, and hidden until the flight. */
+.morph-loader__shape {
+  position: absolute;
+  inset: 0%;
+  background-color: var(--c-red);
+  visibility: hidden;
+}
+
+/* The letters, white on the black ground; their copy cut to the disc is
+   always white. */
+.morph-loader__letters { fill: #fff; }
+
+/* ------------------------------------------------------------
+   The homepage: the intro played in the hero's own field
+   ------------------------------------------------------------
+   On the homepage's first load the intro has no ground of its own. The
+   hero's band is the screen from the first paint: its crop opened out
+   over the nav and the copy, its tint carried out to the edges, and the
+   field told to run on past it (--slash-extend, read by slash-field.js)
+   and to keep its words out until the intro's pulse brings each one in
+   (--slash-words), the strokes running on under them meanwhile, so the
+   field is whole. The mark sits over it, in ink, and lets the pointer
+   through to the field. The nav and the copy are held
+   back until the script brings them in, and the band's own shading with
+   them. Set here rather than by the script, so the first paint is already
+   this. Not with reduced motion, which plays the plain loader. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .morph-loader { pointer-events: none; }
+  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .morph-loader__bg { display: none; }
+  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .morph-loader__letters:not(.is--on-disc) { fill: var(--c-text); }
+
+  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .mega-nav,
+  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .hero > .container { visibility: hidden; }
+
+  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field] {
+    --slash-extend: screen;
+    --slash-words: unborn;
+    overflow: visible;
+    clip-path: inset(calc(-1 * var(--nav-h)) 0 -100vh 0);
+    box-shadow: 0 0 0 100vmax var(--c-light-fg);
+  }
+  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field]::after { opacity: 0; }
+  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field] .hero__label:not([data-slash-born]) { visibility: hidden; }
+  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field] .hero__label[data-slash-screen][data-slash-born] { visibility: visible; }
+}
+/* The intro's own words for the lower half of the screen (Hero.astro):
+   never seen but while it plays. */
+.hero__label[data-slash-screen] { visibility: hidden; }
+/* the band's shading comes back in as the hero settles */
+.hero__media[data-slash-field]::after { transition: opacity 0.6s ease; }

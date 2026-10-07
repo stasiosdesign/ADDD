@@ -83,6 +83,11 @@
   gap: 1.5rem;
 }
 .price-card--dark { background: var(--c-dark-bg); color: var(--c-white); }
+/* A CTA keeps its own length rather than the card's width. The card is a
+   size container so a CTA too long for a narrow one can close up
+   (action-button.css). */
+.price-card { container-type: inline-size; }
+.price-card > .action-button { align-self: flex-start; }
 .section--dark .price-card { background: rgba(255,255,255,.06); }
 
 /* comparison table */

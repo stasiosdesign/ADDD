@@ -145,7 +145,7 @@
 }
 /* The velocity trail: a solid line out of the cube, behind it as the
    page moves, its length the scroll's speed (set by the script as a
-   share of the window's half). */
+   share of the window's half). In the site's red. */
 .approach-stack__trail {
   position: absolute;
   left: 50%;
@@ -153,7 +153,7 @@
   width: 2px;
   height: 0;
   margin-left: -1px;
-  background: var(--c-white);
+  background: var(--c-red);
 }
 .approach-stack__trail.is--top { bottom: 50%; }
 .approach-stack__trail.is--bottom { top: 50%; }

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
+import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 
 const faq = [
@@ -27,9 +28,9 @@ const faq = [
         </div>
         <div class="pg-hero__col">
           <p class="text-md">ADDDvisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities&mdash;before isolated decisions create more complexity.</p>
-          <div class="actions">
-            <a class="btn btn--white" href="contact.html">Join the Waitlist</a>
-            <a class="btn btn--ghost-dark" href="#pricing">Founding rate: &pound;99/mo</a>
+          <div class="actions actions--pair">
+            <ActionButton href="contact.html">Join the Waitlist</ActionButton>
+            <ActionButton href="#pricing" variant="secondary">Founding rate: &pound;99/mo</ActionButton>
           </div>
         </div>
       </div>
@@ -182,7 +183,7 @@ const faq = [
             <li>Rotating strategic themes</li>
             <li>Practical frameworks and guides</li>
           </ul>
-          <a class="btn btn--white" href="contact.html">Join waitlist</a>
+          <ActionButton href="contact.html">Join waitlist</ActionButton>
         </article>
 
         <article class="price-card">
@@ -198,7 +199,7 @@ const faq = [
             <li>Limited questions between sessions</li>
             <li>Team access included</li>
           </ul>
-          <a class="btn btn--ghost-dark" href="contact.html">Join waitlist</a>
+          <ActionButton href="contact.html" variant="secondary">Join waitlist</ActionButton>
         </article>
       </div>
     </div>

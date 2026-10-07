@@ -13,10 +13,18 @@
   For Tech Firms, the two toggles, AEC Jobs, About and Sign in are the
   site's sliding-box links (.nav-link, NavLinkLabel.astro): each keeps its
   full-height block as its hit area, and the box is drawn round its label.
-  The logo and the Contact button keep their own treatments.
+  The logo and the Contact button keep their own treatments: hovered, the
+  logo's four forms are drawn back into the name, A D D D, by the intro's
+  own morph (src/scripts/logo-morph.js, initNavLogo() in site.js), and
+  drawn into the forms again as the pointer leaves.
 */
 import ArrowIcon from "./ArrowIcon.astro";
 import NavLinkLabel from "./NavLinkLabel.astro";
+import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
+
+// The forms as the morph draws them at rest, so the mark is the logo before
+// any script has run, and the morph starts from exactly what is on screen.
+const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 ---
 <nav data-menu-open="false" data-menu-wrap class="mega-nav">
   <div class="mega-nav__bar">
@@ -24,17 +32,15 @@ import NavLinkLabel from "./NavLinkLabel.astro";
       <div class="mega-nav__bar-start">
         <a data-menu-logo href="index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
           <!-- The ADDD triangles from assets/logo.svg, without the circle,
-               cropped to their own bounds and drawn in currentColor. -->
+               cropped to their own bounds and drawn in currentColor; each
+               one a letter of the morph at rest. -->
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="18.4 42.7 64 16" fill="currentColor" aria-hidden="true" class="mega-nav__bar-logo-mark">
-            <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>
-            <polygon points="34.7,42.7 49.7,50.7 34.7,58.7"/>
-            <polygon points="50.7,42.7 66.4,50.7 50.7,58.7"/>
-            <polygon points="66.8,42.7 82.4,50.7 66.8,58.7"/>
+            {logoForms.map((d) => <path data-logo-morph-letter d={d} />)}
           </svg>
         </a>
         <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
           <a data-nav-list-item href="tech-firms.html" class="mega-nav__feature nav-link">
-            <NavLinkLabel class="mega-nav__bar-link-label">For Tech Firms</NavLinkLabel>
+            <NavLinkLabel class="mega-nav__bar-link-label">For AEC Tech Firms</NavLinkLabel>
             <ArrowIcon class="mega-nav__feature-icon" aria-hidden="true" />
           </a>
           <ul class="mega-nav__bar-list">

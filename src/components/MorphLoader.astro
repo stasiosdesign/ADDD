@@ -1,0 +1,50 @@
+---
+/*
+  First-load logo intro, second iteration: the Logo Morph Loader
+  (src/scripts/logo-morph-loader.js, started by runIntro() in
+  src/scripts/site.js). A D D D, set in the site's face, is drawn into the
+  four forms of the logo, and the red disc opens out behind them.
+
+  Kept beside the Logo Stack Loader (Loader.astro), which is unchanged:
+  both are in every page, and the inline script in the layout's <head>
+  marks which one this document load plays, so the other is never
+  painted.
+
+  On the homepage there is no ground of its own: the intro plays out in
+  the hero's own field, and only the mark is here, with the red shape the
+  disc becomes on its way into the nav's logo slot (see "hero" in the
+  script). Everywhere else it plays on its black ground.
+
+  The mark sits in the logo's own 100-unit viewBox, the same as the
+  site's logo.svg: the disc; the letters, drawn by the script; the same
+  letters again in white, cut to the disc, so where the disc opens under
+  a letter it turns white. Purely visual, so
+  hidden from assistive tech. It leaves the document once it has played,
+  and is never painted on a "reveal" arrival.
+*/
+import { LETTER_COUNT } from "../scripts/logo-morph.js";
+
+const letters = Array.from({ length: LETTER_COUNT });
+---
+<div data-morph-loader aria-hidden="true" class="morph-loader">
+  <div data-morph-loader-bg class="morph-loader__bg"></div>
+  <!-- the red shape the disc becomes on its way to the nav's logo slot -->
+  <div data-morph-loader-shape class="morph-loader__shape"></div>
+  <svg data-morph-loader-logo class="morph-loader__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+    <defs>
+      <!-- the baseline the name rises out of -->
+      <clipPath id="morph-loader-line"><rect x="0" y="0" width="100" height="58.9" /></clipPath>
+      <!-- the disc, as it opens -->
+      <clipPath id="morph-loader-disc"><circle data-morph-loader-disc-clip cx="51" cy="50.3" r="0" /></clipPath>
+    </defs>
+    <circle data-morph-loader-circle cx="51" cy="50.3" r="40.2" fill="#C40000" />
+    <g data-morph-loader-word clip-path="url(#morph-loader-line)">
+      <g class="morph-loader__letters">
+        {letters.map(() => <path data-morph-loader-letter />)}
+      </g>
+      <g class="morph-loader__letters is--on-disc" clip-path="url(#morph-loader-disc)">
+        {letters.map(() => <path data-morph-loader-letter-lit />)}
+      </g>
+    </g>
+  </svg>
+</div>

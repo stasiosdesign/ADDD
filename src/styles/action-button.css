@@ -1,12 +1,20 @@
 /* ============================================================
-   Action button — the site's primary and secondary buttons
+   Action button — the site's CTA, primary and secondary
    (markup: src/components/ActionButton.astro)
    ============================================================
 
-   One component, two variants, in two shapes (the button and the
-   block). All carry the same squared shape, the same 44px box as the
-   .btn utility, and the same text-roll on hover, so the buttons
-   sitting in one .actions row read as a set.
+   One shape, two variants: a compact slab, the label face in capitals
+   at its start and the site's arrow at its far end, after the supplied
+   reference — a slab about five times as long as it is tall, the caps
+   about a third of its height, an inset of about one text height either
+   side, the arrow a little taller than the caps, and the label set
+   solid, without the label tracking. Each button is as long as its
+   label, so two in a row are two lengths rather than equal shares of it.
+
+   Its colours are the variant's, so a pair keeps one lead: the primary
+   is the ink slab, the secondary the light grey one. On a dark ground
+   the pair inverts (see the end of this file). Both carry the same
+   text-roll on hover, with the arrow stepping on.
 
    The red only ever belongs to the primary, and only on hover: the
    __bg-hover panel is parked off the bottom edge, tipped, until it
@@ -16,14 +24,12 @@
   --action-button-color: var(--c-white);
   --action-button-color-background: var(--c-text);
   --action-button-hover-color-background: var(--c-red);
-  --action-button-icon-color: var(--c-text);
-  --action-button-icon-color-background: var(--c-white);
   --action-button-color-focus: var(--c-text);
-  /* 13px block keeps the 44px box the .btn utility measures, so the
-     two sit level in a shared row; the left inset is .btn's 24px and
-     the right is tightened to sit against the arrow chip */
-  --action-button-padding: 0.8125rem 0.8125rem 0.8125rem 1.5rem;
+  /* the 18px arrow sets the height, so 9px either side makes the 36px
+     slab */
+  --action-button-padding: 0.5625rem 0.75rem;
   --action-button-text-duplicate-distance: 1.5em;
+  --action-button-radius: 1px;
   --action-button-ease-hover: var(--ease-osmo);
   --action-button-ease-focus: cubic-bezier(0.32, 0.72, 0, 1);
 
@@ -31,14 +37,21 @@
   user-select: none;
   color: var(--action-button-color);
   background-color: #0000;
+  /* rendered as a <button> in a form, so none of a button's own chrome */
+  border: 0;
   outline-style: none;
   padding: 0;
-  font-family: var(--font-body);
-  font-size: var(--t-rg);
-  font-weight: var(--fw-body);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: var(--fw-label);
+  letter-spacing: 0;
+  text-transform: uppercase;
   line-height: 1;
   text-decoration: none;
   vertical-align: middle;
+  /* never squeezed by the row it sits in: it is as long as its label */
+  flex: none;
   display: inline-grid;
   position: relative;
   -webkit-tap-highlight-color: transparent;
@@ -49,7 +62,7 @@
   display: block;
   position: absolute;
   inset: -0.125em;
-  border-radius: var(--radius);
+  border-radius: var(--action-button-radius);
   transition: box-shadow 0.2s var(--action-button-ease-focus);
   pointer-events: none;
   z-index: 1;
@@ -61,7 +74,7 @@
 
 .action-button__bg {
   background-color: var(--action-button-color-background);
-  border-radius: var(--radius);
+  border-radius: var(--action-button-radius);
   grid-area: 1 / 1;
   justify-content: center;
   align-items: center;
@@ -72,6 +85,9 @@
   overflow: clip;
 }
 
+/* Parked flat and well below: the slab is several times as wide as it is
+   tall, and a steeper tilt would lift the panel's near corner up into it
+   at rest. */
 .action-button__bg-hover {
   background-color: var(--action-button-hover-color-background);
   width: 120%;
@@ -81,17 +97,17 @@
   bottom: 0%;
   left: -10%;
   transition: transform 0.525s var(--action-button-ease-hover);
-  transform: translate3d(0, 175%, 0) rotate(15deg);
+  transform: translate3d(0, 200%, 0) rotate(4deg);
 }
 
+/* the run from the label to the arrow gives the slab its length */
 .action-button__inner {
-  grid-column-gap: .5em;
-  grid-row-gap: .5em;
+  gap: 3.5rem;
   width: 100%;
   height: 100%;
   padding: var(--action-button-padding);
   grid-area: 1 / 1;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   display: flex;
 }
@@ -114,63 +130,46 @@
   text-shadow: 0px var(--action-button-text-duplicate-distance) currentColor;
 }
 
-.action-button__icon-wrap {
-  width: 1.125em;
-  height: 1.125em;
-  color: var(--action-button-icon-color);
-  border-radius: var(--radius);
-  flex: none;
-  display: grid;
+/* The site's stroke arrow, drawn heavier than its 1-unit line, to the
+   weight of the label's own stems as in the reference. Positioned so it
+   paints over the positioned fill behind it. */
+.action-button__arrow {
   position: relative;
-  /* the arrow chip turns red with the sweep rather than sitting red in
-     the rest state */
-  transition: color 0.3s var(--action-button-ease-hover);
-}
-
-.action-button__icon-bg {
-  background-color: var(--action-button-icon-color-background);
-  border-radius: var(--radius);
-  grid-area: 1 / 1;
-  width: 100%;
-  height: 100%;
-  padding: 0;
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
   transition: transform 0.525s var(--action-button-ease-hover);
 }
+.action-button__arrow path { stroke-width: 1.75; }
 
-.action-button__icon-mask {
-  grid-area: 1 / 1;
-  justify-content: flex-end;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  position: relative;
-  overflow: clip;
+/* Secondary — the same shape and the same text-roll, one step quieter,
+   and it never takes the red: the sweep is a light grey a shade under
+   the rest state. */
+.action-button.is--secondary {
+  --action-button-color: var(--c-text);
+  --action-button-color-background: #dbdbdb;
+  --action-button-hover-color-background: #cacaca;
 }
 
-.action-button__icon-list {
-  flex-flow: row;
-  grid-area: 1 / 1;
-  display: flex;
-  position: absolute;
+/* On a dark ground — the closing CTA band, a dark page, section, hero or
+   price card — the pair inverts, as the nav's Contact button does on a
+   dark page, so the lead stays the strongest thing on its ground: the
+   primary turns white with ink text (and white text on its red sweep),
+   the secondary a quiet lift off the ground. */
+:is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button {
+  --action-button-color-focus: var(--c-white);
 }
-
-/* The three arrows are a filmstrip that slides one icon width on hover, so
-   each has to keep its full size. The list is absolutely positioned inside
-   an 18px chip, and as a flex container with no width of its own it would
-   otherwise shrink all three to a third each and render slivers. */
-.action-button__icon {
-  flex: none;
-  width: 1.125em;
-  height: 1.125em;
-  padding: .2em;
-  transition: transform 0.525s var(--action-button-ease-hover);
+:is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:not(.is--secondary) {
+  --action-button-color: var(--c-text);
+  --action-button-color-background: var(--c-white);
+}
+:is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button.is--secondary {
+  --action-button-color: var(--c-white);
+  --action-button-color-background: rgba(255, 255, 255, 0.1);
+  --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .action-button:is(:hover, :focus-visible) {
-    --action-button-icon-color: var(--c-red);
-  }
-
   .action-button:is(:hover, :focus-visible) .action-button__bg-hover {
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
@@ -179,78 +178,28 @@
     transform: translate(0px, calc(-1 * var(--action-button-text-duplicate-distance)));
   }
 
-  .action-button:is(:hover, :focus-visible) .action-button__icon-bg {
-    transform: rotate(90deg);
+  .action-button:is(:hover, :focus-visible) .action-button__arrow {
+    transform: translateX(0.25rem);
   }
 
-  .action-button:is(:hover, :focus-visible) .action-button__icon {
-    transform: translate3d(200%, 0, 0);
+  :is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:not(.is--secondary):is(:hover, :focus-visible) {
+    --action-button-color: var(--c-white);
   }
 }
 
-/* Secondary — the same shape and the same text-roll, one step quieter.
-   No arrow, and it never takes the red: the sweep is a light grey a
-   shade under the rest state. Solid rather than translucent, so it
-   holds up on the dark CTA band as well as on white. */
-.action-button.is--secondary {
-  --action-button-color: var(--c-text);
-  --action-button-color-background: #dbdbdb;
-  --action-button-hover-color-background: #cacaca;
-  /* one extra pixel each side: with no 18px arrow chip setting the height,
-     the 16px text has to make up the difference to stay level with a
-     primary in the same row */
-  --action-button-padding: 0.875rem 1.5rem;
-}
-
-/* Block — the second shape, for a pair that leads a section (the hero and
-   the closing CTA): a slab rather than a button, the label face in
-   capitals at its start and the site's arrow at its far end, at the
-   pair's 44px. The row gives it its width (.actions--blocks, styles.css).
-   Its colours are the variant's, so the pair keeps one lead: the primary
-   is the ink block, the secondary the light grey one, each with its own
-   sweep, and the arrow steps on with the text-roll. */
-.action-button.is--block {
-  /* the 20px arrow sets the height, so 12px either side keeps the 44px */
-  --action-button-padding: 0.75rem 1.25rem;
-  font-family: var(--font-mono);
-  font-weight: var(--fw-label);
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-}
-.action-button.is--block .action-button__inner { justify-content: space-between; gap: 1.5rem; }
-/* The site's stroke arrow, drawn a little heavier than its 1-unit line so
-   it holds at this size. Positioned, as the primary's chip is, so it
-   paints over the positioned fill behind it. */
-.action-button__arrow {
-  position: relative;
-  flex: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  transition: transform 0.525s var(--action-button-ease-hover);
-}
-.action-button__arrow path { stroke-width: 1.5; }
-/* The sweep is parked flatter and further down than on the primary: a
-   block is several times as wide, and at the primary's 15 degrees the
-   tilt would lift the panel's near corner up into it at rest. */
-.action-button.is--block .action-button__bg-hover { transform: translate3d(0, 200%, 0) rotate(4deg); }
-
-/* On the dark CTA band the pair inverts, as the nav's Contact button does
-   on a dark page, so the lead stays the strongest thing on its ground: the
-   primary turns white with ink text (and white text on its red sweep), the
-   secondary a quiet lift off the band. */
-.cta .action-button.is--block {
-  --action-button-color: var(--c-text);
-  --action-button-color-background: var(--c-white);
-  --action-button-color-focus: var(--c-white);
-}
-.cta .action-button.is--block.is--secondary {
-  --action-button-color: var(--c-white);
-  --action-button-color-background: rgba(255, 255, 255, 0.1);
-  --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
-}
-
-@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
-  .action-button.is--block:is(:hover, :focus-visible) .action-button__bg-hover { transform: translate3d(0, 0, 0) rotate(0deg); }
-  .action-button:is(:hover, :focus-visible) .action-button__arrow { transform: translateX(0.25rem); }
-  .cta .action-button.is--block:not(.is--secondary):is(:hover, :focus-visible) { --action-button-color: var(--c-white); }
+/* In a price card too narrow for a long label and the full run to its
+   arrow (pages.css makes the card a size container), the run closes up
+   and the label may wrap rather than run out past the card. A wrapped
+   label gives up the roll: its copy one line down would sit on its own
+   second line. */
+@container (max-width: 22rem) {
+  .price-card > .action-button { max-width: 100%; }
+  .price-card > .action-button .action-button__inner { gap: 1rem; }
+  .price-card > .action-button .action-button__mask { flex: 0 1 auto; }
+  .price-card > .action-button .action-button__text {
+    white-space: normal;
+    line-height: 1.25;
+    text-shadow: none;
+    transform: none;
+  }
 }

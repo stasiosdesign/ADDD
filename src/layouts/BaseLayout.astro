@@ -4,6 +4,7 @@
 
     body[data-barba="wrapper"]
       .logo-loader           — first-load logo intro, outside the container
+      .morph-loader          — its second iteration; one of the two plays
       .transition            — the wipe panel, outside the container
       nav.mega-nav           — persistent, outside the container
       .column-grid           — the 12-Column Grid overlay (Shift + G)
@@ -24,6 +25,7 @@
   navigation — which is exactly what it is for.
 */
 import Loader from "../components/Loader.astro";
+import MorphLoader from "../components/MorphLoader.astro";
 import Transition from "../components/Transition.astro";
 import Nav from "../components/Nav.astro";
 import ColumnGrid from "../components/ColumnGrid.astro";
@@ -45,6 +47,7 @@ import "../styles/action-button.css";
 import "../styles/accordion.css";
 import "../styles/transition.css";
 import "../styles/loader.css";
+import "../styles/morph-loader.css";
 import "../styles/column-grid.css";
 import "../styles/page-grid.css";
 import "../styles/approach-stack.css";
@@ -91,15 +94,20 @@ const { title, description, pageName } = Astro.props;
       seen = seen || new URL(document.referrer).origin === location.origin;
     } catch (err) {}
     document.documentElement.dataset.arrival = reload || !seen ? "intro" : "reveal";
+    // Which intro plays: the Logo Morph Loader, or the Logo Stack Loader
+    // with ?loader=stack, kept so the two can be compared.
+    var loader = new URLSearchParams(location.search).get("loader");
+    document.documentElement.dataset.loader = loader === "stack" ? "stack" : "morph";
   })();
 </script>
-<noscript><style>.logo-loader { display: none; }</style></noscript>
+<noscript><style>.logo-loader, .morph-loader { display: none; }</style></noscript>
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
 </head>
 <body data-barba="wrapper">
 <Loader />
+<MorphLoader />
 <Transition pageName={pageName} />
 <Nav />
 <ColumnGrid />

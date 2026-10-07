@@ -15,6 +15,8 @@
 import { initWavyMarquee } from "./wavy-marquee.js";
 import { initColumnGrid } from "./column-grid.js";
 import { initLogoStackLoader } from "./logo-stack-loader.js";
+import { initLogoMorphLoader } from "./logo-morph-loader.js";
+import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 
@@ -89,17 +91,42 @@ function runReveal(next) {
   return runPageEnterAnimation(next);
 }
 
-// First-load logo intro: the Logo Stack Loader. The page is set up underneath
-// it from the first frame, so the loader's background clears straight onto
-// the settled page. Nested in this timeline so once() waits for all of it,
-// which keeps Barba from starting a navigation while the intro is playing.
+// First-load logo intro: the Logo Morph Loader, or the Logo Stack Loader it
+// iterates on, whichever the layout's <head> marked this load for. The page
+// is set up underneath it from the first frame, so the loader's background
+// clears straight onto the settled page. Nested in this timeline so once()
+// waits for all of it, which keeps Barba from starting a navigation while the
+// intro is playing.
 function runIntro(next) {
   const tl = gsap.timeline();
 
   tl.call(resetPage, [next], 0);
 
-  const loader = initLogoStackLoader();
+  // On the homepage the morph loader plays out in the hero's own field, so
+  // it is handed the hero's band.
+  const loader = document.documentElement.dataset.loader === "stack"
+    ? initLogoStackLoader()
+    : initLogoMorphLoader(undefined, { hero: next.querySelector(".hero__media[data-slash-field]") });
   if (loader) tl.add(loader, 0);
+
+  // The morph loader holds the page still under it — a wheel turned during
+  // the intro would otherwise scroll the page it is about to reveal — and
+  // hands scrolling back as its ground starts to lift, or once the hero has
+  // settled.
+  if (loader && "reveal" in loader.labels) {
+    tl.call(() => lenis.stop(), null, 0);
+    tl.call(() => lenis.start(), null, loader.labels.reveal);
+  }
+
+  // The homepage's intro decodes the name in the site's face, in a field
+  // whose words are set out by their width in theirs: it waits a moment for
+  // the webfonts, so neither is seen in the fallback first. The first paint
+  // is already the field, so the wait is the field at rest.
+  if (loader && "handover" in loader.labels) {
+    tl.pause();
+    const wait = new Promise(resolve => setTimeout(resolve, 900));
+    Promise.race([document.fonts.ready, wait]).then(() => tl.play());
+  }
 
   // Once it has played, the loader leaves the document for good. It sits
   // outside the Barba container, so anything that touched its styles later —
@@ -109,14 +136,14 @@ function runIntro(next) {
   return tl;
 }
 
-// Tweens are killed first so nothing still queued can write style back onto a
-// detached node.
+// Both intros go, the one that played and the one that did not. Tweens are
+// killed first so nothing still queued can write style back onto a detached
+// node.
 function removeLoader() {
-  const loader = document.querySelector("[data-logo-loader-init]");
-  if (!loader) return;
-
-  gsap.killTweensOf([loader, ...loader.querySelectorAll("*")]);
-  loader.remove();
+  document.querySelectorAll("[data-logo-loader-init], [data-morph-loader]").forEach(loader => {
+    gsap.killTweensOf([loader, ...loader.querySelectorAll("*")]);
+    loader.remove();
+  });
 }
 
 
@@ -199,6 +226,16 @@ function runPageEnterAnimation(next) {
   // panel leaves is measured from the moment the screen is covered, not from
   // the start of the wipe. Same pause on screen as before.
   tl.add("startEnter", 0.45);
+
+  // The homepage's field takes its words out now, while the page is still
+  // covered, and brings them back in from the foot of the band up as the
+  // wipe uncovers it — the band's lower edge is clear about a quarter of a
+  // second in, its top by about three quarters — so the hero is rebuilt as
+  // it arrives rather than showing empty slots until its words turn up
+  // (enter() in slash-field.js).
+  next.querySelectorAll("[data-slash-field]").forEach((el) => {
+    el.slashField?.enter({ delay: tl.labels.startEnter + 0.3, time: 0.45 });
+  });
 
   tl.set(next, { autoAlpha: 1 }, "startEnter");
 
@@ -288,6 +325,7 @@ const PAGE_COMPONENTS = [
   ["[data-dots-canvas-init]", initInteractiveDotsGrid],
   ["[data-slash-field]", initSlashField],
   ["[data-filter-group]", initFilterGroups],
+  ["[data-hero-parallax]", initHeroParallax],
   ["[data-footer-parallax]", initFooterParallax],
   ["[data-wavy-marquee-init]", initLogoMarquee],
   [".nav-link", initNavLinks],
@@ -432,6 +470,7 @@ barba.hooks.afterOnce(replayHeldHistoryStep);
 // document load.
 initMegaNav();
 initNavReveal();
+initNavLogo();
 initColumnGrid();
 initNavLinks(document.querySelector("[data-menu-wrap]"));
 // The width measurement waits on the webfont so the label is not measured
@@ -725,6 +764,8 @@ function initMegaNav() {
     tl: null,
     mobileTl: null,
     mobilePanelTl: null,
+    // from a navigation's click until the page wipe covers the screen
+    navigating: false,
   };
 
   // Lookups — the nav is never replaced, so every list is collected once.
@@ -810,6 +851,7 @@ function initMegaNav() {
 
   // DESKTOP — open dropdown (first open)
   function openDropdown(panelName) {
+    if (state.navigating) return;
     if (state.isOpen && state.activePanel === panelName) return;
     if (state.isOpen) return switchPanel(state.activePanel, panelName);
 
@@ -846,7 +888,7 @@ function initMegaNav() {
 
   // DESKTOP — close dropdown
   function closeDropdown() {
-    if (!state.isOpen) return;
+    if (!state.isOpen || state.navigating) return;
     const el = getPanel(state.activePanel);
     const fade = el ? getFade(el) : [];
 
@@ -1188,16 +1230,40 @@ function initMegaNav() {
     if (name) { e.preventDefault(); openMobilePanel(name); }
   }
 
-  // Close the menu when a navigation starts, so the panel does not sit
-  // open over the incoming page.
-  function closeEverything() {
+  // A navigation leaves the menu exactly as it is while the page wipe rises
+  // over it: closing it on the click played its whole closing move — the
+  // dropdown springing up, the drawer fading — ahead of the panel. Held
+  // still, it cannot be opened or closed under the wipe either (the panel
+  // takes no pointer events, so hover intent would otherwise go on acting
+  // as the panel slides under the pointer). Once the panel covers the
+  // screen the menu is put back to rest in a single frame, unseen, so the
+  // next page starts with it closed.
+  function holdForNavigation() {
+    state.navigating = true;
+    clearTimers();
+  }
+
+  function resetForNewPage() {
     if (state.isMobile) {
-      if (state.mobilePanelActive) closeMobilePanel();
-      if (state.mobileMenuOpen) closeMobileMenu();
+      if (state.mobileMenuOpen) {
+        killMobile();
+        killMobilePanel();
+        gsap.set([lineTop, lineMid, lineBot], { rotation: 0, y: 0, autoAlpha: 1 });
+        burger.setAttribute("aria-expanded", "false");
+        menuWrap.setAttribute("data-menu-open", "false");
+        state.mobileMenuOpen = false;
+        state.mobilePanelActive = null;
+        document.body.style.overflow = "";
+        unlockPageScroll();
+        setupMobile();
+      }
     } else if (state.isOpen) {
-      clearTimers();
-      closeDropdown();
+      killDropdown();
+      state.isOpen = false;
+      state.activePanel = null;
+      resetDesktop();
     }
+    state.navigating = false;
   }
 
   // RESIZE
@@ -1270,7 +1336,8 @@ function initMegaNav() {
 
   window.addEventListener("resize", handleResize);
 
-  barba.hooks.beforeLeave(closeEverything);
+  barba.hooks.beforeLeave(holdForNavigation);
+  barba.hooks.afterLeave(resetForNewPage);
 
   // INIT
   state.isMobile ? setupMobile() : resetDesktop();
@@ -1367,6 +1434,72 @@ function initNavReveal() {
     lastY = 0;
     travel = 0;
     show(true);
+  });
+}
+
+/* ============================================================
+   Nav logo — the forms drawn back into the name on hover
+   ============================================================
+   The intro's own morph (logo-morph.js), run backwards while the
+   pointer is on the logo — the four forms open back out into
+   A D D D — and forwards again as it leaves. Each letter tweens its
+   own progress (1 the form, 0 the glyph) from wherever it is, so
+   leaving halfway turns the change round mid-shape rather than
+   jumping, and the wave runs left to right both ways. A little
+   quicker than the intro, being a hover.
+
+   A pointer only: on a touch screen a tap is a click, and it goes
+   home. Keyboard focus shows the name too. With reduced motion the
+   name and the forms swap without the change between them.
+   ============================================================ */
+function initNavLogo() {
+  const link = document.querySelector("[data-menu-logo]");
+  const paths = link ? [...link.querySelectorAll("[data-logo-morph-letter]")] : [];
+  if (paths.length !== LETTER_COUNT) return;
+
+  const DURATION = 0.75; // one letter, all the way from form to glyph
+  const STAGGER = 0.07;
+  const ease = getMorphEase();
+  const states = paths.map(() => ({ t: 1 }));
+  const draw = (i) => paths[i].setAttribute("d", morphPath(i, states[i].t, ease));
+
+  function morphTo(target) {
+    states.forEach((state, i) => {
+      gsap.killTweensOf(state);
+      const distance = Math.abs(target - state.t);
+      if (!distance) return;
+      if (reducedMotion) {
+        state.t = target;
+        draw(i);
+        return;
+      }
+      gsap.to(state, {
+        t: target,
+        duration: DURATION * distance,
+        // a letter already part of the way there waits less for its turn
+        delay: i * STAGGER * distance,
+        // Going back to the name, the morph runs from its own long settle,
+        // which played straight would leave a hover a third of a second with
+        // nothing to show; the run is hurried through it instead. Back to the
+        // forms it plays at the intro's own pace. Either way the shape is the
+        // same function of t, so turning round mid-change never jumps.
+        ease: target === 0 ? "power2.out" : "none",
+        onUpdate: () => draw(i),
+      });
+    });
+  }
+
+  link.addEventListener("pointerenter", (e) => {
+    if (e.pointerType === "mouse") morphTo(0);
+  });
+  link.addEventListener("pointerleave", (e) => {
+    if (e.pointerType === "mouse" && !link.matches(":focus-visible")) morphTo(1);
+  });
+  link.addEventListener("focus", () => {
+    if (link.matches(":focus-visible")) morphTo(0);
+  });
+  link.addEventListener("blur", () => {
+    if (!link.matches(":hover")) morphTo(1);
   });
 }
 
@@ -2464,21 +2597,50 @@ function initInteractiveDotsGrid(container) {
    quarter of the screen instead.
    ============================================================ */
 function initFooterParallax(container) {
-  const wraps = container.querySelectorAll("[data-footer-parallax]");
+  initParallaxCover(container, "footer");
+}
+
+/* ============================================================
+   HERO PARALLAX — the footer's effect in reverse, on the way out
+   ------------------------------------------------------------
+   The homepage hero sits in a clipping wrap of its own
+   ([data-hero-parallax], index.astro) and leaves at a different
+   rate to the page below it: as the wrap travels from the top of
+   the viewport until its bottom has left it, the hero is scrubbed
+   down a quarter of its height inside the wrap and a black scrim
+   over it comes on. The logos section keeps the scroll's own
+   speed, so it closes over the hero, which falls back into shadow
+   underneath it. The same travel and the same rules for a stacked
+   layout as the footer, run backwards. The scrim stops at 25%
+   rather than the footer's 50%: over the ink panel 50% black
+   barely registers, but over the white hero it would end mid-grey.
+   ============================================================ */
+function initHeroParallax(container) {
+  initParallaxCover(container, "hero", { leaving: true, shade: 0.25 });
+}
+
+// The footer's reveal, and with leaving its reverse. name picks the
+// attributes: [data-<name>-parallax] on the clipping wrap, -inner on the
+// panel that travels inside it and -dark on the scrim over it; shade is the
+// scrim's opacity at the far end from rest.
+function initParallaxCover(container, name, { leaving = false, shade = 0.5 } = {}) {
+  const wraps = container.querySelectorAll(`[data-${name}-parallax]`);
   const stacked = window.matchMedia("(max-width: 991px)");
 
   const timelines = [];
 
   wraps.forEach(wrap => {
-    const inner = wrap.querySelector("[data-footer-parallax-inner]");
-    const scrim = wrap.querySelector("[data-footer-parallax-dark]");
+    const inner = wrap.querySelector(`[data-${name}-parallax-inner]`);
+    const scrim = wrap.querySelector(`[data-${name}-parallax-dark]`);
     if (!inner && !scrim) return;
 
     const tl = gsap.timeline({
       scrollTrigger: {
         trigger: wrap,
-        start: "clamp(top bottom)",
-        end: "clamp(top top)",
+        // coming in, while the wrap rises from the foot of the viewport to
+        // its top; going out, while it carries on until it has left
+        start: leaving ? "clamp(top top)" : "clamp(top bottom)",
+        end: leaving ? "clamp(bottom top)" : "clamp(top top)",
         scrub: true,
         // re-reads the travel below when the layout changes; both ends of
         // each tween are explicit, so re-recording them is always safe
@@ -2486,12 +2648,22 @@ function initFooterParallax(container) {
       }
     });
 
-    const travel = () => stacked.matches && inner.offsetHeight
-      ? -25 * window.innerHeight / inner.offsetHeight
-      : -25;
+    // the panel's offset from rest: above it coming in, below it going out
+    const travel = () => (stacked.matches && inner.offsetHeight
+      ? 25 * window.innerHeight / inner.offsetHeight
+      : 25) * (leaving ? 1 : -1);
 
-    if (inner) tl.fromTo(inner, { yPercent: travel }, { yPercent: 0, ease: "none" });
-    if (scrim) tl.fromTo(scrim, { opacity: 0.5 }, { opacity: 0, ease: "none" }, "<");
+    // coming in, the panel settles out of its offset and its shadow; going
+    // out, it runs the same way backwards, from rest into both
+    const offset = [{ yPercent: travel }, { yPercent: 0 }];
+    const fade = [{ opacity: shade }, { opacity: 0 }];
+    if (leaving) {
+      offset.reverse();
+      fade.reverse();
+    }
+
+    if (inner) tl.fromTo(inner, offset[0], { ...offset[1], ease: "none" });
+    if (scrim) tl.fromTo(scrim, fade[0], { ...fade[1], ease: "none" }, "<");
 
     timelines.push(tl);
   });

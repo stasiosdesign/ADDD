@@ -128,6 +128,10 @@ body:has(.page--dark) .mega-nav,
    mark, centred in the block and held the grid's edge clear of either
    side where the block is narrowest. */
 .mega-nav__bar-logo-mark { width: min(3.5em, 100% - 2 * var(--grid-edge)); height: auto; display: block; }
+/* Hovered, the forms are drawn back into the name (initNavLogo, site.js);
+   mid-change a letter is pressed a touch wider than its form, past the
+   viewBox, which it must not be cropped by. */
+.mega-nav__bar-logo-mark { overflow: visible; }
 
 /* The feature block — the Tech Firms link. The near-white fill, with the
    label and its arrow set at the block's far end, the block's padding
