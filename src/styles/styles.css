@@ -3,26 +3,26 @@
    ============================================================ */
 :root {
   /* colour */
-  --c-text: #141414;
+  --c-text: #0a0a0a;
   --c-white: #ffffff;
-  --c-dark-bg: #252525;
-  --c-dark-fg: #141414;
+  --c-dark-bg: #1a1a1a;
+  --c-dark-fg: #0a0a0a;
   --c-light-fg: #f2f2f2;
-  --c-border: rgba(20, 20, 20, 0.15);
+  --c-border: rgba(10, 10, 10, 0.15);
   --c-border-dark: rgba(255, 255, 255, 0.2);
   /* the accent: a clear signal red, used for hover, active and
      highlight states site-wide. One token — nothing declares a red of
      its own. */
   --c-red: #C40000;
   /* the soft fill every quiet control takes on hover */
-  --c-btn-soft: rgba(20, 20, 20, 0.05);
-  --c-placeholder: #141414;
+  --c-btn-soft: rgba(10, 10, 10, 0.05);
+  --c-placeholder: #0a0a0a;
 
   /* type */
   --font-display: "elza", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-body: "elza", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  /* label face — the Typekit kit ships dm-mono at 400 only */
-  --font-mono: "dm-mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  /* label face — Adelle Mono, from the Typekit kit */
+  --font-mono: "adelle-mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   /* weight scale — the elza Typekit kit only ships 400/500, no true bold or light.
      Headings (h1/h2) use 500 (the heaviest available); everything else uses 400. */
@@ -123,7 +123,7 @@ button, input { font: inherit; color: inherit; }
 .text-sm { font-size: var(--t-sm); line-height: 1.5; }
 .text-xs { font-size: var(--t-xs); line-height: 1.5; }
 
-/* Label face — DM Mono, always uppercase. Every eyebrow, tag,
+/* Label face — Adelle Mono, always uppercase. Every eyebrow, tag,
    badge, step number and small utility label on the site routes
    through .label (or one of the component selectors grouped onto
    it below), so the label voice stays in one place. The tracking
@@ -531,18 +531,18 @@ button, input { font: inherit; color: inherit; }
      — set at a size that sits in the field rather than over it. */
   --slash-cell-w: 7;
   --slash-cell-h: 15;
-  --slash-base: rgba(20, 20, 20, 0.18);
-  --slash-hot: rgba(20, 20, 20, 0.42);
+  --slash-base: rgba(10, 10, 10, 0.18);
+  --slash-hot: rgba(10, 10, 10, 0.42);
   /* the near-black the strokes reach only where the system is most
      active — the heart of a burst — past the firmer tint */
-  --slash-ink: rgba(20, 20, 20, 0.86);
+  --slash-ink: rgba(10, 10, 10, 0.86);
   --slash-signal: var(--c-red);
   --slash-fade: 450;
-  --slash-word: rgba(20, 20, 20, 0.36);
-  --slash-word-lit: rgba(20, 20, 20, 0.66);
-  --slash-word-active: rgba(20, 20, 20, 0.88);
+  --slash-word: rgba(10, 10, 10, 0.36);
+  --slash-word-lit: rgba(10, 10, 10, 0.66);
+  --slash-word-active: rgba(10, 10, 10, 0.88);
   /* the characters still decoding: the signal's red, a little muted */
-  --slash-word-decoding: color-mix(in srgb, var(--c-red) 76%, rgb(20 20 20 / 0.6));
+  --slash-word-decoding: color-mix(in srgb, var(--c-red) 76%, rgb(10 10 10 / 0.6));
 }
 /* The band sits a step back, between two sheets in front of it — the bar
    above and the hero's copy below — as a recess cut into the page, lit
@@ -561,19 +561,19 @@ button, input { font: inherit; color: inherit; }
   pointer-events: none;
   background:
     linear-gradient(to bottom,
-      rgba(20, 20, 20, 0.085) 0,
-      rgba(20, 20, 20, 0.055) 1px,
-      rgba(20, 20, 20, 0.032) 3px,
-      rgba(20, 20, 20, 0.017) 6px,
-      rgba(20, 20, 20, 0.008) 10px,
-      rgba(20, 20, 20, 0.003) 14px,
-      rgba(20, 20, 20, 0) 18px) top / 100% 18px no-repeat,
+      rgba(10, 10, 10, 0.085) 0,
+      rgba(10, 10, 10, 0.055) 1px,
+      rgba(10, 10, 10, 0.032) 3px,
+      rgba(10, 10, 10, 0.017) 6px,
+      rgba(10, 10, 10, 0.008) 10px,
+      rgba(10, 10, 10, 0.003) 14px,
+      rgba(10, 10, 10, 0) 18px) top / 100% 18px no-repeat,
     linear-gradient(to top,
-      rgba(20, 20, 20, 0.05) 0,
-      rgba(20, 20, 20, 0.026) 1px,
-      rgba(20, 20, 20, 0.01) 3px,
-      rgba(20, 20, 20, 0.003) 6px,
-      rgba(20, 20, 20, 0) 8px) bottom / 100% 8px no-repeat;
+      rgba(10, 10, 10, 0.05) 0,
+      rgba(10, 10, 10, 0.026) 1px,
+      rgba(10, 10, 10, 0.01) 3px,
+      rgba(10, 10, 10, 0.003) 6px,
+      rgba(10, 10, 10, 0) 8px) bottom / 100% 8px no-repeat;
 }
 /* The words on the field: real text in the lines' old label face, placed
    on the grid by the script, with the pattern stopping around each one,
@@ -1014,7 +1014,7 @@ button, input { font: inherit; color: inherit; }
   justify-content: space-between;
   gap: 2.5rem;
   padding: 2.5rem;
-  box-shadow: 0 -12px 40px rgba(20, 20, 20, 0.12);
+  box-shadow: 0 -12px 40px rgba(10, 10, 10, 0.12);
 }
 /* Three tones, stepping lighter as the steps progress: the first
    card is the darkest thing on the page and the last is a grey close
@@ -1566,9 +1566,9 @@ button, input { font: inherit; color: inherit; }
   height: 100%;
   text-align: left;
   background: #fafafa;
-  border: 1px solid rgba(20, 20, 20, .08);
+  border: 1px solid rgba(10, 10, 10, .08);
 }
-.insight-card:hover { border-color: rgba(20, 20, 20, .16); }
+.insight-card:hover { border-color: rgba(10, 10, 10, .16); }
 /* Shorter than the square the routes panel uses — the picture is
    framing the piece, not carrying it, and the square was making the
    card overshoot. */
@@ -1675,7 +1675,7 @@ button, input { font: inherit; color: inherit; }
   padding: 0;
   border: 0;
   border-radius: 50%;
-  background: rgba(20, 20, 20, 0.2);
+  background: rgba(10, 10, 10, 0.2);
   cursor: pointer;
 }
 .dots button.is--active { background: var(--c-text); }
@@ -1850,7 +1850,7 @@ button, input { font: inherit; color: inherit; }
 }
 .site-footer__top { align-items: start; }
 
-/* Label voice for every eyebrow in here — DM Mono, uppercase, a step
+/* Label voice for every eyebrow in here — Adelle Mono, uppercase, a step
    down from the body, grey against the ink. */
 .site-footer__eyebrow {
   font-size: var(--t-xs);

@@ -218,17 +218,16 @@ export function mountApproachStack(root, { lenis } = {}) {
 /* ============================================================
    Schematics — the step drawn in each card's panel
    ============================================================
-   Each is one paused GSAP timeline: a draw-in, then a loop with no
-   end. start() plays it from the top, stop() takes it back to the
-   undrawn state (when a breakpoint change sets the stack up again),
-   rest() shows a representative frame and holds it (reduced
-   motion), hold() pauses and resumes it while it runs.
-   Every element starts from a state set here, so seeking back to 0
-   always returns the drawing to blank.
+   Small flat drawings, each one paused
+   GSAP timeline: a draw-in, then a light loop with no end. start()
+   plays it from the top, stop() takes it back to the undrawn state
+   (when a breakpoint change sets the stack up again), rest() shows
+   a representative frame and holds it (reduced motion), hold()
+   pauses and resumes it while it runs. Every element starts from
+   a state set here, so seeking back to 0 always returns the
+   drawing to blank. The loops are slow and few: one signal at a
+   time, in the site's red, on hairlines that otherwise hold still.
    ============================================================ */
-const DIM = "rgba(255, 255, 255, 0.6)";
-const BRIGHT = "rgba(255, 255, 255, 0.8)";
-
 function mountSchematic(svg) {
   const build = svg && SCHEMATICS[svg.dataset.schematic];
   if (!build) return null;
@@ -236,7 +235,6 @@ function mountSchematic(svg) {
   const css = getComputedStyle(svg);
   const colors = {
     red: css.getPropertyValue("--c-red").trim() || "#c40000",
-    ground: css.getPropertyValue("--c-dark-bg").trim() || "#252525",
   };
   const parts = (name) => [...svg.querySelectorAll(`[data-s="${name}"]`)];
   const tl = build(parts, colors, svg);
@@ -264,167 +262,142 @@ function mountSchematic(svg) {
   };
 }
 
+// The stylesheet's own fill or stroke for a face, so a tween can hand it
+// back exactly.
+const paint = (el, prop) => getComputedStyle(el)[prop];
+
 const SCHEMATICS = {
-  // Understand — the route work actually takes, against the one it is meant
-  // to. A pulse runs the straight, intended line in a moment; the red signal
-  // takes the long way round past the tools and the information, lighting
-  // each node it reaches.
+  // Understand — four nodes: work, tools, information, decisions. They
+  // appear and the route draws in between them; then a red signal runs the
+  // zig-zag, each node catching it as it passes, while the dashed line
+  // straight across shows the way it was meant to go.
   map(parts, colors) {
-    const [grid] = parts("grid");
     const [intended] = parts("intended");
-    const [actual] = parts("actual");
-    const [ghostPulse] = parts("intended-pulse");
-    const [pulse] = parts("actual-pulse");
-    const routes = parts("route");
+    const [route] = parts("route");
+    const [pulse] = parts("pulse");
     const nodes = parts("node");
-    const boxes = nodes.map((node) => node.querySelector("rect"));
-    const labels = nodes.map((node) => node.querySelector("text"));
+    const fill = paint(nodes[0], "fill");
+    const stroke = paint(nodes[0], "stroke");
 
-    gsap.set([grid, intended, ...routes, ...labels], { opacity: 0 });
-    gsap.set(actual, { strokeDasharray: "1 1", strokeDashoffset: 1 });
-    gsap.set(boxes, { scale: 0, transformOrigin: "50% 50%" });
+    gsap.set([intended, ...nodes], { opacity: 0 });
+    gsap.set(nodes, { scale: 0.6, transformOrigin: "50% 50%" });
+    gsap.set(route, { strokeDasharray: "1 1", strokeDashoffset: 1 });
 
-    const draw = 1.3;
     const tl = gsap.timeline({ paused: true });
-    tl.to(grid, { opacity: 1, duration: 0.5, ease: "none" }, 0.15)
-      .to(intended, { opacity: 1, duration: 0.4, ease: "none" }, 0.25)
-      .to(actual, { strokeDashoffset: 0, duration: draw, ease: "none" }, 0.35);
-    nodes.forEach((node, i) => {
-      const at = 0.35 + parseFloat(node.dataset.at) * draw;
-      tl.to(boxes[i], { scale: 1, duration: 0.35, ease: "back.out(2.5)" }, at - 0.05)
-        .to(labels[i], { opacity: 1, duration: 0.3, ease: "none" }, at);
-    });
-    tl.to(routes, { opacity: 1, duration: 0.4, stagger: 0.12, ease: "none" }, 0.35 + draw);
-    tl.add("rest");
+    tl.to(nodes, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out", stagger: 0.1 }, 0.15)
+      .to(route, { strokeDashoffset: 0, duration: 1.2, ease: "power1.inOut" }, 0.5)
+      .to(intended, { opacity: 1, duration: 0.5, ease: "none" }, 1.3);
+    tl.add("rest", 1.8);
 
-    // The pulse's head runs 0 → 1.08 of the path as its offset runs from the
-    // dash's length to -1, so a node at share s of the path is reached at
-    // s / 1.08 of the run.
-    const travel = 2.6;
-    const loop = gsap.timeline({ repeat: -1, repeatDelay: 0.9 });
-    loop.fromTo(ghostPulse, { strokeDashoffset: 0.12 }, { strokeDashoffset: -1, duration: 1, ease: "none", immediateRender: false }, 0)
-      .fromTo(pulse, { strokeDashoffset: 0.08 }, { strokeDashoffset: -1, duration: travel, ease: "none", immediateRender: false }, 0);
-    nodes.forEach((node, i) => {
+    // The pulse's head runs 0 → 1.08 of the route as its offset runs from
+    // the dash's length to -1, so a node at share s of the route is reached
+    // at s / 1.08 of the run.
+    const travel = 3.2;
+    const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.4 });
+    loop.fromTo(pulse, { strokeDashoffset: 0.08 }, { strokeDashoffset: -1, duration: travel, ease: "none", immediateRender: false }, 0);
+    nodes.forEach((node) => {
       const at = (parseFloat(node.dataset.at) / 1.08) * travel;
-      loop.to(boxes[i], { fill: colors.red, stroke: colors.red, duration: 0.1, ease: "none" }, at)
-        .to(boxes[i], { fill: colors.ground, stroke: DIM, duration: 0.7, ease: "power1.in" }, at + 0.35);
+      loop.to(node, { fill: colors.red, stroke: colors.red, duration: 0.12, ease: "none" }, at)
+        .to(node, { fill, stroke, duration: 0.9, ease: "power1.in" }, at + 0.3);
     });
-    tl.add(loop, "rest+=0.3");
+    tl.add(loop, "rest");
     return tl;
   },
 
-  // Diagnose — the eight areas the copy names, around one shared cause. A
-  // few at a time light up as symptoms and are traced back into the centre,
-  // which answers in red; then it clears and another set is traced.
-  trace(parts, colors) {
-    const [grid] = parts("grid");
-    const guides = parts("guide");
-    const traces = parts("trace");
-    const areas = parts("area");
-    const [cause] = parts("cause");
+  // Diagnose — the practice as a stack of layers. A scan runs down through
+  // them one by one until it reaches the layer the trouble starts in, which
+  // holds in red with a marker on it while the layers above draw back to
+  // open it up; then it all settles for the next pass.
+  trace(parts, colors, svg) {
+    const cause = Number(svg.dataset.cause);
+    const layers = parts("layer");
+    const [marker] = parts("marker");
     const [ping] = parts("ping");
-    const [causeLabel] = parts("cause-label");
-    const boxes = areas.map((area) => area.querySelector("rect"));
-    const labels = areas.map((area) => area.querySelector("text"));
+    const above = layers.slice(0, cause);
+    const line = paint(layers[0], "stroke");
+    const bright = "rgba(255, 255, 255, 0.95)";
 
-    gsap.set([grid, ...guides, ...labels], { opacity: 0 });
-    gsap.set([cause, ...boxes], { scale: 0, transformOrigin: "50% 50%" });
-    gsap.set(ping, { transformOrigin: "50% 50%" });
+    gsap.set(layers, { opacity: 0, y: 8 });
+    gsap.set(marker, { opacity: 0, scale: 0, transformOrigin: "50% 50%" });
+    gsap.set(ping, { opacity: 0, transformOrigin: "50% 50%" });
 
     const tl = gsap.timeline({ paused: true });
-    tl.to(grid, { opacity: 1, duration: 0.5, ease: "none" }, 0.15)
-      .to(cause, { scale: 1, duration: 0.4, ease: "back.out(2.5)" }, 0.25)
-      .to(boxes, { scale: 1, duration: 0.35, ease: "back.out(2.5)", stagger: 0.06 }, 0.35)
-      .to(labels, { opacity: 1, duration: 0.3, ease: "none", stagger: 0.06 }, 0.45)
-      .to(guides, { opacity: 1, duration: 0.4, ease: "none", stagger: 0.04 }, 0.7);
-    const introEnd = 1.2;
+    tl.to(layers, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.08 }, 0.1);
+    const introEnd = 0.9;
 
-    // Which areas show up as symptoms, cycle by cycle (indexes into the ring,
-    // clockwise from the top) — always from more than one side.
-    const cycles = [[1, 5, 0], [2, 6, 4], [7, 3, 0], [5, 1, 4]];
-    const cycle = 3.4;
     const loop = gsap.timeline({ repeat: -1 });
-    cycles.forEach((set, c) => {
-      const t = c * cycle;
-      set.forEach((k, j) => {
-        loop.to(boxes[k], { stroke: colors.red, duration: 0.15, ease: "none" }, t + j * 0.18)
-          .fromTo(traces[k], { strokeDashoffset: 1, opacity: 1 }, {
-            strokeDashoffset: 0, duration: 0.7, ease: "power2.in", immediateRender: false,
-          }, t + 0.35 + j * 0.22);
-      });
-      const hit = t + 1.05;
-      loop.to(cause, { fill: colors.red, stroke: colors.red, duration: 0.12, ease: "none" }, hit)
-        .fromTo(ping, { scale: 1, opacity: 0.9 }, { scale: 2.8, opacity: 0, duration: 0.9, ease: "power2.out", immediateRender: false }, hit)
-        .to(causeLabel, { opacity: 1, duration: 0.25, ease: "none" }, hit + 0.05);
-      const out = t + 2.6;
-      loop.to(set.map((k) => traces[k]), { opacity: 0, duration: 0.5, ease: "none" }, out)
-        .to(set.map((k) => boxes[k]), { stroke: DIM, duration: 0.5, ease: "none" }, out)
-        .to(cause, { fill: colors.ground, stroke: BRIGHT, duration: 0.5, ease: "none" }, out)
-        .to(causeLabel, { opacity: 0, duration: 0.4, ease: "none" }, out);
-    });
-    loop.set({}, {}, cycles.length * cycle);
+    // the scan, top down: each layer it passes brightens and lets go, until
+    // the cause, which turns red and holds
+    for (let i = 0; i < cause; i++) {
+      loop.to(layers[i], { stroke: bright, duration: 0.12, ease: "none" }, i * 0.22)
+        .to(layers[i], { stroke: line, duration: 0.5, ease: "power1.in" }, i * 0.22 + 0.2);
+    }
+    const found = cause * 0.22;
+    loop.to(layers[cause], { stroke: colors.red, duration: 0.15, ease: "none" }, found);
+    // the layers above draw back, opening a gap over it
+    const open = found + 0.3;
+    loop.to(above, { y: -10, duration: 0.8, ease: "power3.inOut", stagger: 0.05 }, open);
+    const shown = open + 0.4;
+    loop.to(marker, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.5)" }, shown)
+      .fromTo(ping, { scale: 1, opacity: 0.9 }, { scale: 2.8, opacity: 0, duration: 1, ease: "power2.out", immediateRender: false }, shown + 0.15);
+    // a beat to read it, then everything settles back
+    const close = shown + 1.8;
+    loop.to(marker, { opacity: 0, scale: 0.6, duration: 0.35, ease: "power1.in" }, close)
+      .to(above, { y: 0, duration: 0.8, ease: "power3.inOut", stagger: { each: 0.05, from: "end" } }, close + 0.15)
+      .to(layers[cause], { stroke: line, duration: 0.6, ease: "none" }, close + 0.6);
+    loop.set({}, {}, close + 2);
+
     tl.add(loop, introEnd);
-    // all three of the first set traced home, the cause in red
-    tl.add("rest", introEnd + 1.95);
+    // found and opened, the marker on it
+    tl.add("rest", introEnd + shown + 0.5);
     return tl;
   },
 
-  // Prioritise — four findings ranked by impact, each with its owner. The
-  // bars grow, the rows sort themselves into rank and the first turns red;
-  // then the figures move and they sort again.
+  // Prioritise — four findings as bars of impact on one baseline. They rise
+  // into a ranking and the tallest, what should change first, turns red;
+  // then the figures move, the bars find their new heights and the red
+  // passes to whichever now leads.
   rank(parts, colors, svg) {
-    const [grid] = parts("grid");
-    const [head] = parts("head");
-    const slotRows = parts("slot");
-    const rows = parts("row");
+    const [base] = parts("base");
     const bars = parts("bar");
-    const slots = svg.dataset.slots.split(",").map(Number);
-    const full = 220;
+    const floor = Number(svg.dataset.base);
+    // the stylesheet marks the resting leader; from here the script does
+    bars.forEach((bar) => bar.classList.remove("is--first"));
+    const fill = paint(bars[0], "fill");
+    const stroke = paint(bars[0], "stroke");
     // impact per finding, figure set by figure set; the loop runs back round
     // to the first, so it never jumps
     const sets = [
-      [0.62, 0.95, 0.38, 0.78],
-      [0.9, 0.55, 0.72, 0.3],
-      [0.42, 0.68, 0.96, 0.58],
-      [0.75, 0.35, 0.5, 0.88],
+      [96, 152, 64, 120],
+      [136, 76, 108, 52],
+      [72, 112, 160, 88],
+      [104, 60, 84, 144],
     ];
-    const ranked = (values) => values.map((_, i) => i).sort((a, b) => values[b] - values[a]);
-    const slotOf = (values) => {
-      const at = [];
-      ranked(values).forEach((row, place) => (at[row] = slots[place]));
-      return at;
-    };
+    const lead = (values) => values.indexOf(Math.max(...values));
+    const height = (h) => ({ attr: { y: floor - h, height: h } });
 
-    bars.forEach((bar) => bar.classList.remove("is--first"));
-    gsap.set([grid, head, ...slotRows, ...rows], { opacity: 0 });
-    gsap.set(rows, { y: (i) => slots[i] });
-    gsap.set(bars, { fill: DIM, attr: { width: 0 } });
+    gsap.set(base, { opacity: 0 });
+    gsap.set(bars, { opacity: 0, ...height(0) });
 
     const tl = gsap.timeline({ paused: true });
-    tl.to(grid, { opacity: 1, duration: 0.5, ease: "none" }, 0.15)
-      .to(head, { opacity: 1, duration: 0.4, ease: "none" }, 0.25)
-      .to(slotRows, { opacity: 1, duration: 0.3, ease: "none", stagger: 0.07 }, 0.3)
-      .to(rows, { opacity: 1, duration: 0.3, ease: "none", stagger: 0.07 }, 0.4);
+    tl.to(base, { opacity: 1, duration: 0.5, ease: "none" }, 0.1)
+      .to(bars, { opacity: 1, duration: 0.2, ease: "none", stagger: 0.08 }, 0.35);
     bars.forEach((bar, i) => {
-      tl.to(bar, { attr: { width: sets[0][i] * full }, duration: 0.6, ease: "power2.out" }, 0.45 + i * 0.08);
+      tl.to(bar, { ...height(sets[0][i]), duration: 0.9, ease: "power3.out" }, 0.4 + i * 0.1);
     });
-    const first = slotOf(sets[0]);
-    tl.to(rows, { y: (i) => first[i], duration: 0.8, ease: "power3.inOut" }, 1.5)
-      .to(bars[ranked(sets[0])[0]], { fill: colors.red, duration: 0.3, ease: "none" }, 2.2);
-    tl.add("rest", 2.5);
+    tl.to(bars[lead(sets[0])], { fill: colors.red, stroke: colors.red, duration: 0.3, ease: "none" }, 1.5);
+    tl.add("rest", 1.9);
 
-    const cycle = 3.5;
+    const cycle = 3.6;
     const loop = gsap.timeline({ repeat: -1 });
     sets.forEach((values, k) => {
       const next = sets[(k + 1) % sets.length];
       const t = k * cycle;
-      const at = slotOf(next);
-      loop.to(bars[ranked(values)[0]], { fill: DIM, duration: 0.3, ease: "none" }, t + 1.6);
+      loop.to(bars[lead(values)], { fill, stroke, duration: 0.4, ease: "none" }, t + 2);
       bars.forEach((bar, i) => {
-        loop.to(bar, { attr: { width: next[i] * full }, duration: 0.6, ease: "power2.inOut" }, t + 1.6);
+        loop.to(bar, { ...height(next[i]), duration: 1, ease: "power3.inOut" }, t + 2);
       });
-      loop.to(rows, { y: (i) => at[i], duration: 0.8, ease: "power3.inOut" }, t + 2.4)
-        .to(bars[ranked(next)[0]], { fill: colors.red, duration: 0.3, ease: "none" }, t + 3.1);
+      loop.to(bars[lead(next)], { fill: colors.red, stroke: colors.red, duration: 0.3, ease: "none" }, t + 3);
     });
     loop.set({}, {}, sets.length * cycle);
     tl.add(loop, "rest");

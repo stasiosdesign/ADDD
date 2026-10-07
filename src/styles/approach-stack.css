@@ -120,8 +120,8 @@
   height: 22%;
   pointer-events: none;
 }
-.approach-stack__window::before { top: 0; background: linear-gradient(to bottom, var(--c-dark-fg), rgba(20, 20, 20, 0)); }
-.approach-stack__window::after { bottom: 0; background: linear-gradient(to top, var(--c-dark-fg), rgba(20, 20, 20, 0)); }
+.approach-stack__window::before { top: 0; background: linear-gradient(to bottom, var(--c-dark-fg), rgba(10, 10, 10, 0)); }
+.approach-stack__window::after { bottom: 0; background: linear-gradient(to top, var(--c-dark-fg), rgba(10, 10, 10, 0)); }
 
 /* Square dots, 2px every 12px, down the middle. */
 .approach-stack__dots {
@@ -292,9 +292,9 @@
 }
 
 /* --- Schematics ----------------------------------------------
-   Hairlines and mono labels on a faint dot grid, in the band's own
-   whites, with the site's red as the signal. Sized by the viewBox,
-   so they scale with the card. */
+   Small flat drawings in hairlines: a few plain shapes on the
+   card's ground, in the band's whites, with the site's red as the
+   one signal. Sized by the viewBox, so they scale with the card. */
 .schematic {
   display: block;
   width: 100%;
@@ -302,66 +302,42 @@
   height: auto;
   aspect-ratio: 400 / 256;
   overflow: visible;
-  font-family: var(--font-mono);
 }
-.schematic pattern rect { fill: rgba(255, 255, 255, 0.1); }
-.schematic__line {
-  stroke: rgba(255, 255, 255, 0.4);
+.schematic__shape {
+  fill: #121212;
+  stroke: rgba(255, 255, 255, 0.45);
   stroke-width: 1;
 }
-.schematic__line.is--ghost {
+/* the bar that leads, before the script takes the ranking over */
+.schematic__shape.is--first { fill: var(--c-red); stroke: var(--c-red); }
+.schematic__route {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.schematic__route.is--intended {
   stroke: rgba(255, 255, 255, 0.28);
   stroke-dasharray: 3 4;
 }
-.schematic__line.is--guide {
-  stroke: rgba(255, 255, 255, 0.12);
-  stroke-dasharray: 2 4;
-}
-.schematic__line.is--trace {
-  stroke: var(--c-red);
-  stroke-width: 1.5;
-  stroke-dasharray: 1 1;
-  stroke-dashoffset: 1;
-}
-/* A short dash run along a path from end to end (pathLength="1"). */
-.schematic__pulse {
-  stroke: var(--c-red);
-  stroke-width: 2.5;
-  stroke-dasharray: 0.08 1;
-  stroke-dashoffset: 0.08;
-}
-.schematic__pulse.is--ghost {
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 2;
-  stroke-dasharray: 0.12 1;
-  stroke-dashoffset: 0.12;
-}
-.schematic__node {
-  fill: var(--c-dark-bg);
-  stroke: rgba(255, 255, 255, 0.6);
+.schematic__base {
+  stroke: rgba(255, 255, 255, 0.3);
   stroke-width: 1;
 }
-.schematic__node.is--cause { stroke: rgba(255, 255, 255, 0.8); }
+.schematic__marker { fill: var(--c-red); }
 .schematic__ping {
   fill: none;
   stroke: var(--c-red);
   stroke-width: 1;
   opacity: 0;
 }
-.schematic__label {
-  fill: rgba(255, 255, 255, 0.55);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+/* A short dash run along a path from end to end (pathLength="1"). */
+.schematic__pulse {
+  stroke: var(--c-red);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.08 1;
+  stroke-dashoffset: 0.08;
 }
-.schematic__label.is--route { fill: rgba(255, 255, 255, 0.35); }
-.schematic__label.is--route.is--actual { fill: rgba(255, 255, 255, 0.6); }
-.schematic__label.is--cause { fill: var(--c-white); opacity: 0; }
-.schematic__label.is--rank { fill: rgba(255, 255, 255, 0.35); }
-.schematic__label.is--rank.is--first { fill: var(--c-white); }
-.schematic__track { fill: rgba(255, 255, 255, 0.06); }
-.schematic__bar { fill: rgba(255, 255, 255, 0.6); }
-.schematic__bar.is--first { fill: var(--c-red); }
 
 /* --- Tablet: one column, the rail down Grid Column 1 ----------- */
 @media (max-width: 991px) {
@@ -405,7 +381,6 @@
   .step-card__head::before,
   .step-card__panel::before,
   .step-card__elbow { display: none; }
-  /* full width, and the labels a size up to stay legible at it */
+  /* full width */
   .schematic { max-width: none; }
-  .schematic__label { font-size: 13px; }
 }

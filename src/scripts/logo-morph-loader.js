@@ -115,12 +115,12 @@ const HERO = {
 // The disc's radius in the logo's viewBox.
 const DISC = 40.2;
 
-// The name's cap height, in rows of the field: a little under the two rows
+// The name's cap height, in rows of the field: well under the two rows
 // of strokes it stands in (1.68 would be their full span), on the line
 // between them — raised by NAME_RISE (rows) from dead centre, since the A's
 // point and the D's shoulders leave its top looking lower than it is, so it
 // sits optically centred: a little less room above it than below.
-const NAME_ROWS = 1.5;
+const NAME_ROWS = 1.15;
 const NAME_RISE = 0.1;
 
 // How close the field's strokes may come (px) to the name's letters, and to

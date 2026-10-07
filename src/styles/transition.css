@@ -28,7 +28,7 @@
    carries it on up from there. */
 [data-arrival="reveal"] .transition__panel { transform: translateY(-100%); }
 
-/* The page name takes the site's label voice — DM Mono, uppercase,
+/* The page name takes the site's label voice — Adelle Mono, uppercase,
    from the shared rule in styles.css. Only size, colour and placement
    live here. */
 .transition__label {

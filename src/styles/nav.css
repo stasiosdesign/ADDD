@@ -21,7 +21,7 @@
   --nav-bg: var(--c-white);
   --nav-fg: var(--c-text);
   --nav-rule: var(--c-border);
-  --nav-cta-bg: #141414;
+  --nav-cta-bg: #0a0a0a;
   --nav-cta-fg: var(--c-white);
   --nav-alt-bg: var(--c-white);
   --nav-alt-fg: var(--c-text);
@@ -49,7 +49,7 @@
   /* dropdown: descriptions and small labels */
   --nav-muted: #6b6b6b;
   /* dropdown: a field's border on focus */
-  --nav-rule-focus: rgba(20, 20, 20, .5);
+  --nav-rule-focus: rgba(10, 10, 10, .5);
   /* dropdown: the accent as text — the featured report's call to read */
   --nav-accent-text: var(--c-red);
 
@@ -597,11 +597,11 @@ body:has(.page--dark) .mega-nav,
    The group is the links and Sign in set together on the lighter
    ground, from the feature block to Contact, as one compact run across
    Grid Columns 7 to 10: it starts where Grid Column 7 does — the column
-   the hero's headline starts on — and ends where Grid Column 10 does,
-   Grid Column 6 lying open between it and the feature block. Each of the
-   five takes its label's width and an equal share of what is left of the
-   four columns, its label centred in it, so the gaps between them are
-   even. The two lists they sit in step aside (display: contents) for
+   the hero's headline starts on — Grid Column 6 lying open between it
+   and the feature block. The five sit close, each its label's width
+   with the nav's item gap after it, and whatever the bar has left over
+   opens after Sign in, before Contact, so the gaps stay the same at
+   every width. The two lists they sit in step aside (display: contents) for
    this, so the five are one row. Contact takes Grid Columns 11 and 12
    and the margin, its block at the far end, keeping the bar's own colour
    in its seams. A Grid Column is measured off the bar's own width
@@ -621,11 +621,14 @@ body:has(.page--dark) .mega-nav,
 
   /* Services to Sign in, after Grid Column 6 and its two gutters */
   .mega-nav__bar-inner > .mega-nav__bar-list > li {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     display: flex;
     justify-content: center;
     white-space: nowrap;
+    margin-right: var(--nav-item-gap);
   }
+  /* the slack, between Sign in and Contact */
+  .mega-nav__bar-inner .mega-nav__bar-action:not(.is--grouped) { margin: 0 0 0 auto; }
   .mega-nav__bar-inner > .mega-nav__bar-list:not(.is--actions) > li:first-child {
     margin-left: calc(var(--nav-col) + 2 * var(--grid-gutter));
   }

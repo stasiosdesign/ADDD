@@ -103,7 +103,7 @@
 const DEFAULTS = {
   base: "#ceccbd",
   hot: "#4a6e3a",
-  ink: "#141414",
+  ink: "#0a0a0a",
   signal: "#c40000",
   "cell-w": 10,
   "cell-h": 22,

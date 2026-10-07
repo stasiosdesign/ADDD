@@ -271,7 +271,7 @@
    ============================================================ */
 /* A page is light by default. .page--dark makes the whole page the
    site's near-black — the same ink the footer is painted in, rather
-   than the #252525 an individual dark section uses — by redeclaring
+   than the #1a1a1a an individual dark section uses — by redeclaring
    --c-dark-bg on the page root. Every .section--dark, .pg-hero--dark
    and the closing CTA already paint themselves from that token, so
    they follow without a rule of their own and the page reads as one
