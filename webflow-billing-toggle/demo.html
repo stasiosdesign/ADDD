@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Page-wide billing toggle</title>
+<style>
+/* Annual billing is the default, including before JavaScript loads. */
+:root {
+  --billing-fade: 200ms;
+  --billing-muted-opacity: 0.5;
+}
+
+/* Both groups occupy one grid cell. The taller group reserves the height. */
+[data-billing-stack] {
+  display: grid;
+}
+
+[data-billing-stack] > [data-billing-content] {
+  grid-area: 1 / 1;
+  min-width: 0;
+  align-self: start;
+}
+
+[data-billing-content] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--billing-fade) ease,
+              visibility 0s linear var(--billing-fade);
+}
+
+:root:not([data-billing-cycle="quarterly"]) [data-billing-content="annual"],
+:root[data-billing-cycle="quarterly"] [data-billing-content="quarterly"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+[data-billing-label] {
+  opacity: var(--billing-muted-opacity);
+  transition: opacity var(--billing-fade) ease;
+}
+
+:root:not([data-billing-cycle="quarterly"]) [data-billing-label="annual"],
+:root[data-billing-cycle="quarterly"] [data-billing-label="quarterly"] {
+  opacity: 1;
+}
+
+/* Keep the supplied switch classes; put the two labels outside this wrapper. */
+.btn-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 44px;
+  min-height: 44px;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.btn-toggle__toggle {
+  display: flex;
+  flex-shrink: 0;
+  width: 2em;
+  height: 1.25em;
+  border-radius: 2em;
+  background: #ff4c24;
+  pointer-events: none;
+}
+
+.btn-toggle__toggle-dot {
+  width: 1em;
+  height: 1em;
+  margin-top: 0.125em;
+  margin-left: 0.125em;
+  border-radius: 50%;
+  background: #fff;
+  transform: translateX(0);
+  transition: transform 320ms cubic-bezier(0.35, 1, 0.6, 1);
+}
+
+:root[data-billing-cycle="quarterly"] .btn-toggle__toggle-dot {
+  transform: translateX(0.75em);
+}
+
+.btn-toggle__checkbox[data-billing-toggle] {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.btn-toggle:has([data-billing-toggle]:focus-visible) .btn-toggle__toggle {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-billing-content],
+  [data-billing-label],
+  .btn-toggle__toggle-dot {
+    transition: none;
+  }
+}
+</style>
+
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f1eb;color:#262d29;font-family:Arial,sans-serif;padding:72px 28px}
+main{max-width:1120px;margin:auto}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.16em;color:#627266}
+h1{font-size:clamp(36px,5vw,60px);line-height:1.05;letter-spacing:-.045em;margin:22px 0}
+.intro{font-size:17px;line-height:1.6;max-width:580px;color:#606760;margin-bottom:40px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.card{border:1px solid #d9ddd5;border-radius:18px;background:#fffcf7;padding:30px}
+.tier{font-size:11px;letter-spacing:.09em;color:#69776b}h2{font-size:25px;letter-spacing:-.04em;margin:28px 0 20px}
+.billing-control{display:flex;align-items:center;gap:12px;margin-bottom:28px;font-size:14px}.billing-control p{margin:0}
+.btn-toggle__toggle{background:#385b45}.price{font-size:52px;letter-spacing:-.05em;margin:0 0 8px;font-variant-numeric:tabular-nums}
+.billing-caption{font-size:14px;line-height:1.5;margin:0;color:#58645a}.description{border-top:1px solid #e0e3dc;margin:28px 0 0;padding-top:22px;font-size:14px;line-height:1.5;color:#687268}
+.note{font-size:13px;color:#687268;margin-top:24px;line-height:1.6}
+@media(max-width:800px){.cards{grid-template-columns:1fr}body{padding:40px 20px}.card{padding:26px}}
+</style></head><body><main>
+<p class="eyebrow">Billing switch / interactive preview</p>
+<h1>One switch. Every plan.</h1>
+<p class="intro">Choose a billing period in any card. All three stay in sync, with a gentle fade and a steady layout.</p>
+<div class="cards"><article class="card">
+  <span class="tier">01 / Essential</span>
+  <h2>Essential</h2>
+  <!-- Reference structure: recreate this with Webflow elements. -->
+<!-- Repeat this whole structure in each card, changing only its prices. -->
+<div class="billing-control">
+  <p data-billing-label="annual">Yearly</p>
+
+  <div class="btn-toggle">
+    <div class="btn-toggle__toggle" aria-hidden="true">
+      <div class="btn-toggle__toggle-dot"></div>
+    </div>
+    <input class="btn-toggle__checkbox" type="checkbox"
+      data-billing-toggle="" checked role="switch" aria-label="Annual billing">
+  </div>
+
+  <p data-billing-label="quarterly">Quarterly</p>
+</div>
+
+<!-- Can be anywhere on the page, outside the toggle. -->
+<div data-billing-stack="">
+  <div data-billing-content="annual">
+    <p class="price">£80</p>
+    <p class="billing-caption">per month, billed annually</p>
+  </div>
+  <div data-billing-content="quarterly" aria-hidden="true" inert>
+    <p class="price">£100</p>
+    <p class="billing-caption">per month, billed quarterly</p>
+  </div>
+</div>
+
+  <p class="description">A considered plan for your next stage.</p>
+</article>
+<article class="card">
+  <span class="tier">02 / Growth</span>
+  <h2>Growth</h2>
+  <!-- Reference structure: recreate this with Webflow elements. -->
+<!-- Repeat this whole structure in each card, changing only its prices. -->
+<div class="billing-control">
+  <p data-billing-label="annual">Yearly</p>
+
+  <div class="btn-toggle">
+    <div class="btn-toggle__toggle" aria-hidden="true">
+      <div class="btn-toggle__toggle-dot"></div>
+    </div>
+    <input class="btn-toggle__checkbox" type="checkbox"
+      data-billing-toggle="" checked role="switch" aria-label="Annual billing">
+  </div>
+
+  <p data-billing-label="quarterly">Quarterly</p>
+</div>
+
+<!-- Can be anywhere on the page, outside the toggle. -->
+<div data-billing-stack="">
+  <div data-billing-content="annual">
+    <p class="price">£160</p>
+    <p class="billing-caption">per month, billed annually</p>
+  </div>
+  <div data-billing-content="quarterly" aria-hidden="true" inert>
+    <p class="price">£200</p>
+    <p class="billing-caption">per month, billed quarterly</p>
+  </div>
+</div>
+
+  <p class="description">A considered plan for your next stage.</p>
+</article>
+<article class="card">
+  <span class="tier">03 / Scale</span>
+  <h2>Scale</h2>
+  <!-- Reference structure: recreate this with Webflow elements. -->
+<!-- Repeat this whole structure in each card, changing only its prices. -->
+<div class="billing-control">
+  <p data-billing-label="annual">Yearly</p>
+
+  <div class="btn-toggle">
+    <div class="btn-toggle__toggle" aria-hidden="true">
+      <div class="btn-toggle__toggle-dot"></div>
+    </div>
+    <input class="btn-toggle__checkbox" type="checkbox"
+      data-billing-toggle="" checked role="switch" aria-label="Annual billing">
+  </div>
+
+  <p data-billing-label="quarterly">Quarterly</p>
+</div>
+
+<!-- Can be anywhere on the page, outside the toggle. -->
+<div data-billing-stack="">
+  <div data-billing-content="annual">
+    <p class="price">£320</p>
+    <p class="billing-caption">per month, billed annually</p>
+  </div>
+  <div data-billing-content="quarterly" aria-hidden="true" inert>
+    <p class="price">£400</p>
+    <p class="billing-caption">per month, billed quarterly</p>
+  </div>
+</div>
+
+  <p class="description">A considered plan for your next stage.</p>
+</article></div>
+<p class="note">Illustrative prices only. Both options show a monthly equivalent. Try Tab, then Space to switch with your keyboard.</p>
+</main><script>
+(() => {
+  function initBilling() {
+    const root = document.documentElement;
+    if (root.hasAttribute('data-billing-ready')) return;
+    if (!document.querySelector('input[type="checkbox"][data-billing-toggle]')) return;
+    root.setAttribute('data-billing-ready', '');
+
+    const toggleSelector = 'input[type="checkbox"][data-billing-toggle]';
+    let cycle = 'annual';
+
+    // One announcement for the whole page, regardless of the number of cards.
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-atomic', 'true');
+    status.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;' +
+      'margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;';
+    document.body.append(status);
+
+    function render(announce = false) {
+      root.setAttribute('data-billing-cycle', cycle);
+
+      document.querySelectorAll(toggleSelector).forEach(input => {
+        // Checked means annual billing is on, with the dot beside Yearly.
+        input.checked = cycle === 'annual';
+        input.defaultChecked = true;
+        input.setAttribute('role', 'switch');
+        if (!input.hasAttribute('aria-label') && !input.hasAttribute('aria-labelledby')) {
+          input.setAttribute('aria-label', 'Annual billing');
+        }
+      });
+
+      document.querySelectorAll('[data-billing-content]').forEach(group => {
+        const active = group.getAttribute('data-billing-content') === cycle;
+        group.inert = !active;
+        group.setAttribute('aria-hidden', String(!active));
+      });
+
+      if (announce) {
+        status.textContent = cycle === 'annual'
+          ? 'Annual billing selected. All prices are per month, billed annually.'
+          : 'Quarterly billing selected. All prices are per month, billed quarterly.';
+      }
+    }
+
+    // Delegation lets every matching toggle control every matching price group.
+    document.addEventListener('change', event => {
+      if (!event.target.matches(toggleSelector)) return;
+      cycle = event.target.checked ? 'annual' : 'quarterly';
+      render(true);
+    });
+
+    // Keep a form reset or browser back/forward restoration from desyncing inputs.
+    document.addEventListener('reset', () => setTimeout(() => render(), 0));
+    window.addEventListener('pageshow', () => render());
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBilling, { once: true });
+  } else {
+    initBilling();
+  }
+})();
+</script>
+</body></html>

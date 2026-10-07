@@ -1,0 +1,574 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Install Billing + Bouncy Tabs in Webflow</title><style>
+*{box-sizing:border-box}body{margin:0;padding:44px 24px;background:#f4f1eb;color:#263d30;font:16px/1.6 Arial,sans-serif}main{max-width:1000px;margin:auto}h1{font-size:clamp(32px,5vw,48px);line-height:1.1;letter-spacing:-.04em}h2{font-size:22px;line-height:1.3}p{max-width:780px}.intro{font-size:18px;color:#54665a}.steps,section{padding:24px;background:#fffdf8;border:1px solid #d8dfd6;border-radius:16px;margin:22px 0}.steps li{margin:12px 0}.section-top{display:flex;align-items:center;justify-content:space-between;gap:18px}button{background:#304f3c;color:#fff;padding:12px 16px;border:0;border-radius:8px;font:inherit;cursor:pointer}button:focus-visible,textarea:focus-visible{outline:3px solid #709979;outline-offset:3px}textarea{width:100%;height:300px;padding:18px;background:#f5f7f2;color:#253c2f;border:1px solid #d4ddd0;border-radius:8px;font:13px/1.6 Consolas,monospace;resize:vertical;white-space:pre}a{color:#275a3d}code{background:#e8ede4;padding:2px 5px;border-radius:3px}#copy-status{min-height:24px}@media(max-width:600px){body{padding:24px 14px}.section-top{align-items:flex-start;flex-direction:column}section,.steps{padding:18px}}
+</style></head><body><main><h1>Billing + Bouncy Tabs</h1><p class="intro">One combined package. Existing billing controls and tabs keep their behavior and attributes.</p>
+<div class="steps"><ol><li><strong>Replace the old CSS</strong> with Head code below.</li><li><strong>Replace the old JavaScript</strong> with Footer code below. Keep GSAP loaded once, before this code.</li><li><strong>Keep your existing markup.</strong> No new required attributes. To preserve the old class-based text stagger, put <code>data-bouncy-tabs-item="children"</code> on the text wrapper and <code>data-bouncy-tabs-item="true"</code> on the visual.</li><li><strong>Publish to staging</strong> and check both controls.</li></ol><p><a href="SETUP.md">Complete setup guide</a> · <a href="demo.html">Interactive example</a></p></div>
+<p id="copy-status" role="status" aria-live="polite"></p><section><div class="section-top"><h2>1. Head code</h2><button type="button" data-copy="code-0">Copy complete code</button></div><p>Replace the previous billing CSS and Bouncy Tabs CSS with this entire block.</p><textarea id="code-0" aria-label="Head code" readonly spellcheck="false">&lt;style&gt;
+:root {
+  --billing-fade: 200ms;
+  --billing-muted: 0.5;
+}
+
+/* BILLING — Osmo's original CSS sliding-background animation. */
+[data-toggle-init][data-billing=&quot;toggle&quot;] {
+  --toggle-count: 2;
+  --toggle-padding: 0.25em;
+  box-sizing: border-box;
+  display: inline-grid;
+  position: relative;
+  grid-template-columns: repeat(var(--toggle-count), minmax(0, 1fr));
+  padding: var(--toggle-padding);
+  isolation: isolate;
+}
+
+[data-billing=&quot;toggle&quot;] &gt; [data-toggle-bg] {
+  position: absolute;
+  top: var(--toggle-padding);
+  bottom: var(--toggle-padding);
+  left: var(--toggle-padding);
+  width: calc((100% - 2 * var(--toggle-padding)) / var(--toggle-count));
+  transform: translateX(calc(var(--toggle-active, 0) * 100%));
+  transition: transform 0.5s cubic-bezier(.625, .05, 0, 1);
+  pointer-events: none;
+}
+
+[data-billing=&quot;toggle&quot;] &gt; [data-toggle-btn] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+[data-billing=&quot;toggle&quot;] &gt; [data-toggle-btn][data-toggle-active] {
+  opacity: 1;
+}
+
+[data-billing=&quot;toggle&quot;] &gt; [data-toggle-btn]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+}
+
+/* Visual defaults: Webflow classes can override these low-specificity rules. */
+:where([data-toggle-init][data-billing=&quot;toggle&quot;]) {
+  width: 100%;
+  max-width: 30em;
+  background: #ddd;
+  border-radius: .875em;
+}
+
+:where([data-billing=&quot;toggle&quot;] &gt; [data-toggle-bg]) {
+  background: #f2f2f2;
+  border-radius: .625em;
+}
+
+:where([data-billing=&quot;toggle&quot;] &gt; [data-toggle-btn]) {
+  padding: 1.5em 1em;
+}
+
+/* Existing pricing groups and optional labels elsewhere on the page. */
+[data-billing=&quot;prices&quot;] {
+  display: grid;
+}
+
+[data-billing=&quot;prices&quot;] &gt; [data-billing=&quot;annual&quot;],
+[data-billing=&quot;prices&quot;] &gt; [data-billing=&quot;quarterly&quot;] {
+  grid-area: 1 / 1;
+  min-width: 0;
+  align-self: start;
+}
+
+[data-billing=&quot;annual&quot;],
+[data-billing=&quot;quarterly&quot;] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--billing-fade) ease,
+              visibility 0s linear var(--billing-fade);
+}
+
+html:not([data-billing-cycle=&quot;quarterly&quot;]) [data-billing=&quot;annual&quot;],
+html[data-billing-cycle=&quot;quarterly&quot;] [data-billing=&quot;quarterly&quot;] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+[data-billing=&quot;label-annual&quot;],
+[data-billing=&quot;label-quarterly&quot;] {
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+html:not([data-billing-cycle=&quot;quarterly&quot;]) [data-billing=&quot;label-annual&quot;],
+html[data-billing-cycle=&quot;quarterly&quot;] [data-billing=&quot;label-quarterly&quot;] {
+  opacity: 1;
+}
+
+/* BOUNCY TABS — keep your existing Webflow appearance and spacing. */
+[data-bouncy-tabs-nav],
+[data-bouncy-tabs-panels] {
+  position: relative;
+}
+
+[data-bouncy-tabs-indicator],
+[data-bouncy-tabs-ghost] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+[data-bouncy-tabs-button] {
+  position: relative;
+  z-index: 1;
+}
+
+[data-bouncy-tabs-button][data-active] {
+  color: #000;
+}
+
+[data-bouncy-tabs-button]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+}
+
+[data-bouncy-tabs-panel] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+[data-bouncy-tabs-panel]:not([data-active]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-billing=&quot;toggle&quot;] &gt; [data-toggle-bg],
+  [data-billing=&quot;toggle&quot;] &gt; [data-toggle-btn],
+  [data-billing=&quot;annual&quot;],
+  [data-billing=&quot;quarterly&quot;],
+  [data-billing=&quot;label-annual&quot;],
+  [data-billing=&quot;label-quarterly&quot;] {
+    transition: none;
+  }
+}
+&lt;/style&gt;
+</textarea></section><section><div class="section-top"><h2>2. Footer code</h2><button type="button" data-copy="code-1">Copy complete code</button></div><p>Replace both old JavaScript blocks with this entire block. Keep your existing GSAP include above it.</p><textarea id="code-1" aria-label="Footer code" readonly spellcheck="false">&lt;script&gt;
+(() =&gt; {
+  function init() {
+    const page = document.documentElement;
+    if (page.hasAttribute('data-billing-tabs-ready')) return;
+    page.setAttribute('data-billing-tabs-ready', '');
+
+    const gsap = window.gsap;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const tabInstances = [];
+    const billingRoot = '[data-toggle-init][data-billing=&quot;toggle&quot;]';
+    const tabRoot = '[data-bouncy-tabs-init]';
+    const duration = value =&gt; motion.matches ? 0 : value;
+    let id = 0;
+    let frame = 0;
+
+    function uniqueId(prefix) {
+      let value;
+      do { value = `${prefix}-${++id}`; } while (document.getElementById(value));
+      return value;
+    }
+
+    // Find only elements owned by this component, excluding nested components.
+    function owned(root, selector, boundary) {
+      return [...root.querySelectorAll(selector)].filter(
+        element =&gt; element.closest(boundary) === root
+      );
+    }
+
+    function keyIndex(event, index, count, wrap) {
+      let next;
+      if (event.key === 'ArrowRight') next = index + 1;
+      else if (event.key === 'ArrowLeft') next = index - 1;
+      else if (event.key === 'Home') next = 0;
+      else if (event.key === 'End') next = count - 1;
+      else return null;
+      event.preventDefault();
+      event.stopPropagation();
+      return wrap ? (next + count) % count : Math.max(0, Math.min(count - 1, next));
+    }
+
+    function refreshTabs() {
+      if (frame) return;
+      frame = requestAnimationFrame(() =&gt; {
+        frame = 0;
+        tabInstances.forEach(instance =&gt; instance.refresh());
+      });
+    }
+
+    /* BILLING: one page-wide selection, with Osmo's CSS sliding pill. */
+    const controls = [...document.querySelectorAll(billingRoot)].map(toggle =&gt; ({
+      toggle,
+      buttons: owned(toggle, 'button[data-toggle-btn]', billingRoot)
+    })).filter(({ buttons }) =&gt; {
+      return buttons.length === 2 &amp;&amp;
+        buttons.some(button =&gt; button.dataset.toggleBtn === 'annual') &amp;&amp;
+        buttons.some(button =&gt; button.dataset.toggleBtn === 'quarterly');
+    });
+
+    const priceGroups = [...document.querySelectorAll(
+      '[data-billing=&quot;annual&quot;], [data-billing=&quot;quarterly&quot;]'
+    )];
+    let cycle = 'annual';
+    let status;
+
+    if (controls.length) {
+      status = document.createElement('div');
+      status.setAttribute('role', 'status');
+      status.setAttribute('aria-atomic', 'true');
+      status.style.cssText = 'position:absolute;width:1px;height:1px;' +
+        'padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);' +
+        'white-space:nowrap;border:0;';
+      document.body.append(status);
+    }
+
+    function renderBilling() {
+      page.setAttribute('data-billing-cycle', cycle);
+      controls.forEach(({ toggle, buttons }) =&gt; {
+        const selected = buttons.findIndex(button =&gt; button.dataset.toggleBtn === cycle);
+        toggle.style.setProperty('--toggle-active', selected);
+        buttons.forEach((button, index) =&gt; {
+          const active = index === selected;
+          button.toggleAttribute('data-toggle-active', active);
+          button.setAttribute('aria-pressed', String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+      });
+      priceGroups.forEach(group =&gt; {
+        const inactive = group.dataset.billing !== cycle;
+        group.inert = inactive;
+        group.setAttribute('aria-hidden', String(inactive));
+      });
+    }
+
+    function selectBilling(next) {
+      if (next === cycle) return;
+      cycle = next;
+      renderBilling();
+      if (status) status.textContent = cycle === 'annual'
+        ? 'All prices are per month, billed annually.'
+        : 'All prices are per month, billed quarterly.';
+      refreshTabs();
+    }
+
+    controls.forEach(({ toggle, buttons }) =&gt; {
+      toggle.style.setProperty('--toggle-count', buttons.length);
+      toggle.setAttribute('role', 'group');
+      if (!toggle.hasAttribute('aria-label') &amp;&amp; !toggle.hasAttribute('aria-labelledby')) {
+        toggle.setAttribute('aria-label', 'Billing period');
+      }
+      buttons.forEach((button, index) =&gt; {
+        button.type = 'button';
+        button.addEventListener('click', () =&gt; selectBilling(button.dataset.toggleBtn));
+        button.addEventListener('keydown', event =&gt; {
+          const next = keyIndex(event, index, buttons.length, true);
+          if (next === null) return;
+          selectBilling(buttons[next].dataset.toggleBtn);
+          buttons[next].focus();
+        });
+      });
+    });
+    renderBilling();
+
+    /* BOUNCY TABS: original timings, indicator, hover ghost and stagger. */
+    const config = {
+      travel: 0.45, travelEase: 'power3.inOut', height: 0.4,
+      contentOut: 0.38, contentOutShift: 3, contentOutStagger: 0.03,
+      contentIn: 0.45, contentInShift: 8, contentStagger: 0.05,
+      contentOverlap: 0.2, ghost: 0.3
+    };
+
+    if (!gsap &amp;&amp; document.querySelector(tabRoot)) {
+      console.warn('Billing + Tabs: load GSAP before this script for Bouncy Tabs animation. Tabs will still switch without animation.');
+    }
+
+    document.querySelectorAll(tabRoot).forEach(root =&gt; {
+      const find = selector =&gt; owned(root, selector, tabRoot)[0];
+      const nav = find('[data-bouncy-tabs-nav]');
+      const indicator = find('[data-bouncy-tabs-indicator]');
+      const ghost = find('[data-bouncy-tabs-ghost]');
+      const wrap = find('[data-bouncy-tabs-panels]');
+      const buttons = nav ? owned(root, '[data-bouncy-tabs-button]', tabRoot)
+        .filter(button =&gt; nav.contains(button)) : [];
+      const panels = wrap ? owned(root, '[data-bouncy-tabs-panel]', tabRoot)
+        .filter(panel =&gt; wrap.contains(panel)) : [];
+      if (!nav || !indicator || buttons.length &lt; 2) return;
+      if (panels.length &amp;&amp; panels.length !== buttons.length) {
+        console.warn('Billing + Tabs: a Bouncy Tabs component needs one panel per button.', root);
+        return;
+      }
+
+      let active = Math.max(0, buttons.findIndex(button =&gt; button.hasAttribute('data-active')));
+      let timeline = null;
+      let ghostVisible = false;
+
+      // Never let a tab item tween overwrite billing opacity or pill movement.
+      function safeItem(element) {
+        return !element.closest('[data-billing], [data-toggle-init]');
+      }
+
+      function itemsIn(panel) {
+        const tagged = [...panel.querySelectorAll('[data-bouncy-tabs-item]')]
+          .filter(element =&gt; element.closest(tabRoot) === root &amp;&amp;
+            element.closest('[data-bouncy-tabs-panel]') === panel);
+        const candidates = tagged.length ? tagged.flatMap(element =&gt;
+          element.getAttribute('data-bouncy-tabs-item') === 'children'
+            ? [...element.children] : [element]
+        ) : [...panel.children];
+        const safe = [...new Set(candidates)].filter(safeItem);
+        // Avoid animating a parent and its children twice.
+        return safe.filter(element =&gt; !safe.some(other =&gt;
+          other !== element &amp;&amp; other.contains(element)
+        ));
+      }
+      const items = panels.map(itemsIn);
+
+      function panelState() {
+        buttons.forEach((button, index) =&gt; {
+          const selected = index === active;
+          button.toggleAttribute('data-active', selected);
+          button.setAttribute('aria-selected', String(selected));
+          button.tabIndex = selected ? 0 : -1;
+        });
+        panels.forEach((panel, index) =&gt; {
+          const selected = index === active;
+          panel.toggleAttribute('data-active', selected);
+          panel.inert = !selected;
+          panel.setAttribute('aria-hidden', String(!selected));
+        });
+      }
+
+      function boxFor(button) {
+        return {
+          x: button.offsetLeft, y: button.offsetTop,
+          width: button.offsetWidth, height: button.offsetHeight
+        };
+      }
+
+      function placeIndicator(animate = false) {
+        const box = boxFor(buttons[active]);
+        if (gsap) {
+          gsap.killTweensOf(indicator);
+          if (animate) gsap.to(indicator, {
+            ...box, duration: duration(config.travel), ease: config.travelEase,
+            onComplete: refreshTabs
+          });
+          else gsap.set(indicator, box);
+        } else {
+          Object.assign(indicator.style, {
+            transform: `translate(${box.x}px, ${box.y}px)`,
+            width: `${box.width}px`, height: `${box.height}px`
+          });
+        }
+      }
+
+      function setHeight() {
+        if (!panels.length) return;
+        const height = panels[active].offsetHeight;
+        if (gsap) gsap.set(wrap, { height });
+        else wrap.style.height = `${height}px`;
+      }
+
+      function stopPanels() {
+        if (timeline) timeline.kill();
+        timeline = null;
+        if (gsap &amp;&amp; panels.length) gsap.killTweensOf([wrap, ...panels, ...items.flat()]);
+      }
+
+      function settlePanels() {
+        stopPanels();
+        panels.forEach((panel, index) =&gt; {
+          if (gsap) {
+            gsap.set(panel, { autoAlpha: index === active ? 1 : 0 });
+            if (items[index].length) gsap.set(items[index], { autoAlpha: 1, clearProps: 'transform' });
+          } else {
+            panel.style.opacity = index === active ? '1' : '0';
+            panel.style.visibility = index === active ? 'visible' : 'hidden';
+          }
+        });
+        setHeight();
+      }
+
+      function transitionPanels(previous) {
+        if (!panels.length) return;
+        stopPanels();
+        if (!gsap || motion.matches) { settlePanels(); return; }
+
+        const incoming = panels[active];
+        const outgoing = panels[previous];
+        panels.forEach((panel, index) =&gt; {
+          gsap.set(panel, { autoAlpha: index === previous ? 1 : 0 });
+          if (index !== previous &amp;&amp; items[index].length) {
+            gsap.set(items[index], { autoAlpha: 1, clearProps: 'transform' });
+          }
+        });
+
+        timeline = gsap.timeline({ onComplete: () =&gt; {
+          timeline = null;
+          refreshTabs();
+        }});
+
+        if (items[previous].length) {
+          timeline.to(items[previous], {
+            autoAlpha: 0, y: -config.contentOutShift,
+            duration: config.contentOut, ease: 'power1.inOut',
+            stagger: config.contentOutStagger
+          }, 0);
+        } else {
+          timeline.to(outgoing, { autoAlpha: 0, duration: config.contentOut }, 0);
+        }
+
+        timeline.to(wrap, {
+          height: incoming.offsetHeight, duration: config.height, ease: config.travelEase
+        }, 0);
+
+        if (items[active].length) {
+          timeline.set(incoming, { autoAlpha: 1 }, config.contentOverlap)
+            .fromTo(items[active], { autoAlpha: 0, y: config.contentInShift }, {
+              autoAlpha: 1, y: 0, duration: config.contentIn, ease: 'power2.out',
+              stagger: config.contentStagger, clearProps: 'transform'
+            }, config.contentOverlap);
+        } else {
+          timeline.to(incoming, { autoAlpha: 1, duration: config.contentIn }, config.contentOverlap);
+        }
+
+        timeline.set(outgoing, { autoAlpha: 0 });
+        if (items[previous].length) {
+          timeline.set(items[previous], { autoAlpha: 1, clearProps: 'transform' });
+        }
+      }
+
+      function goTo(index) {
+        if (index === active) return;
+        const previous = active;
+        active = index;
+        panelState();
+        placeIndicator(true);
+        transitionPanels(previous);
+        refreshTabs();
+      }
+
+      function moveGhost(button) {
+        if (!ghost || !gsap) return;
+        const box = boxFor(button);
+        gsap.killTweensOf(ghost);
+        if (!ghostVisible) {
+          gsap.set(ghost, box);
+          gsap.to(ghost, { autoAlpha: 1, duration: duration(0.2), ease: 'power2.out' });
+        } else {
+          gsap.to(ghost, { ...box, autoAlpha: 1, duration: duration(config.ghost), ease: config.travelEase });
+        }
+        ghostVisible = true;
+      }
+
+      function hideGhost() {
+        ghostVisible = false;
+        if (ghost &amp;&amp; gsap) {
+          gsap.killTweensOf(ghost);
+          gsap.to(ghost, { autoAlpha: 0, duration: duration(0.2), ease: 'power1.out' });
+        }
+      }
+
+      if (panels.length) nav.setAttribute('role', 'tablist');
+      buttons.forEach((button, index) =&gt; {
+        if (button.tagName === 'BUTTON') button.type = 'button';
+        if (panels[index]) {
+          const panel = panels[index];
+          button.id ||= uniqueId('bouncy-tab');
+          panel.id ||= uniqueId('bouncy-panel');
+          button.setAttribute('role', 'tab');
+          button.setAttribute('aria-controls', panel.id);
+          panel.setAttribute('role', 'tabpanel');
+          panel.setAttribute('aria-labelledby', button.id);
+        }
+        button.addEventListener('click', event =&gt; { event.preventDefault(); goTo(index); });
+        button.addEventListener('mouseenter', () =&gt; moveGhost(button));
+        button.addEventListener('keydown', event =&gt; {
+          if (event.target.closest('[data-bouncy-tabs-button]') !== button) return;
+          if (button.tagName !== 'BUTTON' &amp;&amp; (event.key === 'Enter' || event.key === ' ')) {
+            event.preventDefault();
+            event.stopPropagation();
+            goTo(index);
+            return;
+          }
+          const next = keyIndex(event, index, buttons.length, false);
+          if (next === null) return;
+          goTo(next);
+          buttons[next].focus();
+        });
+      });
+      nav.addEventListener('mouseleave', hideGhost);
+      if (ghost) {
+        if (gsap) gsap.set(ghost, { autoAlpha: 0 });
+        else ghost.style.visibility = 'hidden';
+      }
+
+      const instance = {
+        refresh() {
+          nav.toggleAttribute('data-wrapped', new Set(buttons.map(button =&gt; button.offsetTop)).size &gt; 1);
+          // Do not interrupt an in-flight indicator or panel animation.
+          if (!gsap || !gsap.isTweening(indicator)) placeIndicator();
+          if (!timeline) setHeight();
+        },
+        settle() { hideGhost(); placeIndicator(); settlePanels(); }
+      };
+      tabInstances.push(instance);
+      panelState();
+      settlePanels();
+      instance.refresh();
+
+      if ('ResizeObserver' in window) {
+        const observer = new ResizeObserver(refreshTabs);
+        [nav, ...buttons, ...panels].forEach(element =&gt; observer.observe(element));
+      }
+    });
+
+    window.addEventListener('resize', refreshTabs);
+    if (document.fonts) document.fonts.ready.then(refreshTabs);
+    motion.addEventListener('change', () =&gt; tabInstances.forEach(instance =&gt; instance.settle()));
+    window.addEventListener('pageshow', () =&gt; {
+      renderBilling();
+      refreshTabs();
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+&lt;/script&gt;
+</textarea></section><section><div class="section-top"><h2>3. Billing HTML — unchanged</h2><button type="button" data-copy="code-2">Copy complete code</button></div><p>Only needed if you have not already added the two-button billing control.</p><textarea id="code-2" aria-label="Billing HTML — unchanged" readonly spellcheck="false">&lt;div data-toggle-init data-billing=&quot;toggle&quot; class=&quot;toggle-switch&quot;
+     role=&quot;group&quot; aria-label=&quot;Billing period&quot;&gt;
+  &lt;div data-toggle-bg aria-hidden=&quot;true&quot; class=&quot;toggle-switch__bg&quot;&gt;&lt;/div&gt;
+
+  &lt;button type=&quot;button&quot; data-toggle-btn=&quot;annual&quot; data-toggle-active
+          aria-pressed=&quot;true&quot; class=&quot;toggle-switch__btn&quot;&gt;
+    &lt;span&gt;Yearly&lt;/span&gt;
+  &lt;/button&gt;
+
+  &lt;button type=&quot;button&quot; data-toggle-btn=&quot;quarterly&quot;
+          aria-pressed=&quot;false&quot; tabindex=&quot;-1&quot; class=&quot;toggle-switch__btn&quot;&gt;
+    &lt;span&gt;Quarterly&lt;/span&gt;
+  &lt;/button&gt;
+&lt;/div&gt;
+</textarea></section>
+</main><script>document.querySelectorAll('[data-copy]').forEach(button=>button.addEventListener('click',async()=>{const box=document.getElementById(button.dataset.copy);let copied=false;try{await navigator.clipboard.writeText(box.value);copied=true;}catch{box.focus();box.select();copied=document.execCommand('copy');}document.getElementById('copy-status').textContent=copied?'Complete code copied. Paste it into the matching Webflow field.':'Code selected. Press Ctrl+C or Command+C to copy.';}));</script></body></html>

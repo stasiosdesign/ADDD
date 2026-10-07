@@ -1,0 +1,302 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Billing Switch + Bouncy Tabs</title>
+<style>
+:root {
+  --billing-fade: 200ms;
+  --billing-muted: 0.5;
+}
+
+/* Osmo's layout and sliding background, scoped to billing switches. */
+[data-toggle-init][data-billing="toggle"] {
+  --toggle-count: 2;
+  --toggle-padding: 0.25em;
+  box-sizing: border-box;
+  display: inline-grid;
+  position: relative;
+  grid-template-columns: repeat(var(--toggle-count), minmax(0, 1fr));
+  padding: var(--toggle-padding);
+  isolation: isolate;
+}
+
+[data-billing="toggle"] > [data-toggle-bg] {
+  position: absolute;
+  top: var(--toggle-padding);
+  bottom: var(--toggle-padding);
+  left: var(--toggle-padding);
+  width: calc((100% - 2 * var(--toggle-padding)) / var(--toggle-count));
+  transform: translateX(calc(var(--toggle-active, 0) * 100%));
+  transition: transform 0.5s cubic-bezier(.625, .05, 0, 1);
+  pointer-events: none;
+}
+
+[data-billing="toggle"] > [data-toggle-btn] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+[data-billing="toggle"] > [data-toggle-btn][data-toggle-active] {
+  opacity: 1;
+}
+
+[data-billing="toggle"] > [data-toggle-btn]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+}
+
+/* Visual defaults: Webflow classes can override these low-specificity rules. */
+:where([data-toggle-init][data-billing="toggle"]) {
+  width: 100%;
+  max-width: 30em;
+  background: #ddd;
+  border-radius: .875em;
+}
+
+:where([data-billing="toggle"] > [data-toggle-bg]) {
+  background: #f2f2f2;
+  border-radius: .625em;
+}
+
+:where([data-billing="toggle"] > [data-toggle-btn]) {
+  padding: 1.5em 1em;
+}
+
+/* Existing pricing groups and optional labels elsewhere on the page. */
+[data-billing="prices"] {
+  display: grid;
+}
+
+[data-billing="prices"] > [data-billing="annual"],
+[data-billing="prices"] > [data-billing="quarterly"] {
+  grid-area: 1 / 1;
+  min-width: 0;
+  align-self: start;
+}
+
+[data-billing="annual"],
+[data-billing="quarterly"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--billing-fade) ease,
+              visibility 0s linear var(--billing-fade);
+}
+
+html:not([data-billing-cycle="quarterly"]) [data-billing="annual"],
+html[data-billing-cycle="quarterly"] [data-billing="quarterly"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+[data-billing="label-annual"],
+[data-billing="label-quarterly"] {
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+html:not([data-billing-cycle="quarterly"]) [data-billing="label-annual"],
+html[data-billing-cycle="quarterly"] [data-billing="label-quarterly"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-billing="toggle"] > [data-toggle-bg],
+  [data-billing="toggle"] > [data-toggle-btn],
+  [data-billing="annual"],
+  [data-billing="quarterly"],
+  [data-billing="label-annual"],
+  [data-billing="label-quarterly"] {
+    transition: none;
+  }
+}
+</style>
+
+<style>
+*{box-sizing:border-box}body{margin:0;padding:48px 24px;font-family:Arial,sans-serif;background:#f4f1eb;color:#283b30}main{max-width:1120px;margin:auto}h1{font-size:44px;letter-spacing:-.04em}h2{font-size:24px}.intro{line-height:1.6;color:#647269;max-width:640px;margin-bottom:32px}.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.card{background:#fffdf8;border:1px solid #d7ded8;border-radius:18px;padding:28px}.price{font-size:48px;letter-spacing:-.045em;margin:28px 0 8px}.card p:not(.price){font-size:14px;line-height:1.5;margin-top:0}.toggle-switch{background:#e3e9e2}.toggle-switch__bg{background:white}.toggle-switch__btn{padding:14px 12px}.tabs-nav{position:relative;display:flex;gap:4px;width:fit-content;padding:4px;background:#e2e6de;border-radius:12px;margin:36px 0 16px}.tabs-nav button{position:relative;z-index:2;border:0;background:transparent;padding:14px;font:inherit;cursor:pointer}.indicator,.ghost{position:absolute;top:0;left:0;border-radius:8px;pointer-events:none}.indicator{background:#fff}.ghost{background:#fff8}.panels{position:relative}.panel{position:absolute;top:0;left:0;width:100%}.notice{background:#e4eadf;padding:30px;border-radius:16px;line-height:1.5}
+[data-bouncy-tabs-button][data-active]{color:#000}
+[data-bouncy-tabs-panel]:not([data-active]){opacity:0;visibility:hidden}
+.wf-design-mode [data-bouncy-tabs-panel][data-active]{position:relative}
+@media(max-width:800px){.cards{grid-template-columns:1fr}body{padding:28px 16px}h1{font-size:36px}}
+</style>
+<script src="gsap.test.min.js"></script>
+<script src="bouncy-tabs.test.js"></script>
+</head><body><main>
+<h1>Same billing. New switch.</h1>
+<p class="intro">The sliding pill follows your selection across every card. Bouncy Tabs below runs separately, using the supplied script unchanged.</p>
+<div data-bouncy-tabs-init>
+<div class="tabs-nav" data-bouncy-tabs-nav role="tablist" aria-label="Preview sections">
+<div class="indicator" data-bouncy-tabs-indicator></div><div class="ghost" data-bouncy-tabs-ghost></div>
+<button type="button" data-bouncy-tabs-button data-active role="tab">Pricing</button>
+<button type="button" data-bouncy-tabs-button role="tab">Details</button>
+</div>
+<div data-bouncy-tabs-card><div class="panels" data-bouncy-tabs-panels>
+<div class="panel" data-bouncy-tabs-panel data-active role="tabpanel"><div class="cards">
+<article class="card" data-bouncy-tabs-item>
+<h2>Essential</h2><div data-toggle-init data-billing="toggle" class="toggle-switch"
+     role="group" aria-label="Billing period">
+  <div data-toggle-bg aria-hidden="true" class="toggle-switch__bg"></div>
+
+  <button type="button" data-toggle-btn="annual" data-toggle-active
+          aria-pressed="true" class="toggle-switch__btn">
+    <span>Yearly</span>
+  </button>
+
+  <button type="button" data-toggle-btn="quarterly"
+          aria-pressed="false" tabindex="-1" class="toggle-switch__btn">
+    <span>Quarterly</span>
+  </button>
+</div>
+
+<div data-billing="prices">
+  <div data-billing="annual"><p class="price">£80</p><p>per month, billed annually</p></div>
+  <div data-billing="quarterly"><p class="price">£100</p><p>per month, billed quarterly</p></div>
+</div></article>
+<article class="card" data-bouncy-tabs-item>
+<h2>Growth</h2><div data-toggle-init data-billing="toggle" class="toggle-switch"
+     role="group" aria-label="Billing period">
+  <div data-toggle-bg aria-hidden="true" class="toggle-switch__bg"></div>
+
+  <button type="button" data-toggle-btn="annual" data-toggle-active
+          aria-pressed="true" class="toggle-switch__btn">
+    <span>Yearly</span>
+  </button>
+
+  <button type="button" data-toggle-btn="quarterly"
+          aria-pressed="false" tabindex="-1" class="toggle-switch__btn">
+    <span>Quarterly</span>
+  </button>
+</div>
+
+<div data-billing="prices">
+  <div data-billing="annual"><p class="price">£160</p><p>per month, billed annually</p></div>
+  <div data-billing="quarterly"><p class="price">£200</p><p>per month, billed quarterly</p></div>
+</div></article>
+<article class="card" data-bouncy-tabs-item>
+<h2>Scale</h2><div data-toggle-init data-billing="toggle" class="toggle-switch"
+     role="group" aria-label="Billing period">
+  <div data-toggle-bg aria-hidden="true" class="toggle-switch__bg"></div>
+
+  <button type="button" data-toggle-btn="annual" data-toggle-active
+          aria-pressed="true" class="toggle-switch__btn">
+    <span>Yearly</span>
+  </button>
+
+  <button type="button" data-toggle-btn="quarterly"
+          aria-pressed="false" tabindex="-1" class="toggle-switch__btn">
+    <span>Quarterly</span>
+  </button>
+</div>
+
+<div data-billing="prices">
+  <div data-billing="annual"><p class="price">£320</p><p>per month, billed annually</p></div>
+  <div data-billing="quarterly"><p class="price">£400</p><p>per month, billed quarterly</p></div>
+</div></article></div></div>
+<div class="panel" data-bouncy-tabs-panel role="tabpanel"><div class="notice" data-bouncy-tabs-item>Switch back to Pricing: your billing choice is retained across all three cards.</div></div>
+</div></div></div>
+</main><script>
+(() => {
+  function initBilling() {
+    const root = document.documentElement;
+    if (root.hasAttribute('data-billing-ready')) return;
+
+    const controls = [...document.querySelectorAll(
+      '[data-toggle-init][data-billing="toggle"]'
+    )].map(toggle => ({
+      toggle,
+      buttons: [...toggle.querySelectorAll(':scope > button[data-toggle-btn]')]
+    })).filter(({ buttons }) =>
+      buttons.length === 2 &&
+      buttons.some(b => b.dataset.toggleBtn === 'annual') &&
+      buttons.some(b => b.dataset.toggleBtn === 'quarterly')
+    );
+
+    if (!controls.length) return;
+    root.setAttribute('data-billing-ready', '');
+
+    const groups = document.querySelectorAll(
+      '[data-billing="annual"], [data-billing="quarterly"]'
+    );
+    let cycle = 'annual';
+
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-atomic', 'true');
+    status.style.cssText = 'position:absolute;width:1px;height:1px;' +
+      'padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);' +
+      'white-space:nowrap;border:0;';
+    document.body.append(status);
+
+    function render() {
+      root.setAttribute('data-billing-cycle', cycle);
+      controls.forEach(({ toggle, buttons }) => {
+        const index = buttons.findIndex(b => b.dataset.toggleBtn === cycle);
+        toggle.style.setProperty('--toggle-active', index);
+        buttons.forEach((button, i) => {
+          const active = i === index;
+          button.toggleAttribute('data-toggle-active', active);
+          button.setAttribute('aria-pressed', String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+      });
+      groups.forEach(group => {
+        const inactive = group.dataset.billing !== cycle;
+        group.inert = inactive;
+        group.setAttribute('aria-hidden', String(inactive));
+      });
+    }
+
+    function select(next) {
+      if (next === cycle) return;
+      cycle = next;
+      render();
+      status.textContent = cycle === 'annual'
+        ? 'All prices are per month, billed annually.'
+        : 'All prices are per month, billed quarterly.';
+    }
+
+    controls.forEach(({ toggle, buttons }) => {
+      toggle.style.setProperty('--toggle-count', buttons.length);
+      buttons.forEach((button, index) => {
+        button.type = 'button';
+        button.addEventListener('click', () => select(button.dataset.toggleBtn));
+        button.addEventListener('keydown', event => {
+          let next;
+          if (event.key === 'ArrowRight') next = (index + 1) % buttons.length;
+          else if (event.key === 'ArrowLeft') next = (index - 1 + buttons.length) % buttons.length;
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = buttons.length - 1;
+          else return;
+
+          event.preventDefault();
+          event.stopPropagation();
+          select(buttons[next].dataset.toggleBtn);
+          buttons[next].focus();
+        });
+      });
+    });
+
+    window.addEventListener('pageshow', render);
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBilling, { once: true });
+  } else {
+    initBilling();
+  }
+})();
+</script>
+</body></html>

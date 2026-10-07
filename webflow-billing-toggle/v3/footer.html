@@ -1,0 +1,93 @@
+<script>
+(() => {
+  function initBilling() {
+    const root = document.documentElement;
+    if (root.hasAttribute('data-billing-ready')) return;
+
+    const controls = [...document.querySelectorAll(
+      '[data-toggle-init][data-billing="toggle"]'
+    )].map(toggle => ({
+      toggle,
+      buttons: [...toggle.querySelectorAll(':scope > button[data-toggle-btn]')]
+    })).filter(({ buttons }) =>
+      buttons.length === 2 &&
+      buttons.some(b => b.dataset.toggleBtn === 'annual') &&
+      buttons.some(b => b.dataset.toggleBtn === 'quarterly')
+    );
+
+    if (!controls.length) return;
+    root.setAttribute('data-billing-ready', '');
+
+    const groups = document.querySelectorAll(
+      '[data-billing="annual"], [data-billing="quarterly"]'
+    );
+    let cycle = 'annual';
+
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-atomic', 'true');
+    status.style.cssText = 'position:absolute;width:1px;height:1px;' +
+      'padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);' +
+      'white-space:nowrap;border:0;';
+    document.body.append(status);
+
+    function render() {
+      root.setAttribute('data-billing-cycle', cycle);
+      controls.forEach(({ toggle, buttons }) => {
+        const index = buttons.findIndex(b => b.dataset.toggleBtn === cycle);
+        toggle.style.setProperty('--toggle-active', index);
+        buttons.forEach((button, i) => {
+          const active = i === index;
+          button.toggleAttribute('data-toggle-active', active);
+          button.setAttribute('aria-pressed', String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+      });
+      groups.forEach(group => {
+        const inactive = group.dataset.billing !== cycle;
+        group.inert = inactive;
+        group.setAttribute('aria-hidden', String(inactive));
+      });
+    }
+
+    function select(next) {
+      if (next === cycle) return;
+      cycle = next;
+      render();
+      status.textContent = cycle === 'annual'
+        ? 'All prices are per month, billed annually.'
+        : 'All prices are per month, billed quarterly.';
+    }
+
+    controls.forEach(({ toggle, buttons }) => {
+      toggle.style.setProperty('--toggle-count', buttons.length);
+      buttons.forEach((button, index) => {
+        button.type = 'button';
+        button.addEventListener('click', () => select(button.dataset.toggleBtn));
+        button.addEventListener('keydown', event => {
+          let next;
+          if (event.key === 'ArrowRight') next = (index + 1) % buttons.length;
+          else if (event.key === 'ArrowLeft') next = (index - 1 + buttons.length) % buttons.length;
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = buttons.length - 1;
+          else return;
+
+          event.preventDefault();
+          event.stopPropagation();
+          select(buttons[next].dataset.toggleBtn);
+          buttons[next].focus();
+        });
+      });
+    });
+
+    window.addEventListener('pageshow', render);
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBilling, { once: true });
+  } else {
+    initBilling();
+  }
+})();
+</script>

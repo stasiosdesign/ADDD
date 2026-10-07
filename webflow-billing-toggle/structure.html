@@ -1,0 +1,27 @@
+<!-- Reference structure: recreate this with Webflow elements. -->
+<!-- Repeat this whole structure in each card, changing only its prices. -->
+<div class="billing-control">
+  <p data-billing-label="annual">Yearly</p>
+
+  <div class="btn-toggle">
+    <div class="btn-toggle__toggle" aria-hidden="true">
+      <div class="btn-toggle__toggle-dot"></div>
+    </div>
+    <input class="btn-toggle__checkbox" type="checkbox"
+      data-billing-toggle="" checked role="switch" aria-label="Annual billing">
+  </div>
+
+  <p data-billing-label="quarterly">Quarterly</p>
+</div>
+
+<!-- Can be anywhere on the page, outside the toggle. -->
+<div data-billing-stack="">
+  <div data-billing-content="annual">
+    <p class="price">£80</p>
+    <p class="billing-caption">per month, billed annually</p>
+  </div>
+  <div data-billing-content="quarterly" aria-hidden="true" inert>
+    <p class="price">£100</p>
+    <p class="billing-caption">per month, billed quarterly</p>
+  </div>
+</div>

@@ -1,0 +1,135 @@
+<style>
+:root {
+  --billing-fade: 200ms;
+  --billing-muted: 0.5;
+}
+
+/* Osmo's layout and sliding background, scoped to billing switches. */
+[data-toggle-init][data-billing="toggle"] {
+  --toggle-count: 2;
+  --toggle-padding: 0.25em;
+  box-sizing: border-box;
+  display: inline-grid;
+  position: relative;
+  grid-template-columns: repeat(var(--toggle-count), minmax(0, 1fr));
+  padding: var(--toggle-padding);
+  isolation: isolate;
+}
+
+[data-billing="toggle"] > [data-toggle-bg] {
+  position: absolute;
+  top: var(--toggle-padding);
+  bottom: var(--toggle-padding);
+  left: var(--toggle-padding);
+  width: calc((100% - 2 * var(--toggle-padding)) / var(--toggle-count));
+  transform: translateX(calc(var(--toggle-active, 0) * 100%));
+  transition: transform 0.5s cubic-bezier(.625, .05, 0, 1);
+  pointer-events: none;
+}
+
+[data-billing="toggle"] > [data-toggle-btn] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+[data-billing="toggle"] > [data-toggle-btn][data-toggle-active] {
+  opacity: 1;
+}
+
+[data-billing="toggle"] > [data-toggle-btn]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+}
+
+/* Visual defaults: Webflow classes can override these low-specificity rules. */
+:where([data-toggle-init][data-billing="toggle"]) {
+  width: 100%;
+  max-width: 30em;
+  background: #ddd;
+  border-radius: .875em;
+}
+
+:where([data-billing="toggle"] > [data-toggle-bg]) {
+  background: #f2f2f2;
+  border-radius: .625em;
+}
+
+:where([data-billing="toggle"] > [data-toggle-btn]) {
+  padding: 1.5em 1em;
+}
+
+/* Existing pricing groups and optional labels elsewhere on the page. */
+[data-billing="prices"] {
+  display: grid;
+}
+
+[data-billing="prices"] > [data-billing="annual"],
+[data-billing="prices"] > [data-billing="quarterly"] {
+  grid-area: 1 / 1;
+  min-width: 0;
+  align-self: start;
+}
+
+[data-billing="annual"],
+[data-billing="quarterly"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--billing-fade) ease,
+              visibility 0s linear var(--billing-fade);
+}
+
+html:not([data-billing-cycle="quarterly"]) [data-billing="annual"],
+html[data-billing-cycle="quarterly"] [data-billing="quarterly"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+[data-billing="label-annual"],
+[data-billing="label-quarterly"] {
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+html:not([data-billing-cycle="quarterly"]) [data-billing="label-annual"],
+html[data-billing-cycle="quarterly"] [data-billing="label-quarterly"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-billing="toggle"] > [data-toggle-bg],
+  [data-billing="toggle"] > [data-toggle-btn],
+  [data-billing="annual"],
+  [data-billing="quarterly"],
+  [data-billing="label-annual"],
+  [data-billing="label-quarterly"] {
+    transition: none;
+  }
+}
+/* Original Bouncy Tabs CSS — unchanged. */
+[data-bouncy-tabs-button][data-active] {
+  color: #000000;
+}
+
+[data-bouncy-tabs-panel]:not([data-active]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.wf-design-mode [data-bouncy-tabs-panel][data-active] {
+  position: relative;
+}
+</style>

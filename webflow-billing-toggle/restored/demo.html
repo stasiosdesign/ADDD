@@ -1,0 +1,566 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Original tabs preservation</title>
+<style>
+*{box-sizing:border-box}body{font-family:Arial,sans-serif;padding:32px;background:#f4f1eb;color:#273a2d}main{max-width:1000px;margin:auto}.nav{position:relative;display:flex;gap:8px;width:fit-content;padding:8px;background:#dce4d8;border-radius:14px}.nav button{position:relative;z-index:2;background:transparent;border:0;padding:16px;font:inherit}.indicator,.ghost{position:absolute;left:0;top:0;border-radius:8px;pointer-events:none}.indicator{background:#fff}.ghost{background:#fff7}.card{transform:translateX(12px)}.panels{position:relative;margin-top:24px}.panel{position:absolute;top:6px;left:12px;width:calc(100% - 24px)}.content{display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:24px;background:#fff;border-radius:14px}.visual{background:#d0ddc6;height:140px;border-radius:8px}.plans{display:flex;gap:20px;margin-top:26px}.plan{padding:20px;background:#fff;border-radius:14px;flex:1}.price{font-size:32px;margin-bottom:8px}.toggle-switch__btn{padding:12px}.toggle-switch{max-width:280px}
+</style><style>
+:root {
+  --billing-fade: 200ms;
+  --billing-muted: 0.5;
+}
+
+/* Osmo's layout and sliding background, scoped to billing switches. */
+[data-toggle-init][data-billing="toggle"] {
+  --toggle-count: 2;
+  --toggle-padding: 0.25em;
+  box-sizing: border-box;
+  display: inline-grid;
+  position: relative;
+  grid-template-columns: repeat(var(--toggle-count), minmax(0, 1fr));
+  padding: var(--toggle-padding);
+  isolation: isolate;
+}
+
+[data-billing="toggle"] > [data-toggle-bg] {
+  position: absolute;
+  top: var(--toggle-padding);
+  bottom: var(--toggle-padding);
+  left: var(--toggle-padding);
+  width: calc((100% - 2 * var(--toggle-padding)) / var(--toggle-count));
+  transform: translateX(calc(var(--toggle-active, 0) * 100%));
+  transition: transform 0.5s cubic-bezier(.625, .05, 0, 1);
+  pointer-events: none;
+}
+
+[data-billing="toggle"] > [data-toggle-btn] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+[data-billing="toggle"] > [data-toggle-btn][data-toggle-active] {
+  opacity: 1;
+}
+
+[data-billing="toggle"] > [data-toggle-btn]:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -3px;
+}
+
+/* Visual defaults: Webflow classes can override these low-specificity rules. */
+:where([data-toggle-init][data-billing="toggle"]) {
+  width: 100%;
+  max-width: 30em;
+  background: #ddd;
+  border-radius: .875em;
+}
+
+:where([data-billing="toggle"] > [data-toggle-bg]) {
+  background: #f2f2f2;
+  border-radius: .625em;
+}
+
+:where([data-billing="toggle"] > [data-toggle-btn]) {
+  padding: 1.5em 1em;
+}
+
+/* Existing pricing groups and optional labels elsewhere on the page. */
+[data-billing="prices"] {
+  display: grid;
+}
+
+[data-billing="prices"] > [data-billing="annual"],
+[data-billing="prices"] > [data-billing="quarterly"] {
+  grid-area: 1 / 1;
+  min-width: 0;
+  align-self: start;
+}
+
+[data-billing="annual"],
+[data-billing="quarterly"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity var(--billing-fade) ease,
+              visibility 0s linear var(--billing-fade);
+}
+
+html:not([data-billing-cycle="quarterly"]) [data-billing="annual"],
+html[data-billing-cycle="quarterly"] [data-billing="quarterly"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s;
+}
+
+[data-billing="label-annual"],
+[data-billing="label-quarterly"] {
+  opacity: var(--billing-muted);
+  transition: opacity var(--billing-fade) ease;
+}
+
+html:not([data-billing-cycle="quarterly"]) [data-billing="label-annual"],
+html[data-billing-cycle="quarterly"] [data-billing="label-quarterly"] {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-billing="toggle"] > [data-toggle-bg],
+  [data-billing="toggle"] > [data-toggle-btn],
+  [data-billing="annual"],
+  [data-billing="quarterly"],
+  [data-billing="label-annual"],
+  [data-billing="label-quarterly"] {
+    transition: none;
+  }
+}
+/* Original Bouncy Tabs CSS — unchanged. */
+[data-bouncy-tabs-button][data-active] {
+  color: #000000;
+}
+
+[data-bouncy-tabs-panel]:not([data-active]) {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.wf-design-mode [data-bouncy-tabs-panel][data-active] {
+  position: relative;
+}
+</style>
+</head><body><main>
+<h1>Original tabs, preserved.</h1>
+<div data-bouncy-tabs-init>
+ <div class="nav" data-bouncy-tabs-nav>
+  <div class="indicator" data-bouncy-tabs-indicator></div><div class="ghost" data-bouncy-tabs-ghost></div>
+  <button data-bouncy-tabs-button data-active>First</button><button data-bouncy-tabs-button>Second</button>
+ </div>
+ <div class="card" data-bouncy-tabs-card><div class="panels" data-bouncy-tabs-panels>
+  <section class="panel" data-bouncy-tabs-panel data-active><div class="content"><div class="bouncy-tabs__item-text"><h2>First heading</h2><p>First paragraph.</p><p>Second paragraph.</p></div><div class="visual bouncy-tabs__item-visual"></div></div></section>
+  <section class="panel" data-bouncy-tabs-panel><div class="content"><div class="bouncy-tabs__item-text"><h2>Second heading</h2><p>A paragraph with more detail.</p><p>Another paragraph.</p><p>Additional information makes this panel taller.</p></div><div class="visual bouncy-tabs__item-visual"></div></div></section>
+ </div></div>
+</div>
+<div class="plans"><article class="plan"><div data-toggle-init data-billing="toggle" class="toggle-switch"
+     role="group" aria-label="Billing period">
+  <div data-toggle-bg aria-hidden="true" class="toggle-switch__bg"></div>
+
+  <button type="button" data-toggle-btn="annual" data-toggle-active
+          aria-pressed="true" class="toggle-switch__btn">
+    <span>Yearly</span>
+  </button>
+
+  <button type="button" data-toggle-btn="quarterly"
+          aria-pressed="false" tabindex="-1" class="toggle-switch__btn">
+    <span>Quarterly</span>
+  </button>
+</div>
+<div data-billing="prices"><div data-billing="annual"><p class="price">£80</p><p>per month, billed annually</p></div><div data-billing="quarterly"><p class="price">£100</p><p>per month, billed quarterly</p></div></div></article><article class="plan"><div data-toggle-init data-billing="toggle" class="toggle-switch"
+     role="group" aria-label="Billing period">
+  <div data-toggle-bg aria-hidden="true" class="toggle-switch__bg"></div>
+
+  <button type="button" data-toggle-btn="annual" data-toggle-active
+          aria-pressed="true" class="toggle-switch__btn">
+    <span>Yearly</span>
+  </button>
+
+  <button type="button" data-toggle-btn="quarterly"
+          aria-pressed="false" tabindex="-1" class="toggle-switch__btn">
+    <span>Quarterly</span>
+  </button>
+</div>
+<div data-billing="prices"><div data-billing="annual"><p class="price">£160</p><p>per month, billed annually</p></div><div data-billing="quarterly"><p class="price">£200</p><p>per month, billed quarterly</p></div></div></article><article class="plan"><div data-toggle-init data-billing="toggle" class="toggle-switch"
+     role="group" aria-label="Billing period">
+  <div data-toggle-bg aria-hidden="true" class="toggle-switch__bg"></div>
+
+  <button type="button" data-toggle-btn="annual" data-toggle-active
+          aria-pressed="true" class="toggle-switch__btn">
+    <span>Yearly</span>
+  </button>
+
+  <button type="button" data-toggle-btn="quarterly"
+          aria-pressed="false" tabindex="-1" class="toggle-switch__btn">
+    <span>Quarterly</span>
+  </button>
+</div>
+<div data-billing="prices"><div data-billing="annual"><p class="price">£320</p><p>per month, billed annually</p></div><div data-billing="quarterly"><p class="price">£400</p><p>per month, billed quarterly</p></div></div></article></div>
+</main><script src="../v3/gsap.test.min.js"></script><script>
+(() => {
+  function initBilling() {
+    const root = document.documentElement;
+    if (root.hasAttribute('data-billing-ready')) return;
+
+    const controls = [...document.querySelectorAll(
+      '[data-toggle-init][data-billing="toggle"]'
+    )].map(toggle => ({
+      toggle,
+      buttons: [...toggle.querySelectorAll(':scope > button[data-toggle-btn]')]
+    })).filter(({ buttons }) =>
+      buttons.length === 2 &&
+      buttons.some(b => b.dataset.toggleBtn === 'annual') &&
+      buttons.some(b => b.dataset.toggleBtn === 'quarterly')
+    );
+
+    if (!controls.length) return;
+    root.setAttribute('data-billing-ready', '');
+
+    const groups = document.querySelectorAll(
+      '[data-billing="annual"], [data-billing="quarterly"]'
+    );
+    let cycle = 'annual';
+
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-atomic', 'true');
+    status.style.cssText = 'position:absolute;width:1px;height:1px;' +
+      'padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);' +
+      'white-space:nowrap;border:0;';
+    document.body.append(status);
+
+    function render() {
+      root.setAttribute('data-billing-cycle', cycle);
+      controls.forEach(({ toggle, buttons }) => {
+        const index = buttons.findIndex(b => b.dataset.toggleBtn === cycle);
+        toggle.style.setProperty('--toggle-active', index);
+        buttons.forEach((button, i) => {
+          const active = i === index;
+          button.toggleAttribute('data-toggle-active', active);
+          button.setAttribute('aria-pressed', String(active));
+          button.tabIndex = active ? 0 : -1;
+        });
+      });
+      groups.forEach(group => {
+        const inactive = group.dataset.billing !== cycle;
+        group.inert = inactive;
+        group.setAttribute('aria-hidden', String(inactive));
+      });
+    }
+
+    function select(next) {
+      if (next === cycle) return;
+      cycle = next;
+      render();
+      status.textContent = cycle === 'annual'
+        ? 'All prices are per month, billed annually.'
+        : 'All prices are per month, billed quarterly.';
+    }
+
+    controls.forEach(({ toggle, buttons }) => {
+      toggle.style.setProperty('--toggle-count', buttons.length);
+      buttons.forEach((button, index) => {
+        button.type = 'button';
+        button.addEventListener('click', () => select(button.dataset.toggleBtn));
+        button.addEventListener('keydown', event => {
+          let next;
+          if (event.key === 'ArrowRight') next = (index + 1) % buttons.length;
+          else if (event.key === 'ArrowLeft') next = (index - 1 + buttons.length) % buttons.length;
+          else if (event.key === 'Home') next = 0;
+          else if (event.key === 'End') next = buttons.length - 1;
+          else return;
+
+          event.preventDefault();
+          event.stopPropagation();
+          select(buttons[next].dataset.toggleBtn);
+          buttons[next].focus();
+        });
+      });
+    });
+
+    window.addEventListener('pageshow', render);
+    render();
+  }
+
+/* ---------------- Bouncy Content Tabs ---------------- */
+function initBouncyContentTabs() {
+  const config = {
+    travel: 0.45,           // indicator movement
+    travelEase: "power3.inOut",
+    height: 0.4,            // panel wrapper height change
+
+    contentOut: 0.38,       // outgoing content fade
+    contentOutShift: 3,     // px the outgoing content drifts up
+    contentOutStagger: 0.03,// gap between outgoing items
+    contentIn: 0.45,        // incoming content fade
+    contentInShift: 8,      // px the incoming content rises from
+    contentStagger: 0.05,   // gap between incoming items
+    contentOverlap: 0.2,    // when the incoming starts, relative to the switch
+
+    ghost: 0.3,
+  };
+
+  // Elements inside a panel that animate individually. Falls back to the
+  // panel's own children if nothing is tagged.
+  const ITEM_SELECTOR = "[data-bouncy-tabs-item]";
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let instanceCount = 0;
+
+  document.querySelectorAll("[data-bouncy-tabs-init]").forEach((root) => {
+    const nav = root.querySelector("[data-bouncy-tabs-nav]");
+    const indicator = root.querySelector("[data-bouncy-tabs-indicator]");
+    const ghost = root.querySelector("[data-bouncy-tabs-ghost]");
+    const buttons = nav ? Array.from(nav.querySelectorAll("[data-bouncy-tabs-button]")) : [];
+    if (!nav || !indicator || buttons.length < 2) return;
+
+    const card = root.querySelector("[data-bouncy-tabs-card]");
+    const panelsWrap = root.querySelector("[data-bouncy-tabs-panels]");
+    const panels = panelsWrap
+      ? Array.from(panelsWrap.querySelectorAll("[data-bouncy-tabs-panel]"))
+      : [];
+    const hasCard = Boolean(card && panelsWrap && panels.length);
+
+    instanceCount += 1;
+    buttons.forEach((button, i) => {
+      const panel = panels[i];
+      if (!panel) return;
+      if (!button.id) button.id = "bouncy-tabs-" + instanceCount + "-tab-" + (i + 1);
+      if (!panel.id) panel.id = "bouncy-tabs-" + instanceCount + "-panel-" + (i + 1);
+      button.setAttribute("aria-controls", panel.id);
+      panel.setAttribute("aria-labelledby", button.id);
+    });
+
+    let activeIndex = Math.max(0, buttons.findIndex((b) => b.hasAttribute("data-active")));
+    let ghostVisible = false;
+    const dur = (d) => (reduceMotion.matches ? 0 : d);
+
+    function itemsIn(panel) {
+      const tagged = panel.querySelectorAll(ITEM_SELECTOR);
+      if (tagged.length) return Array.from(tagged);
+      // Default: the text block's children, then the visual.
+      const text = panel.querySelector(".bouncy-tabs__item-text");
+      const visual = panel.querySelector(".bouncy-tabs__item-visual");
+      const list = text ? Array.from(text.children) : [];
+      if (visual) list.push(visual);
+      return list.length ? list : Array.from(panel.children);
+    }
+
+    function syncButtonState() {
+      buttons.forEach((b, i) => {
+        b.toggleAttribute("data-active", i === activeIndex);
+        b.setAttribute("aria-selected", i === activeIndex ? "true" : "false");
+        b.tabIndex = i === activeIndex ? 0 : -1;
+      });
+    }
+
+    function rectFor(button) {
+      return {
+        left: button.offsetLeft,
+        right: button.offsetLeft + button.offsetWidth,
+        top: button.offsetTop,
+        height: button.offsetHeight,
+      };
+    }
+
+    function place(index) {
+      const target = rectFor(buttons[index]);
+      gsap.killTweensOf(indicator);
+      gsap.set(indicator, {
+        x: target.left,
+        y: target.top,
+        width: target.right - target.left,
+        height: target.height,
+      });
+    }
+
+    function moveIndicator(index) {
+      const target = rectFor(buttons[index]);
+      gsap.killTweensOf(indicator);
+      gsap.to(indicator, {
+        x: target.left,
+        y: target.top,
+        width: target.right - target.left,
+        height: target.height,
+        duration: dur(config.travel),
+        ease: config.travelEase,
+      });
+    }
+
+    function setPanelsHeight() {
+      if (hasCard) gsap.set(panelsWrap, { height: panels[activeIndex].offsetHeight });
+    }
+
+    function swapPanelsInstant() {
+      if (!hasCard) return;
+      panels.forEach((p, i) => {
+        const items = itemsIn(p);
+        gsap.killTweensOf([p, ...items]);
+        gsap.set(p, { autoAlpha: i === activeIndex ? 1 : 0 });
+        gsap.set(items, { autoAlpha: 1, y: 0 });
+        p.toggleAttribute("data-active", i === activeIndex);
+      });
+      setPanelsHeight();
+    }
+
+    function transitionPanels(prevIndex) {
+      if (!hasCard) return;
+      const incoming = panels[activeIndex];
+      const outgoing = panels[prevIndex];
+      if (!incoming || !outgoing) return;
+
+      const incomingItems = itemsIn(incoming);
+      const outgoingItems = itemsIn(outgoing);
+
+      // Reset anything mid-flight from a rapid click.
+      panels.forEach((p) => {
+        if (p !== incoming && p !== outgoing) {
+          const items = itemsIn(p);
+          gsap.killTweensOf([p, ...items]);
+          gsap.set(p, { autoAlpha: 0 });
+          gsap.set(items, { autoAlpha: 1, y: 0 });
+          p.removeAttribute("data-active");
+        }
+      });
+      incoming.setAttribute("data-active", "");
+      outgoing.removeAttribute("data-active");
+
+      gsap.killTweensOf([panelsWrap, incoming, outgoing, ...incomingItems, ...outgoingItems]);
+
+      // Measure before the incoming panel is revealed.
+      const targetHeight = incoming.offsetHeight;
+
+      gsap.timeline()
+        // Outgoing content lifts and fades away gently.
+        .to(outgoingItems, {
+          autoAlpha: 0,
+          y: -config.contentOutShift,
+          duration: config.contentOut,
+          ease: "power1.inOut",
+          stagger: config.contentOutStagger,
+        }, 0)
+
+        // Card height eases across the whole swap.
+        .to(panelsWrap, {
+          height: targetHeight,
+          duration: config.height,
+          ease: config.travelEase,
+        }, 0)
+
+        // Incoming content rises in, lightly staggered.
+        .set(incoming, { autoAlpha: 1 }, config.contentOverlap)
+        .fromTo(
+          incomingItems,
+          { autoAlpha: 0, y: config.contentInShift },
+          {
+            autoAlpha: 1,
+            y: 0,
+            duration: config.contentIn,
+            ease: "power2.out",
+            stagger: config.contentStagger,
+            clearProps: "transform",
+          },
+          config.contentOverlap
+        )
+
+        // Clean up the outgoing panel once everything has settled.
+        .set(outgoing, { autoAlpha: 0 })
+        .set(outgoingItems, { y: 0 });
+    }
+
+    function goTo(index) {
+      if (index === activeIndex) return;
+      const prevIndex = activeIndex;
+      activeIndex = index;
+      syncButtonState();
+
+      if (reduceMotion.matches) {
+        place(index);
+        swapPanelsInstant();
+        return;
+      }
+
+      moveIndicator(index);
+      transitionPanels(prevIndex);
+    }
+
+    function moveGhost(button) {
+      if (!ghost) return;
+      const target = rectFor(button);
+      const box = {
+        x: target.left,
+        y: target.top,
+        width: target.right - target.left,
+        height: target.height,
+      };
+      gsap.killTweensOf(ghost);
+      if (!ghostVisible) {
+        ghostVisible = true;
+        gsap.set(ghost, box);
+        gsap.to(ghost, { autoAlpha: 1, duration: dur(0.2), ease: "power2.out" });
+      } else {
+        gsap.to(ghost, {
+          ...box,
+          autoAlpha: 1,
+          duration: dur(config.ghost),
+          ease: config.travelEase,
+        });
+      }
+    }
+
+    function hideGhost() {
+      if (!ghost) return;
+      ghostVisible = false;
+      gsap.to(ghost, { autoAlpha: 0, duration: dur(0.2), ease: "power1.out" });
+    }
+
+    function refreshLayout() {
+      const rows = new Set(buttons.map((b) => b.offsetTop));
+      nav.toggleAttribute("data-wrapped", rows.size > 1);
+      place(activeIndex);
+      setPanelsHeight();
+    }
+
+    buttons.forEach((button, index) => {
+      button.addEventListener("click", () => goTo(index));
+      button.addEventListener("mouseenter", () => moveGhost(button));
+    });
+
+    nav.addEventListener("mouseleave", hideGhost);
+    nav.addEventListener("keydown", (event) => {
+      let next = null;
+      if (event.key === "ArrowRight") next = Math.min(buttons.length - 1, activeIndex + 1);
+      if (event.key === "ArrowLeft") next = Math.max(0, activeIndex - 1);
+      if (event.key === "Home") next = 0;
+      if (event.key === "End") next = buttons.length - 1;
+      if (next === null) return;
+      event.preventDefault();
+      if (next !== activeIndex) {
+        goTo(next);
+        buttons[next].focus();
+      }
+    });
+
+    window.addEventListener("resize", refreshLayout);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refreshLayout);
+
+    if (ghost) gsap.set(ghost, { autoAlpha: 0 });
+    gsap.set(card, { clearProps: "transform" });
+    panels.forEach((p, i) => gsap.set(p, { autoAlpha: i === activeIndex ? 1 : 0 }));
+
+    syncButtonState();
+    refreshLayout();
+  });
+}
+
+  function start() {
+    const root = document.documentElement;
+    if (root.hasAttribute('data-billing-tabs-ready')) return;
+    root.setAttribute('data-billing-tabs-ready', '');
+    initBilling();
+    initBouncyContentTabs();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start, { once: true });
+  } else {
+    start();
+  }
+})();
+</script>
+</body></html>

@@ -1,0 +1,65 @@
+<script>
+(() => {
+  function initBilling() {
+    const root = document.documentElement;
+    if (root.hasAttribute('data-billing-ready')) return;
+    if (!document.querySelector('input[type="checkbox"][data-billing-toggle]')) return;
+    root.setAttribute('data-billing-ready', '');
+
+    const toggleSelector = 'input[type="checkbox"][data-billing-toggle]';
+    let cycle = 'annual';
+
+    // One announcement for the whole page, regardless of the number of cards.
+    const status = document.createElement('div');
+    status.setAttribute('role', 'status');
+    status.setAttribute('aria-atomic', 'true');
+    status.style.cssText = 'position:absolute;width:1px;height:1px;padding:0;' +
+      'margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0;';
+    document.body.append(status);
+
+    function render(announce = false) {
+      root.setAttribute('data-billing-cycle', cycle);
+
+      document.querySelectorAll(toggleSelector).forEach(input => {
+        // Checked means annual billing is on, with the dot beside Yearly.
+        input.checked = cycle === 'annual';
+        input.defaultChecked = true;
+        input.setAttribute('role', 'switch');
+        if (!input.hasAttribute('aria-label') && !input.hasAttribute('aria-labelledby')) {
+          input.setAttribute('aria-label', 'Annual billing');
+        }
+      });
+
+      document.querySelectorAll('[data-billing-content]').forEach(group => {
+        const active = group.getAttribute('data-billing-content') === cycle;
+        group.inert = !active;
+        group.setAttribute('aria-hidden', String(!active));
+      });
+
+      if (announce) {
+        status.textContent = cycle === 'annual'
+          ? 'Annual billing selected. All prices are per month, billed annually.'
+          : 'Quarterly billing selected. All prices are per month, billed quarterly.';
+      }
+    }
+
+    // Delegation lets every matching toggle control every matching price group.
+    document.addEventListener('change', event => {
+      if (!event.target.matches(toggleSelector)) return;
+      cycle = event.target.checked ? 'annual' : 'quarterly';
+      render(true);
+    });
+
+    // Keep a form reset or browser back/forward restoration from desyncing inputs.
+    document.addEventListener('reset', () => setTimeout(() => render(), 0));
+    window.addEventListener('pageshow', () => render());
+    render();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initBilling, { once: true });
+  } else {
+    initBilling();
+  }
+})();
+</script>
