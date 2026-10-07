@@ -334,6 +334,11 @@ button, input { font: inherit; color: inherit; }
   overflow: hidden;
   overflow: clip;
 }
+/* The hero that travels inside it is kept on a layer of its own from the
+   start. Left to GSAP, it is promoted only once the scrub moves it off
+   rest, so the first pixel of scroll out of the hero re-rasterised the
+   whole hero, field and all, and handed it back at the top again. */
+[data-hero-parallax-inner] { will-change: transform; }
 .hero {
   position: relative;
   min-height: 100vh;
@@ -656,13 +661,23 @@ button, input { font: inherit; color: inherit; }
    the marks in their white versions (assets/logos/White). */
 .logos {
   padding: 8.875rem 0;
-  text-align: center;
   background: var(--c-dark-fg);
   color: var(--c-white);
 }
 /* The strip runs edge to edge, but its title keeps the page gutter, so
-   on a phone it wraps inside the margins rather than touching them. */
-.logos__title { margin-bottom: 3.625rem; padding: 0 var(--page-pad); }
+   it starts on Grid Column 1 and on a phone wraps inside the margins
+   rather than touching them. Set as an .h4 in the display face, a step
+   heavier (the kit's 500, the next weight up from 400) and on the larger
+   headings' closer leading, and held to Grid Columns 1–4 on the 12-Column
+   Grid (page-grid.css). A section's step under it, so it stands clear of
+   the marks. Balanced, as the approach heading under it is, so no word is
+   left on a line alone. */
+.logos__title {
+  margin: 0 var(--page-pad) var(--sec-md);
+  font-weight: var(--fw-heading-medium);
+  line-height: 1.2;
+  text-wrap: balance;
+}
 /* No box: each mark stands on the band on its own. The tile keeps its
    size, so the strip keeps its pitch and the mark its centre. */
 .logo-tile {
@@ -689,6 +704,9 @@ button, input { font: inherit; color: inherit; }
 }
 .wavy-marquee__list {
   position: relative;
+  /* moved every frame by the script: on a layer of its own, the strip is
+     painted once and slid by the compositor rather than repainted */
+  will-change: transform;
   display: flex;
   align-items: center;
   gap: 2rem;
@@ -1781,6 +1799,10 @@ button, input { font: inherit; color: inherit; }
   background: #000;
   opacity: 0;
   pointer-events: none;
+  /* scrubbed every frame of the hero's exit and the footer's entrance: a
+     layer of its own fades on the compositor, where a plain box repaints
+     the whole viewport under it at each step */
+  will-change: opacity;
 }
 
 /* ------------------------------------------------------------

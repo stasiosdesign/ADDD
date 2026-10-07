@@ -60,9 +60,12 @@ interface Props {
   /** The page's display name, carried on the Barba container and shown on
       the wipe panel. */
   pageName: string;
+  /** The homepage: the one page the logo intro opens, since it plays out in
+      the hero's own field (see ARRIVAL in src/scripts/site.js). */
+  home?: boolean;
 }
 
-const { title, description, pageName } = Astro.props;
+const { title, description, pageName, home = false } = Astro.props;
 ---
 <!DOCTYPE html>
 <html lang="en-GB">
@@ -74,17 +77,24 @@ const { title, description, pageName } = Astro.props;
 <meta name="build" content={BUILD_STAMP}>
 {/* How this document load arrives — the logo intro or the wipe's reveal —
     decided before the first paint, so a loader that is not going to play is
-    never shown. The intro belongs to the session's first page load and to a
-    genuine reload; every other load in the session reveals. Ahead of the
+    never shown. The intro is the homepage's: it opens the session's first
+    visit to it, every visit made by the nav's logo, and every reload of the
+    homepage, which starts again from the top. Every other load reveals, a
+    reload of any other page included, which keeps its place. Ahead of the
     stylesheets, which an inline script would otherwise wait on. See ARRIVAL
     in src/scripts/site.js. */}
-<script is:inline>
+<script is:inline define:vars={{ home }}>
   (function () {
     var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
     var reload = nav ? nav.type === "reload" : (performance.navigation || {}).type === 1;
     var seen = false;
+    var requested = false;
     try {
-      seen = sessionStorage.getItem("addd:intro") === "played";
+      // "played" after the session's first load; "requested" when the nav's
+      // logo was clicked to come here (initHomeLink in site.js).
+      var intro = sessionStorage.getItem("addd:intro");
+      seen = !!intro;
+      requested = intro === "requested";
       sessionStorage.setItem("addd:intro", "played");
     } catch (err) {}
     // Arriving from one of the site's own pages is a move within the site,
@@ -93,7 +103,7 @@ const { title, description, pageName } = Astro.props;
     try {
       seen = seen || new URL(document.referrer).origin === location.origin;
     } catch (err) {}
-    document.documentElement.dataset.arrival = reload || !seen ? "intro" : "reveal";
+    document.documentElement.dataset.arrival = home && (requested || reload || !seen) ? "intro" : "reveal";
     // Which intro plays: the Logo Morph Loader, or the Logo Stack Loader
     // with ?loader=stack, kept so the two can be compared.
     var loader = new URLSearchParams(location.search).get("loader");

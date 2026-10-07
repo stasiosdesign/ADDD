@@ -30,18 +30,22 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
   <div class="mega-nav__bar">
     <div class="mega-nav__container">
       <div class="mega-nav__bar-start">
-        <a data-menu-logo href="index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
+        <!-- Barba leaves this link to the browser: going home by the logo
+             is a document load that opens on the intro (initHomeLink,
+             site.js). -->
+        <a data-menu-logo data-barba-prevent href="index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
           <!-- The ADDD triangles from assets/logo.svg, without the circle,
                cropped to their own bounds and drawn in currentColor; each
-               one a letter of the morph at rest. -->
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="18.4 42.7 64 16" fill="currentColor" aria-hidden="true" class="mega-nav__bar-logo-mark">
+               one a letter of the morph at rest. The stroke, in the same
+               colour, is nothing at rest: the hover gives the name a touch
+               of extra weight with it (initNavLogo, site.js). -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="18.4 42.7 64 16" fill="currentColor" stroke="currentColor" stroke-width="0" aria-hidden="true" class="mega-nav__bar-logo-mark">
             {logoForms.map((d) => <path data-logo-morph-letter d={d} />)}
           </svg>
         </a>
         <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
           <a data-nav-list-item href="tech-firms.html" class="mega-nav__feature nav-link">
             <NavLinkLabel class="mega-nav__bar-link-label">For AEC Tech Firms</NavLinkLabel>
-            <ArrowIcon class="mega-nav__feature-icon" aria-hidden="true" />
           </a>
           <ul class="mega-nav__bar-list">
             <li data-nav-list-item>

@@ -145,18 +145,19 @@
 }
 /* The velocity trail: a solid line out of the cube, behind it as the
    page moves, its length the scroll's speed (set by the script as a
-   share of the window's half). In the site's red. */
+   scale of the window's half, from the cube out). In the site's red. */
 .approach-stack__trail {
   position: absolute;
   left: 50%;
   z-index: 1;
   width: 2px;
-  height: 0;
+  height: 50%;
   margin-left: -1px;
   background: var(--c-red);
+  transform: scaleY(0);
 }
-.approach-stack__trail.is--top { bottom: 50%; }
-.approach-stack__trail.is--bottom { top: 50%; }
+.approach-stack__trail.is--top { bottom: 50%; transform-origin: 50% 100%; }
+.approach-stack__trail.is--bottom { top: 50%; transform-origin: 50% 0; }
 
 /* --- Card ----------------------------------------------------
    Three parts on the band's next tone up: the head (number and

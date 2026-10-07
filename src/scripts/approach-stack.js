@@ -117,8 +117,15 @@ export function mountApproachStack(root, { lenis } = {}) {
   function setUpRail() {
     if (!rail || !win) return () => {};
 
-    const syncDots = () => {
-      const offset = win.getBoundingClientRect().top - rail.getBoundingClientRect().top;
+    // Where the window sits down the rail, worked out from the scroll rather
+    // than read off the layout: the rail's top on the page, the window's
+    // sticky top in the viewport and the room it has to travel, measured on
+    // each refresh. Reading the two boxes every frame forced a layout each
+    // time, straight after the trail had resized.
+    let geo = null;
+    const syncDots = (self) => {
+      if (!geo) return;
+      const offset = gsap.utils.clamp(0, geo.room, geo.sticky - (geo.top - self.scroll()));
       dots.style.backgroundPositionY = `${-offset}px`;
     };
     ScrollTrigger.create({
@@ -126,7 +133,15 @@ export function mountApproachStack(root, { lenis } = {}) {
       start: "top bottom",
       end: "bottom top",
       onUpdate: syncDots,
-      onRefresh: syncDots,
+      onRefresh(self) {
+        const box = rail.getBoundingClientRect();
+        geo = {
+          top: box.top + window.scrollY,
+          sticky: parseFloat(getComputedStyle(win).top) || 0,
+          room: Math.max(0, box.height - win.getBoundingClientRect().height),
+        };
+        syncDots(self);
+      },
     });
 
     gsap.fromTo(rail, { opacity: 0 }, {
@@ -136,9 +151,11 @@ export function mountApproachStack(root, { lenis } = {}) {
     });
 
     const trail = { top: 0, bottom: 0 };
+    // Scaled rather than resized (approach-stack.css), so the trail never
+    // costs a layout: each line stands half the window tall at full scale.
     const apply = () => {
-      trailEls.top.style.height = `${trail.top / 2}%`;
-      trailEls.bottom.style.height = `${trail.bottom / 2}%`;
+      trailEls.top.style.transform = `scaleY(${trail.top / 100})`;
+      trailEls.bottom.style.transform = `scaleY(${trail.bottom / 100})`;
     };
     let idle = 0;
     const resetTrail = (smooth) => {
@@ -184,7 +201,7 @@ export function mountApproachStack(root, { lenis } = {}) {
     return () => {
       clearTimeout(idle);
       gsap.killTweensOf(trail);
-      trailEls.top.style.height = trailEls.bottom.style.height = "";
+      trailEls.top.style.transform = trailEls.bottom.style.transform = "";
       dots.style.backgroundPositionY = "";
     };
   }

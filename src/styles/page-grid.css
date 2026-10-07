@@ -70,6 +70,14 @@
      so the arrow has Grid Column 12 to itself */
   .page--grid .hero__cta-row .actions { flex: 0 0 calc((500% - var(--grid-gutter)) / 6); }
 
+  /* --- Logo strip: the title in Grid Columns 1–4. The strip is
+     full-bleed, so the title is held to the width of four columns and
+     three gutters rather than placed in a track; its margin is the page
+     gutter, so it starts on Grid Column 1. */
+  .page--grid .logos__title {
+    max-width: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 3 + 3 * var(--grid-gutter));
+  }
+
   /* --- Intros: the lede in Grid Columns 2–4 -------------------- */
   .page--grid :is(.problem-head__lede, .routes__lede, .section-title > .text-md) { grid-column: 2 / 5; }
 

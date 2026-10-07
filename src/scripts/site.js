@@ -25,7 +25,13 @@ gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlug
 CustomEase.create("osmo", "0.625, 0.05, 0, 1");
 gsap.defaults({ ease: "osmo", duration: 0.6 });
 
-history.scrollRestoration = "manual";
+// The site places the scroll itself (resetScroll), so the browser must never
+// restore it. Set through ScrollTrigger, which reads the mode as its script
+// loads, ahead of this module, and writes what it read back at the end of
+// every refresh: set on history directly, the first refresh put it back to
+// "auto", and the browser's own restoration moved a reloaded page under the
+// wipe.
+ScrollTrigger.clearScrollMemory("manual");
 
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 let reducedMotion = reducedMotionQuery.matches;
@@ -53,8 +59,12 @@ const wipe = {
 // ARRIVAL
 // -----------------------------------------
 //
-// Two animation systems, one rule: the logo intro plays once per browsing
-// session, and every other change of page uses the wipe.
+// Two animation systems, one rule: the logo intro opens the homepage — the
+// session's first visit to it, every visit made by clicking the nav's
+// logo, and every reload of it — and every other arrival, a reload of any
+// other page included, uses the wipe. The
+// intro is built around the homepage's hero, which it plays out in, so it
+// never opens any other page.
 //
 // The intro cannot simply belong to Barba's once(), because once() runs on
 // every document load — and a session has more of those than the first
@@ -67,8 +77,10 @@ const wipe = {
 // So each document load is classified before its first paint, by the inline
 // script in the layout's <head>, which writes data-arrival on <html>:
 //
-//   "intro"   the session's first page load, or a genuine reload
-//   "reveal"  any other load in the same session
+//   "intro"   the homepage, on the session's first load, by the nav's logo,
+//             or reloaded — always from the top
+//   "reveal"  any other load: another page, a later visit, a reload of any
+//             page but the homepage
 //
 // The stylesheets act on it straight away — on a "reveal" the loader is never
 // painted and the wipe panel starts out covering the page — and once() below
@@ -77,7 +89,56 @@ const wipe = {
 function runArrival(next) {
   const root = document.documentElement;
   const arrival = root.dataset.arrival === "reveal" ? runReveal(next) : runIntro(next);
-  return Promise.resolve(arrival).then(() => delete root.dataset.arrival);
+  return Promise.resolve(arrival).then(() => {
+    delete root.dataset.arrival;
+    reloadScroll = 0;
+  });
+}
+
+// The nav's logo is the way home, and clicking it opens the homepage on the
+// intro every time. So it goes by a document load rather than Barba's wipe:
+// Barba leaves the link to the browser (data-barba-prevent, Nav.astro), and
+// the click marks the session so the <head> script gives that load the
+// intro. A click that opens the page elsewhere — a new tab or window — is
+// not marked.
+function initHomeLink() {
+  const link = document.querySelector("[data-menu-logo]");
+  if (!link) return;
+
+  link.addEventListener("click", e => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    try {
+      sessionStorage.setItem("addd:intro", "requested");
+    } catch (err) {}
+  });
+}
+
+// A reload reveals the page where the reader left it, however far down —
+// any page but the homepage, whose reload replays the intro from the top
+// (readReloadScroll only answers a "reveal"). The scroll is noted as each document goes, against the
+// page it belongs to — mid-navigation that is still the page being left, so
+// a reload under the wipe opens the new page at its top — and only a reload
+// of that same page reads it back. beforeEnter and resetPage then put the
+// page there rather than at the top, while the panel still covers it.
+const SCROLL_KEY = "addd:scroll";
+let scrollPage = location.href;
+let reloadScroll = readReloadScroll();
+
+window.addEventListener("pagehide", () => {
+  try {
+    sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ href: scrollPage, y: window.scrollY }));
+  } catch (err) {}
+});
+
+function readReloadScroll() {
+  const nav = performance.getEntriesByType?.("navigation")[0];
+  if (document.documentElement.dataset.arrival !== "reveal" || nav?.type !== "reload") return 0;
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(SCROLL_KEY));
+    return saved && saved.href === location.href ? saved.y : 0;
+  } catch (err) {
+    return 0;
+  }
 }
 
 // The second half of the internal wipe: the panel the stylesheet put over the
@@ -269,12 +330,12 @@ function runPageEnterAnimation(next) {
   });
 }
 
-// Scroll to the top in a way Lenis agrees with. Setting window.scrollY behind
-// its back leaves its internal position stale, and it snaps back to the old
-// offset the moment it is started again.
-function resetScroll() {
-  lenis.scrollTo(0, { immediate: true, force: true });
-  window.scrollTo(0, 0);
+// Scroll to the top — or to y, on a reload — in a way Lenis agrees with.
+// Setting window.scrollY behind its back leaves its internal position stale,
+// and it snaps back to the old offset the moment it is started again.
+function resetScroll(y = 0) {
+  lenis.scrollTo(y, { immediate: true, force: true });
+  window.scrollTo(0, y);
 }
 
 /* The enter animation tweens the container's y, and GSAP leaves the
@@ -297,10 +358,11 @@ function resetScroll() {
    Clearing the transform here and refreshing afterwards makes the
    measurement deterministic: it happens once, on the settled page. */
 function resetPage(container) {
-  resetScroll();
   gsap.set(container, { clearProps: "position,top,left,right,transform" });
 
+  // Lenis is measured first, so a reload's position is inside its limit.
   lenis.resize();
+  resetScroll(reloadScroll);
   lenis.start();
   ScrollTrigger.refresh();
 }
@@ -396,6 +458,10 @@ barba.hooks.beforeEnter(data => {
 
   lenis.resize();
   ScrollTrigger.refresh();
+
+  // A reload goes back to where the reader was (see ARRIVAL), once the page
+  // has been built and measured from the top.
+  if (reloadScroll) resetScroll(reloadScroll);
 });
 
 // The outgoing page is torn down only once the panel has covered it — leave()
@@ -435,8 +501,10 @@ barba.hooks.beforeLeave(() => {
 });
 
 // Everything else already settled while the panel was covering; all that is
-// left is handing scrolling back to the user.
+// left is handing scrolling back to the user. From here the scroll is this
+// page's, for a reload to come back to.
 barba.hooks.afterEnter(() => {
+  scrollPage = location.href;
   lenis.start();
 });
 
@@ -471,6 +539,7 @@ barba.hooks.afterOnce(replayHeldHistoryStep);
 initMegaNav();
 initNavReveal();
 initNavLogo();
+initHomeLink();
 initColumnGrid();
 initNavLinks(document.querySelector("[data-menu-wrap]"));
 // The width measurement waits on the webfont so the label is not measured
@@ -1429,9 +1498,10 @@ function initNavReveal() {
 
   window.addEventListener("scroll", onScroll, { passive: true });
   nav.addEventListener("focusin", () => show());
-  // a new page always opens with the nav in place
+  // a new page always opens with the nav in place — at the top, or where a
+  // reload put it back (an earlier beforeEnter), which is no scroll down
   barba.hooks.beforeEnter(() => {
-    lastY = 0;
+    lastY = window.scrollY;
     travel = 0;
     show(true);
   });
@@ -1459,9 +1529,17 @@ function initNavLogo() {
 
   const DURATION = 0.75; // one letter, all the way from form to glyph
   const STAGGER = 0.07;
+  // The name a touch heavier than the type it is drawn from: a stroke of the
+  // mark's own colour round each letter, this wide (in the mark's viewBox)
+  // once the letter is fully the glyph, and nothing on the forms, so the
+  // weight comes and goes with the change itself.
+  const WEIGHT = 0.4;
   const ease = getMorphEase();
   const states = paths.map(() => ({ t: 1 }));
-  const draw = (i) => paths[i].setAttribute("d", morphPath(i, states[i].t, ease));
+  const draw = (i) => {
+    paths[i].setAttribute("d", morphPath(i, states[i].t, ease));
+    paths[i].setAttribute("stroke-width", (WEIGHT * (1 - states[i].t)).toFixed(3));
+  };
 
   function morphTo(target) {
     states.forEach((state, i) => {

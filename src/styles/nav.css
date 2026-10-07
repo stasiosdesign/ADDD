@@ -134,9 +134,8 @@ body:has(.page--dark) .mega-nav,
 .mega-nav__bar-logo-mark { overflow: visible; }
 
 /* The feature block — the Tech Firms link. The near-white fill, with the
-   label and its arrow set at the block's far end, the block's padding
-   clear of its edge; its width is set from 992px up, under "Blocks"
-   below. */
+   label set at the block's far end, the block's padding clear of its edge;
+   its width is set from 992px up, under "Blocks" below. */
 .mega-nav__feature {
   color: var(--nav-feature-fg);
   background-color: var(--nav-feature-bg);
@@ -149,7 +148,6 @@ body:has(.page--dark) .mega-nav,
   white-space: nowrap;
   display: flex;
 }
-.mega-nav__feature-icon { width: 1.25em; height: auto; flex: none; }
 
 /* everything after the logo: the feature block, the group and Contact on
    the bar; the drawer below 992px */
@@ -683,7 +681,7 @@ body:has(.page--dark) .mega-nav,
   .mega-nav__bar-link-icon.is--dropdown { transform: rotate(-90deg); }
 
   /* The feature block leads the drawer: the same block as a full-width
-     row, its arrow at the far end like the dropdown rows' chevrons. */
+     row. */
   .mega-nav__feature {
     flex: none;
     width: 100%;
