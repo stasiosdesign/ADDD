@@ -6,11 +6,17 @@
   or a dropdown toggle in the bar, carrying .nav-link — keeps its own size
   and hit area, and an icon beside the label stays outside the box. class
   goes on the label.
+
+  The block carries its own copy of the label in the ground's colour (the
+  ink), held still while the block slides, so the label turns over exactly
+  where the block covers it, frame by frame, from whichever edge it comes
+  in. Hidden from assistive tech; the label itself is the one read.
 */
 interface Props {
   class?: string;
 }
 
 const { class: className } = Astro.props;
+const label = await Astro.slots.render("default");
 ---
-<span class="nav-link__box"><span class="nav-link__bg" aria-hidden="true"></span><span class:list={["nav-link__text", className]}><slot /></span></span>
+<span class="nav-link__box"><span class="nav-link__bg" aria-hidden="true"><span class:list={["nav-link__ink", className]} set:html={label} /></span><span class:list={["nav-link__text", className]} set:html={label} /></span>

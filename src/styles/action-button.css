@@ -3,31 +3,36 @@
    (markup: src/components/ActionButton.astro)
    ============================================================
 
-   One shape, two variants: a compact slab, the label face in capitals
-   at its start and the site's arrow at its far end, after the supplied
-   reference — a slab about five times as long as it is tall, the caps
-   about a third of its height, an inset of about one text height either
-   side, the arrow a little taller than the caps, and the label set
-   solid, without the label tracking. Each button is as long as its
-   label, so two in a row are two lengths rather than equal shares of it.
+   After the supplied reference, at the site's own compact scale: one
+   slim block, about 36px tall at the ideal width, the label set in
+   small tracked capitals with an inset of about two cap heights either
+   side.
 
-   Its colours are the variant's, so a pair keeps one lead: the primary
-   is the ink slab, the secondary the light grey one. On a dark ground
-   the pair inverts (see the end of this file). Both carry the same
-   text-roll on hover, with the arrow stepping on.
+   Primary — the label block with a shorter block joined flush to its
+   right, a third wider than it is tall, holding the site's arrow. The
+   two are one button: no gap, one height, one hit area. The label
+   block takes the variant's ink; the arrow block takes the page's
+   accent (the site's red, or the AEC Tech Firms blue), and on hover the
+   label block sweeps to the same accent, so the whole button becomes
+   one colour while the arrow steps on inside its block.
 
-   The red only ever belongs to the primary, and only on hover: the
-   __bg-hover panel is parked off the bottom edge, tipped, until it
-   sweeps up. Nothing is red in the rest state.
+   Secondary — the label block alone, no arrow and no arrow block, a step
+   quieter in tone. Same height, type and inset, so the pair still
+   reads as one system with one lead.
+
+   Each button is as long as its label, so two in a row are two lengths
+   rather than equal shares of it. On a dark ground the pair inverts
+   (see the end of this file).
    ============================================================ */
 .action-button {
+  --action-button-height: 2.25rem;
+  --action-button-inset: 1rem;
   --action-button-color: var(--c-white);
   --action-button-color-background: var(--c-text);
-  --action-button-hover-color-background: var(--c-red);
+  --action-button-accent: var(--c-red);
+  --action-button-accent-color: var(--c-white);
+  --action-button-hover-color-background: var(--action-button-accent);
   --action-button-color-focus: var(--c-text);
-  /* the 18px arrow sets the height, so 9px either side makes the 36px
-     slab */
-  --action-button-padding: 0.5625rem 0.75rem;
   --action-button-text-duplicate-distance: 1.5em;
   --action-button-radius: 1px;
   --action-button-ease-hover: var(--ease-osmo);
@@ -43,25 +48,27 @@
   padding: 0;
   cursor: pointer;
   font-family: var(--font-mono);
-  /* 11px at the ideal width: the label a clear step under the slab,
-     which keeps its height and its run to the arrow, so the button reads
-     as the same block with quieter type in it */
   font-size: 0.6875rem;
   font-weight: var(--fw-label);
   /* A 450: the kit has Adelle Mono at 400 and 500 only, and 500 is too
      heavy here. A hairline outline in the text's own colour thickens every
-     stroke evenly without touching the letters' widths; 0.01em lands the
-     ink halfway between the two weights (measured on the label at size). */
+     stroke evenly without touching the letters' widths. */
   -webkit-text-stroke: 0.01em currentColor;
-  letter-spacing: 0;
+  /* tracked, as the reference's capitals are */
+  letter-spacing: var(--label-tracking);
   text-transform: uppercase;
   line-height: 1;
   text-decoration: none;
   vertical-align: middle;
   /* never squeezed by the row it sits in: it is as long as its label */
   flex: none;
-  display: inline-grid;
+  display: inline-flex;
+  align-items: stretch;
+  min-height: var(--action-button-height);
   position: relative;
+  /* the label's colour follows the sweep in rather than jumping ahead of
+     it, so it never sits white on the white block of a dark ground */
+  transition: color 0.3s var(--action-button-ease-hover) 0.12s;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -80,22 +87,28 @@
   box-shadow: 0 0 0 0.125em var(--action-button-color-focus);
 }
 
+/* The label block: its fill, the hover sweep and the label, stacked */
+.action-button__body {
+  flex: 1 0 auto;
+  display: grid;
+  min-width: 0;
+}
+
 .action-button__bg {
   background-color: var(--action-button-color-background);
-  border-radius: var(--action-button-radius);
+  border-radius: var(--action-button-radius) 0 0 var(--action-button-radius);
   grid-area: 1 / 1;
-  justify-content: center;
-  align-items: center;
   width: 100%;
   height: 100%;
-  display: flex;
+  display: block;
   position: relative;
   overflow: clip;
 }
+.action-button.is--secondary .action-button__bg { border-radius: var(--action-button-radius); }
 
-/* Parked flat and well below: the slab is several times as wide as it is
-   tall, and a steeper tilt would lift the panel's near corner up into it
-   at rest. */
+/* Parked flat and well below: the block is several times as wide as it
+   is tall, and a steeper tilt would lift the panel's near corner up into
+   it at rest. */
 .action-button__bg-hover {
   background-color: var(--action-button-hover-color-background);
   width: 120%;
@@ -108,16 +121,15 @@
   transform: translate3d(0, 200%, 0) rotate(4deg);
 }
 
-/* the run from the label to the arrow gives the slab its length */
 .action-button__inner {
-  gap: 3.5rem;
   width: 100%;
   height: 100%;
-  padding: var(--action-button-padding);
+  padding: 0 var(--action-button-inset);
   grid-area: 1 / 1;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   display: flex;
+  position: relative;
 }
 
 .action-button__mask {
@@ -138,32 +150,54 @@
   text-shadow: 0px var(--action-button-text-duplicate-distance) currentColor;
 }
 
-/* The site's stroke arrow, drawn heavier than its 1-unit line, to the
-   weight of the label's own stems as in the reference. Positioned so it
-   paints over the positioned fill behind it. */
+/* The arrow block — joined flush to the label block, in the accent. A
+   third wider than the button is tall: the three triangles run across,
+   and in a square the space either side of them was a fraction of the
+   space above and below. At 4:3 the margins round the mark come out
+   close to even, and the block still reads as a block, not a second
+   label. */
+.action-button__arrow-block {
+  flex: none;
+  width: calc(var(--action-button-height) * 4 / 3);
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--action-button-accent);
+  color: var(--action-button-accent-color);
+  border-radius: 0 var(--action-button-radius) var(--action-button-radius) 0;
+  overflow: clip;
+}
+
+/* The logo's three triangles (ArrowIcon.astro, count 3), pointing on
+   into the action: as tall as a single triangle stands in its chip, the
+   width following from the three forms' own proportions. */
 .action-button__arrow {
   position: relative;
   flex: none;
-  width: 1.125rem;
-  height: 1.125rem;
+  width: auto;
+  height: 0.4375rem;
   transition: transform 0.525s var(--action-button-ease-hover);
 }
-.action-button__arrow path { stroke-width: 1.75; }
 
-/* Secondary — the same shape and the same text-roll, one step quieter,
-   and it never takes the red: the sweep is a light grey a shade under
-   the rest state. */
+/* Secondary — the label block alone, one step quieter, and it never
+   takes the accent: the sweep is a light grey a shade under the rest
+   state. */
 .action-button.is--secondary {
   --action-button-color: var(--c-text);
   --action-button-color-background: #dbdbdb;
   --action-button-hover-color-background: #cacaca;
 }
 
+/* The AEC Tech Firms accent */
+:is(.hero--blue, .cta--blue) .action-button { --action-button-accent: var(--c-blue); }
+
 /* On a dark ground — the closing CTA band, a dark page, section, hero or
    price card — the pair inverts, as the nav's Contact button does on a
    dark page, so the lead stays the strongest thing on its ground: the
-   primary turns white with ink text (and white text on its red sweep),
-   the secondary a quiet lift off the ground. */
+   primary's label block turns white with ink text (white text on its
+   accent sweep), the secondary a quiet lift off the ground with a
+   hairline round it. */
 :is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button {
   --action-button-color-focus: var(--c-white);
 }
@@ -176,6 +210,9 @@
   --action-button-color-background: rgba(255, 255, 255, 0.1);
   --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
 }
+:is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button.is--secondary .action-button__bg {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .action-button:is(:hover, :focus-visible) .action-button__bg-hover {
@@ -187,26 +224,39 @@
   }
 
   .action-button:is(:hover, :focus-visible) .action-button__arrow {
-    transform: translateX(0.25rem);
+    transform: translateX(0.1875rem);
   }
 
-  :is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:not(.is--secondary):is(:hover, :focus-visible) {
-    --action-button-color: var(--c-white);
+  /* on the accent, the label is white whatever ground it sits on */
+  .action-button:not(.is--secondary):is(:hover, :focus-visible) {
+    --action-button-color: var(--action-button-accent-color);
   }
 }
 
-/* In a price card too narrow for a long label and the full run to its
-   arrow (pages.css makes the card a size container), the run closes up
-   and the label may wrap rather than run out past the card. A wrapped
-   label gives up the roll: its copy one line down would sit on its own
-   second line. */
+/* Phones: a touch taller, for the thumb, with the type a step up to
+   keep the same proportions */
+@media screen and (max-width: 479px) {
+  .action-button {
+    --action-button-height: 2.5rem;
+    --action-button-inset: 1rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* In a price card too narrow for a long label (pages.css makes the card
+   a size container), the label block may shrink and its label wrap
+   rather than run out past the card; the arrow block keeps its size. A
+   wrapped label gives up the roll: its copy one line down would sit on
+   its own second line. */
 @container (max-width: 22rem) {
   .price-card > .action-button { max-width: 100%; }
-  .price-card > .action-button .action-button__inner { gap: 1rem; }
+  .price-card > .action-button .action-button__body { flex: 0 1 auto; }
+  .price-card > .action-button .action-button__inner { padding-block: 0.75rem; }
   .price-card > .action-button .action-button__mask { flex: 0 1 auto; }
   .price-card > .action-button .action-button__text {
     white-space: normal;
     line-height: 1.25;
+    text-align: center;
     text-shadow: none;
     transform: none;
   }

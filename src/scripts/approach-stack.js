@@ -16,6 +16,8 @@
        window and moved against the scroll, which reads exactly as
        the full-length line seen through it, without a clip-path on
        a full-height SVG;
+     - the mark on the rail, the logo's triangle, points the way the
+       page is scrolling, down or up;
      - a solid trail grows out of the cube with the scroll's speed,
        behind it either way, and fades over the end of the rail.
 
@@ -35,6 +37,7 @@ export function mountApproachStack(root, { lenis } = {}) {
   const rail = root.querySelector("[data-approach-stack-rail]");
   const win = root.querySelector("[data-approach-stack-window]");
   const dots = root.querySelector("[data-approach-stack-dots]");
+  const mark = root.querySelector("[data-approach-stack-mark]");
   const trailEls = {
     top: root.querySelector('[data-approach-stack-trail="top"]'),
     bottom: root.querySelector('[data-approach-stack-trail="bottom"]'),
@@ -157,6 +160,19 @@ export function mountApproachStack(root, { lenis } = {}) {
       trailEls.top.style.transform = `scaleY(${trail.top / 100})`;
       trailEls.bottom.style.transform = `scaleY(${trail.bottom / 100})`;
     };
+    // The mark on the rail is the logo's triangle, pointing the way the page
+    // is going: down to start with, turned up the moment the scroll turns
+    // up, and back. Only a scroll fast enough to draw a trail turns it, so a
+    // trackpad's jitter at rest never does; the turn swings through the
+    // right, the way the logo's forms point.
+    let heading = 1;
+    const turnMark = (dir) => {
+      if (!mark || dir === heading) return;
+      heading = dir;
+      gsap.to(mark, { rotation: dir > 0 ? 90 : -90, duration: 0.6, ease: "power3.inOut", overwrite: true });
+    };
+    if (mark) gsap.set(mark, { rotation: 90 });
+
     let idle = 0;
     const resetTrail = (smooth) => {
       clearTimeout(idle);
@@ -181,6 +197,7 @@ export function mountApproachStack(root, { lenis } = {}) {
           ? gsap.utils.mapRange(TRAIL.fadeFrom, 1, 1, 0, self.progress)
           : 1;
         const length = speed > TRAIL.minSpeed ? Math.min(TRAIL.gain * speed * damp, TRAIL.max * damp) : 0;
+        if (speed > TRAIL.minSpeed) turnMark(Math.sign(velocity));
         // Scrolling down, the line trails above the cube; up, below it.
         gsap.to(trail, {
           top: velocity > 0 ? length : 0,
@@ -202,6 +219,10 @@ export function mountApproachStack(root, { lenis } = {}) {
       clearTimeout(idle);
       gsap.killTweensOf(trail);
       trailEls.top.style.transform = trailEls.bottom.style.transform = "";
+      if (mark) {
+        gsap.killTweensOf(mark);
+        gsap.set(mark, { clearProps: "transform" });
+      }
       dots.style.backgroundPositionY = "";
     };
   }

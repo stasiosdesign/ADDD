@@ -1,11 +1,10 @@
 /* ============================================================
-   First-load logo intro, second iteration — the Logo Morph Loader
+   First-load logo intro — the Logo Morph Loader
    (src/components/MorphLoader.astro, src/scripts/logo-morph-loader.js)
    ------------------------------------------------------------
-   The stack loader's ground (loader.css), with the mark drawn from the
-   name instead of stacked. Above the page-name wipe (200)
-   and the nav (100), as the stack loader is, so it covers the whole
-   viewport on the initial paint.
+   A black ground with the mark drawn from the name. Above the page-name
+   wipe (200) and the nav (100), so it covers the whole viewport on the
+   initial paint.
    ============================================================ */
 .morph-loader {
   position: fixed;
@@ -16,12 +15,8 @@
   justify-content: center;
 }
 
-/* Only one intro plays in a document load: the inline script in the
-   layout's <head> marks which (data-loader, "morph" unless the URL asks
-   for ?loader=stack), and the other is never painted. Neither is on a
-   "reveal" arrival (see ARRIVAL in site.js). */
-[data-loader="stack"] .morph-loader,
-[data-loader="morph"] .logo-loader,
+/* Any document load that is not the intro arrives as a "reveal" (see
+   ARRIVAL in site.js), and never paints the intro at all. */
 [data-arrival="reveal"] .morph-loader { display: none; }
 
 .morph-loader__bg {
@@ -31,8 +26,7 @@
   transform-origin: 50% 0%;
 }
 
-/* The mark a little larger than the stack loader's, so the morph reads.
-   Hidden until the timeline's first step has placed every part of it, so
+/* The mark, large enough for the morph to read. Hidden until the timeline's first step has placed every part of it, so
    nothing is seen before the animation starts. */
 .morph-loader__logo {
   position: relative;
@@ -72,23 +66,23 @@
    them. Set here rather than by the script, so the first paint is already
    this. Not with reduced motion, which plays the plain loader. */
 @media (prefers-reduced-motion: no-preference) {
-  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .morph-loader { pointer-events: none; }
-  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .morph-loader__bg { display: none; }
-  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .morph-loader__letters:not(.is--on-disc) { fill: var(--c-text); }
+  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .morph-loader { pointer-events: none; }
+  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .morph-loader__bg { display: none; }
+  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .morph-loader__letters:not(.is--on-disc) { fill: var(--c-text); }
 
-  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .mega-nav,
-  [data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field]) .hero > .container { visibility: hidden; }
+  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .mega-nav,
+  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .hero > .container { visibility: hidden; }
 
-  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field] {
+  [data-arrival="intro"] .hero__media[data-slash-field] {
     --slash-extend: screen;
     --slash-words: unborn;
     overflow: visible;
     clip-path: inset(calc(-1 * var(--nav-h)) 0 -100vh 0);
     box-shadow: 0 0 0 100vmax var(--c-light-fg);
   }
-  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field]::after { opacity: 0; }
-  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field] .hero__label:not([data-slash-born]) { visibility: hidden; }
-  [data-arrival="intro"][data-loader="morph"] .hero__media[data-slash-field] .hero__label[data-slash-screen][data-slash-born] { visibility: visible; }
+  [data-arrival="intro"] .hero__media[data-slash-field]::after { opacity: 0; }
+  [data-arrival="intro"] .hero__media[data-slash-field] .hero__label:not([data-slash-born]) { visibility: hidden; }
+  [data-arrival="intro"] .hero__media[data-slash-field] .hero__label[data-slash-screen][data-slash-born] { visibility: visible; }
 }
 /* The intro's own words for the lower half of the screen (Hero.astro):
    never seen but while it plays. */

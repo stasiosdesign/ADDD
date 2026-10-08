@@ -53,18 +53,29 @@
 .section--dark .tile--outline { background: transparent; border-color: var(--c-border-dark); }
 
 /* numbered step list */
-.steps { display: flex; flex-direction: column; margin-top: 4rem; border-top: 1px solid var(--c-border); }
+.steps { display: flex; flex-direction: column; margin-top: 4rem; }
 .steps__item {
+  position: relative;
   display: flex;
   gap: 3rem;
   align-items: flex-start;
   padding: 2.5rem 0;
-  border-bottom: 1px solid var(--c-border);
 }
+/* The rules between and round the steps: the site's dotted rule
+   (--dotted-rule, styles.css), under every step and over the first. */
+.steps__item::after,
+.steps__item:first-child::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--dotted-rule-bleed));
+  right: calc(-1 * var(--dotted-rule-bleed));
+  bottom: 0;
+  height: 2px;
+  background: var(--dotted-rule);
+}
+.steps__item:first-child::before { top: 0; bottom: auto; }
 .steps__label { flex: 0 0 11.25rem; }
 .steps__body { flex: 1 0 0; min-width: 0; display: flex; flex-direction: column; gap: 0.75rem; }
-.section--dark .steps { border-color: var(--c-border-dark); }
-.section--dark .steps__item { border-color: var(--c-border-dark); }
 
 /* simple dash list */
 .check-list { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -75,6 +86,9 @@
 .price { display: flex; align-items: baseline; gap: 0.5rem; }
 .price__amount { font-family: var(--font-display); font-weight: 400; font-size: var(--t-h2); letter-spacing: -0.04em; }
 .price-card {
+  /* A size container, so a CTA too long for a narrow card can close up
+     (action-button.css). */
+  container-type: inline-size;
   background: var(--c-light-fg);
   border-radius: var(--radius);
   padding: 2.5rem;
@@ -83,10 +97,7 @@
   gap: 1.5rem;
 }
 .price-card--dark { background: var(--c-dark-bg); color: var(--c-white); }
-/* A CTA keeps its own length rather than the card's width. The card is a
-   size container so a CTA too long for a narrow one can close up
-   (action-button.css). */
-.price-card { container-type: inline-size; }
+/* A CTA keeps its own length rather than the card's width. */
 .price-card > .action-button { align-self: flex-start; }
 .section--dark .price-card { background: rgba(255,255,255,.06); }
 
@@ -276,7 +287,8 @@
    and the closing CTA already paint themselves from that token, so
    they follow without a rule of their own and the page reads as one
    continuous field instead of a stack of near-identical bands.
-   The nav — bar and dropdown — picks the class up too (see nav.css). */
+   The nav — bar and dropdown — reads the dark ground under it and
+   turns dark with it (initNavTheme, site.js; nav.css). */
 .page--dark {
   --c-dark-bg: var(--c-dark-fg);
   background: var(--c-dark-fg);

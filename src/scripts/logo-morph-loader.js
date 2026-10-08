@@ -1,9 +1,8 @@
 /* ============================================================
-   Logo Morph Loader (GSAP) — the first-load intro, second iteration
+   Logo Morph Loader (GSAP) — the first-load intro
    ------------------------------------------------------------
-   Built alongside the Logo Stack Loader (logo-stack-loader.js), which
-   is kept as it is; which of the two plays is chosen per document
-   load (data-loader on <html>, see BaseLayout and runIntro()).
+   Started by runIntro() in site.js on an "intro" arrival (data-arrival
+   on <html>, see BaseLayout).
 
    On the homepage it is the hero's way in rather than a curtain in
    front of it. The hero's own field is the screen from the first paint
@@ -54,7 +53,7 @@
 
    Everywhere else, and with reduced motion, it is the plain intro: the
    name rises out of its baseline on a black ground, the morph and the
-   disc, and the ground lifts off the page as the stack's does.
+   disc, and the ground lifts off the page.
 
    The morph itself — the letters' outlines, their targets and the
    windows that stagger the parts of each letter — is logo-morph.js,
@@ -63,10 +62,9 @@
    field's part — the clearing, the pulse, the words' births and the
    close — is the field's own (slash-field.js, its intro methods).
 
-   Hands back its timeline (null without the markup), as the stack
-   loader does, with a "reveal" label where scrolling can be handed
-   back: as the ground starts to lift, or on the homepage once the hero
-   has settled. Markup: src/components/MorphLoader.astro. Styles:
+   Hands back its timeline (null without the markup), with a "reveal"
+   label where scrolling can be handed back: as the ground starts to
+   lift, or on the homepage once the hero has settled. Markup: src/components/MorphLoader.astro. Styles:
    src/styles/morph-loader.css.
    ============================================================ */
 
@@ -171,10 +169,22 @@ function nearestEdge(polygons, px, py) {
   return [inside ? 0 : Math.sqrt(best), ex, ey, vx, vy];
 }
 
+// A computed colour as rgba(), which GSAP can tween. The nav's colours are
+// mixes (nav.css), and a mixed colour comes back from getComputedStyle in
+// the space it was mixed in — oklab() — which GSAP cannot read. A canvas
+// pixel takes any colour the browser can paint.
+function asRGB(color) {
+  const ctx = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 1, 1);
+  const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+  return `rgba(${r}, ${g}, ${b}, ${(a / 255).toFixed(3)})`;
+}
+
 // Whether this load's first paint is the homepage's field (the selector
 // morph-loader.css sets that paint up with).
 const heroPaint = () =>
-  document.documentElement.matches('[data-arrival="intro"][data-loader="morph"]:has(.hero__media[data-slash-field])') &&
+  document.documentElement.matches('[data-arrival="intro"]:has(.hero__media[data-slash-field])') &&
   !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export function initLogoMorphLoader(root = document.querySelector("[data-morph-loader]"), { hero = null } = {}) {
@@ -405,7 +415,7 @@ export function initLogoMorphLoader(root = document.querySelector("[data-morph-l
       .set(shape, { clipPath: asDisc, visibility: "visible" }, handover)
       .set(circle, { opacity: 0 }, handover)
       .to(shape, { clipPath: asSlot, duration: HERO.flight, ease: flightEase }, handover)
-      .to(shape, { backgroundColor: getComputedStyle(slot).backgroundColor, duration: HERO.flight, ease: darken }, handover)
+      .to(shape, { backgroundColor: asRGB(getComputedStyle(slot).backgroundColor), duration: HERO.flight, ease: darken }, handover)
       .to(logo, { ...flight, transformOrigin: "18.4% 42.7%", duration: HERO.flight, ease: flightEase }, handover)
       // the bar, and the copy with the band's crop riding on its top edge
       .fromTo(nav, { yPercent: -100, visibility: "visible" }, { yPercent: 0, duration: HERO.meet, ease: flightEase, immediateRender: false }, meet)
@@ -449,7 +459,7 @@ export function initLogoMorphLoader(root = document.querySelector("[data-morph-l
     disc(morph(morphStart));
     timeline
       .addLabel("reveal", `complete+=${TIMING.finished}`)
-      // as the stack's: the mark goes, then the ground lifts off the page
+      // the mark goes, then the ground lifts off the page
       .to(logo, { autoAlpha: 0, y: "-6%", duration: 0.4, ease: "power2.out" }, "reveal")
       .to(bg, { scaleY: 0, duration: 0.55, ease: "expo.inOut" }, "reveal+=0.1");
   }

@@ -3,18 +3,41 @@
   The closing call to action every content page ends on, set the way the
   hero and the routes intro are: a label holding the left edge, the heading
   and its buttons set in from it, and the arrow out on the right gutter.
+
+  The copy is the practice journey's unless a page has its own: For AEC
+  Tech Firms passes its partnership routes, so the two audiences never
+  share one call to action.
 */
 import ActionButton from "./ActionButton.astro";
 import ArrowIcon from "./ArrowIcon.astro";
+
+interface Props {
+  label?: string;
+  heading?: string;
+  primary?: { href: string; label: string; [attr: string]: unknown };
+  secondary?: { href: string; label: string; [attr: string]: unknown };
+  /** The primary's accent: the site's red, or the AEC Tech Firms blue. */
+  accent?: "red" | "blue";
+}
+
+const {
+  label = "For architecture practices",
+  heading = "Need help making sense of your technology setup?",
+  primary = { href: "stack-diagnostic.html", label: "Free Tech Stacks" },
+  secondary = { href: "contact.html", label: "Book a Call" },
+  accent = "red",
+} = Astro.props;
+const { label: primaryLabel, ...primaryAttrs } = primary;
+const { label: secondaryLabel, ...secondaryAttrs } = secondary;
 ---
-<section class="cta">
+<section class:list={["cta", { "cta--blue": accent === "blue" }]}>
   <div class="cta__grid">
-    <p class="tagline tagline--sm cta__label">For architecture practices</p>
+    <p class="tagline tagline--sm cta__label">{label}</p>
     <div class="cta__body">
-      <h2 class="h1 cta__heading">Need help making sense of your technology setup?</h2>
+      <h2 class="h1 cta__heading">{heading}</h2>
       <div class="actions actions--pair">
-        <ActionButton href="stack-diagnostic.html">Free Tech Stacks</ActionButton>
-        <ActionButton href="contact.html" variant="secondary">Work With Us</ActionButton>
+        <ActionButton {...primaryAttrs}>{primaryLabel}</ActionButton>
+        <ActionButton {...secondaryAttrs} variant="secondary">{secondaryLabel}</ActionButton>
       </div>
     </div>
     <span class="cta__mark" aria-hidden="true"><ArrowIcon /></span>

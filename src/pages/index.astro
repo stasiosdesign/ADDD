@@ -18,7 +18,7 @@ const related = [
 ---
 <BaseLayout
   title="ADDD — Technology strategy for architecture practices"
-  description="See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow. Independent technology strategy for architecture practices."
+  description="Independent research and technology strategy for architecture practices: how technology actually gets used to make architecture, and which decisions to make first."
   pageName="Home"
   home
 >
@@ -29,7 +29,7 @@ const related = [
        leaves (initHeroParallax in src/scripts/site.js) -->
   <div data-hero-parallax class="hero-wrap">
     <div data-hero-parallax-inner>
-      <Hero arrowHref="#approach" arrowLabel="Scroll to the ADDD approach" pattern="slash" />
+      <Hero arrowHref="#approach" arrowLabel="Scroll to the ADDD approach" />
     </div>
     <div data-hero-parallax-dark class="hero-wrap__dark"></div>
   </div>
@@ -42,7 +42,7 @@ const related = [
   <!-- ========== 2. LOGO STRIP ========== -->
   <section class="logos">
     <h2 class="h4 logos__title">Trusted by leading practices across the UK</h2>
-    <div class="logos__rule" aria-hidden="true"></div>
+    <div class="dotted-rule logos__rule" aria-hidden="true"></div>
     <div data-wavy-marquee-init class="wavy-marquee">
       <div class="wavy-marquee__collection">
         <!-- Wide single-line wordmarks alternate with compact, stacked
@@ -68,13 +68,15 @@ const related = [
   <ApproachStack />
 
   </div>
-  <!-- ========== 4. INDUSTRY PROBLEMS ========== -->
-  <section class="section">
+
+  <!-- ========== 4. THE COST OF STANDING STILL ========== -->
+  <!-- After the approach: why technology decisions matter. -->
+  <section class="section" id="cost">
     <div class="container">
       <div class="problem-head">
         <div class="problem-head__lede">
           <p class="text-md">Tools multiply. Workflows drift. Information fragments. AI gets added without clear direction or ownership.</p>
-          <p class="tagline tagline--sm">Industry problems</p>
+          <p class="tagline tagline--sm">The cost of standing still</p>
         </div>
         <h2 class="problem-head__h">What actually costs you time</h2>
       </div>
@@ -123,7 +125,7 @@ const related = [
     <div class="container">
       <div class="routes__head">
         <div class="routes__lede">
-          <p class="text-md" style="max-width:21.875rem">From a focused workflow problem to practice-wide strategy, ongoing advice or software costs. Choose the route that fits the issue.</p>
+          <p class="text-md" style="max-width:21.875rem">From a focused workflow problem or early-stage design to practice-wide strategy and ongoing guidance. Choose the route that fits the issue.</p>
           <p class="tagline tagline--sm">Ways to work with ADDD</p>
         </div>
         <h2 class="routes__h">Start with what needs solving</h2>
@@ -139,8 +141,20 @@ const related = [
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg></span>
           </div>
           <div class="route-card__body">
-            <h3 class="route-card__h">Workshop</h3>
-            <p class="route-card__p">A four-hour, in-person diagnostic on a live project, followed by a tailored report.</p>
+            <h3 class="route-card__h">Workflow Workshop</h3>
+            <p class="route-card__p">A half-day diagnostic using a live project, to show where to start.</p>
+          </div>
+        </a>
+
+        <a class="route-card" href="before-revit.html">
+          <div class="route-card__media">
+            <span class="tagline tagline--sm route-card__label">Early-stage design workflow</span>
+            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
+            <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
+          </div>
+          <div class="route-card__body">
+            <h3 class="route-card__h">Before Revit</h3>
+            <p class="route-card__p">A review of the early stages of design, before work moves into Revit or Archicad.</p>
           </div>
         </a>
 
@@ -151,32 +165,20 @@ const related = [
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
           </div>
           <div class="route-card__body">
-            <h3 class="route-card__h">Tech-Blueprint</h3>
-            <p class="route-card__p">One evidence-based view across the practice, turned into a prioritised roadmap.</p>
+            <h3 class="route-card__h">Technology Blueprint</h3>
+            <p class="route-card__p">Practice-wide technology strategy, from workflows to data, security and AI.</p>
           </div>
         </a>
 
         <a class="route-card" href="advisory.html">
           <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label">Recurring decisions</span>
+            <span class="tagline tagline--sm route-card__label">Ongoing guidance</span>
             <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
             <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
           </div>
           <div class="route-card__body">
             <h3 class="route-card__h">ADDDvisory</h3>
-            <p class="route-card__p">Monthly guidance on AI, BIM, software and digital priorities for practice leaders.</p>
-          </div>
-        </a>
-
-        <a class="route-card" href="software-licensing-audit.html">
-          <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label">Cost optimisation</span>
-            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
-            <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
-          </div>
-          <div class="route-card__body">
-            <h3 class="route-card__h">Software &amp; Licensing Audit</h3>
-            <p class="route-card__p">Every seat, renewal and overlap set against real usage.</p>
+            <p class="route-card__p">Ongoing strategic guidance, after or alongside the main strategic work.</p>
           </div>
         </a>
 
@@ -249,10 +251,10 @@ const related = [
         <p class="tagline tagline--sm testimonial-lines__count"><span data-current="">1</span> / <span data-total="">3</span></p>
         <div class="testimonial-lines__buttons">
           <button data-prev="" aria-label="Previous testimonial" class="testimonial-lines__button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 12 12" fill="none" class="testimonial-lines__arrow" aria-hidden="true"><path d="M5.26512 12L6.43721 10.7746L1.48837 5.28169V6.71831L6.45581 1.22535L5.28372 0L-2.21369e-07 6L5.26512 12ZM12 6.97183V5.02817H1.30232V6.97183H12Z" fill="currentColor"></path></svg>
+            <ArrowIcon class="testimonial-lines__arrow is--prev" aria-hidden="true" />
           </button>
           <button data-next="" aria-label="Next testimonial" class="testimonial-lines__button">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 12 12" fill="none" class="testimonial-lines__arrow" aria-hidden="true"><path d="M6.73488 12L5.56279 10.7746L10.5116 5.28169V6.71831L5.54419 1.22535L6.71628 0L12 6L6.73488 12ZM0 6.97183V5.02817H10.6977V6.97183H0Z" fill="currentColor"></path></svg>
+            <ArrowIcon class="testimonial-lines__arrow" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -316,17 +318,37 @@ const related = [
     </div>
   </section>
 
-  <!-- ========== 9. RESEARCH & INSIGHT ========== -->
+  <!-- ========== 9. RESEARCH, INSIGHT & NEWSLETTER ========== -->
   <section class="section">
     <div class="container">
       <div class="research__head section-title">
-        <p class="text-md">Independent knowledge to strengthen your decisions</p>
+        <p class="text-md">The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture.</p>
         <div class="section-title__body">
           <h2 class="h2">Research and insight</h2>
         </div>
       </div>
 
       <InsightSlider items={related} />
+
+      <!-- The ADDDitive signup, closing the research it comes from: the
+           shared signup (styles.css), with the audience question. -->
+      <div class="research__signup">
+        <div class="stack stack--16">
+          <p class="tagline tagline--sm">ADDDitive newsletter</p>
+          <h3 class="h4">Get ADDDitive in your inbox</h3>
+        </div>
+        <form class="newsletter-signup" onsubmit="return false">
+          <div class="newsletter-form">
+            <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
+            <button class="newsletter-form__submit" type="submit">Subscribe</button>
+          </div>
+          <fieldset class="newsletter-audience">
+            <legend class="newsletter-audience__legend">Which describes you?</legend>
+            <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+            <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+          </fieldset>
+        </form>
+      </div>
     </div>
   </section>
 

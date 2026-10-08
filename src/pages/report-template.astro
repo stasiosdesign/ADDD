@@ -98,9 +98,16 @@ const related = [
             <h2 class="h3">Get the BIM 2.0 report</h2>
             <p>Download your copy and explore what&rsquo;s reshaping architecture practice today</p>
           </div>
-          <form class="newsletter-form" onsubmit="return false">
-            <input type="email" placeholder="Work email" aria-label="Work email">
-            <button class="newsletter-form__submit" type="submit">Download report</button>
+          <form class="newsletter-signup" onsubmit="return false">
+            <div class="newsletter-form">
+              <input type="email" name="email" placeholder="Work email" aria-label="Work email" required>
+              <button class="newsletter-form__submit" type="submit">Download report</button>
+            </div>
+            <fieldset class="newsletter-audience">
+              <legend class="newsletter-audience__legend">Which describes you?</legend>
+              <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+              <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+            </fieldset>
           </form>
           <p class="text-sm">We respect your inbox. Unsubscribe at any time.</p>
         </div>

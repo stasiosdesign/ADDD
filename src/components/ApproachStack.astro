@@ -5,7 +5,8 @@
   Stack Timeline spec (after the stack section on sui.io), adapted to three
   cards and to the site: the steps zig-zag either side of a centre rail, and a
   short window of the rail's dotted line rides at the middle of the viewport
-  with a cube in it, passing each card in turn. Every card is open, with its
+  with the logo's triangle on it, pointing the way the page is scrolling,
+  passing each card in turn. Every card is open, with its
   step drawn as a small live schematic that draws in as the card comes into
   view.
 
@@ -24,6 +25,7 @@
     - rank   Prioritise: findings as bars of impact, the tallest in red,
              re-ranking as the picture changes.
 */
+import ArrowIcon from "./ArrowIcon.astro";
 
 
 const steps = [
@@ -111,7 +113,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
       <div class="approach-stack__window" data-approach-stack-window>
         <span class="approach-stack__dots" data-approach-stack-dots></span>
         <span class="approach-stack__trail is--top" data-approach-stack-trail="top"></span>
-        <span class="approach-stack__cube"></span>
+        <span class="approach-stack__cube"><ArrowIcon aria-hidden="true" class="approach-stack__mark" data-approach-stack-mark /></span>
         <span class="approach-stack__trail is--bottom" data-approach-stack-trail="bottom"></span>
       </div>
     </div>

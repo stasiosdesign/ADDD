@@ -1,14 +1,20 @@
 ---
 /*
-  The site's CTA (src/styles/action-button.css): a compact slab as long
-  as its label, the label face in capitals and the site's arrow at its
-  far end, in two variants —
+  The site's CTA (src/styles/action-button.css), in two variants —
 
-    primary    ink; sweeps to the accent on hover
-    secondary  light grey; never takes the accent
+    primary    a label block with a shorter block joined to its right,
+               a third wider than tall, carrying the logo's three
+               triangles, one button: the label in the variant's ink,
+               the arrow block in the page's accent; the label sweeps
+               to the accent on hover, so the whole button becomes one
+               colour
+    secondary  the label block alone, no arrow, one step quieter
 
-  — so a pair of them reads as one system with one clear lead. On a dark
-  ground the pair inverts by itself.
+  — so a pair reads as one system with one clear lead. On a dark ground
+  the pair inverts by itself.
+
+  Primary is for the action a section exists to prompt (enquire, send,
+  start); secondary for supporting, navigational or in-page moves.
 
   The label is the slot. With an href it is a link; without one it is a
   <button>, for a form's submit (pass type="submit"). Any other
@@ -24,11 +30,18 @@ interface Props {
 
 const { href, variant = "primary", ...attrs } = Astro.props;
 const Tag = href ? "a" : "button";
+const primary = variant === "primary";
 ---
-<Tag href={href} class:list={["action-button", { "is--secondary": variant === "secondary" }]} {...attrs}>
-  <span class="action-button__bg"><span class="action-button__bg-hover"></span></span>
-  <span class="action-button__inner">
-    <span class="action-button__mask"><span class="action-button__text"><slot /></span></span>
-    <ArrowIcon class="action-button__arrow" aria-hidden="true" />
+<Tag href={href} class:list={["action-button", { "is--secondary": !primary }]} {...attrs}>
+  <span class="action-button__body">
+    <span class="action-button__bg"><span class="action-button__bg-hover"></span></span>
+    <span class="action-button__inner">
+      <span class="action-button__mask"><span class="action-button__text"><slot /></span></span>
+    </span>
   </span>
+  {primary && (
+    <span class="action-button__arrow-block" aria-hidden="true">
+      <ArrowIcon count={3} class="action-button__arrow" aria-hidden="true" />
+    </span>
+  )}
 </Tag>

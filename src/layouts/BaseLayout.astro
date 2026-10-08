@@ -3,8 +3,7 @@
   The shell every page shares. Its shape is what Barba needs:
 
     body[data-barba="wrapper"]
-      .logo-loader           — first-load logo intro, outside the container
-      .morph-loader          — its second iteration; one of the two plays
+      .morph-loader          — first-load logo intro, outside the container
       .transition            — the wipe panel, outside the container
       nav.mega-nav           — persistent, outside the container
       .column-grid           — the 12-Column Grid overlay (Shift + G)
@@ -24,7 +23,6 @@
   the inline script in <head> runs on document loads only — never on a Barba
   navigation — which is exactly what it is for.
 */
-import Loader from "../components/Loader.astro";
 import MorphLoader from "../components/MorphLoader.astro";
 import Transition from "../components/Transition.astro";
 import Nav from "../components/Nav.astro";
@@ -46,7 +44,6 @@ import "../styles/contact-button.css";
 import "../styles/action-button.css";
 import "../styles/accordion.css";
 import "../styles/transition.css";
-import "../styles/loader.css";
 import "../styles/morph-loader.css";
 import "../styles/column-grid.css";
 import "../styles/page-grid.css";
@@ -57,8 +54,7 @@ interface Props {
   title: string;
   /** The search-result summary, taken from the page's own opening copy. */
   description: string;
-  /** The page's display name, carried on the Barba container and shown on
-      the wipe panel. */
+  /** The page's display name, carried on the Barba container. */
   pageName: string;
   /** The homepage: the one page the logo intro opens, since it plays out in
       the hero's own field (see ARRIVAL in src/scripts/site.js). */
@@ -104,21 +100,16 @@ const { title, description, pageName, home = false } = Astro.props;
       seen = seen || new URL(document.referrer).origin === location.origin;
     } catch (err) {}
     document.documentElement.dataset.arrival = home && (requested || reload || !seen) ? "intro" : "reveal";
-    // Which intro plays: the Logo Morph Loader, or the Logo Stack Loader
-    // with ?loader=stack, kept so the two can be compared.
-    var loader = new URLSearchParams(location.search).get("loader");
-    document.documentElement.dataset.loader = loader === "stack" ? "stack" : "morph";
   })();
 </script>
-<noscript><style>.logo-loader, .morph-loader { display: none; }</style></noscript>
+<noscript><style>.morph-loader { display: none; }</style></noscript>
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
 </head>
 <body data-barba="wrapper">
-<Loader />
 <MorphLoader />
-<Transition pageName={pageName} />
+<Transition />
 <Nav />
 <ColumnGrid />
 <div data-barba="container" data-page-name={pageName}>

@@ -1,5 +1,5 @@
 /* ============================================================
-   Page name wipe — panel colours mapped to the ADDD palette.
+   Page wipe — a red panel carrying the logo morph.
    Sits above the nav (z-index 100) so the wipe covers the whole
    viewport, including the persistent navigation.
    ============================================================ */
@@ -12,7 +12,7 @@
 }
 
 .transition__panel {
-  background-color: var(--c-dark-fg);
+  background-color: var(--c-red);
   justify-content: center;
   align-items: center;
   width: 100%;
@@ -28,20 +28,39 @@
    carries it on up from there. */
 [data-arrival="reveal"] .transition__panel { transform: translateY(-100%); }
 
-/* The page name takes the site's label voice — Adelle Mono, uppercase,
-   from the shared rule in styles.css. Only size, colour and placement
-   live here. */
-.transition__label {
+/* Into the Tech Firms page the panel is the blue that page is set in. */
+.transition__panel[data-tone="blue"] { background-color: var(--c-blue); }
+
+/* The logo, white on the panel, a touch under the nav's mark: a passing
+   sign, not a showpiece. Mid-change a letter or form is scaled past the
+   viewBox, which it must not be cropped by. */
+.transition__logo {
   position: relative;
+  width: 3em;
+  height: auto;
   color: var(--c-white);
-  font-size: 1.125em;
-  text-align: center;
-  padding: 0 var(--page-pad);
+  overflow: visible;
+  display: block;
 }
 
-@media (max-width: 991px) {
-  .transition__label { font-size: 1em; }
+/* The name in the accent face, sized in the viewBox's own units so its cap
+   height matches the forms it hands over to. Hidden at rest: a "reveal"
+   arrival shows only the forms, and leave() brings the name in. */
+.transition__glyph {
+  font-family: var(--font-mono);
+  font-size: 22px;
+  font-weight: 400;
+  opacity: 0;
 }
 
-/* the incoming container is pinned by Barba while it animates in */
-[data-barba="container"] { will-change: transform; }
+@media (max-width: 767px) {
+  .transition__logo { width: 2.5em; }
+}
+
+/* The page: a containing block for its absolutely placed parts and a
+   stacking context of its own, so nothing in a page can rise over the
+   nav or the wipe. It was a will-change: transform, which did both but
+   also kept the whole page — every page, all its height — on a layer of
+   its own the whole time it was open; GSAP lifts it onto one only while
+   the wipe moves it. */
+[data-barba="container"] { position: relative; isolation: isolate; }

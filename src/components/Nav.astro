@@ -25,6 +25,38 @@ import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 // The forms as the morph draws them at rest, so the mark is the logo before
 // any script has run, and the morph starts from exactly what is on screen.
 const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
+
+// The Services cards. Each leads with its graphic in a fixed frame, so a
+// custom graphic can take its place later without touching the card. For
+// now only ADDDvisory has one, a photograph, greyscaled; the frame of a card
+// without one is left as a plain grey placeholder of the same size.
+// The photograph is from Unsplash (Unsplash License), served from its image
+// CDN at the frame's size. Not lazy: the nav outlives every page change, so
+// it loads once, at low priority, and is there when the nav opens.
+const unsplash = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=720&h=450&q=70`;
+const services = [
+  {
+    href: "workshops-audits.html",
+    name: "Workflow Workshop",
+    desc: "Half-day diagnostic using a live project",
+  },
+  {
+    href: "before-revit.html",
+    name: "Before Revit",
+    desc: "Early design workflow, before Revit or Archicad",
+  },
+  {
+    href: "technology-blueprint.html",
+    name: "Technology Blueprint",
+    desc: "Practice-wide technology strategy and priorities",
+  },
+  {
+    href: "advisory.html",
+    name: "ADDDvisory",
+    desc: "Ongoing strategic guidance for your practice",
+    image: unsplash("1770921178335-ef2cd8b00dea"), // a white interior's lines
+  },
+];
 ---
 <nav data-menu-open="false" data-menu-wrap class="mega-nav">
   <div class="mega-nav__bar">
@@ -51,17 +83,13 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
             <li data-nav-list-item>
               <button type="button" data-dropdown-toggle="services" aria-expanded="false" aria-controls="mega-nav-services" class="mega-nav__bar-link is--dropdown nav-link">
                 <NavLinkLabel class="mega-nav__bar-link-label">Services</NavLinkLabel>
-                <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown">
-                  <path d="M6.6665 8.3335L9.99984 11.6668L13.3332 8.3335" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
+                <ArrowIcon aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown" />
               </button>
             </li>
             <li data-nav-list-item>
               <button type="button" data-dropdown-toggle="resources" aria-expanded="false" aria-controls="mega-nav-resources" class="mega-nav__bar-link is--dropdown nav-link">
                 <NavLinkLabel class="mega-nav__bar-link-label">Resources</NavLinkLabel>
-                <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown">
-                  <path d="M6.6665 8.3335L9.99984 11.6668L13.3332 8.3335" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
+                <ArrowIcon aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown" />
               </button>
             </li>
             <li data-nav-list-item>
@@ -99,9 +127,7 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
         </div>
         <div data-mobile-back class="mega-nav__back">
           <button type="button" aria-label="Back to menu" class="mega-nav__bar-link is--back">
-            <svg xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 20 20" fill="none" aria-hidden="true" class="mega-nav__bar-link-icon">
-              <path d="M11.6665 6.6665L8.33317 9.99984L11.6665 13.3332" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
+            <ArrowIcon aria-hidden="true" class="mega-nav__bar-link-icon" />
             <span class="mega-nav__bar-link-label">Back</span>
           </button>
         </div>
@@ -117,57 +143,25 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
         <div class="mega-nav__dropdown-inner">
           <div class="mega-nav__panel-col is--services">
             <div class="mega-nav__service-grid">
-              <a data-menu-fade href="workshops-audits.html" class="mega-nav__service-card">
-                <span class="mega-nav__service-card-media">
-                  <span class="mega-nav__panel-label mega-nav__service-card-label">Focused diagnostic</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
-                </span>
-                <span class="mega-nav__service-card-text">
-                  <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg></span>
-                  <span class="mega-nav__panel-link-text">Workflow Workshop</span>
-                  <span class="mega-nav__panel-link-desc">Half-day diagnostic using a live project</span>
-                </span>
-              </a>
-              <a data-menu-fade href="software-licensing-audit.html" class="mega-nav__service-card">
-                <span class="mega-nav__service-card-media">
-                  <span class="mega-nav__panel-label mega-nav__service-card-label">Cost optimisation</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
-                </span>
-                <span class="mega-nav__service-card-text">
-                  <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
-                  <span class="mega-nav__panel-link-text">Software &amp; Licensing Audit</span>
-                  <span class="mega-nav__panel-link-desc">Software spend, usage and overlap reviewed</span>
-                </span>
-              </a>
-              <a data-menu-fade href="technology-blueprint.html" class="mega-nav__service-card">
-                <span class="mega-nav__service-card-media">
-                  <span class="mega-nav__panel-label mega-nav__service-card-label">Strategic roadmap</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
-                </span>
-                <span class="mega-nav__service-card-text">
-                  <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
-                  <span class="mega-nav__panel-link-text">Technology Blueprint</span>
-                  <span class="mega-nav__panel-link-desc">Eight-week strategy with clear priorities</span>
-                </span>
-              </a>
-              <a data-menu-fade href="advisory.html" class="mega-nav__service-card">
-                <span class="mega-nav__service-card-media">
-                  <span class="mega-nav__panel-label mega-nav__service-card-label">Ongoing guidance</span>
-                  <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
-                </span>
-                <span class="mega-nav__service-card-text">
-                  <span class="mega-nav__service-card-icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-                  <span class="mega-nav__panel-link-text">ADDDvisory</span>
-                  <span class="mega-nav__panel-link-desc">Monthly guidance for architecture leaders</span>
-                </span>
-              </a>
+              {services.map((s) => (
+                <a data-menu-fade href={s.href} class="mega-nav__service-card">
+                  <span class="mega-nav__service-card-graphic" aria-hidden="true">
+                    {s.image && <img src={s.image} alt="" fetchpriority="low" decoding="async" />}
+                  </span>
+                  <span class="mega-nav__panel-link-text">{s.name}</span>
+                  <span class="mega-nav__panel-link-desc">{s.desc}</span>
+                  <span class="mega-nav__service-card-foot">
+                    <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
+                  </span>
+                </a>
+              ))}
             </div>
           </div>
         </div>
       </div>
 
       <div data-nav-content="resources" id="mega-nav-resources" role="region" aria-label="Resources" class="mega-nav__dropdown-panel">
-        <div class="mega-nav__dropdown-inner">
+        <div class="mega-nav__dropdown-inner is--resources">
 
           <!-- Explore — the interactive research layer: the Stack applies the
                knowledge, the database exposes the software landscape under it. -->
@@ -187,7 +181,7 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
                   <span class="mega-nav__panel-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16.2 7.79999L14.1 14.1L7.79999 16.2L9.89999 9.89999L16.2 7.79999Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor"></path></svg></span>
                   <span class="mega-nav__panel-link-body">
                     <span class="mega-nav__panel-link-text">Software Database &#8599;</span>
-                    <span class="mega-nav__panel-link-desc">Explore 1,700+ AEC software solutions.</span>
+                    <span class="mega-nav__panel-link-desc">ADDD&rsquo;s research into 1,700+ AEC software solutions.</span>
                   </span>
                 </a>
               </li>
@@ -215,7 +209,7 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
                   <span class="mega-nav__featured-text">
                     <span class="mega-nav__panel-label mega-nav__featured-label">Latest report</span>
                     <span class="mega-nav__panel-link-text">The state of AI in architecture</span>
-                    <span class="mega-nav__featured-cta">Read the report &rarr;</span>
+                    <span class="mega-nav__featured-cta">Read the report <ArrowIcon aria-hidden="true" class="mega-nav__featured-cta-mark" /></span>
                   </span>
                 </a>
               </li>
@@ -233,14 +227,21 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
                   <span class="mega-nav__panel-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 5.5H21.5V18.5H2.5V5.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M2.5 5.5L12 12.5L21.5 5.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
                   <span class="mega-nav__panel-link-body">
                     <span class="mega-nav__panel-link-text">ADDDitive Newsletter</span>
-                    <span class="mega-nav__panel-link-desc">Regular thinking on technology, AI and digital practice.</span>
+                    <span class="mega-nav__panel-link-desc">How technology actually gets used to make architecture.</span>
                   </span>
                 </a>
               </li>
             </ul>
-            <form class="newsletter-form mega-nav__signup" onsubmit="return false">
-              <input type="email" placeholder="Your email" aria-label="Your email" required>
-              <button class="newsletter-form__submit" type="submit">Subscribe</button>
+            <form class="newsletter-signup" onsubmit="return false">
+              <div class="newsletter-form mega-nav__signup">
+                <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
+                <button class="newsletter-form__submit" type="submit">Subscribe</button>
+              </div>
+              <fieldset class="newsletter-audience">
+                <legend class="newsletter-audience__legend">Which describes you?</legend>
+                <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+                <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+              </fieldset>
             </form>
           </div>
 

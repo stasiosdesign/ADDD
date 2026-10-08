@@ -7,15 +7,15 @@ import ClosingCta from "../components/ClosingCta.astro";
 const faq = [
   { question: "Who should join?", answer: "Practice leaders who carry technology decisions — directors, partners, operations leads and digital or BIM leads." },
   { question: "What counts as a question between sessions?", answer: "Short, decision-shaped questions related to the themes covered. Anything needing dedicated analysis becomes a separate engagement." },
-  { question: "Does this include implementation support?", answer: "No. Advisory shapes decisions. Delivery sits with your team or with a Technology Blueprint engagement." },
-  { question: "What if we already have a BIM or digital lead?", answer: "They benefit most. Advisory gives them an external reference point and a framework to bring back to leadership." },
+  { question: "Does this include implementation support?", answer: "No. ADDDvisory shapes decisions. Delivery sits with your team, and practice-wide strategy with a Technology Blueprint engagement." },
+  { question: "What if we already have a BIM or digital lead?", answer: "They benefit most. ADDDvisory gives them an external reference point and a framework to bring back to leadership." },
   { question: "When should we choose a Technology Blueprint instead?", answer: "When you need one evidence-based view of the whole practice before deciding anything, rather than monthly guidance." },
 ];
 ---
 <BaseLayout
-  title="Advisory — ADDD"
-  description="ADDDvisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities—before isolated decisions create more complexity."
-  pageName="Advisory"
+  title="ADDDvisory — ADDD"
+  description="ADDDvisory is ongoing strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities."
+  pageName="ADDDvisory"
 >
 <main class="page--dark page--grid">
 
@@ -24,13 +24,13 @@ const faq = [
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
           <p class="tagline">ADDDvisory</p>
-          <h1 class="h1">Monthly guidance for architecture leaders</h1>
+          <h1 class="h1">Ongoing strategic guidance for architecture practices</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">ADDDvisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities&mdash;before isolated decisions create more complexity.</p>
+          <p class="text-md">After or alongside the main strategic work, ADDDvisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities&mdash;before isolated decisions create more complexity.</p>
           <div class="actions actions--pair">
-            <ActionButton href="contact.html">Join the Waitlist</ActionButton>
-            <ActionButton href="#pricing" variant="secondary">Founding rate: &pound;99/mo</ActionButton>
+            <ActionButton href="contact.html">Enquire</ActionButton>
+            <ActionButton href="#pricing" variant="secondary">Membership Pricing</ActionButton>
           </div>
         </div>
       </div>
@@ -163,7 +163,7 @@ const faq = [
   <section class="section section--dark" id="pricing">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Choose founding or standard membership</p>
+        <p class="text-md">One practice membership, month to month</p>
         <div class="section-title__body">
           <p class="tagline">Pricing</p>
           <h2 class="h2">Membership pricing</h2>
@@ -173,24 +173,10 @@ const faq = [
       <div class="grid grid--2 grid--mt">
         <article class="price-card">
           <div class="stack stack--16">
-            <h3 class="h4">Founding membership</h3>
-            <p>Rate locked for 12 months</p>
-            <div class="price"><span class="price__amount">&pound;99</span><span>/mo</span></div>
-            <p class="text-sm">Available from late 2026</p>
-          </div>
-          <ul class="check-list">
-            <li>One 60-minute session monthly</li>
-            <li>Rotating strategic themes</li>
-            <li>Practical frameworks and guides</li>
-          </ul>
-          <ActionButton href="contact.html">Join waitlist</ActionButton>
-        </article>
-
-        <article class="price-card">
-          <div class="stack stack--16">
-            <h3 class="h4">Standard membership</h3>
+            <h3 class="h4">ADDDvisory membership</h3>
             <p>Full access, month to month</p>
-            <div class="price"><span class="price__amount">$149</span><span>/mo</span></div>
+            <div class="price"><span class="price__amount">&pound;1,250</span><span>/mo</span></div>
+            <p class="text-sm">From January 2027</p>
           </div>
           <ul class="check-list">
             <li>One 60-minute session monthly</li>
@@ -199,7 +185,23 @@ const faq = [
             <li>Limited questions between sessions</li>
             <li>Team access included</li>
           </ul>
-          <ActionButton href="contact.html" variant="secondary">Join waitlist</ActionButton>
+          <ActionButton href="contact.html">Enquire about ADDDvisory</ActionButton>
+        </article>
+
+        <article class="price-card">
+          <div class="stack stack--16">
+            <h3 class="h4">Technology Blueprint</h3>
+            <p>The practice-wide strategy ADDDvisory follows or runs alongside</p>
+            <div class="price"><span>From</span> <span class="price__amount">&pound;18,000</span></div>
+          </div>
+          <ul class="check-list">
+            <li>Practice-wide workflow analysis</li>
+            <li>Software, licensing and cost review</li>
+            <li>Infrastructure and security assessment</li>
+            <li>AI readiness and capability evaluation</li>
+            <li>Prioritised recommendations and roadmap</li>
+          </ul>
+          <ActionButton href="technology-blueprint.html" variant="secondary">Explore the Technology Blueprint</ActionButton>
         </article>
       </div>
     </div>

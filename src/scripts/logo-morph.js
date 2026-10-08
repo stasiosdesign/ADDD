@@ -122,6 +122,9 @@ export const MORPH_EASE = "0.6, 0, 0.18, 1";
 
 export const LETTER_COUNT = LETTERS.length;
 
+// Where letter i stands: the middle of its foot, in the viewBox.
+export const letterFoot = (i) => LETTERS[i].pivot;
+
 const clamp01 = (n) => (n < 0 ? 0 : n > 1 ? 1 : n);
 const linear = (u) => u;
 

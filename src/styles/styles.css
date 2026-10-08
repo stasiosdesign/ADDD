@@ -21,6 +21,17 @@
   /* the soft fill every quiet control takes on hover */
   --c-btn-soft: rgba(10, 10, 10, 0.05);
   --c-placeholder: #0a0a0a;
+  /* The dotted rule — the site's one horizontal divider, first drawn
+     under the homepage's "Trusted by" title: 2px dots on a 12px pitch,
+     each centred in its tile, in the text colour at 30%. round fits a
+     whole number of tiles, so a rule starts and ends on a dot. Used as a
+     background (background: var(--dotted-rule)) on a 2px-tall box;
+     currentColor resolves where it is used, so the dots take the colour
+     of whatever they are drawn on, light or dark. A dot sits 5px in from
+     its tile, so a rule that has to start on a line stands out past it
+     by --dotted-rule-bleed either side. */
+  --dotted-rule: linear-gradient(to right, transparent 5px, color-mix(in srgb, currentColor 30%, transparent) 5px 7px, transparent 7px) center / 12px 2px round;
+  --dotted-rule-bleed: 5px;
 
   /* type */
   --font-display: "elza", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -35,8 +46,12 @@
   --fw-body: 400;
   --fw-label: 400;
 
-  /* uppercase mono needs positive tracking to stay legible */
-  --label-tracking: 0.03em;
+  /* The accent face's one tracking (Adelle Mono, --font-mono): every
+     mono label, tag, CTA and hero label takes it, and none sets its own.
+     Set a touch tight — the face is monospaced, so its own spacing is
+     already generous, and closed up the capitals read as one word. The
+     primary face keeps its own (negative) tracking per heading. */
+  --label-tracking: -0.02em;
 
   --t-h1: 4.5rem;
   --t-h2: 3.25rem;
@@ -99,7 +114,7 @@ body {
   /* the Osmo scaling system's unit (scaling.css), as its documentation
      applies it */
   font-size: var(--size-font);
-  line-height: 1.5;
+  line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -123,9 +138,9 @@ button, input { font: inherit; color: inherit; }
 .h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: -0.02em; }
 .h4 { font-size: var(--t-h4); line-height: 1.3; letter-spacing: -0.02em; }
 
-.text-md { font-size: var(--t-md); line-height: 1.5; }
-.text-sm { font-size: var(--t-sm); line-height: 1.5; }
-.text-xs { font-size: var(--t-xs); line-height: 1.5; }
+.text-md { font-size: var(--t-md); line-height: 1.4; }
+.text-sm { font-size: var(--t-sm); line-height: 1.4; }
+.text-xs { font-size: var(--t-xs); line-height: 1.4; }
 
 /* Label face — Adelle Mono, always uppercase. Every eyebrow, tag,
    badge, step number and small utility label on the site routes
@@ -151,10 +166,10 @@ button, input { font: inherit; color: inherit; }
 }
 
 .tagline {
-  font-size: 0.9375rem;
-  line-height: 1.5;
+  font-size: 0.875rem;
+  line-height: 1.3;
 }
-.tagline--sm { font-size: 0.8125rem; }
+.tagline--sm { font-size: 0.75rem; }
 /* Kept as a size step below .tagline rather than a different face. */
 .tagline--plain { font-size: var(--t-rg); }
 
@@ -303,13 +318,71 @@ button, input { font: inherit; color: inherit; }
 .newsletter-form__submit:hover { box-shadow: inset 0 0 0 100px rgba(0, 0, 0, 0.16); }
 .newsletter-form__submit:focus-visible { outline: 1px solid var(--c-text); outline-offset: -5px; }
 
+/* The signup as a whole: the control above, and under it the one
+   question that sorts the list into its two audiences, practices and
+   the firms that sell to them. The question sits outside the bordered
+   control, in the context's own text colour, so the control stays a
+   single field-and-button. */
+.newsletter-signup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 28.75rem;
+}
+.newsletter-audience {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+  font-size: var(--t-sm);
+}
+.newsletter-audience label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+.newsletter-audience input { margin: 0; accent-color: var(--c-red); }
+/* The homepage's signup, under the research: a rule, the name on the
+   left and the signup on the right, stacking where the row runs out. */
+.research__signup {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+  margin-top: 4rem;
+  padding-top: 2rem;
+  position: relative;
+}
+/* its rule, the site's dotted one */
+.research__signup::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: calc(-1 * var(--dotted-rule-bleed));
+  right: calc(-1 * var(--dotted-rule-bleed));
+  height: 2px;
+  background: var(--dotted-rule);
+}
+.newsletter-audience__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 /* Icons are exported at their exact Figma dimensions. Each is held to
    that width in rem, so it is its Figma size at the ideal width and
    scales with the text beside it; the height follows the file. */
 .icon { flex: none; height: auto; }
-.icon[src$="/check.svg"] { width: 0.9915rem; }
-.icon[src$="/chevron_right.svg"] { width: 0.4182rem; }
-.icon[src$="/close.svg"] { width: 0.8219rem; }
+.icon[src$="/chevron_right.svg"] { width: 0.5rem; }
 .actions { display: flex; align-items: center; gap: 1.5rem; }
 /* A pair of CTAs (ActionButton), primary then secondary, a gutter apart.
    Each is as long as its own label, never stretched to the row, so the
@@ -320,9 +393,9 @@ button, input { font: inherit; color: inherit; }
 /* ============================================================
    1 — hero
    ============================================================ */
-/* Two areas. The upper one is the image: an off-white band running
-   edge to edge, flush under the fixed nav, carrying the dotted
-   canvas and the picture on top of it. The lower one is plain page
+/* Two areas. The upper one is the band: off-white, running edge to
+   edge, flush under the fixed nav, carrying the Slash Field and its
+   words. The lower one is plain page
    white — lede and its label on the left, headline on the right
    with the buttons and the arrow directly beneath it.
 
@@ -442,77 +515,9 @@ button, input { font: inherit; color: inherit; }
 /* the box's size, so the 24px mark scales with it */
 .hero__arrow svg { width: 100%; height: auto; }
 
-/* Interactive dots background — canvas, drawn by initInteractiveDotsGrid
-   in src/scripts/site.js. It lives inside .hero__media now rather than the
-   hero itself, so the pattern covers the upper area and stops with it;
-   the lower half of the hero is plain page white. It sits under the
-   picture, which is lifted to z-index 1, and takes no pointer events.
-
-   The light treatment: dark dots on the page's own white, keyed to the
-   ink colour rather than the reference's flat black, via the
-   data-dots-color-* attributes the component already reads. */
-.interactive-dots-grid {
-  /* The canvas measures its dots and gap in em, and the schematic
-     lines over it are drawn in absolute pixels on that pitch, so it
-     keeps the 16px it was drawn at rather than the scaled body size;
-     at any other size the dots would drift off the lines. */
-  font-size: 16px;
-  pointer-events: none;
-  width: 100%;
-  height: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-
-/* Schematic lines over the dots — the inline SVG in the hero partial.
-   Same 18px pitch as the canvas, anchored to the band's top-left the
-   way the canvas is, so the runs pass through the dots rather than
-   floating over them. Drawn in absolute pixels, so on a narrower
-   viewport the composition is cropped by the band's edge instead of
-   being squeezed; the left-hand runs and the BIM label are what stays.
-   Above the canvas (z-index 1), still under nothing — the band carries
-   no other content. The site's one red, at three weights, the echoes
-   the lightest. */
-.hero__lines {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 1;
-  overflow: visible;
-  pointer-events: none;
-  color: var(--c-red);
-  display: block;
-}
-.hero__line {
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: butt;
-  /* draw-in on arrival: the run wipes along its own length once,
-     the way the loader's wipe reveals the page */
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: hero-line-draw 1.6s cubic-bezier(.65, 0, .35, 1) .35s forwards;
-}
-.hero__line--heavy  { stroke-width: 1.25px; }
-.hero__line--medium { stroke-width: 1px; }
-.hero__line--thin   { stroke-width: 0.75px; opacity: .45; animation-delay: .6s; }
-.hero__line-label {
-  fill: currentColor;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: var(--fw-label);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0;
-  animation: hero-label-in .6s ease 1.4s forwards;
-}
-
-/* The Slash Field — the homepage band's pattern (src/scripts/slash-field.js),
-   in place of the dots. It runs on past the band's edges, under them, and
-   the band's overflow crops it. The strokes take the ink tint the dots were
-   drawn in, and step up to a firmer tint of it (--slash-hot) where the
+/* The Slash Field — the hero band's pattern (src/scripts/slash-field.js).
+   It runs on past the band's edges, under them, and the band's overflow
+   crops it. The strokes take a light tint of the ink, and step up to a firmer tint of it (--slash-hot) where the
    system lights them. It has no hover: the pointer changes nothing in it.
    The pattern's other options are its spec's.
 
@@ -644,7 +649,7 @@ button, input { font: inherit; color: inherit; }
   font-size: 11px;
   font-weight: var(--fw-label);
   line-height: 1;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--label-tracking);
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -662,39 +667,6 @@ button, input { font: inherit; color: inherit; }
 .hero__label .is--decoding { color: var(--slash-word-decoding); }
 .hero__label .is--front { display: inline-block; }
 .hero__label .is--front::first-letter { color: var(--slash-signal); }
-/* The pulse — a short dash of the same red, a touch wider and soft,
-   riding each run once every few seconds. pathLength="1" makes the
-   dash a fraction of the run, so the offset sweep is one full traverse
-   whatever the real length. Held invisible until the draw-in has
-   finished; the delays are staggered so no two pulses set off together. */
-.hero__pulse {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.5px;
-  stroke-linecap: round;
-  stroke-dasharray: 0.04 0.96;
-  stroke-dashoffset: 1.04;
-  opacity: 0;
-  animation: hero-pulse 9s linear 2.4s infinite;
-}
-.hero__pulse:nth-of-type(8) { animation-delay: 5.1s; animation-duration: 10s; }
-.hero__pulse:nth-of-type(9) { animation-delay: 3.7s; animation-duration: 7s; }
-.hero__pulse:nth-of-type(10) { animation-delay: 7.6s; animation-duration: 12s; stroke-width: 1.75px; }
-.hero__pulse:nth-of-type(11) { animation-delay: 9.2s; animation-duration: 11s; stroke-width: 1.75px; }
-@keyframes hero-pulse {
-  0%   { stroke-dashoffset: 1.04; opacity: 0; }
-  4%   { opacity: .55; }
-  56%  { opacity: .55; }
-  62%  { stroke-dashoffset: 0; opacity: 0; }
-  100% { stroke-dashoffset: 0; opacity: 0; }
-}
-@keyframes hero-line-draw { to { stroke-dashoffset: 0; } }
-@keyframes hero-label-in  { to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) {
-  .hero__line, .hero__line-label { animation: none; stroke-dashoffset: 0; opacity: 1; }
-  .hero__pulse { animation: none; }
-  .hero__line--thin { opacity: .45; }
-}
 
 /* ============================================================
    2 — logo strip
@@ -735,10 +707,12 @@ button, input { font: inherit; color: inherit; }
    fits a whole number of tiles, so the first dot starts on Grid Column 1
    and the last ends on Grid Column 12. It takes the title's step under it
    in two halves, one either side, so the marks stay where they were. */
-.logos__rule {
+.dotted-rule {
   height: 2px;
-  margin: 0 calc(var(--grid-margin) - 5px) calc(var(--sec-md) / 2);
-  background: linear-gradient(to right, transparent 5px, rgba(255, 255, 255, 0.3) 5px 7px, transparent 7px) center / 12px 2px round;
+  background: var(--dotted-rule);
+}
+.logos__rule {
+  margin: 0 calc(var(--grid-margin) - var(--dotted-rule-bleed)) calc(var(--sec-md) / 2);
 }
 
 /* No box: each mark stands on the band on its own. The tile keeps its
@@ -928,7 +902,7 @@ button, input { font: inherit; color: inherit; }
 .problem-card__p {
   margin: 0;
   font-size: var(--t-sm);
-  line-height: 1.45;
+  line-height: 1.35;
   color: #6b6b6b;
 }
 
@@ -1316,7 +1290,7 @@ button, input { font: inherit; color: inherit; }
   transition: background-color .25s ease;
 }
 .route-card__arrow svg,
-.insight-card__arrow svg { width: 1.125rem; height: 1.125rem; transform: rotate(-45deg); }
+.insight-card__arrow svg { width: 1.125rem; height: 1.125rem; }
 .route-card:hover .route-card__arrow,
 .insight-card:hover .insight-card__arrow { background: var(--c-red); }
 
@@ -1343,7 +1317,7 @@ button, input { font: inherit; color: inherit; }
 .insight-card__p {
   margin: 0;
   font-size: var(--t-sm);
-  line-height: 1.45;
+  line-height: 1.35;
   color: #6b6b6b;
 }
 
@@ -1539,7 +1513,8 @@ button, input { font: inherit; color: inherit; }
 @media (hover: hover) {
   .testimonial-lines__button:hover { background: var(--c-red); border-color: var(--c-red); color: var(--c-white); }
 }
-.testimonial-lines__arrow { width: 0.75rem; height: 0.75rem; display: block; }
+.testimonial-lines__arrow { width: 1rem; height: 1rem; display: block; }
+.testimonial-lines__arrow.is--prev { transform: rotate(180deg); }
 
 @media screen and (max-width: 991px) {
   .testimonials { margin-top: var(--sec-lg); }
@@ -1630,7 +1605,7 @@ button, input { font: inherit; color: inherit; }
   background: var(--c-white);
   border-radius: var(--radius);
   font-size: var(--t-md);
-  line-height: 1.4;
+  line-height: 1.32;
 }
 .compare__row p { flex: 1 0 0; min-width: 0; }
 .compare__mark {
@@ -1690,7 +1665,7 @@ button, input { font: inherit; color: inherit; }
   margin-top: auto;
   padding-top: 0.75rem;
   font-size: var(--t-xs);
-  line-height: 1.5;
+  line-height: 1.4;
   color: #6b6b6b;
 }
 .insight-card__meta span + span::before {
@@ -1827,7 +1802,7 @@ button, input { font: inherit; color: inherit; }
 }
 /* The hero's own lede width, so the closing heading starts on roughly
    the line the opening one does. */
-.cta__label { flex: 0 0 21.6rem; }
+.cta__label { flex: 0 0 21.6rem; margin-top: 0.2em; }
 /* Takes the slack, so the mark is carried out to the right edge while
    the heading and the buttons stay on one left edge of their own. */
 .cta__body {
@@ -1841,13 +1816,13 @@ button, input { font: inherit; color: inherit; }
      clearance the picture used to need. */
   gap: 3rem;
 }
-/* The same arrow the approach cards carry, at the same size, turned to
-   point back down into the buttons. */
+/* The same mark the approach cards carry, at the same size, turned to
+   point down into the buttons. */
 .cta__mark {
   flex: none;
   display: block;
   width: 3.6rem;
-  transform: rotate(135deg);
+  transform: rotate(90deg);
 }
 .cta__mark svg { width: 100%; height: auto; display: block; }
 /* One line of copy carrying the section on its own. A step under the
@@ -1864,7 +1839,6 @@ button, input { font: inherit; color: inherit; }
    difference is taken off here rather than trusting the two boxes. */
   margin-top: -0.045em;
 }
-.cta__label { margin-top: 0.2em; }
 .cta .btn,
 .cta .action-button { position: relative; z-index: 2; }
 /* The pair of blocks wrap within the body, out to the heading's right
@@ -1949,7 +1923,7 @@ button, input { font: inherit; color: inherit; }
    down from the body, grey against the ink. */
 .site-footer__eyebrow {
   font-size: var(--t-xs);
-  line-height: 1.5;
+  line-height: 1.4;
   color: rgba(255, 255, 255, 0.5);
 }
 
@@ -1971,12 +1945,13 @@ button, input { font: inherit; color: inherit; }
 }
 .site-footer__desc {
   font-size: var(--t-rg);
-  line-height: 1.5;
+  line-height: 1.4;
   color: rgba(255, 255, 255, 0.6);
   max-width: 36em;
 }
 /* The shared signup, at its own size, across the column. */
 .site-footer__signup .newsletter-form { margin-top: 0.75rem; max-width: none; }
+.site-footer__signup .newsletter-signup { max-width: none; }
 
 /* link groups — a nested grid on the outer grid's right-hand pair of
    columns, the same ratio and gutter, so its columns fall on theirs */
@@ -2011,7 +1986,7 @@ button, input { font: inherit; color: inherit; }
   align-items: end;
   margin-top: auto;
   font-size: var(--t-sm);
-  line-height: 1.6;
+  line-height: 1.45;
   color: rgba(255, 255, 255, 0.5);
 }
 .site-footer__brand {

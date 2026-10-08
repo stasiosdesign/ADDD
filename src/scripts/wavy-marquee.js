@@ -22,8 +22,9 @@
        only move along it.
    ============================================================ */
 
-// px per second at desktop, before scroll and drag push it on
-const AUTO_SPEED = 80;
+// px per second at desktop, before scroll and drag push it on: slow
+// enough that each logo can be read as it passes
+const AUTO_SPEED = 45;
 // [min width, speed multiplier]
 const VIEWPORT = [
   [992, 1],
@@ -31,7 +32,13 @@ const VIEWPORT = [
   [480, 0.6],
   [0, 0.5],
 ];
-const SCROLL_SPEED = 0.0075;
+// Scrolling pushes the strip on by its velocity (px/s) times this, as a
+// multiple of its resting pace, up to MAX_SCROLL_SPEED times it: a clear
+// step up from rest on an ordinary scroll that a fast flick can't turn
+// into a blur. The push is a target the strip eases up to and back down
+// from (DRAG_EASE), as a drag is, so it gathers pace rather than jumping.
+const SCROLL_SPEED = 0.006;
+const MAX_SCROLL_SPEED = 8;
 const DRAG_SPEED = 0.5;
 const MAX_DRAG_SPEED = 75;
 const DRAG_EASE = 0.1;
@@ -130,7 +137,7 @@ export function initWavyMarquee(container) {
       if (isDragging) return;
 
       direction = self.direction === 1 ? baseDirection : -baseDirection;
-      speed = 1 + Math.abs(self.getVelocity()) * SCROLL_SPEED;
+      targetSpeed = Math.min(1 + Math.abs(self.getVelocity()) * SCROLL_SPEED, MAX_SCROLL_SPEED);
     },
   });
 

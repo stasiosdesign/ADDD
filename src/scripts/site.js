@@ -14,15 +14,16 @@
 
 import { initWavyMarquee } from "./wavy-marquee.js";
 import { initColumnGrid } from "./column-grid.js";
-import { initLogoStackLoader } from "./logo-stack-loader.js";
 import { initLogoMorphLoader } from "./logo-morph-loader.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
-import { mountSlashField, DECODE } from "./slash-field.js";
+import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
 
 CustomEase.create("osmo", "0.625, 0.05, 0, 1");
+// the nav's change between its light and dark states (initNavTheme)
+CustomEase.create("navTheme", "0.45, 0, 0.25, 1");
 gsap.defaults({ ease: "osmo", duration: 0.6 });
 
 // The site places the scroll itself (resetScroll), so the browser must never
@@ -49,8 +50,9 @@ gsap.ticker.lagSmoothing(0);
 // The wipe panel lives outside the Barba container, so it is looked up once.
 const wipe = {
   panel: document.querySelector("[data-transition-panel]"),
-  label: document.querySelector("[data-transition-label]"),
-  labelText: document.querySelector("[data-transition-label-text]"),
+  logo: document.querySelector("[data-transition-logo]"),
+  forms: [...document.querySelectorAll("[data-transition-logo-form]")],
+  glyphs: [...document.querySelectorAll("[data-transition-logo-glyph]")],
 };
 
 
@@ -152,8 +154,7 @@ function runReveal(next) {
   return runPageEnterAnimation(next);
 }
 
-// First-load logo intro: the Logo Morph Loader, or the Logo Stack Loader it
-// iterates on, whichever the layout's <head> marked this load for. The page
+// First-load logo intro: the Logo Morph Loader. The page
 // is set up underneath it from the first frame, so the loader's background
 // clears straight onto the settled page. Nested in this timeline so once()
 // waits for all of it, which keeps Barba from starting a navigation while the
@@ -163,16 +164,14 @@ function runIntro(next) {
 
   tl.call(resetPage, [next], 0);
 
-  // On the homepage the morph loader plays out in the hero's own field, so
-  // it is handed the hero's band.
-  const loader = document.documentElement.dataset.loader === "stack"
-    ? initLogoStackLoader()
-    : initLogoMorphLoader(undefined, { hero: next.querySelector(".hero__media[data-slash-field]") });
+  // On the homepage the loader plays out in the hero's own field, so it is
+  // handed the hero's band.
+  const loader = initLogoMorphLoader(undefined, { hero: next.querySelector(".hero__media[data-slash-field]") });
   if (loader) tl.add(loader, 0);
 
-  // The morph loader holds the page still under it — a wheel turned during
-  // the intro would otherwise scroll the page it is about to reveal — and
-  // hands scrolling back as its ground starts to lift, or once the hero has
+  // The loader holds the page still under it — a wheel turned during the
+  // intro would otherwise scroll the page it is about to reveal — and hands
+  // scrolling back as its ground starts to lift, or once the hero has
   // settled.
   if (loader && "reveal" in loader.labels) {
     tl.call(() => lenis.stop(), null, 0);
@@ -197,11 +196,10 @@ function runIntro(next) {
   return tl;
 }
 
-// Both intros go, the one that played and the one that did not. Tweens are
-// killed first so nothing still queued can write style back onto a detached
-// node.
+// The intro goes, whether it played or not. Tweens are killed first so
+// nothing still queued can write style back onto a detached node.
 function removeLoader() {
-  document.querySelectorAll("[data-logo-loader-init], [data-morph-loader]").forEach(loader => {
+  document.querySelectorAll("[data-morph-loader]").forEach(loader => {
     gsap.killTweensOf([loader, ...loader.querySelectorAll("*")]);
     loader.remove();
   });
@@ -213,59 +211,54 @@ function removeLoader() {
 // PAGE TRANSITIONS
 // -----------------------------------------
 
-// The leave animation runs before the destination page has been fetched, so
-// there is no container to read data-page-name off yet. Derive the label from
-// the URL instead: title-casing the slug covers most of the site, and these
-// are the pages whose name is not simply their slug (mirrors the pageName each
-// page in src/pages passes to its layout).
-const PAGE_NAMES = {
-  "index": "Home",
-  "workshops-audits": "Workshops & Audits",
-  "software-licensing-audit": "Software & Licensing Audit",
-  "report-template": "BIM 2.0 Report",
-  "newsletter-template": "AI in Architecture",
-};
+// The wipe's logo: the name, A D D D, in the accent face, handed over letter
+// by letter to the logo's forms, left to right — each letter pressed down
+// onto its foot as its form rises out of the same spot, the next one
+// starting before the last has settled. It runs on its own timeline rather
+// than in leave(), which Barba waits on, so it never holds up the navigation.
+const WIPE_HANDOFF = { start: 0.3, stagger: 0.08, press: 0.3, rise: 0.45, overlap: 0.15 };
+let wipeHandoff = null;
 
-function pageNameFromUrl(href) {
-  let slug = "index";
+function playWipeHandoff() {
+  wipeHandoff?.kill();
+  gsap.killTweensOf([wipe.logo, ...wipe.forms, ...wipe.glyphs]);
+  gsap.set(wipe.logo, { autoAlpha: 1 });
+  wipeHandoff = gsap.timeline();
+  wipe.glyphs.forEach((glyph, i) => {
+    const form = wipe.forms[i];
+    const foot = `${glyph.getAttribute("x")} ${glyph.getAttribute("y")}`;
+    const at = WIPE_HANDOFF.start + i * WIPE_HANDOFF.stagger;
+    gsap.set(glyph, { svgOrigin: foot, scaleY: 1, autoAlpha: 1 });
+    gsap.set(form, { svgOrigin: foot, scaleY: 0, y: 0, autoAlpha: 1 });
+    wipeHandoff.to(glyph, {
+      scaleY: 0,
+      autoAlpha: 0,
+      duration: WIPE_HANDOFF.press,
+      ease: "power2.in",
+    }, at);
+    wipeHandoff.to(form, {
+      scaleY: 1,
+      duration: WIPE_HANDOFF.rise,
+      ease: "power3.out",
+    }, at + WIPE_HANDOFF.press - WIPE_HANDOFF.overlap);
+  });
+}
 
+// The Tech Firms page is set in blue, and the panel that takes you there is
+// blue too; every other page's is red.
+function wipeTone(href) {
   try {
-    const path = new URL(href, location.href).pathname;
-    slug = path.split("/").pop().replace(/\.html$/, "") || "index";
+    return /\/tech-firms(\.html)?$/.test(new URL(href, location.href).pathname) ? "blue" : "red";
   } catch (err) {
-    return "Hi there";
+    return "red";
   }
-
-  return PAGE_NAMES[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
-}
-
-// The label's brief scramble, in the hero field's hex (DECODE in
-// slash-field.js) through GSAP's ScrambleTextPlugin, word by word: the
-// plugin fills spaces too, so a label scrambled whole could break onto
-// different lines while it decodes. Each word keeps its own length in the
-// mono face, so nothing moves.
-const LABEL_SCRAMBLE = { chars: DECODE.chars, speed: DECODE.speed };
-
-function setLabel(name) {
-  wipe.labelText.replaceChildren(...name.split(" ").flatMap((word, i) => {
-    const span = document.createElement("span");
-    span.textContent = word;
-    return i ? [" ", span] : [span];
-  }));
-}
-
-function labelWords() {
-  // a "reveal" arrival opens on the name as the page was built with it
-  if (!wipe.labelText.children.length) setLabel(wipe.labelText.textContent.trim());
-  return [...wipe.labelText.children];
 }
 
 function runPageLeaveAnimation(current, nextHref) {
   // A navigation that starts while the panel is still settling from the last
   // one would otherwise fight the tweens already on it.
-  gsap.killTweensOf([wipe.panel, wipe.label, ...wipe.labelText.children]);
-
-  setLabel(pageNameFromUrl(nextHref));
+  gsap.killTweensOf(wipe.panel);
+  wipe.panel.dataset.tone = wipeTone(nextHref);
 
   const tl = gsap.timeline({
     onComplete: () => current.remove()
@@ -277,15 +270,11 @@ function runPageLeaveAnimation(current, nextHref) {
   }
 
   tl.set(wipe.panel, { autoAlpha: 1 }, 0);
-  tl.fromTo(wipe.panel, { yPercent: 0 }, { yPercent: -100, duration: 0.8 }, 0);
-  tl.fromTo(wipe.label, { autoAlpha: 0 }, { autoAlpha: 1 }, "<+=0.2");
-  // the name decodes as it fades in, resolved well before the panel covers
-  tl.to(labelWords(), {
-    duration: 0.4,
-    ease: "none",
-    scrambleText: { text: "{original}", ...LABEL_SCRAMBLE, revealDelay: 0.12 },
-  }, "<");
-  tl.fromTo(current, { y: "0vh" }, { y: "-15vh", duration: 0.8 }, 0);
+  tl.fromTo(wipe.panel, { yPercent: 0 }, { yPercent: -100, duration: 0.75 }, 0);
+  // the name rides in on the rising panel and is handed over to the forms as
+  // the panel settles over the page
+  playWipeHandoff();
+  tl.fromTo(current, { y: "0vh" }, { y: "-15vh", duration: 0.75 }, 0);
 
   // Barba awaits whatever leave() hands back, and a GSAP timeline is
   // thenable. Returning it is what holds the rest of the lifecycle — the
@@ -312,8 +301,8 @@ function runPageEnterAnimation(next) {
 
   // Barba no longer runs leave and enter together, so the wait before the
   // panel leaves is measured from the moment the screen is covered, not from
-  // the start of the wipe. Same pause on screen as before.
-  tl.add("startEnter", 0.45);
+  // the start of the wipe: a short beat, while the last forms are still rising.
+  tl.add("startEnter", 0.2);
 
   // The homepage's field takes its words out now, while the page is still
   // covered, and brings them back in from the foot of the band up as the
@@ -331,30 +320,28 @@ function runPageEnterAnimation(next) {
     yPercent: -100,
   }, {
     yPercent: -200,
-    duration: 1,
+    duration: 0.95,
     overwrite: "auto",
     immediateRender: false
   }, "startEnter");
 
   tl.set(wipe.panel, { autoAlpha: 0 }, ">");
 
-  tl.fromTo(wipe.label, {
-    autoAlpha: 1
-  }, {
+  // The forms lift off ahead of the panel, left to right, as the name came
+  // in, and are gone before the panel's edge has cleared the middle.
+  tl.to(wipe.forms, {
+    y: -6,
+    duration: 0.35,
+    ease: "power1.in",
+    stagger: 0.04,
+  }, "startEnter+=0.15");
+  tl.to(wipe.logo, {
     autoAlpha: 0,
-    duration: 0.4,
-    overwrite: "auto",
-    immediateRender: false
-  }, "startEnter+=0.1");
+    duration: 0.3,
+    ease: "power1.in",
+  }, "startEnter+=0.22");
 
-  // and scrambles again as it goes, never resolving before it has faded
-  tl.to(labelWords(), {
-    duration: 0.4,
-    ease: "none",
-    scrambleText: { text: "{original}", ...LABEL_SCRAMBLE, revealDelay: 0.4 },
-  }, "startEnter+=0.1");
-
-  tl.from(next, { y: "15vh", duration: 1 }, "startEnter");
+  tl.from(next, { y: "15vh", duration: 0.95 }, "startEnter");
 
   tl.add("pageReady");
   tl.call(resetPage, [next], "pageReady");
@@ -418,7 +405,6 @@ const PAGE_COMPONENTS = [
   ["[data-testimonial-wrap]", initLineRevealTestimonials],
   ["[data-shutter-scroll-transition]", initShutterScrollTransition],
   ["[data-accordion-init]", initAccordions],
-  ["[data-dots-canvas-init]", initInteractiveDotsGrid],
   ["[data-slash-field]", initSlashField],
   ["[data-filter-group]", initFilterGroups],
   ["[data-hero-parallax]", initHeroParallax],
@@ -1509,20 +1495,27 @@ function initNavReveal() {
     gsap.to(nav, { y: outOfView(), duration: duration(), ease: "power3.out", overwrite: true });
   }
 
+  // The bar's height, kept rather than read on every scroll event: read
+  // there, straight after the frame's GSAP writes, it forced a layout on
+  // every frame of a scroll.
+  let barHeight = nav.offsetHeight;
+
   // the bar's height and the pixel ratio both change with the window (and
   // with the browser's zoom), so a hidden bar is put back out of view
   window.addEventListener("resize", () => {
+    barHeight = nav.offsetHeight;
     if (hidden) gsap.set(nav, { y: outOfView(), overwrite: true });
   });
 
   function onScroll() {
-    const max = document.documentElement.scrollHeight - window.innerHeight;
-    // overscroll at either end of the page is not a change of direction
-    const y = Math.min(Math.max(window.scrollY, 0), Math.max(max, 0));
+    // Overscroll at either end of the page is not a change of direction.
+    // The page's end is Lenis's own limit, which it keeps up to date as the
+    // content changes size, so the clamp costs no layout read either.
+    const y = Math.min(Math.max(window.scrollY, 0), Math.max(lenis.limit, 0));
     const dy = y - lastY;
     lastY = y;
 
-    if (y <= nav.offsetHeight) {
+    if (y <= barHeight) {
       travel = 0;
       show();
       return;
@@ -1541,6 +1534,156 @@ function initNavReveal() {
     lastY = window.scrollY;
     travel = 0;
     show(true);
+  });
+
+  initNavTheme(nav);
+}
+
+/* ============================================================
+   Nav theme — light or dark from the section under the bar
+   ============================================================
+   The bar takes the dark state over a dark section and the light
+   state over a light one, wherever they are on the page, not per page.
+
+   Each page's grounds are found once, as it arrives: every element in
+   it with an opaque background at least half the screen wide — so the
+   cards and tiles a section holds never count against the section they
+   sit in — dark or light by its colour's luminance. Anything that
+   should decide for itself, a dark photograph with no background
+   colour behind it, sets data-nav-theme="dark" or "light". Scrims and
+   other overlays the pointer passes through (pointer-events: none)
+   are not grounds.
+
+   An IntersectionObserver then watches them against one line across
+   the screen at the middle of the bar, where the bar rests, so the
+   state follows the page while the reveal has the bar out of view.
+   The browser says when a ground crosses the line, and of those on it
+   the last in the document — the innermost, or the one painted over
+   the other — decides. Nothing is read while the page scrolls or sits
+   still; this was five hit-tests and a run of style reads on every
+   frame of a scroll, and a poll four times a second besides. The
+   grounds are found again for each new page, under the wipe, and when
+   the window changes size.
+
+   While a menu is open the state holds, and the change is made as it
+   closes.
+
+   The change itself is one tween of one number, --nav-dark on the
+   nav's own style (0% light, 100% dark), which every colour in nav.css
+   is mixed by — so nothing in the nav can run ahead of or behind
+   anything else. It is a script tween rather than a CSS transition
+   because Chrome paints visited links' text with the page's ink while
+   a CSS animation moves a custom property (see nav.css). A soft ease in
+   and out, slow enough to feel like the bar settling onto the new
+   ground; a change of mind mid-way turns round from where it is, in
+   the share of the time that is left to cover. The first state of a
+   document is set at once, as is every state with reduced motion.
+   ============================================================ */
+function initNavTheme(nav) {
+  const bar = nav.querySelector(".mega-nav__bar") || nav;
+  // whole subtrees that can never be a section's ground
+  const SKIP = new Set(["svg", "SCRIPT", "STYLE", "CANVAS", "IMG", "PICTURE", "VIDEO", "IFRAME", "BR", "INPUT", "TEXTAREA", "SELECT"]);
+  const grounds = new Map(); // element → "dark" | "light"
+  const onLine = new Set(); // the grounds crossing the line now
+  let observer = null;
+  let theme = null; // the state the bar shows
+  let wanted = null; // the state the ground asks for
+
+  // a computed background colour as [r, g, b, a], each 0–1: rgb()/rgba(),
+  // and color(srgb …), which is how a color-mix() comes back
+  function parseColor(value) {
+    const m = value.match(/^(rgba?|color)\((.*)\)$/);
+    if (!m) return null;
+    const parts = m[2].replace(/^srgb\s+/, "").split(/[\s,/]+/).filter(Boolean).map(parseFloat);
+    if (parts.length < 3 || parts.some(Number.isNaN)) return null;
+    const [r, g, b, a = 1] = parts;
+    return m[1] === "color" ? [r, g, b, a] : [r / 255, g / 255, b / 255, a];
+  }
+
+  function groundOf(el, minWidth) {
+    const set = el.getAttribute("data-nav-theme");
+    if (set === "dark" || set === "light") return set;
+    const style = getComputedStyle(el);
+    if (style.pointerEvents === "none") return null;
+    const c = parseColor(style.backgroundColor);
+    if (!c || c[3] < 0.5) return null;
+    if (el.getBoundingClientRect().width < minWidth) return null;
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] < 0.5 ? "dark" : "light";
+  }
+
+  const DURATION = 0.7;
+  const state = { dark: 0 }; // how far into the dark state, 0–1
+  const draw = () => nav.style.setProperty("--nav-dark", `${(state.dark * 100).toFixed(2)}%`);
+
+  function apply(next) {
+    wanted = next;
+    if (next === theme || nav.getAttribute("data-menu-open") === "true") return;
+    const first = theme === null;
+    theme = next;
+    nav.setAttribute("data-nav-theme", next);
+    const target = next === "dark" ? 1 : 0;
+    gsap.killTweensOf(state);
+    if (first || reducedMotion) {
+      state.dark = target;
+      draw();
+      return;
+    }
+    gsap.to(state, {
+      dark: target,
+      duration: DURATION * Math.abs(target - state.dark),
+      ease: "navTheme",
+      onUpdate: draw,
+    });
+  }
+
+  function decide() {
+    let top = null;
+    onLine.forEach((el) => {
+      if (!top || top.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) top = el;
+    });
+    apply(top ? grounds.get(top) : "light");
+  }
+
+  function watch() {
+    observer?.disconnect();
+    grounds.clear();
+    onLine.clear();
+    const container = document.querySelector('[data-barba="container"]');
+    if (!container) return;
+
+    const minWidth = document.documentElement.clientWidth / 2;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+      acceptNode: (el) => (SKIP.has(el.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+    });
+    for (let el = container; el; el = walker.nextNode()) {
+      const ground = groundOf(el, minWidth);
+      if (ground) grounds.set(el, ground);
+    }
+
+    // the line: one pixel tall, at the middle of the bar
+    const y = Math.round(bar.offsetHeight / 2);
+    observer = new IntersectionObserver((entries) => {
+      entries.forEach((e) => (e.isIntersecting ? onLine.add(e.target) : onLine.delete(e.target)));
+      decide();
+    }, { rootMargin: `${-y}px 0px ${-(window.innerHeight - y - 1)}px 0px` });
+    grounds.forEach((_, el) => observer.observe(el));
+    // with nothing to watch the observer never reports: the body's ground
+    if (!grounds.size) decide();
+  }
+
+  watch();
+  // each new page, once its components are built and before the wipe
+  // uncovers it (the lifecycle's own beforeEnter runs first)
+  barba.hooks.beforeEnter(watch);
+  let resizing = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizing);
+    resizing = setTimeout(watch, 150);
+  });
+  // a change held while a menu was open goes through as it closes
+  new MutationObserver(() => wanted && apply(wanted)).observe(nav, {
+    attributes: true,
+    attributeFilter: ["data-menu-open"],
   });
 }
 
@@ -1649,7 +1792,8 @@ function initContactButton() {
    it came in by, out through the edge it leaves by, judged against
    the link's vertical midpoint. As supplied, the move is set inline —
    the transition taken off, the block put at the entry edge, a
-   reflow, the transition back, and the block brought to rest — and
+   reflow, the transition back, and the block brought to rest, its
+   copy of the label moved the opposite way with it each time — and
    once the block is out it is handed back to the stylesheet, so a
    link that takes keyboard focus shows its block at once. A link
    already showing its block for keyboard focus is left as it is. Only
@@ -1664,15 +1808,33 @@ function initContactButton() {
    ============================================================ */
 function initNavLinks(root) {
   const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
+  // where the block waits off each edge, and its copy of the label the
+  // same distance the other way, so the copy never moves off the label
   const out = {
-    top: "translateY(calc(-100% - 1px))",
-    bottom: "translateY(calc(100% + 1px))",
+    top: ["translateY(calc(-100% - 1px))", "translateY(calc(100% + 1px))"],
+    bottom: ["translateY(calc(100% + 1px))", "translateY(calc(-100% - 1px))"],
+    in: ["translateY(0)", "translateY(0)"],
+    rest: ["", ""],
   };
 
   root.querySelectorAll(".nav-link").forEach((link) => {
     const bg = link.querySelector(".nav-link__bg");
-    if (!bg || link.navLinkBound) return;
+    const ink = link.querySelector(".nav-link__ink");
+    if (!bg || !ink || link.navLinkBound) return;
     link.navLinkBound = true;
+
+    // The block and its copy always move together, in one style change,
+    // so their transitions start on the same frame. The copy inherits the
+    // block's transition, so taking the block off it takes both.
+    const place = (where) => {
+      [bg.style.transform, ink.style.transform] = out[where];
+    };
+    const jump = (where) => {
+      bg.style.transition = "none";
+      place(where);
+      void bg.offsetWidth;
+      bg.style.transition = "";
+    };
 
     let leaving = 0;
     const edge = (event) => {
@@ -1684,10 +1846,7 @@ function initNavLinks(root) {
     const handBack = () => {
       clearTimeout(leaving);
       leaving = 0;
-      bg.style.transition = "none";
-      bg.style.transform = "";
-      void bg.offsetWidth;
-      bg.style.transition = "";
+      jump("rest");
     };
 
     link.addEventListener("mouseenter", (event) => {
@@ -1698,18 +1857,15 @@ function initNavLinks(root) {
         clearTimeout(leaving);
         leaving = 0;
       } else {
-        bg.style.transition = "none";
-        bg.style.transform = out[edge(event)];
-        void bg.offsetWidth;
-        bg.style.transition = "";
+        jump(edge(event));
       }
-      bg.style.transform = "translateY(0)";
+      place("in");
     });
 
     link.addEventListener("mouseleave", (event) => {
       if (!finePointer.matches) return;
       if (held()) return handBack();
-      bg.style.transform = out[edge(event)];
+      place(edge(event));
       clearTimeout(leaving);
       leaving = setTimeout(handBack, 650);
     });
@@ -1718,7 +1874,7 @@ function initNavLinks(root) {
     link.addEventListener("focus", () => {
       clearTimeout(leaving);
       leaving = 0;
-      bg.style.transform = "";
+      place("rest");
     });
   });
 }
@@ -1806,10 +1962,11 @@ function initApproachSlides(container) {
       ease: "power1.in",
       scrollTrigger: {
         pin: wrapper, // held while the card tips away
-        // The Barba container carries a transform and will-change,
-        // which makes it the containing block for anything fixed —
-        // the default pinType would drop the pinned card at the top
-        // of the container instead of holding it in the viewport.
+        // The wipe moves the Barba container with a transform, which
+        // makes it the containing block for anything fixed while it
+        // runs — a default (fixed) pin would drop the pinned card to
+        // the top of the container mid-wipe instead of holding it in
+        // the viewport.
         pinType: "transform",
         // start and end are re-measured on every refresh, and the
         // trigger is invalidated with them, so a start computed while
@@ -2400,9 +2557,9 @@ function initAccordions(container) {
    ============================================================
    Mounted per page, like everything in the registry, and torn
    down with it. The page registry runs while the transition panel
-   still covers the viewport and the container is mid-flight, so,
-   as with the dots grid below, one more layout is taken on the far
-   side of the next paint, once the hero has its settled size.
+   still covers the viewport and the container is mid-flight, so one
+   more layout is taken on the far side of the next paint, once the
+   hero has its settled size.
    ============================================================ */
 function initSlashField(container) {
   container.querySelectorAll("[data-slash-field]").forEach((el) => {
@@ -2412,276 +2569,6 @@ function initSlashField(container) {
       cancelAnimationFrame(settle);
       field.destroy();
     });
-  });
-}
-
-
-
-/* ============================================================
-   Interactive dots grid — canvas background behind the hero
-   ============================================================
-   The reference component as supplied, with the adaptations this
-   codebase needs: it is scoped to the Barba container and called
-   from the page registry rather than DOMContentLoaded, and every
-   listener, observer and rAF it opens is handed to
-   registerPageCleanup, so navigating away cannot leave a frame
-   loop running against a canvas that has left the document.
-
-   The pointer work is already gated behind (hover: hover) and
-   (pointer: fine), so on touch the grid paints once per resize
-   and never starts a loop.
-   ============================================================ */
-function initInteractiveDotsGrid(container) {
-  const elements = container.querySelectorAll("[data-dots-canvas-init]");
-
-  const gap = "1em";
-  const dotSize = "0.125em";
-  const shape = "circle";
-  const dotColorInactive = "rgba(0, 0, 0, 0.2)";
-  const dotColorActive = "rgba(0, 0, 0, 0.75)";
-  const dotMaxScale = 1.75;
-  const pressScale = 1.5;
-  const hoverRadius = 12;
-  const easeDuration = 0.5;
-
-  const hasPointer = matchMedia("(hover: hover) and (pointer: fine)").matches;
-  const pointer = { x: 0, y: 0, cx: 0, cy: 0, active: false };
-  const hover = { value: 0, from: 0, to: 0, start: 0 };
-  const press = { value: 0, from: 0, to: 0, start: 0 };
-  const canvases = [];
-
-  let dpr, size, spacing, radius, raf, lastTime = performance.now();
-
-  function toPx(value, element) {
-    const probe = document.createElement("div");
-    probe.style.cssText = "position:absolute;visibility:hidden;width:" + value + ";";
-    element.appendChild(probe);
-    const px = probe.getBoundingClientRect().width;
-    probe.remove();
-    return px;
-  }
-
-  function parseColor(color, element) {
-    const probe = document.createElement("span");
-    probe.style.color = color;
-    element.appendChild(probe);
-    const resolved = getComputedStyle(probe).color;
-    probe.remove();
-
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = resolved;
-    ctx.fillRect(0, 0, 1, 1);
-
-    const data = [...ctx.getImageData(0, 0, 1, 1).data];
-    data[3] /= 255;
-    return data;
-  }
-
-  function mixColor(a, b, p) {
-    return "rgba(" + a.map((v, i) => v + (b[i] - v) * p).join(",") + ")";
-  }
-
-  function setEase(state, to) {
-    Object.assign(state, { from: state.value, to, start: performance.now() });
-  }
-
-  function updateEase(state, time) {
-    if (!easeDuration) return (state.value = state.to);
-    const p = Math.min(Math.max((time - state.start) / (easeDuration * 1000), 0), 1);
-    state.value = state.from + (state.to - state.from) * (1 - Math.pow(1 - p, 4));
-  }
-
-  elements.forEach((element) => {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-
-    canvas.setAttribute("aria-hidden", "true");
-    Object.assign(canvas.style, {
-      position: "absolute",
-      inset: 0,
-      width: "100%",
-      height: "100%",
-      pointerEvents: "none"
-    });
-
-    if (getComputedStyle(element).position === "static") element.style.position = "relative";
-
-    element.prepend(canvas);
-    canvases.push({
-      element, canvas, ctx, width: 0, height: 0, visible: false,
-      inactive: parseColor(element.getAttribute("data-dots-color-inactive") || dotColorInactive, element),
-      active: parseColor(element.getAttribute("data-dots-color-active") || dotColorActive, element)
-    });
-  });
-
-  function pointerInside() {
-    return canvases.some(({ element }) => {
-      const r = element.getBoundingClientRect();
-      return pointer.x >= r.left && pointer.x <= r.right && pointer.y >= r.top && pointer.y <= r.bottom;
-    });
-  }
-
-  function render(state, origin) {
-    const rect = state.element.getBoundingClientRect();
-    const left = rect.left - origin.left;
-    const top = rect.top - origin.top;
-    const px = pointer.cx - origin.left;
-    const py = pointer.cy - origin.top;
-    const maxScale = dotMaxScale * (1 + (pressScale - 1) * press.value);
-
-    state.ctx.clearRect(0, 0, state.width, state.height);
-
-    const colStart = Math.floor(left / spacing);
-    const colEnd = Math.ceil((left + state.width) / spacing);
-    const rowStart = Math.floor(top / spacing);
-    const rowEnd = Math.ceil((top + state.height) / spacing);
-
-    for (let row = rowStart; row <= rowEnd; row++) {
-      const gy = row * spacing;
-      const y = gy - top;
-
-      for (let col = colStart; col <= colEnd; col++) {
-        const gx = col * spacing;
-        const x = gx - left;
-        const influence = hasPointer && hover.value
-          ? Math.max(0, 1 - Math.hypot(gx - px, gy - py) / radius) * hover.value
-          : 0;
-        const currentSize = size * (1 + (maxScale - 1) * influence);
-
-        state.ctx.fillStyle = mixColor(state.inactive, state.active, influence);
-
-        if (shape === "square") {
-          state.ctx.fillRect(x - currentSize / 2, y - currentSize / 2, currentSize, currentSize);
-        } else {
-          state.ctx.beginPath();
-          state.ctx.arc(x, y, currentSize / 2, 0, Math.PI * 2);
-          state.ctx.fill();
-        }
-      }
-    }
-  }
-
-  function renderAll(visibleOnly = false) {
-    const origin = elements[0].getBoundingClientRect();
-    canvases.forEach(state => (!visibleOnly || state.visible) && render(state, origin));
-  }
-
-  function tick(time) {
-    raf = null;
-    if (!canvases.some(state => state.visible)) return;
-
-    const delta = Math.min((time - lastTime) / 1000, 0.1);
-    lastTime = time;
-
-    updateEase(hover, time);
-    updateEase(press, time);
-
-    if (!easeDuration) {
-      pointer.cx = pointer.x;
-      pointer.cy = pointer.y;
-    } else {
-      const strength = 1 - Math.exp(-delta * 6 / easeDuration);
-      pointer.cx += (pointer.x - pointer.cx) * strength;
-      pointer.cy += (pointer.y - pointer.cy) * strength;
-    }
-
-    renderAll(true);
-    raf = requestAnimationFrame(tick);
-  }
-
-  function start() {
-    if (hasPointer && !raf && canvases.some(state => state.visible)) {
-      lastTime = performance.now();
-      raf = requestAnimationFrame(tick);
-    }
-  }
-
-  function resize() {
-    dpr = Math.min(devicePixelRatio || 1, 2);
-    size = toPx(dotSize, elements[0]);
-    spacing = size + toPx(gap, elements[0]);
-    radius = spacing * hoverRadius;
-
-    canvases.forEach(state => {
-      const rect = state.element.getBoundingClientRect();
-      state.width = rect.width;
-      state.height = rect.height;
-      state.canvas.width = Math.round(rect.width * dpr);
-      state.canvas.height = Math.round(rect.height * dpr);
-      state.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    });
-
-    renderAll();
-    start();
-  }
-
-  const onPointerMove = (e) => {
-    pointer.x = e.clientX;
-    pointer.y = e.clientY;
-
-    const inside = pointerInside();
-
-    if (inside !== pointer.active) {
-      pointer.active = inside;
-      setEase(hover, +inside);
-
-      if (inside) {
-        pointer.cx = pointer.x;
-        pointer.cy = pointer.y;
-      } else {
-        setEase(press, 0);
-      }
-    }
-
-    start();
-  };
-  const onPointerDown = () => pointer.active && setEase(press, 1);
-  const onPointerUp = () => setEase(press, 0);
-
-  if (hasPointer) {
-    window.addEventListener("pointermove", onPointerMove);
-    window.addEventListener("pointerdown", onPointerDown);
-    window.addEventListener("pointerup", onPointerUp);
-  }
-
-  const intersectionObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      const state = canvases.find(state => state.element === entry.target);
-      if (state) state.visible = entry.isIntersecting;
-    });
-
-    hasPointer ? start() : renderAll(true);
-  });
-
-  const resizeObserver = new ResizeObserver(resize);
-
-  elements.forEach(element => {
-    intersectionObserver.observe(element);
-    resizeObserver.observe(element);
-  });
-
-  window.addEventListener("resize", resize);
-  resize();
-
-  // The page registry runs this while the transition panel still covers the
-  // viewport and the container is mid-flight, so the first measurement can
-  // land before the hero has its real size — leaving the canvas backing
-  // store at whatever it read then, since the observer has nothing new to
-  // report once the element settles at a size it was already given. Take one
-  // more measurement on the far side of the next paint.
-  requestAnimationFrame(() => requestAnimationFrame(resize));
-
-  registerPageCleanup(() => {
-    if (raf) cancelAnimationFrame(raf);
-    raf = null;
-    intersectionObserver.disconnect();
-    resizeObserver.disconnect();
-    window.removeEventListener("resize", resize);
-    window.removeEventListener("pointermove", onPointerMove);
-    window.removeEventListener("pointerdown", onPointerDown);
-    window.removeEventListener("pointerup", onPointerUp);
-    canvases.forEach(state => state.canvas.remove());
   });
 }
 

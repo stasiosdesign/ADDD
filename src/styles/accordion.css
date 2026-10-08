@@ -42,7 +42,7 @@
   font-family: var(--font-body);
   font-size: var(--t-md);
   font-weight: var(--fw-body);
-  line-height: 1.4;
+  line-height: 1.32;
 }
 
 /* The whole row is the button: the question on the left, the chip on
@@ -121,7 +121,7 @@
 .accordion__text {
   color: #6b6b6b;
   font-size: var(--t-rg);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 /* On a light section the tile lifts to white; the chip drops to the

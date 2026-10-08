@@ -1,0 +1,102 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "../components/ActionButton.astro";
+import ClosingCta from "../components/ClosingCta.astro";
+---
+<BaseLayout
+  title="Before Revit — ADDD"
+  description="Before Revit is an engagement for architecture practices reviewing their early-stage design workflow: what happens in the early stages of design, before the work moves into Revit or Archicad."
+  pageName="Before Revit"
+>
+<main class="page--grid">
+
+  <section class="pg-hero">
+    <div class="container">
+      <div class="pg-hero__grid">
+        <div class="pg-hero__col">
+          <p class="tagline">Before Revit</p>
+          <h1 class="h1">Early-stage design workflow</h1>
+        </div>
+        <div class="pg-hero__col">
+          <p class="text-md">An engagement for practices reviewing what happens in the early stages of design, before the work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.</p>
+          <div class="actions actions--pair">
+            <ActionButton href="contact.html">Enquire</ActionButton>
+            <ActionButton href="#pricing" variant="secondary">Investment</ActionButton>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="band band--wide"></div>
+
+  <section class="section section--light" id="how-it-works">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md">The ADDD approach, applied to the start of the design process rather than the whole practice.</p>
+        <div class="section-title__body">
+          <p class="tagline">Method</p>
+          <h2 class="h2">How it works</h2>
+        </div>
+      </div>
+
+      <div class="steps">
+        <div class="steps__item">
+          <p class="tagline tagline--sm steps__label">Understand</p>
+          <div class="steps__body">
+            <h3 class="h4">Map early-stage design as it actually happens</h3>
+            <p>How work, tools, information and decisions move through the early stages of design, not how they are supposed to.</p>
+          </div>
+        </div>
+        <div class="steps__item">
+          <p class="tagline tagline--sm steps__label">Diagnose</p>
+          <div class="steps__body">
+            <h3 class="h4">Trace what carries forward and what is lost</h3>
+            <p>Where early design work connects to what follows in Revit or Archicad, and where it is recreated or lost on the way.</p>
+          </div>
+        </div>
+        <div class="steps__item">
+          <p class="tagline tagline--sm steps__label">Prioritise</p>
+          <div class="steps__body">
+            <h3 class="h4">Decide what should change first</h3>
+            <p>Clear priorities for the early-stage workflow: what should change first, who should own it and where investment will have the most impact.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-title">
+        <div class="section-title__body">
+          <p class="tagline">Investment</p>
+          <h2 class="h2">Before Revit</h2>
+        </div>
+      </div>
+
+      <div class="grid grid--2 grid--mt">
+        <article class="price-card">
+          <div class="stack stack--16">
+            <h3 class="h4">Before Revit</h3>
+            <p>Early-stage design workflow</p>
+            <div class="price"><span>From</span> <span class="price__amount">&pound;9,500</span></div>
+          </div>
+          <ActionButton href="contact.html">Enquire about Before Revit</ActionButton>
+        </article>
+
+        <article class="price-card price-card--dark">
+          <div class="stack stack--16">
+            <h3 class="h4">Not sure where to start?</h3>
+            <p>The Workflow Workshop is a half-day diagnostic using a live project, for when something is not working but the starting point is unclear.</p>
+            <div class="price"><span class="price__amount">&pound;1,995</span></div>
+          </div>
+          <ActionButton href="workshops-audits.html" variant="secondary">Explore the Workflow Workshop</ActionButton>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <ClosingCta />
+
+</main>
+</BaseLayout>

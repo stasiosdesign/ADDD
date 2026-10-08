@@ -1,21 +1,33 @@
 ---
 /*
   The page wipe (runPageLeaveAnimation / runPageEnterAnimation in
-  src/scripts/site.js). The label carries the destination page's name;
-  it starts as this page's own name, which is what a "reveal" arrival
-  shows while the panel covers the page. Purely visual, so hidden from
-  assistive tech.
-*/
-interface Props {
-  pageName: string;
-}
+  src/scripts/site.js): a panel carrying the logo. The name, A D D D, set
+  in the accent face (Adelle Mono), hands over letter by letter to the
+  logo's four forms as the panel covers the page: each letter presses down
+  onto its foot and its form rises out of the same spot. The forms are the
+  nav logo's own (formPath, src/scripts/logo-morph.js), and are what a
+  "reveal" arrival shows while the panel covers the page.
 
-const { pageName } = Astro.props;
+  The panel is red, and blue on the way into the Tech Firms page (set per
+  navigation in site.js; here for a document load of that page). Purely
+  visual, so hidden from assistive tech.
+*/
+import { LETTER_COUNT, formPath, letterFoot } from "../scripts/logo-morph.js";
+
+const letters = Array.from({ length: LETTER_COUNT }, (_, i) => ({
+  form: formPath(i),
+  foot: letterFoot(i),
+  glyph: i ? "D" : "A",
+}));
+const tone = /(^|\/)tech-firms(\.html)?$/.test(Astro.url.pathname) ? "blue" : "red";
 ---
 <div data-transition-wrap class="transition" aria-hidden="true">
-  <div data-transition-panel class="transition__panel">
-    <span data-transition-label class="transition__label">
-      <span data-transition-label-text>{pageName}</span>
-    </span>
+  <div data-transition-panel data-tone={tone} class="transition__panel">
+    <svg data-transition-logo xmlns="http://www.w3.org/2000/svg" viewBox="18.4 42.7 64 16" fill="currentColor" class="transition__logo">
+      {letters.map(({ form }) => <path data-transition-logo-form d={form} />)}
+      {letters.map(({ foot: [x, y], glyph }) => (
+        <text data-transition-logo-glyph x={x} y={y} text-anchor="middle" class="transition__glyph">{glyph}</text>
+      ))}
+    </svg>
   </div>
 </div>

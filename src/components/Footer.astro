@@ -25,10 +25,17 @@ import NavLinkLabel from "./NavLinkLabel.astro";
         <div class="site-footer__signup">
           <p class="site-footer__eyebrow">ADDDitive newsletter</p>
           <p class="site-footer__title">Get ADDDitive<br>in your inbox</p>
-          <p class="site-footer__desc">Regular thinking on technology, AI and digital practice.</p>
-          <form class="newsletter-form" onsubmit="return false">
-            <input type="email" placeholder="Your email" aria-label="Your email" required>
-            <button class="newsletter-form__submit" type="submit">Subscribe</button>
+          <p class="site-footer__desc">The Process of Architecture: how technology actually gets used to make architecture.</p>
+          <form class="newsletter-signup" onsubmit="return false">
+            <div class="newsletter-form">
+              <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
+              <button class="newsletter-form__submit" type="submit">Subscribe</button>
+            </div>
+            <fieldset class="newsletter-audience">
+              <legend class="newsletter-audience__legend">Which describes you?</legend>
+              <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+              <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+            </fieldset>
           </form>
         </div>
 
@@ -36,8 +43,8 @@ import NavLinkLabel from "./NavLinkLabel.astro";
           <div class="site-footer__group">
             <p class="site-footer__eyebrow">Services</p>
             <ul class="site-footer__links">
-              <li><a class="nav-link" href="workshops-audits.html"><NavLinkLabel>Workshops &amp; Audits</NavLinkLabel></a></li>
-              <li><a class="nav-link" href="software-licensing-audit.html"><NavLinkLabel>Software &amp; Licensing Audit</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="workshops-audits.html"><NavLinkLabel>Workflow Workshop</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="before-revit.html"><NavLinkLabel>Before Revit</NavLinkLabel></a></li>
               <li><a class="nav-link" href="technology-blueprint.html"><NavLinkLabel>Technology Blueprint</NavLinkLabel></a></li>
               <li><a class="nav-link" href="advisory.html"><NavLinkLabel>ADDDvisory</NavLinkLabel></a></li>
             </ul>
@@ -57,6 +64,7 @@ import NavLinkLabel from "./NavLinkLabel.astro";
             <ul class="site-footer__links">
               <li><a class="nav-link" href="index.html"><NavLinkLabel>Home</NavLinkLabel></a></li>
               <li><a class="nav-link" href="about.html"><NavLinkLabel>About</NavLinkLabel></a></li>
+              <li><a class="nav-link" href="tech-firms.html"><NavLinkLabel>For AEC Tech Firms</NavLinkLabel></a></li>
               <li><a class="nav-link" href="contact.html"><NavLinkLabel>Contact</NavLinkLabel></a></li>
               <li><a class="nav-link" href="https://app.addd.io/login" target="_blank" rel="noopener"><NavLinkLabel>Sign in &#8599;</NavLinkLabel></a></li>
             </ul>

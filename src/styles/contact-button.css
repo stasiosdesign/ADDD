@@ -75,7 +75,6 @@
   align-items: center;
   display: flex;
   overflow: clip;
-  will-change: width;
   transition: width 0.3s var(--contact-button-ease);
 }
 
