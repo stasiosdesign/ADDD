@@ -6,6 +6,7 @@ import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
+import StickyTitle from "../components/StickyTitle.astro";
 
 const related = [
   { href: "report-template.html", image: "assets/images/allister-podium-full.jpg", category: "Technology", title: "The state of AI in architecture", description: "How generative tools are reshaping design practice and what firms need to know", meta: ["Report", "12 min read"] },
@@ -39,11 +40,21 @@ const related = [
        white can never show between them. -->
   <div class="ink-band">
 
-  <!-- ========== 2. LOGO STRIP ========== -->
-  <section class="logos">
-    <h2 class="h4 logos__title">Trusted by leading practices across the UK</h2>
-    <div class="dotted-rule logos__rule" aria-hidden="true"></div>
-    <div data-wavy-marquee-init class="wavy-marquee">
+  <!-- ========== 2–3. LOGO STRIP AND APPROACH STATEMENT ==========
+       One section (StickyTitle): the strip's title and rule scroll by as
+       they always have; its carousel is the top of the statement's held
+       frame — it comes up the page, stays at the top of the screen over
+       the statements while they are held, and leaves with them. -->
+  <StickyTitle id="approach" class="logos" headings={[
+    "Most technology problems aren’t really technology problems.",
+    "They come from how workflows, tools, people and decisions connect. ADDD looks across the practice to find what’s holding it back and what should change first.",
+    "Here’s how ADDD helps.",
+  ]}>
+    <Fragment slot="before">
+      <h2 class="h4 logos__title">Trusted by leading practices across the UK</h2>
+      <div class="dotted-rule logos__rule" aria-hidden="true"></div>
+    </Fragment>
+    <div data-wavy-marquee-init class="wavy-marquee" slot="top">
       <div class="wavy-marquee__collection">
         <!-- Wide single-line wordmarks alternate with compact, stacked
              marks, five of each, so no two of a kind meet — across the
@@ -62,9 +73,9 @@ const related = [
         </div>
       </div>
     </div>
-  </section>
+  </StickyTitle>
 
-  <!-- ========== 3. APPROACH ========== -->
+  <!-- ========== 4. APPROACH STEPS ========== -->
   <ApproachStack />
 
   </div>

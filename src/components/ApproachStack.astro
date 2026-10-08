@@ -1,6 +1,6 @@
 ---
 /*
-  The homepage's approach section: "Fix the system, not the symptoms", then
+  The homepage's approach section, after its statement (StickyTitle.astro):
   the three steps as a scroll-driven stack. Built on the supplied Scroll-driven
   Stack Timeline spec (after the stack section on sui.io), adapted to three
   cards and to the site: the steps zig-zag either side of a centre rail, and a
@@ -99,15 +99,7 @@ const rankX = [84, 148, 212, 276];
 const rankRest = [96, 152, 64, 120];
 const rankFirst = rankRest.indexOf(Math.max(...rankRest));
 ---
-<section class="approach-stack" id="approach" data-approach-stack>
-  <div class="approach-stack__intro">
-    <h2 class="approach-stack__h">Fix the system, not the symptoms</h2>
-    <div class="approach-stack__lede">
-      <p class="text-md">Technology problems rarely exist in isolation. ADDD looks across the practice to understand what is connected, what is causing friction, and what should change first.</p>
-      <p class="tagline tagline--sm">The ADDD approach</p>
-    </div>
-  </div>
-
+<section class="approach-stack" aria-label="The ADDD approach" data-approach-stack>
   <div class="approach-stack__grid">
     <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
       <div class="approach-stack__window" data-approach-stack-window>
@@ -135,7 +127,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
                     <path class="schematic__route" data-s="route" d={map.route} pathLength="1" />
                     <path class="schematic__pulse" data-s="pulse" d={map.route} pathLength="1" />
                     {map.nodes.map((node) => (
-                      <rect class="schematic__shape" data-s="node" data-at={node.at} x={node.x - 10} y={node.y - 10} width="20" height="20" rx="2" />
+                      <rect class="schematic__shape" data-s="node" data-at={node.at} x={node.x - 10} y={node.y - 10} width="20" height="20" rx="1" />
                     ))}
                   </svg>
                 )}
@@ -143,7 +135,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
                 {step.schematic === "trace" && (
                   <svg class="schematic" data-schematic="trace" data-cause={TRACE_CAUSE} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
                     {trace.rows.map((y) => (
-                      <rect class="schematic__shape" data-s="layer" x="90" y={y} width="220" height="18" rx="2" />
+                      <rect class="schematic__shape" data-s="layer" x="90" y={y} width="220" height="18" rx="1" />
                     ))}
                     <rect class="schematic__ping" data-s="ping" x={trace.marker.x} y={trace.marker.y} width={trace.marker.size} height={trace.marker.size} />
                     <rect class="schematic__marker" data-s="marker" x={trace.marker.x} y={trace.marker.y} width={trace.marker.size} height={trace.marker.size} />
@@ -154,7 +146,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
                   <svg class="schematic" data-schematic="rank" data-base={RANK_BASE} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
                     <path class="schematic__base" data-s="base" d={`M60 ${RANK_BASE}H340`} />
                     {rankX.map((x, k) => (
-                      <rect class:list={["schematic__shape", { "is--first": k === rankFirst }]} data-s="bar" x={x} y={RANK_BASE - rankRest[k]} width="40" height={rankRest[k]} rx="2" />
+                      <rect class:list={["schematic__shape", { "is--first": k === rankFirst }]} data-s="bar" x={x} y={RANK_BASE - rankRest[k]} width="40" height={rankRest[k]} rx="1" />
                     ))}
                   </svg>
                 )}

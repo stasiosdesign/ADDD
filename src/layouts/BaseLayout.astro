@@ -48,6 +48,7 @@ import "../styles/morph-loader.css";
 import "../styles/column-grid.css";
 import "../styles/page-grid.css";
 import "../styles/approach-stack.css";
+import "../styles/sticky-title.css";
 
 interface Props {
   /** The document <title>. */
@@ -106,6 +107,9 @@ const { title, description, pageName, home = false } = Astro.props;
 <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap">
 </head>
 <body data-barba="wrapper">
 <MorphLoader />

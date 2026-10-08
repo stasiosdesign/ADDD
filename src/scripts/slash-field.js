@@ -38,57 +38,43 @@
        on after it, never through the letters. A word
        with data-slash-from="N" only appears where the container is at
        least N px wide; one that will not fit is hidden;
-     - the field is a network, and its words are the systems on it,
-       coming online and setting one another off. It runs as one chain
-       reaction: it opens on a word near the middle bursting straight
-       away, and each burst is a small explosion whose shockwave runs out
-       through the strokes around it, furthest towards a neighbour, and
-       sets that word off as it reaches it — another explosion, another
-       shockwave — word to word without a pause, each landing before the
-       last has settled. Nothing is ever drawn from one word to the next,
-       so the chain reads as discrete explosions, each setting off the
-       next, rather than as a line travelling through the field. When the
-       chain has to stop (the field leaving the screen) it picks up again
-       from the last word, so activity never jumps across the field.
+     - the field is a system with a pulse: a wave runs through it from
+       left to right, over and over (WAVE), each front setting off before
+       the last has crossed, so one is always under way. A front is a
+       technical waveform rather than an upright line: it leans across
+       the band, coming in and going out on the diagonal, and swings in a
+       deep S that flows down it as it travels, with a smooth noise over
+       it to keep it organic. Behind it a band of strokes comes up dark,
+       in clumps, darkest at the front and easing off to its back, and
+       each stroke the front crosses flashes, so the wave is seen
+       travelling the whole width of the pattern and the field darkens
+       and comes back to life where it has just been.
 
-       Each word is a node, and the shockwave reaching it is an event.
-       The word starts to decode (ScrambleTextPlugin, set up the way the
-       Osmo Text Scramble resource does it: split into words, scrambled to
-       its own text, the split reverted once it resolves) as the wave is
-       about to reach it, and as it lands the node bursts: the strokes
-       framing the word flare to full ink at once, a few of them holding
-       the red a moment, short traces fly out of it on every side, some
-       with a red head that turns to ink, and its own shockwave sets off —
-       a sparse ring of strokes flaring as its front passes, strongest by
-       the word and fading as it spreads, running on furthest towards the
-       word the chain goes to next. A quick front resolves the word from
-       the side the wave came in by, the strokes above and below following
+       Each word is a node the wave passes through, and its reaching one
+       is the only thing that sets the word off. The word starts to decode
+       (ScrambleTextPlugin, set up the way the Osmo Text Scramble resource
+       does it: split into words, scrambled to its own text, the split
+       reverted once it resolves) a beat before the front gets to it, and
+       as the front arrives the strokes framing it flare, a few of them
+       holding the red a moment. A quick front resolves the word from its
+       left, the way the wave goes, the strokes above and below following
        it across, and the light settles back. Held forward a moment
-       (data-slash-active), the word settles back slowly, so the last is
-       still fading as the next comes online. Now and then the wave also
-       sets off a nearer word it passes, which answers with a smaller
-       burst and a short decode of its own (data-slash-active="minor").
-       Under all of it faint packets of traffic run out from one word
-       towards a neighbour, so the field is never still.
+       (data-slash-active), the word settles back slowly as the wave runs
+       on to the next.
 
        Three tones: the field's own tint, ink (two steps of it — a firmer
        grey, and a near-black the system reaches at its most active),
-       and red. Red is the heart of each burst, nothing else: the frame
-       and the traces' heads as it lands, a few strokes sparking right by
-       the word, the characters of a word still decoding (the one at the
-       front full red) and the strokes at the front of a decode. The
-       shockwaves and the traffic are ink, so the red stays where the
-       explosions are and has something to stand against. It never stays
+       and red. Red is the heart of each word the wave sets off, nothing
+       else: a few strokes in its frame, the characters of the word still
+       decoding (the one at the front full red) and the strokes at the
+       front of the decode. The wave itself is ink, so the red stays where
+       the words are and has something to stand against. It never stays
        where it lands — every red stroke turns to ink and then back to the
        field's own tint, and a word resolves to ink.
 
-       Which words, in what order, from which side and how fast the
-       waves travel all vary: each next word
-       is drawn from the few nearest the last, by weight — the nearer the
-       likelier, onward the way the chain was going a little likelier —
-       and never one of the last few, so the route wanders through
-       neighbours rather than repeating. Only one word ever comes fully
-       online at a time.
+       The field's own tint is a step darker once it has come to life
+       (REST): the homepage intro's pulse leaves each stroke it passes
+       there, and every other time the field starts there.
 
    Nothing runs under prefers-reduced-motion, and the sequence runs only
    while the field is on screen and the page has
@@ -149,37 +135,77 @@ const SHADES = (2 * LEVELS + 1) * (SIGNAL_LEVELS + 1);
 // Red can be held a moment first, where a burst lands.
 const GLOW_FADE = 1.5;
 const SIGNAL_FADE = 0.2;
+// The light a stroke rests at once the field has come to life — a step up
+// from its own tint towards the highlight, a settled grey rather than the
+// pale tint it starts at — which every light dies back to rather than below.
+const REST = 0.3;
 
 // The sequence. Every range is [least, most], drawn afresh each time.
 const SEQUENCE = {
-  // the chain's first word, once the field is up (s), and how long after
-  // the page has finished arriving, if it was still arriving then; it opens
-  // on a burst, picked from the few words nearest the field's middle
-  first: 0.3,
-  settle: 0.12,
-  opener: 3,
-  // a word's shockwave sets off a beat after it bursts (s), so the flare is
-  // seen first and the wave rolls out of it, unhurried
-  beat: [0.16, 0.3],
-  // the next word: one of the nearest few still free (near) within reach (a
-  // share of the field's width; the nearest of all if none is), the nearer
-  // the likelier, onward the way the chain was going a little likelier, and
-  // the word this one set off last time much less likely (again)
-  near: 3,
-  reach: 0.42,
-  onward: 1.4,
-  again: 0.25,
-  // how often the wave also sets off a nearer word it passes, with a smaller
-  // answer
-  branch: 0.3,
+  // the first wave, once the field is up (s), and how long after the page
+  // has finished arriving, if it was still arriving then: at once, the
+  // wave the first thing the field does when it is free to
+  first: 0.05,
+  settle: 0,
   // the word held forward after it has resolved (s)
   hold: [0.9, 1.4],
-  // the traffic under it all: how often a packet sets off from one word
-  // towards one of its neighbours (s), how much of the way it gets — never
-  // all of it, so a packet never joins two words up — and its pace (cells/s)
-  traffic: [0.55, 1.2],
-  trafficReach: [0.25, 0.6],
-  trafficSpeed: [32, 48],
+};
+// The wave through the field, left to right. Every front is its own: its
+// shape and pace are drawn afresh from the ranges here as it sets off
+// (every range [least, most]), so no two are alike and the next can't be
+// called — but each is still plainly the same system's. Its pace (px/s),
+// with a surge in it, the front pressing on and easing a little in turn
+// (surge, px either way, at surgeRate rad/s); the next front sets off once
+// the last is a share of the way across (every), and never sooner than
+// least (s) after it, so there is always one under way and seldom more
+// than two. The first enters the moment the field starts — its leading
+// edge already at the field's left edge.
+//
+// Its shape, a technical waveform rather than an upright line: the front
+// leans across the band — its foot ahead of its head by lean (a share of
+// the band's height; now and then the other way, back, its head first) —
+// so it comes in and goes out on the diagonal, and along that lean it
+// swings in an S, a swing of amplitude either way (a share of the height)
+// over a length of the band's height times length, the S flowing on down
+// the front as it goes (flow, rad/s, either way). Over that, the front is
+// stepped: cut into runs of a few rows (stepRows), each set ahead or back
+// by a whole number of cells up to step px, so its edge reads as a signal
+// on a grid — quantised, a little broken — rather than a drawn curve; and a
+// smooth noise (wobble, px; grain, px) roughens it between the steps. None
+// of it ever moves any part of the front backwards.
+//
+// What it does to the strokes: a band of them depth px deep behind the
+// front comes up, darkest at the front and easing off to its back (the
+// power of the way back it is through the band, ease: under 1, so it
+// holds most of its depth and falls away near the back), the
+// strokes it lights (pick) thicker and thinner in clumps (clump, how much;
+// clumpGrain, how wide, px) — ink well past the highlight towards the
+// near-black (ink, scaled per front by strength), and a flash as the front
+// itself crosses each (flash). Strong enough to be seen travelling the
+// width of the pattern; the words sit clear of it in their own cells.
+const WAVE = {
+  speed: [150, 190],
+  surge: [12, 30],
+  surgeRate: [1.2, 2.2],
+  every: [0.4, 0.7],
+  least: 2.6,
+  lean: [0.45, 1.15],
+  backward: 0.3,
+  amplitude: [0.1, 0.32],
+  length: [0.8, 1.7],
+  flow: [0.2, 0.5],
+  step: 28,
+  stepRows: [2, 5],
+  wobble: 18,
+  grain: 110,
+  depth: 180,
+  ease: 0.6,
+  pick: 0.8,
+  clump: 0.6,
+  clumpGrain: 90,
+  strength: [0.85, 1.1],
+  ink: 1.45,
+  flash: 1.8,
 };
 // The decode: a brief moment fully scrambled — the wave's last stretch in,
 // then the burst — and resolving across the whole label in the direction the
@@ -194,9 +220,11 @@ export const DECODE = {
   major: { hold: 0.12, base: 0.22, perChar: 0.018, min: 0.32, max: 0.62 },
   minor: { hold: 0.06, base: 0.16, perChar: 0.011, min: 0.22, max: 0.4 },
 };
-// The burst as the wave lands on a word: a small, contained answer, the same
-// either side — the word's own frame lighting up and a few short traces out
-// of it along its row and its columns, never flung out across the field. The
+// The burst as the wave reaches a word (major): a small, contained answer
+// — the word's own frame lighting up, a few strokes of it holding the red,
+// and nothing flung out of it, so the wave stays the one thing moving
+// through the field. A word born in the intro (minor) answers smaller and
+// fainter, with a few short traces out of it. The
 // frame — the strokes over and under the word and beyond its ends:
 // the share lit, the light they keep and the flash they give (light past 1 is
 // on the way to the ink), and the share that take the red and hold it (s);
@@ -206,12 +234,11 @@ export const DECODE = {
 // (columns, rise) and out across the diagonals from its corners (diag), all
 // lengths in cells; their pace (s per cell) and the light they flash and
 // leave. A share of them (hot) carry red at the head for redReach of the
-// way, so the burst is mostly ink with the red at its heart. A word
-// answering a passing wave answers the same, smaller and fainter.
+// way, so the burst is mostly ink with the red at its heart.
 const BURST = {
   major: {
     frame: 0.72, outer: 0.28, ink: 1.25, flash: 1.45, red: 0.2, hold: 0.3,
-    row: [3, 5], columns: 2, rise: [1, 3], diag: [0, 0],
+    row: [0, 0], columns: 0, rise: [0, 0], diag: [0, 0],
     pace: [0.036, 0.052], traceFlash: 1.35, traceInk: 0.75, redReach: 0.5, hot: 0.25,
   },
   minor: {
@@ -220,27 +247,7 @@ const BURST = {
     pace: [0.038, 0.052], traceFlash: 1, traceInk: 0.45, redReach: 0.4, hot: 0.1,
   },
 };
-// The shockwave out of a word that has burst, which carries the chain on: a
-// sparse ring of strokes flaring as its front passes, run out from the
-// word's own outline. Every way it reaches near (px); towards the word the
-// chain goes to next it runs on, in a lobe (the higher lobe, the narrower),
-// over (a share) of the way there, and sets that word off as its front
-// arrives. Its pace (px/s), held to the least and most time it may take to
-// get there (s), slowing a touch as it spreads (spread, the power of
-// distance over time); how many of the strokes it passes it lights, how
-// strongly they flash and how much light they keep — at the word, and at the
-// far end of the wave; the share of the strokes right by the word (within
-// two rows) that spark red with it; and how long the strokes it stirs turn
-// (s). Ink otherwise, never a line: nothing seen joins two words. A pulse
-// through the strokes rather than a blast: sparse, mid-grey, travelling
-// steadily, with nothing knocked about as it passes.
-const SHOCK = {
-  near: 70, lobe: 2, over: 1.08,
-  speed: [190, 260], time: [0.85, 1.6], spread: 0.9,
-  pick: [0.55, 0.16], flash: [1.25, 0.6], ink: [0.65, 0.12],
-  spark: 0.04, turn: 0,
-};
-// The answer of a word set off by a passing wave: a small ring of light
+// The answer of a word born in the intro: a small ring of light
 // round it — how far it reaches (in cells across, rows up and down), how long
 // it takes to spread, how sparse it is, how strongly it flashes (past 1
 // towards the ink, at its inside), how much of that stays behind it, the
@@ -261,6 +268,23 @@ function hash(col, row, seed) {
   h = Math.imul(h ^ (h >>> 13), 1274126177);
   h ^= h >>> 16;
   return (h >>> 0) / 4294967296;
+}
+
+// Smooth 0..1 at (x, y), in lattice units: the hash at the lattice's corners,
+// eased between them, so neighbouring points take near values and it swells
+// and falls away gradually — the shape of a wave's front.
+function noise(x, y, seed) {
+  const gx = Math.floor(x);
+  const gy = Math.floor(y);
+  const fx = x - gx;
+  const fy = y - gy;
+  const sx = fx * fx * (3 - 2 * fx);
+  const sy = fy * fy * (3 - 2 * fy);
+  const a = hash(gx, gy, seed);
+  const b = hash(gx + 1, gy, seed);
+  const c = hash(gx, gy + 1, seed);
+  const d = hash(gx + 1, gy + 1, seed);
+  return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
 }
 
 const between = ([least, most]) => least + Math.random() * (most - least);
@@ -314,6 +338,9 @@ export function mountSlashField(el) {
   // red, and how long that red is held before it fades
   let opts, colors, width, height, ox, oy, cols, rows, cellW, cellH;
   let glyph, taken, heat, glow, signal, keep;
+  // per cell, whether the field has come to life there, its light resting at
+  // REST rather than its own pale tint
+  let settled;
   // the rows added above and below the container to fill the screen; per
   // cell, how long its stroke stays stirred, and whether the intro has
   // cleared it away
@@ -340,20 +367,16 @@ export function mountSlashField(el) {
   const unborn = (word) => (opts.words === "unborn" || entering) && !born.has(word.label);
   let ticking = false;
 
-  // the sequence: what is lighting the strokes, the words online (each with
-  // its timeline and split) and those a wave is on its way to, the call
-  // that starts (or restarts) the chain and the one that sends the next
-  // packet, and the last few words to come online
+  // the sequence: what is lighting the strokes, the fronts of the wave under
+  // way, the words online (each with its timeline and split), and the call
+  // that sets the next front off
   let runs = [];
   let ripples = [];
   let scans = [];
   let waves = [];
+  let fronts = [];
   const live = new Map();
-  const pending = new Set();
   let next = null;
-  let traffic = null;
-  let previous = null;
-  let recent = [];
   let held = false;
   let onScreen = true;
 
@@ -509,6 +532,8 @@ export function mountSlashField(el) {
     keep = new Float32Array(cols * rows);
     stir = new Float32Array(cols * rows);
     gone = new Uint8Array(cols * rows);
+    // come to life already, but for the homepage intro, whose pulse brings it
+    settled = new Uint8Array(cols * rows).fill(opts.words === "unborn" ? 0 : 1);
     blank(cols * rows);
     const slant = opts.straight + (1 - opts.straight) / 2;
     for (let r = 0; r < rows; r++) {
@@ -522,7 +547,6 @@ export function mountSlashField(el) {
     placeWords();
     if (hole.length) clearHole();
     plan(SEQUENCE.first);
-    planTraffic(SEQUENCE.first + between(SEQUENCE.traffic));
     draw();
   }
 
@@ -567,6 +591,7 @@ export function mountSlashField(el) {
     keep = cut(keep);
     stir = cut(stir);
     gone = cut(gone);
+    settled = cut(settled);
     blank(kept);
 
     // what is under way, moved with its strokes; anything that was out on
@@ -574,6 +599,7 @@ export function mountSlashField(el) {
     runs = runs.filter((s) => (s.route = s.route.map(move)).every((i) => i >= 0));
     ripples.forEach((rp) => rp.cells.forEach((cell) => (cell.i = move(cell.i))));
     waves.forEach((w) => w.i.forEach((i, k) => (w.i[k] = move(i))));
+    fronts.forEach((f) => (f.reached = f.reached.slice(above, rows - below)));
     cues.forEach((q) => {
       if (q.i != null) q.i = move(q.i);
       if (q.r != null) q.r -= above;
@@ -597,10 +623,7 @@ export function mountSlashField(el) {
 
   /* ---------- words: real text set on the grid ---------- */
   function placeWords() {
-    // new words, so the chain starts afresh
     words = [];
-    previous = null;
-    recent = [];
     const labels = [...el.querySelectorAll("[data-slash-label]")];
     if (!labels.length || !cols || !rows) return;
 
@@ -716,7 +739,7 @@ export function mountSlashField(el) {
         let k = -1;
         let g = 0;
         if (glyph[i] && !gone[i] && !veil) {
-          const level = Math.min(2 * LEVELS, Math.ceil(Math.max(heat[i], glow[i]) * LEVELS));
+          const level = Math.min(2 * LEVELS, Math.ceil(Math.max(heat[i], glow[i], settled[i] ? REST : 0) * LEVELS));
           const red = signal[i] ? Math.ceil(Math.min(1, signal[i]) * SIGNAL_LEVELS) : 0;
           k = red * (2 * LEVELS + 1) + level;
           g = stir[i] ? 1 + Math.floor(hash(i - r * cols, r, 20 + spin) * 3) : glyph[i];
@@ -791,65 +814,11 @@ export function mountSlashField(el) {
     if (flash > heat[i]) heat[i] = flash;
   }
 
-  // The cells a signal runs through from one word to another, routed the
-  // way a trace is: out of the first along its row, on the side facing the
-  // second, down or up a column, and along the second's row into it — round
-  // its far side when the two overlap across. Never through a word. Which
-  // column it turns down varies; null when there is no clear way. travel is
-  // the way it enters the second word (1 rightwards).
-  function routeBetween(a, b) {
-    const right = b.x > a.x;
-    const exit = right ? a.c + a.n + 1 : a.c - 2;
-    let enter = right ? b.c - 2 : b.c + b.n + 1;
-    let turns;
-    if (right ? enter >= exit : enter <= exit) {
-      // a gap between them: turn somewhere in it, around a point drawn in it
-      const lo = Math.min(exit, enter);
-      const hi = Math.max(exit, enter);
-      const aim = lo + (hi - lo) * between([0.2, 0.8]);
-      turns = Array.from({ length: hi - lo + 1 }, (_, k) => lo + k).sort((p, q) => Math.abs(p - aim) - Math.abs(q - aim));
-    } else {
-      // they overlap across: out and in on the same side, turning beyond both
-      enter = right ? b.c + b.n + 1 : b.c - 2;
-      const beyond = right ? Math.max(exit, enter) : Math.min(exit, enter);
-      turns = [1, 2, 3, 4, 5, 6].map((k) => beyond + (right ? k : -k));
-    }
-    for (const turn of turns) {
-      const route = trace(a.r, exit, turn, b.r, enter);
-      if (route) return { route, travel: enter === b.c - 2 ? 1 : -1 };
-    }
-    return null;
-  }
-
-  // along row r0 from x0 to x1, down or up column x1 to row r1, along row r1
-  // to x2 — or null if any cell of it is outside the field or a word's
-  function trace(r0, x0, x1, r1, x2) {
-    const route = [];
-    const add = (c, r) => {
-      if (c < 0 || c >= cols || r < 0 || r >= rows || taken[r * cols + c]) return false;
-      route.push(r * cols + c);
-      return true;
-    };
-    for (let c = x0; ; c += Math.sign(x1 - x0)) {
-      if (!add(c, r0)) return null;
-      if (c === x1) break;
-    }
-    for (let r = r0 + Math.sign(r1 - r0); r0 !== r1; r += Math.sign(r1 - r0)) {
-      if (!add(x1, r)) return null;
-      if (r === r1) break;
-    }
-    for (let c = x1 + Math.sign(x2 - x1); x1 !== x2; c += Math.sign(x2 - x1)) {
-      if (!add(c, r1)) return null;
-      if (c === x2) break;
-    }
-    return route;
-  }
-
   // A trace: a head running the route over its duration on the ease, after
   // a delay, lighting each stroke as it reaches it with the shade for that
   // point along it (0 at its start, 1 at its end) — [ink, red, flash] — and a
-  // scattered few left dark. The traces a burst flings out, the intro's, and
-  // the traffic.
+  // scattered few left dark. The traces a word born in the intro flings out,
+  // and the intro's own.
   function run(route, { duration, ease, shade, pick, delay = 0 }) {
     runs.push({ route, duration, ease: gsap.parseEase(ease), shade, pick, t: -delay, done: 0 });
     wake();
@@ -875,9 +844,9 @@ export function mountSlashField(el) {
   // The strokes around a word answering it: a sparse ripple spreading from
   // it, fewer and fainter the further out, each stroke flaring briefly as it
   // passes and leaving a little light behind, so it reads as a ring going out
-  // rather than a patch coming up; a few close in spark red. Given the word
-  // the chain goes to next (toward), it runs further on that side — at the
-  // same speed, so it simply carries on longer that way.
+  // rather than a patch coming up; a few close in spark red. Given a word to
+  // lean towards (toward) and a spec.lean past 1, it runs further on that
+  // side — at the same speed, so it simply carries on longer that way.
   function ripple(word, spec, toward = null) {
     const { c, n, r } = word;
     const sx = toward ? Math.sign(toward.x - word.x) : 0;
@@ -921,10 +890,9 @@ export function mountSlashField(el) {
   // The burst as the wave lands on a word: the frame round it flares at once
   // — the rows over and under it and the cells beyond its ends — a share of
   // it holding the red a moment, and part of the ring one further out
-  // answering in ink; and short traces fly out of it on every side, like
-  // debris, some red at the head and ink behind. A word coming fully online
-  // then sends its shockwave out (handOn); one answering a passing wave has a
-  // small ring of its own instead.
+  // answering in ink. A word born in the intro (minor) also flings short
+  // traces out of it on every side, like debris, some red at the head and
+  // ink behind, and has a small ring of its own.
   function burst(word, kind) {
     const spec = BURST[kind];
     const { c, n, r } = word;
@@ -1000,6 +968,8 @@ export function mountSlashField(el) {
       turn: new Float32Array(size),
       n: 0,
       calls: [],
+      // whether the field comes to life (settled) where its front passes
+      settles: false,
       hold,
       t: 0,
       k: 0,
@@ -1042,6 +1012,7 @@ export function mountSlashField(el) {
         if (((w.at[k] / WAVE_STEP) | 0) > slot) break;
         const i = w.i[k];
         if (i < 0 || !glyph[i] || gone[i]) continue;
+        if (w.settles) settled[i] = 1;
         if (w.turn[k] > stir[i]) stir[i] = w.turn[k];
         light(i, w.ink[k], w.red[k], w.flash[k], w.hold);
       }
@@ -1056,66 +1027,97 @@ export function mountSlashField(el) {
   // the nearest point of an outline to (x, y)
   const nearest = (o, x, y) => [clamp(x, o.x0, o.x1), clamp(y, o.y0, o.y1)];
 
-  // The way from one word's outline to another's: how far it is (px), and
-  // which way (radians).
-  function gap(a, b) {
-    const oa = outline(a);
-    const ob = outline(b);
-    const [ax, ay] = nearest(oa, (ob.x0 + ob.x1) / 2, (ob.y0 + ob.y1) / 2);
-    const [bx, by] = nearest(ob, ax, ay);
-    const [px, py] = nearest(oa, bx, by);
-    return { d: Math.max(cellW, Math.hypot(bx - px, by - py)), angle: Math.atan2(by - py, bx - px) };
+  // The wave: a front run across the field from its left edge to its right
+  // (WAVE). Along each row it stands where its line has got to, set over by
+  // its lean, its S, its steps and its swells, all of them its own and some
+  // changing as it goes — never so fast that any of it runs backwards. Each
+  // frame it brings up the band of strokes behind it, a share of them,
+  // thicker and thinner in clumps, darkest at the front, each stroke it
+  // crosses flashing as it does. A word sets off as the front comes within
+  // its decode's hold of it, so the word's burst lands just as the front
+  // gets there.
+  function send() {
+    const f = {
+      seed: (Math.random() * 997) | 0,
+      phase: Math.random() * Math.PI * 2,
+      speed: between(WAVE.speed),
+      surge: between(WAVE.surge),
+      surgeRate: between(WAVE.surgeRate),
+      lean: between(WAVE.lean) * (Math.random() < WAVE.backward ? -1 : 1),
+      amplitude: between(WAVE.amplitude) * height,
+      length: between(WAVE.length) * height,
+      flow: between(WAVE.flow) * (Math.random() < 0.5 ? -1 : 1),
+      stepRows: Math.round(between(WAVE.stepRows)),
+      strength: between(WAVE.strength),
+      t: 0,
+      reached: new Float32Array(rows).fill(-Infinity),
+      fired: new Set(),
+    };
+    // the furthest any row of it stands ahead of or behind its line: so it
+    // starts with its leading edge right at the field's left edge, and runs
+    // on until the last of it is past the right
+    f.reach = (Math.abs(f.lean) * height) / 2 + f.amplitude + WAVE.step + WAVE.wobble + f.surge;
+    f.start = -f.reach;
+    f.end = (cols * cellW + 2 * f.reach) / f.speed;
+    fronts.push(f);
+    wake();
   }
 
-  // A word's shockwave: out of its outline every way as far as SHOCK.near,
-  // and on towards the next word (the given way to it) in a lobe, a little
-  // past it. Every stroke the front passes flares and keeps a little light,
-  // fewer and fainter the further out; a few right by the word spark red, and
-  // the strokes close in turn as it passes, as if knocked. Hands back the
-  // wave, for its calls; the time its front takes to reach the next word, and
-  // to reach any distance; and whether it passes over a word at a given way.
-  function shock(word, way = null) {
-    const spec = SHOCK;
-    const o = outline(word);
-    const span = way ? Math.max(spec.near, way.d * spec.over) : spec.near;
-    const time = way ? clamp(way.d / between(spec.speed), ...spec.time) : spec.time[0];
-    const far = way ? way.d : spec.near;
-    const when = (d) => time * (d / far) ** spec.spread;
-    const lobe = (angle) => (way ? Math.max(0, Math.cos(angle - way.angle)) ** spec.lobe : 0);
-    const passes = (g) => g.d < spec.near + (span - spec.near) * lobe(g.angle);
-    const c0 = Math.max(0, Math.floor((o.x0 - span) / cellW));
-    const c1 = Math.min(cols - 1, Math.ceil((o.x1 + span) / cellW));
-    const r0 = Math.max(0, Math.floor((o.y0 - span) / cellH));
-    const r1 = Math.min(rows - 1, Math.ceil((o.y1 + span) / cellH));
-    const w = wave(Math.max(0, (c1 - c0 + 1) * (r1 - r0 + 1)), 0.08);
-    for (let r = r0; r <= r1; r++) {
-      const cy = (r + 0.5) * cellH;
-      for (let c = c0; c <= c1; c++) {
-        const i = r * cols + c;
-        if (!glyph[i] || gone[i] || taken[i]) continue;
-        const cx = (c + 0.5) * cellW;
-        const [px, py] = nearest(o, cx, cy);
-        const d = Math.hypot(cx - px, cy - py);
-        if (!d) continue;
-        // how far the wave runs this way: near every way, on towards the next
-        // word within its lobe
-        const limit = spec.near + (span - spec.near) * lobe(Math.atan2(cy - py, cx - px));
-        if (d >= limit) continue;
-        // strongest by the word, fading as it spreads, and thinning out
-        // towards the edge of its reach this way
-        const s = 1 - Math.min(1, d / span);
-        const edge = Math.min(1, (limit - d) / (0.3 * limit + cellW));
-        if (Math.random() > (spec.pick[1] + (spec.pick[0] - spec.pick[1]) * s) * edge) continue;
-        const red = d < 2 * cellH && Math.random() < spec.spark ? 1 : 0;
-        mark(w, i, when(d),
-          spec.ink[1] + (spec.ink[0] - spec.ink[1]) * s,
-          red,
-          (spec.flash[1] + (spec.flash[0] - spec.flash[1]) * s) * (0.6 + 0.4 * edge),
-          s > 0.7 ? spec.turn * s : 0);
+  // the middle of row r, down from the container's top (px): the front's
+  // shape is set by the container's rows, so it stays put when the field is
+  // cut back to the container after the intro
+  const rowY = (r) => (r + 0.5) * cellH - oy;
+
+  // where a front is along row r, t seconds after it set off (px, in the
+  // field's own terms): its line, pressing on and easing in its surge; the
+  // lean, taken across the band only (rows the field runs on past it, while
+  // it fills the screen, carry on from its top or foot); the S flowing down
+  // it; the steps, a whole number of cells each, in runs of rows; and the
+  // swells
+  const frontAt = (f, r, t) => {
+    const y = rowY(r);
+    const run = Math.floor((r - above) / f.stepRows);
+    const step = Math.round(((hash(run, 0, f.seed + 3) - 0.5) * 2 * WAVE.step) / cellW) * cellW;
+    return f.start + f.speed * t + f.surge * Math.sin(t * f.surgeRate + f.phase)
+      + f.lean * (clamp(y, 0, height) - height / 2)
+      + f.amplitude * Math.sin((2 * Math.PI * y) / f.length + f.phase + f.flow * t)
+      + step
+      + (noise(y / WAVE.grain, t * 0.2, f.seed) - 0.5) * 2 * WAVE.wobble;
+  };
+
+  function advanceFronts(dt) {
+    fronts = fronts.filter((f) => {
+      f.t += dt;
+      // how far ahead of a word the front is when it sets the word off
+      const lead = f.speed * DECODE.major.hold;
+      for (let r = 0; r < rows; r++) {
+        const x = frontAt(f, r, f.t);
+        const from = f.reached[r];
+        if (x <= from) continue;
+        f.reached[r] = x;
+        // the band behind the front: each stroke in it it lights brought up
+        // to its place in the band — darkest at the front — and a flash for
+        // those the front itself has just crossed
+        const c0 = Math.max(0, Math.ceil((x - WAVE.depth) / cellW - 0.5));
+        const c1 = Math.min(cols - 1, Math.floor(x / cellW - 0.5));
+        const y = rowY(r);
+        for (let c = c0; c <= c1; c++) {
+          const i = r * cols + c;
+          if (!glyph[i] || gone[i]) continue;
+          const thick = 1 - WAVE.clump / 2 + WAVE.clump * noise((c * cellW) / WAVE.clumpGrain, y / WAVE.clumpGrain, f.seed + 1);
+          if (hash(c, r, f.seed + 2) > WAVE.pick * thick) continue;
+          const behind = (x - (c + 0.5) * cellW) / WAVE.depth;
+          const crossed = (c + 0.5) * cellW > from;
+          light(i, WAVE.ink * f.strength * (1 - behind) ** WAVE.ease * (0.7 + 0.3 * thick), 0, crossed ? WAVE.flash * f.strength * (0.8 + 0.2 * thick) : 0);
+        }
       }
-    }
-    launch(w);
-    return { wave: w, time, when, passes };
+      words.forEach((word) => {
+        if (f.fired.has(word) || frontAt(f, word.r, f.t) + lead < (word.c - 1) * cellW) return;
+        f.fired.add(word);
+        if (running() && !unborn(word) && !holeWords.includes(word)) arrive(word, 1, "major");
+      });
+      return f.t < f.end;
+    });
   }
 
   // The strokes on the rows above and below a word, lit in step with its
@@ -1167,7 +1169,7 @@ export function mountSlashField(el) {
   // the clearing: the shapes it has been cut round (so a field laid out
   // again can cut them again) and the cells it holds, each with how far
   // through its sweep it is; the strokes turned to lie along a shape's edge,
-  // each with the stroke it had; the words it covers; and whether traffic
+  // each with the stroke it had; the words it covers; and whether the wave
   // runs while the page is arriving
   let hole = [];
   let holeCells = new Map();
@@ -1220,6 +1222,7 @@ export function mountSlashField(el) {
       }
       if (op === RESTORE) {
         gone[i] = 0;
+        settled[i] = 1;
         if (q.glyph >= 0) glyph[i] = q.glyph;
       }
       if (op === TURN) glyph[i] = q.glyph;
@@ -1477,6 +1480,8 @@ export function mountSlashField(el) {
     // carries the whole screen, and set off once it is all worked out, its
     // clock already as far on as the frames that took.
     const front = wave(cols * rows, 0.06);
+    // every stroke it reaches is left at the field's resting tone, lit or not
+    front.settles = true;
     const begun = clock;
     const band = Math.max(1, Math.ceil(BUILD_CELLS / cols));
     let r = 0;
@@ -1491,7 +1496,10 @@ export function mountSlashField(el) {
           if (d < inner) continue;
           const u = out(d);
           const strength = (1 - u) ** 1.5;
-          if (hash(c, r, 15) > 0.18 + 0.5 * strength) continue;
+          if (hash(c, r, 15) > 0.18 + 0.5 * strength) {
+            mark(front, i, when(u), 0, 0, 0, 0);
+            continue;
+          }
           mark(front, i, when(u),
             0.25 + 0.75 * strength,
             strength > 0.55 && hash(c, r, 16) < 0.08 ? 1 : 0,
@@ -1603,8 +1611,10 @@ export function mountSlashField(el) {
   }
 
   // Every word still out of the field, brought in at once: the intro's last
-  // word, in case the pulse missed one.
+  // word, in case the pulse missed one — and the field come to life all
+  // over, in case it missed a stroke.
   function bearAll() {
+    settled.fill(1);
     words.forEach((word) => {
       if (!unborn(word)) return;
       born.add(word.label);
@@ -1618,10 +1628,8 @@ export function mountSlashField(el) {
     wake();
   }
 
-  /* ---------- the sequence: a chain of words coming online ---------- */
+  /* ---------- the sequence: the wave, front after front ---------- */
   const running = () => canDecode && !reducedMotion.matches && onScreen && words.length > 0 && cols > 0 && rows > 0;
-  // a word fully online, or about to be: only one at a time
-  const majorLive = () => [...live.values()].some((entry) => entry.kind === "major") || pending.size > 0;
 
   function plan(seconds) {
     next?.kill();
@@ -1630,13 +1638,16 @@ export function mountSlashField(el) {
     next = gsap.delayedCall(seconds, begin);
   }
 
+  // Sets the next front off, and plans the one after: once this one is a
+  // share of the way across (WAVE.every, drawn afresh), and never sooner
+  // than WAVE.least.
   function begin() {
     next = null;
     if (!running()) return;
     // hold off while the page is still arriving or a page transition is
-    // still running, and a moment after, and while a word is still coming
-    // online, since that word carries the chain on itself
-    if (document.documentElement.dataset.arrival || window.barba?.transitions?.isRunning) {
+    // still running, and a moment after — but for the homepage intro, once
+    // its pulse has brought the field to life (introLive)
+    if ((document.documentElement.dataset.arrival && !introLive) || window.barba?.transitions?.isRunning) {
       held = true;
       plan(0.1);
       return;
@@ -1646,105 +1657,17 @@ export function mountSlashField(el) {
       plan(SEQUENCE.settle);
       return;
     }
-    if (majorLive()) {
-      plan(0.2);
-      return;
-    }
-    // The chain picks up again from the last word to come online, so it
-    // never jumps; only with no word before it does it open, on a word near
-    // the middle bursting at once, with no wave in to wait for.
-    if (previous && send(previous, previous.ahead)) return;
-    const word = choose(null);
-    if (!word) {
-      plan(0.2);
-      return;
-    }
-    arrive(word, Math.random() < 0.5 ? 1 : -1, "major", 0);
+    send();
+    plan(Math.max(WAVE.least, (between(WAVE.every) * cols * cellW) / fronts[fronts.length - 1].speed));
   }
 
-  // The next word: one of the few nearest the given one — the nearer, the
-  // likelier, and onward the way the chain was going a little likelier
-  // still — so the chain always moves to a neighbour but not always the same
-  // one. Never one online or about to be, nor the last word or the few
-  // before it, nor, for a ping, the word the chain is heading for. With no
-  // word to go from, one of the few nearest the field's middle.
-  function choose(from, ping = false) {
-    // the last few to skip: three in a full field, fewer where there are only
-    // a handful of words, so the chain still has a choice and never settles
-    // into a loop
-    const back = Math.max(0, Math.min(3, words.length - 4));
-    const skip = back ? recent.slice(-back) : [];
-    const open = (w) => w !== from && !live.has(w) && !pending.has(w) && !unborn(w) && !(ping && w === from?.ahead);
-    let pool = words.filter((w) => open(w) && !skip.includes(w));
-    if (!pool.length) pool = words.filter(open);
-    if (!pool.length) return null;
-    if (!from) {
-      const middle = (w) => Math.hypot(w.x - (ox + width / 2), (w.y - (oy + height / 2)) * 1.4);
-      pool = pool.sort((a, b) => middle(a) - middle(b)).slice(0, SEQUENCE.opener);
-      return pool[Math.floor(Math.random() * pool.length)];
-    }
-    const away = (w) => Math.hypot(w.x - from.x, (w.y - from.y) * 1.4);
-    pool.sort((a, b) => away(a) - away(b));
-    pool = pool.slice(0, SEQUENCE.near).filter((w, k) => k === 0 || away(w) <= width * SEQUENCE.reach);
-    // the way this word went last time is a long shot, so the chain does not
-    // keep taking the same route
-    const weights = pool.map((w) => {
-      const near = 1 / (0.35 + away(w) / (width * 0.2)) ** 1.5;
-      const onward = !ping && Math.sign(w.x - from.x) === from.travel ? SEQUENCE.onward : 1;
-      return near * onward * (w === from.went ? SEQUENCE.again : 1);
-    });
-    let left = Math.random() * weights.reduce((a, b) => a + b, 0);
-    return pool.find((_, k) => (left -= weights[k]) < 0) || pool[pool.length - 1];
-  }
-
-  // The chain carried on from a word that has burst: its shockwave, run out
-  // towards the next word — prefer, if it is still free, or another near it —
-  // which comes online as the front reaches it, starting to decode a moment
-  // before. Now and then a nearer word the wave passes over answers it too,
-  // more briefly. Only the chain's latest word sets the next off: if the
-  // chain has started over meanwhile, the wave just passes. False when there
-  // is no word free to go to.
-  function send(from, prefer = null) {
-    const free = (w) => w && words.includes(w) && !live.has(w) && !pending.has(w) && !unborn(w);
-    const to = free(prefer) ? prefer : choose(from);
-    if (!to) return false;
-    const way = gap(from, to);
-    pending.add(to);
-    from.went = to;
-    const { wave: w, time, when, passes } = shock(from, way);
-    w.calls.push({
-      at: time - DECODE.major.hold,
-      fn: () => (from === previous && running() ? arrive(to, to.x >= from.x ? 1 : -1, "major") : pending.delete(to)),
-    });
-
-    if (words.length > 2 && Math.random() < SEQUENCE.branch) {
-      const passed = words.filter((w2) => w2 !== from && free(w2)).map((w2) => [w2, gap(from, w2)]).filter(([, g]) => passes(g));
-      if (passed.length) {
-        const [by, g] = passed[Math.floor(Math.random() * passed.length)];
-        pending.add(by);
-        w.calls.push({ at: Math.max(0, when(g.d) - DECODE.minor.hold), fn: () => arrive(by, by.x >= from.x ? 1 : -1, "minor") });
-      }
-    }
-    return true;
-  }
-
-  // A word comes online: it starts to decode as the wave comes in, bursts as
-  // it lands and resolves, and a beat after the burst its own shockwave sets
-  // off for the next word, so the chain runs on from explosion to explosion.
-  // The chain's opening word bursts at once (hold 0), with no wave in to
-  // scramble ahead of.
+  // A word comes online as the wave reaches it: it starts to decode, bursts
+  // as the front lands and resolves the way the front is going (travel, 1
+  // rightwards). A word born in the intro (minor) does the same, smaller.
   function arrive(word, travel, kind, hold = DECODE[kind].hold) {
-    pending.delete(word);
     if (live.has(word)) return;
     const major = kind === "major";
     const { label } = word;
-    if (major) {
-      word.last = now();
-      word.travel = travel;
-      previous = word;
-      recent = recent.filter((w) => w !== word).concat(word).slice(-4);
-      word.ahead = choose(word);
-    }
     label.setAttribute("data-slash-active", kind);
 
     // The Osmo scramble: split into words, scramble each word to its own text,
@@ -1792,75 +1715,24 @@ export function mountSlashField(el) {
     timeline.to(scan.state, { p: 1, duration: decoded, ease: "none" }, hold);
     const resolved = hold + decoded;
 
-    // the burst, as the wave lands and the word starts to resolve, and a beat
-    // later the word's own shockwave, on to the next
+    // the burst, as the front lands and the word starts to resolve
     timeline.call(() => burst(word, kind), null, hold);
-    if (major) timeline.call(() => handOn(word), null, hold + between(SEQUENCE.beat));
     timeline.call(() => (scans = scans.filter((s) => s !== scan)), null, resolved);
     timeline.call(() => label.removeAttribute("data-slash-active"), null, resolved + (major ? between(SEQUENCE.hold) : 0.35));
     wake();
-  }
-
-  // The chain runs on from a word to the one picked for it as it came online,
-  // or another near it if that one has been taken, and with no word free
-  // tries again a moment later. Only the chain's latest word hands on, so
-  // there is only ever the one chain.
-  function handOn(word) {
-    if (!running() || word !== previous) return;
-    if (send(word, word.ahead)) return;
-    next?.kill();
-    next = gsap.delayedCall(0.2, () => {
-      next = null;
-      handOn(word);
-    });
-  }
-
-  // The traffic under it all: a packet setting off from one word towards one
-  // of its neighbours with a blink of ink as it leaves, getting some of the
-  // way and fading. Ink only, and never all the way, so it never reads as a
-  // signal joining two words.
-  function planTraffic(seconds) {
-    traffic?.kill();
-    traffic = running() ? gsap.delayedCall(seconds, sendTraffic) : null;
-  }
-
-  function sendTraffic() {
-    traffic = null;
-    if (!running()) return;
-    const idle = words.filter((w) => !live.has(w) && !pending.has(w) && !unborn(w));
-    if ((introLive || !document.documentElement.dataset.arrival) && idle.length > 1) {
-      const from = idle[Math.floor(Math.random() * idle.length)];
-      const away = (w) => Math.hypot(w.x - from.x, (w.y - from.y) * 1.4);
-      const near = idle.filter((w) => w !== from).sort((a, b) => away(a) - away(b)).slice(0, SEQUENCE.near);
-      const to = near[Math.floor(Math.random() * near.length)];
-      const way = routeBetween(from, to);
-      const length = way ? Math.min(way.route.length - 3, Math.max(5, Math.round(way.route.length * between(SEQUENCE.trafficReach)))) : 0;
-      if (length >= 3) {
-        const route = way.route.slice(0, length);
-        run(route, {
-          duration: clamp(route.length / between(SEQUENCE.trafficSpeed), 0.3, 2.2),
-          ease: "sine.out",
-          shade: (u) => [0.55 * (1 - 0.45 * u), 0, u < 0.12 ? 1 : 0.8 * (1 - u)],
-          pick: 0.82,
-        });
-      }
-    }
-    planTraffic(between(SEQUENCE.traffic));
   }
 
   // Stops whatever is under way and puts every word back as it was.
   function stopSequence() {
     next?.kill();
     next = null;
-    traffic?.kill();
-    traffic = null;
     live.forEach(({ timeline, split }, word) => {
       timeline.kill();
       split.revert();
       word.label.removeAttribute("data-slash-active");
     });
     live.clear();
-    pending.clear();
+    fronts = [];
     runs = [];
     ripples = [];
     scans = [];
@@ -1907,14 +1779,18 @@ export function mountSlashField(el) {
       if (jobs.length && jobs[0]()) jobs.shift();
       advanceCues();
       advanceWaves(dt);
+      advanceFronts(dt);
       advanceRuns(dt);
       advanceRipples(dt);
       advanceScans();
     }
 
-    draw();
+    // drawn only while the field is on screen: off it, a wave under way
+    // runs on in the arrays and the canvas is left as it was, and the
+    // first frame back draws every row that changed meanwhile
+    if (onScreen) draw();
 
-    if (!warm && !runs.length && !ripples.length && !scans.length && !cues.length && !waves.length && !jobs.length) sleep();
+    if (!warm && !runs.length && !ripples.length && !scans.length && !cues.length && !waves.length && !fronts.length && !jobs.length) sleep();
   }
 
   function wake() {
@@ -1931,12 +1807,15 @@ export function mountSlashField(el) {
 
   // the sequence only runs while the field is on screen
   const resume = () => {
-    if (!next) plan(previous ? 0.6 : SEQUENCE.first);
-    if (!traffic) planTraffic(between(SEQUENCE.traffic));
+    if (!next) plan(SEQUENCE.first);
   };
   const intersectionObserver = new IntersectionObserver(([entry]) => {
     onScreen = entry.isIntersecting;
-    if (onScreen) resume();
+    if (onScreen) {
+      resume();
+      // a frame, to draw whatever changed while it was off screen
+      wake();
+    }
   });
   intersectionObserver.observe(el);
 
@@ -1955,7 +1834,7 @@ export function mountSlashField(el) {
     // the words brought back in as the page comes in (site.js)
     enter,
     // the homepage's first-load intro (logo-morph-loader.js): the grid, to
-    // set the name in; traffic while the page is still arriving; the
+    // set the name in; the wave while the page is still arriving; the
     // clearing, the pulse and the close; and the field cut back to the band
     // once it is over
     intro: {

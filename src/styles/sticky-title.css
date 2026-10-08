@@ -1,0 +1,100 @@
+/* ============================================================
+   Sticky title — the homepage's statement, with the logo strip's
+   carousel held over it, before the approach stack (src/components/
+   StickyTitle.astro, src/scripts/sticky-title.js)
+   ------------------------------------------------------------
+   The Osmo Sticky Title Scroll Effect on the ink band. The section
+   opens on whatever the "before" slot gives (the logo strip's title
+   and rule), which scrolls by as it always has; then the track, tall,
+   whose container sticks for the screen's height while it scrolls.
+   The container is the held frame: at its top whatever the "top" slot
+   gives (the strip's carousel), and over the whole of it the stage,
+   where the statements stand still in the middle of the screen — the
+   screen's own middle, whatever is held over its top — while the
+   script fades each in and back out, handing over to the next. So the
+   carousel comes up the page, stops at the top of the screen over the
+   statements, and leaves with them. The stage is set on the 12-Column
+   Grid, centred across Grid Columns 2–11 (the whole grid below 992px).
+   Every statement at the one size, the h2's, stepping down at each
+   breakpoint with it.
+
+   No parent may clip (overflow: hidden), or the sticking stops.
+   ============================================================ */
+.sticky-title {
+  position: relative;
+  color: var(--c-white);
+}
+/* The logo strip's section: its own padding over the title, none under
+   the held frame — the approach stack after it brings its own. */
+.sticky-title.logos { padding-bottom: 0; }
+
+.sticky-title__track {
+  /* the screen it is held for, and a screen's scroll per statement to
+     bring it in (and take it out), unhurried */
+  height: calc(100vh + var(--headings) * 100vh);
+  height: calc(100svh + var(--headings) * 100svh);
+}
+
+.sticky-title__container {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+}
+/* the carousel over the stage, so it can still be dragged */
+.sticky-title__container > .wavy-marquee {
+  position: relative;
+  z-index: 1;
+}
+
+/* The whole of the held frame, so its middle is the screen's. */
+.sticky-title__stage {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  align-items: center;
+  column-gap: var(--grid-gutter);
+  padding: 0 var(--grid-margin);
+}
+
+.sticky-title__inner {
+  grid-column: 2 / 12;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.sticky-title__el {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h2);
+  line-height: 1.15;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  text-wrap: balance;
+}
+/* The statements after the first sit over it, hidden until the script
+   takes them in hand. */
+.sticky-title__el.is--stacked {
+  visibility: hidden;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+@media screen and (max-width: 991px) {
+  .sticky-title__inner { grid-column: 1 / -1; }
+}
+
+/* Without motion the strip and the statements simply follow one another. */
+@media (prefers-reduced-motion: reduce) {
+  .sticky-title__track { height: auto; }
+  .sticky-title__container { position: static; height: auto; }
+  .sticky-title__stage { position: static; padding-top: var(--sec-lg); }
+  .sticky-title__inner { gap: 2rem; }
+  .sticky-title__el.is--stacked { position: static; visibility: visible; }
+}

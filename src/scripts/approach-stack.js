@@ -42,7 +42,6 @@ export function mountApproachStack(root, { lenis } = {}) {
     top: root.querySelector('[data-approach-stack-trail="top"]'),
     bottom: root.querySelector('[data-approach-stack-trail="bottom"]'),
   };
-  const intro = [root.querySelector(".approach-stack__h"), root.querySelector(".approach-stack__lede")].filter(Boolean);
 
   const cards = [...root.querySelectorAll("[data-approach-stack-slot]")].map((slot) => {
     const el = slot.querySelector("[data-step-card]");
@@ -90,15 +89,6 @@ export function mountApproachStack(root, { lenis } = {}) {
             opacity: 1,
             ease: "none",
             scrollTrigger: { trigger: card.slot, start: "top bottom", end: "top 80%", scrub: true },
-          });
-        });
-
-        intro.forEach((el) => {
-          gsap.fromTo(el, { y: 48, opacity: 0 }, {
-            y: 0,
-            opacity: 1,
-            ease: "none",
-            scrollTrigger: { trigger: el, start: "top bottom", end: "top 72%", scrub: true },
           });
         });
 

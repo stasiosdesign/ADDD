@@ -1,0 +1,60 @@
+---
+/*
+  A service card's icon, drawn in the graphic frame at the top of the card
+  (Nav.astro): fine strokes in currentColor, centred in the frame's 16:9
+  and well inside it, so the frame reads as a field the mark sits in.
+
+    - blueprint  Technology Blueprint: an eight-point star, faceted and
+                 exact, in a dashed construction circle with its four
+                 ticks — a figure set out on a drawing board;
+    - link       Before Revit: two forms, a small open one (the early
+                 sketch) and a larger one ruled with stripes (the model),
+                 joined by a pair of lines crossing as they go — the hand
+                 over between the two that the service is about.
+*/
+interface Props {
+  name: "blueprint" | "link";
+}
+
+const { name } = Astro.props;
+// unique per card, for the stripes' clip
+const id = `service-icon-${Math.random().toString(36).slice(2, 8)}`;
+
+// the star: sixteen points round (80, 45), long and short in turn
+const star = Array.from({ length: 16 }, (_, k) => {
+  const a = -Math.PI / 2 + (k * Math.PI) / 8;
+  const r = k % 2 ? 11 : 24;
+  return `${(80 + r * Math.cos(a)).toFixed(2)},${(45 + r * Math.sin(a)).toFixed(2)}`;
+}).join(" ");
+// the construction circle's ticks, at the four quarters
+const ticks = [0, 1, 2, 3].map((k) => {
+  const a = (k * Math.PI) / 2;
+  return [36, 41].map((r) => `${(80 + r * Math.cos(a)).toFixed(2)} ${(45 + r * Math.sin(a)).toFixed(2)}`);
+});
+---
+<svg class="service-icon" viewBox="-30 -16.875 220 123.75" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="square" aria-hidden="true" focusable="false">
+  {name === "blueprint" && (
+    <g>
+      <circle cx="80" cy="45" r="32" stroke-dasharray="2 4" opacity="0.55" />
+      {ticks.map(([a, b]) => <path d={`M${a}L${b}`} opacity="0.55" />)}
+      <polygon points={star} stroke-linejoin="miter" />
+      <circle cx="80" cy="45" r="4" />
+    </g>
+  )}
+  {name === "link" && (
+    <g>
+      <defs>
+        <clipPath id={id}><circle cx="122" cy="45" r="21" /></clipPath>
+      </defs>
+      <circle cx="38" cy="45" r="14" />
+      <circle cx="38" cy="45" r="2" fill="currentColor" stroke="none" />
+      <circle cx="122" cy="45" r="21" />
+      <g clip-path={`url(#${id})`}>
+        <path d="M98 40L127 69M98 51L116 69M106 32L135 61" />
+      </g>
+      <path d="M52 45C62 28 70 28 76.5 45S91 62 101 45" />
+      <path d="M52 45C62 62 70 62 76.5 45S91 28 101 45" />
+      <path d="M52 45C66 37 87 53 101 45" opacity="0.45" />
+    </g>
+  )}
+</svg>

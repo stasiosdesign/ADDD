@@ -20,6 +20,7 @@
 */
 import ArrowIcon from "./ArrowIcon.astro";
 import NavLinkLabel from "./NavLinkLabel.astro";
+import ServiceIcon from "./ServiceIcon.astro";
 import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 
 // The forms as the morph draws them at rest, so the mark is the logo before
@@ -27,9 +28,10 @@ import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 
 // The Services cards. Each leads with its graphic in a fixed frame, so a
-// custom graphic can take its place later without touching the card. For
-// now only ADDDvisory has one, a photograph, greyscaled; the frame of a card
-// without one is left as a plain grey placeholder of the same size.
+// custom graphic can take its place later without touching the card.
+// ADDDvisory has a photograph, greyscaled; Before Revit and Technology
+// Blueprint a drawn icon (ServiceIcon.astro) on the frame's grey; the
+// frame of a card with neither is left as a plain grey placeholder.
 // The photograph is from Unsplash (Unsplash License), served from its image
 // CDN at the frame's size. Not lazy: the nav outlives every page change, so
 // it loads once, at low priority, and is there when the nav opens.
@@ -44,11 +46,13 @@ const services = [
     href: "before-revit.html",
     name: "Before Revit",
     desc: "Early design workflow, before Revit or Archicad",
+    icon: "link",
   },
   {
     href: "technology-blueprint.html",
     name: "Technology Blueprint",
     desc: "Practice-wide technology strategy and priorities",
+    icon: "blueprint",
   },
   {
     href: "advisory.html",
@@ -147,12 +151,11 @@ const services = [
                 <a data-menu-fade href={s.href} class="mega-nav__service-card">
                   <span class="mega-nav__service-card-graphic" aria-hidden="true">
                     {s.image && <img src={s.image} alt="" fetchpriority="low" decoding="async" />}
+                    {s.icon && <ServiceIcon name={s.icon} />}
                   </span>
                   <span class="mega-nav__panel-link-text">{s.name}</span>
                   <span class="mega-nav__panel-link-desc">{s.desc}</span>
-                  <span class="mega-nav__service-card-foot">
-                    <span class="mega-nav__service-card-arrow" aria-hidden="true"><ArrowIcon /></span>
-                  </span>
+                  <span class="mega-nav__service-card-rule" aria-hidden="true"></span>
                 </a>
               ))}
             </div>

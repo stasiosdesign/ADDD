@@ -1,0 +1,45 @@
+---
+/*
+  Sticky Title Scroll Effect (after the Osmo Supply resource): a run of
+  statements held on the screen while the section scrolls under them, each
+  fading in character by character (a touch of red as it arrives) and
+  back out for the next, the last left standing, every one at the one size.
+
+  Two slots let a section open on its own content (the homepage's logo
+  strip): "before" scrolls by as it always would, ahead of the held frame
+  (the strip's title and rule); "top" is the top of the held frame (the
+  strip's carousel), coming up the page and then staying put over the
+  statements for as long as they are held, and leaving with them. The
+  statements are centred in the room under it.
+
+  Styles: src/styles/sticky-title.css. Behaviour: src/scripts/
+  sticky-title.js, mounted by the page registry in src/scripts/site.js.
+  The data-sticky-title hooks are the resource's own, but for "track",
+  the held frame's run, which the script times the statements by.
+*/
+interface Props {
+  /** The statements, in the order they come in. */
+  headings: string[];
+  id?: string;
+  /** Classes for the section, e.g. "logos" for the logo strip's own. */
+  class?: string;
+  "aria-label"?: string;
+}
+
+const { headings, id, class: className, "aria-label": label } = Astro.props;
+---
+<section data-sticky-title="wrap" class:list={["sticky-title", className]} id={id} aria-label={label} style={`--headings:${headings.length}`}>
+  <slot name="before" />
+  <div data-sticky-title="track" class="sticky-title__track">
+    <div class="sticky-title__container">
+      <slot name="top" />
+      <div class="sticky-title__stage">
+        <div class="sticky-title__inner">
+          {headings.map((text, i) => (
+            <h2 data-sticky-title="heading" class:list={["sticky-title__el", { "is--stacked": i > 0 }]}>{text}</h2>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

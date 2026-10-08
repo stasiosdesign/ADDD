@@ -34,7 +34,7 @@
   --action-button-hover-color-background: var(--action-button-accent);
   --action-button-color-focus: var(--c-text);
   --action-button-text-duplicate-distance: 1.5em;
-  --action-button-radius: 1px;
+  --action-button-radius: var(--radius);
   --action-button-ease-hover: var(--ease-osmo);
   --action-button-ease-focus: cubic-bezier(0.32, 0.72, 0, 1);
 
@@ -49,11 +49,8 @@
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
-  font-weight: var(--fw-label);
-  /* A 450: the kit has Adelle Mono at 400 and 500 only, and 500 is too
-     heavy here. A hairline outline in the text's own colour thickens every
-     stroke evenly without touching the letters' widths. */
-  -webkit-text-stroke: 0.01em currentColor;
+  /* Geist Mono is variable, so the CTAs' 450 is a true weight */
+  font-weight: 450;
   /* tracked, as the reference's capitals are */
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;

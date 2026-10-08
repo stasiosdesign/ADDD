@@ -20,7 +20,7 @@
   font-weight: 400;
   font-size: var(--t-h4);
   line-height: 1.3;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
   max-width: 56.25rem;
 }
 
@@ -84,7 +84,7 @@
 
 /* pricing */
 .price { display: flex; align-items: baseline; gap: 0.5rem; }
-.price__amount { font-family: var(--font-display); font-weight: 400; font-size: var(--t-h2); letter-spacing: -0.04em; }
+.price__amount { font-family: var(--font-display); font-weight: 400; font-size: var(--t-h2); letter-spacing: calc(var(--primary-tracking) - 0.04em); }
 .price-card {
   /* A size container, so a CTA too long for a narrow card can close up
      (action-button.css). */

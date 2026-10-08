@@ -34,24 +34,29 @@
   --dotted-rule-bleed: 5px;
 
   /* type */
-  --font-display: "elza", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-body: "elza", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  /* label face — Adelle Mono, from the Typekit kit */
-  --font-mono: "adelle-mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-display: "parabolica", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body: "parabolica", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* label face — Geist Mono (variable 100–900), from Google Fonts */
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  /* weight scale — the elza Typekit kit only ships 400/500, no true bold or light.
-     Headings (h1/h2) use 500 (the heaviest available); everything else uses 400. */
-  --fw-heading-bold: 500;
-  --fw-heading-medium: 500;
+  /* weight scale — Parabolica (Typekit kit) ships 100–900; the site sets
+     everything in its 400, headings and nav included. */
+  --fw-heading-bold: 400;
+  --fw-heading-medium: 400;
   --fw-body: 400;
   --fw-label: 400;
 
-  /* The accent face's one tracking (Adelle Mono, --font-mono): every
+  /* The accent face's one tracking (Geist Mono, --font-mono): every
      mono label, tag, CTA and hero label takes it, and none sets its own.
      Set a touch tight — the face is monospaced, so its own spacing is
      already generous, and closed up the capitals read as one word. The
      primary face keeps its own (negative) tracking per heading. */
   --label-tracking: -0.02em;
+  /* The primary face's tracking (Parabolica, --font-display and --font-body):
+     body text takes it as it is, and every heading or display size that
+     closes up further takes it plus its own step, so this one value moves
+     the whole face — every weight and size — together. */
+  --primary-tracking: -0.01em;
 
   --t-h1: 4.5rem;
   --t-h2: 3.25rem;
@@ -70,8 +75,8 @@
   --sec-lg: 7rem;
   --sec-md: 5rem;
   /* corner radius — one value for cards, buttons, media and inputs;
-     enough to soften a corner, not enough to read as a rounded UI */
-  --radius: 2px;
+     the slightest softening of a square corner, never a rounded UI */
+  --radius: 1px;
   /* The site's motion curve — the same one GSAP is given as "osmo",
      so a CSS transition and a tween ease the same way. */
   --ease-osmo: cubic-bezier(0.625, 0.05, 0, 1);
@@ -115,6 +120,7 @@ body {
      applies it */
   font-size: var(--size-font);
   line-height: 1.4;
+  letter-spacing: var(--primary-tracking);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -122,7 +128,9 @@ img, svg { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 p { margin: 0; }
 ul { margin: 0; padding: 0; list-style: none; }
-button, input { font: inherit; color: inherit; }
+/* the browser resets a control's tracking as well as its font, so both are
+   handed on from the text round it (the primary face's, --primary-tracking) */
+button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 
 /* ============================================================
    type helpers
@@ -133,16 +141,16 @@ button, input { font: inherit; color: inherit; }
   margin: 0;
 }
 .h1, .h2 { font-weight: var(--fw-heading-bold); }
-.h1 { font-size: var(--t-h1); line-height: 1.2; letter-spacing: -0.03em; }
-.h2 { font-size: var(--t-h2); line-height: 1.2; letter-spacing: -0.04em; }
-.h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: -0.02em; }
-.h4 { font-size: var(--t-h4); line-height: 1.3; letter-spacing: -0.02em; }
+.h1 { font-size: var(--t-h1); line-height: 1.2; letter-spacing: calc(var(--primary-tracking) - 0.03em); }
+.h2 { font-size: var(--t-h2); line-height: 1.2; letter-spacing: calc(var(--primary-tracking) - 0.04em); }
+.h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: calc(var(--primary-tracking) - 0.02em); }
+.h4 { font-size: var(--t-h4); line-height: 1.3; letter-spacing: calc(var(--primary-tracking) - 0.02em); }
 
-.text-md { font-size: var(--t-md); line-height: 1.4; }
+.text-md { font-size: var(--t-md); line-height: 1.3; }
 .text-sm { font-size: var(--t-sm); line-height: 1.4; }
 .text-xs { font-size: var(--t-xs); line-height: 1.4; }
 
-/* Label face — Adelle Mono, always uppercase. Every eyebrow, tag,
+/* Label face — Geist Mono, always uppercase. Every eyebrow, tag,
    badge, step number and small utility label on the site routes
    through .label (or one of the component selectors grouped onto
    it below), so the label voice stays in one place. The tracking
@@ -431,6 +439,12 @@ button, input { font: inherit; color: inherit; }
   padding: var(--nav-h) var(--hero-gutter) 3rem;
   overflow: hidden;
 }
+/* The homepage's hero (the band layout; AEC Tech Firms' is the split)
+   below 992px, where it is as tall as its content: its band a touch
+   shorter. On a desktop it fills the screen, as every hero does. */
+@media screen and (max-width: 991px) {
+  .hero:not(.hero--split) .hero__media[data-slash-field] { --hero-band-scale: 0.92; }
+}
 /* Full-bleed inside the hero — the 1280px cap would pull the bands
    back towards the middle, which is what the gutter change is undoing. */
 .hero > .container {
@@ -483,7 +497,7 @@ button, input { font: inherit; color: inherit; }
      (scaling.css), which stops growing at 1920px with everything else. */
   font-size: 3.96rem;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   /* Holds the wrap at two lines across the right-hand column. */
   max-width: 12em;
 }
@@ -521,16 +535,15 @@ button, input { font: inherit; color: inherit; }
    system lights them. It has no hover: the pointer changes nothing in it.
    The pattern's other options are its spec's.
 
-   The words sit at about the pattern's own weight (--slash-word). They come
-   online in a chain reaction, each setting off a neighbour: a word bursts —
-   the strokes round it flaring to a near-black (--slash-ink) with short
-   traces flying out of it — and decodes, held forward (--slash-word-active,
-   data-slash-active), while its shockwave runs out through the strokes to
-   the next; then it settles back. A word answering a passing wave comes
-   forward a step less. The site's red (--slash-signal) is the heart of each
-   burst, nothing else — the strokes framing a word as it lands, the
-   characters still decoding (--slash-word-decoding) — and it always
-   resolves into ink. */
+   The words sit at about the pattern's own weight (--slash-word). A wave
+   runs through the strokes from left to right, over and over, and each word
+   comes online as it reaches it: the strokes framing it flare to a
+   near-black (--slash-ink) and it decodes, held forward
+   (--slash-word-active, data-slash-active), then settles back as the wave
+   runs on. A word born in the intro comes forward a step less. The site's
+   red (--slash-signal) is the heart of each word as the wave lands on it,
+   nothing else — a few strokes in its frame, the characters still decoding
+   (--slash-word-decoding) — and it always resolves into ink. */
 .hero__media[data-slash-field] {
   /* a touch over the dotted band's height, so the field has room to
      work while the hero still sits compact */
@@ -809,18 +822,16 @@ button, input { font: inherit; color: inherit; }
 }
 /* Pushed to the right edge the way the hero headline is, and held
    to a measure that wraps it onto two lines. The routes heading is the
-   same heading in the next section, and the approach stack's heading
-   (approach-stack.css) takes its size, placed on the left instead. */
+   same heading in the next section. */
 .problem-head__h,
-.routes__h,
-.approach-stack__h {
+.routes__h {
   flex: 0 1 auto;
   margin: 0 0 0 auto;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
   font-size: 3.75rem;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   /* Held just under the width of "What actually costs", so the
      heading breaks after it and the long first line runs out to the
      container edge — the hero's two-line shape. Balancing instead
@@ -897,7 +908,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-body);
   font-size: 1.375rem;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 .problem-card__p {
   margin: 0;
@@ -1075,7 +1086,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-heading-bold);
   font-size: 8.1rem;
   line-height: 0.9;
-  letter-spacing: -0.05em;
+  letter-spacing: calc(var(--primary-tracking) - 0.05em);
 }
 .approach__card-mark {
   flex: none;
@@ -1105,7 +1116,7 @@ button, input { font: inherit; color: inherit; }
   max-width: 32.5rem;
   font-size: 1.44rem;
   line-height: 1.25;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 .approach__card.is--dark .approach__card-p,
 .approach__card.is--ink .approach__card-p { color: rgba(255, 255, 255, .8); }
@@ -1311,7 +1322,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-body);
   font-size: 1.375rem;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 .route-card__p,
 .insight-card__p {
@@ -1364,7 +1375,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-body);
   font-size: 1.875rem;
   line-height: 1.3;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 .avatar { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
 .avatar__img { width: 3.5rem; height: 3.5rem; border-radius: 50%; background: var(--c-placeholder); }
@@ -1472,7 +1483,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-body);
   font-size: 2.52rem;
   line-height: 1.15;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
 }
 
 /* The controls live outside the item stack, so they hold still while
@@ -1588,7 +1599,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-heading-bold);
   font-size: 3.75rem;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
 }
 .compare__list {
   margin-top: auto;
@@ -1833,7 +1844,7 @@ button, input { font: inherit; color: inherit; }
   max-width: 45rem;
   font-size: 3.625rem;
   line-height: 1.08;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   /* Optical top alignment with the label opposite: the heading's line
    box opens further above its caps than the 13px label's does, so the
    difference is taken off here rather than trusting the two boxes. */
@@ -1919,7 +1930,7 @@ button, input { font: inherit; color: inherit; }
 }
 .site-footer__top { align-items: start; }
 
-/* Label voice for every eyebrow in here — Adelle Mono, uppercase, a step
+/* Label voice for every eyebrow in here — Geist Mono, uppercase, a step
    down from the body, grey against the ink. */
 .site-footer__eyebrow {
   font-size: var(--t-xs);
@@ -1941,7 +1952,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-body);
   font-size: 2.43rem;
   line-height: 1.1;
-  letter-spacing: -0.025em;
+  letter-spacing: calc(var(--primary-tracking) - 0.025em);
 }
 .site-footer__desc {
   font-size: var(--t-rg);
@@ -2001,7 +2012,7 @@ button, input { font: inherit; color: inherit; }
   font-weight: var(--fw-heading-bold);
   font-size: 1.875rem;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 .site-footer__legal {
   display: flex;
@@ -2089,7 +2100,6 @@ button, input { font: inherit; color: inherit; }
   .hero__heading { font-size: 2.2935rem; }
   .problem-head__h,
   .routes__h,
-  .approach-stack__h,
   .testimonials__title { font-size: 2.1893rem; }
   .testimonial-lines__quote { font-size: 1.625rem; }
   .cta__heading { font-size: 2.1371rem; }
@@ -2183,7 +2193,6 @@ button, input { font: inherit; color: inherit; }
   .hero__heading { font-size: 2.25rem; }
   .problem-head__h,
   .routes__h,
-  .approach-stack__h,
   .testimonials__title { font-size: 2rem; }
   .cta__heading { font-size: 2.125rem; }
   /* Held to a share of the height, as on tablet, for a phone on its side. */

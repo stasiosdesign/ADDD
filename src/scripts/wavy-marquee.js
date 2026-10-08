@@ -17,6 +17,8 @@
        plugin as ScrollTrigger already ships it, so no script is added;
      - scrolling down carries the strip on in its own direction and
        scrolling up turns it round, as the strip always has here;
+     - it runs while it is on screen by an IntersectionObserver, not a
+       ScrollTrigger's range, so it keeps running held in a sticky frame;
      - the copies after the first set are hidden from assistive tech;
      - the wave is left out: the tiles run level, one straight row, and
        only move along it.
@@ -128,11 +130,16 @@ export function initWavyMarquee(container) {
     },
   });
 
+  // Whether the strip is on screen, from where it actually is rather than
+  // where the page's flow puts it: held in a sticky frame (the homepage's
+  // StickyTitle) it stays on screen long after its place in the flow has
+  // scrolled away. The page's scroll, wherever the strip is, sets its speed
+  // and direction.
+  const visibility = new IntersectionObserver(([entry]) => (isActive = entry.isIntersecting));
+  visibility.observe(container);
   const trigger = ScrollTrigger.create({
-    trigger: container,
-    start: "top bottom",
-    end: "bottom top",
-    onToggle: (self) => (isActive = self.isActive),
+    start: 0,
+    end: "max",
     onUpdate: (self) => {
       if (isDragging) return;
 
@@ -161,6 +168,7 @@ export function initWavyMarquee(container) {
       gsap.ticker.remove(tick);
       observer.kill();
       trigger.kill();
+      visibility.disconnect();
     },
   };
 }

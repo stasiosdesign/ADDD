@@ -3,8 +3,8 @@
    (src/components/ApproachStack.astro, src/scripts/approach-stack.js)
    ------------------------------------------------------------
    The supplied Scroll-driven Stack Timeline, adapted: an ink band,
-   the intro on the 12-Column Grid, then the three steps zig-zagging
-   either side of a centre rail. Its dotted line shows only through
+   after the section's statement (sticky-title.css), with the three
+   steps zig-zagging either side of a centre rail. Its dotted line shows only through
    a short window held at the middle of the viewport, with the cube
    in it, so the line runs past the cube as the page scrolls and the
    cube passes each card in turn. Every card is open.
@@ -39,42 +39,8 @@
   color: var(--c-white);
 }
 
-/* --- Intro ---------------------------------------------------
-   The heading on the left from Grid Column 2; the lede and its
-   label on Grid Column 7, dropped one line of the heading, so the
-   lede's first line stands level with the heading's second. */
-.approach-stack__intro {
-  display: grid;
-  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
-  align-items: start;
-  column-gap: var(--grid-gutter);
-  row-gap: 2rem;
-}
-/* Sized with the problem and routes headings (styles.css); only the
-   placement is its own. */
-.approach-stack__h {
-  grid-column: 2 / 7;
-  margin: 0;
-  max-width: none;
-  text-wrap: balance;
-}
-/* The drop is the heading's line (3.75rem × 1.05) plus the difference
-   between the two faces' half-leading, so the caps line up. */
-.approach-stack__lede {
-  grid-column: 7 / 11;
-  grid-row: 1;
-  margin-top: 4.125rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-.approach-stack__lede .text-md { color: var(--stack-text); }
-
 /* --- The stack -------------------------------------------------- */
-.approach-stack__grid {
-  position: relative;
-  margin-top: 7.5rem;
-}
+.approach-stack__grid { position: relative; }
 /* A rung per card, and a last row that only takes what the last card
    needs past its rung, so the stack ends with it. */
 .approach-stack__list {
@@ -134,8 +100,9 @@
   margin-left: -1px;
   background: linear-gradient(to bottom, var(--stack-dot) 2px, transparent 2px) 0 0 / 2px 12px repeat-y;
 }
-/* The mark on the rail: the logo's triangle (ArrowIcon.astro) in white,
-   centred on the rail, pointing down the page. The script turns it to
+/* The mark on the rail: the logo's triangle (ArrowIcon.astro) in the
+   site's red, the colour of its velocity trail, centred on the rail,
+   pointing down the page. The script turns it to
    the way the page is scrolling (approach-stack.js); without it, it
    stays pointing down. */
 .approach-stack__cube {
@@ -146,7 +113,7 @@
   width: 2.25rem;
   height: 2.25rem;
   margin: -1.125rem 0 0 -1.125rem;
-  color: var(--c-white);
+  color: var(--c-red);
 }
 .approach-stack__mark {
   display: block;
@@ -171,7 +138,9 @@
 .approach-stack__trail.is--bottom { top: 50%; transform-origin: 50% 0; }
 
 /* --- Card ----------------------------------------------------
-   Three parts on the band's next tone up: the head (number and
+   Three parts on a ground just off the band — a step lighter than
+   the ink, darker than the site's dark grey (--c-dark-bg), so the
+   cards sit in the band rather than on it: the head (number and
    step name), the panel between them (the schematic), and the
    foot (the copy). A connector runs from the number down
    through the panel into the copy, and each divider it crosses is
@@ -192,7 +161,7 @@
   position: relative;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius);
-  background: var(--c-dark-bg);
+  background: #131313;
 }
 
 .step-card__head {
@@ -222,7 +191,7 @@
   font-weight: var(--fw-heading-bold);
   font-size: var(--t-h4);
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 
 /* the connector, from under the number to the head's foot */
@@ -314,8 +283,9 @@
   aspect-ratio: 400 / 256;
   overflow: visible;
 }
+/* filled a step under the card's ground, so a shape reads as set into it */
 .schematic__shape {
-  fill: #121212;
+  fill: #0d0d0d;
   stroke: rgba(255, 255, 255, 0.45);
   stroke-width: 1;
 }
@@ -353,10 +323,6 @@
 /* --- Tablet: one column, the rail down Grid Column 1 ----------- */
 @media (max-width: 991px) {
   .approach-stack { padding-bottom: 7rem; }
-  .approach-stack__h { grid-column: 1 / 6; }
-  /* stacked: under the heading, from the second half of the grid */
-  .approach-stack__lede { grid-column: 4 / 7; grid-row: 2; margin-top: 0; }
-  .approach-stack__grid { margin-top: 5rem; }
   .approach-stack__list {
     grid-template-rows: none;
     row-gap: 7.5rem;
@@ -371,9 +337,6 @@
 /* --- Phone: one column, no rail ------------------------------ */
 @media (max-width: 767px) {
   .approach-stack { padding-bottom: 5rem; }
-  .approach-stack__h,
-  .approach-stack__lede { grid-column: 1 / -1; }
-  .approach-stack__grid { margin-top: 3.5rem; }
   .approach-stack__list { row-gap: 4.5rem; }
   .approach-stack__slot,
   .approach-stack__slot.is--left,

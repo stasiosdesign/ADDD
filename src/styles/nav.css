@@ -15,7 +15,8 @@
    theme (initNavTheme, site.js) reads the ground under the bar as the
    page scrolls, sets data-nav-theme to "light" or "dark", and tweens
    --nav-dark to match — one GSAP tween of one number, written to the
-   nav's own style, so every block, label, logo, triangle and the
+   bar's own style frame by frame (and to the nav's as it settles: see
+   the mixes below), so every block, label, logo, triangle and the
    Contact button is worked out from the same value on the same frame.
    Until it has run, the attribute (or, before that, a page that marks
    itself .page--dark) sets the amount outright, so a dark page never
@@ -38,26 +39,69 @@
   /* How far the nav is into its dark state: 0% light, 100% dark. */
   --nav-dark: 0%;
 
+  --nav-block-pad: 1.25em;
+  /* the space between the group's items, and at either end of it */
+  --nav-item-gap: 1.25em;
+  /* The one type treatment every item takes — For Tech Firms, the links,
+     Sign in and Contact: one face, weight, size and leading. The drawer
+     redeclares the size below 992px, one larger size for every row in
+     it, which is the only way it differs. */
+  --nav-text-size: .9375em;
+  --nav-text-weight: 400;
+  --nav-text-leading: 1.5;
+  /* dropdown: the Services cards and the Resources panels float on the
+     nav's ground, this thin a margin round and between them, on the
+     site's own small radius */
+  --nav-card-gap: .375em;
+  --nav-card-radius: var(--radius);
+
+  z-index: 100;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+}
+/* The state before the script has read the ground: the attribute, or a
+   page that marks itself dark. Once it has, the tween's own value on the
+   bar's style, and the nav's, takes over from these. */
+body:has(.page--dark) .mega-nav:not([data-nav-theme]),
+.mega-nav[data-nav-theme="dark"] { --nav-dark: 100%; }
+
+/* The colours, mixed on each part of the nav — the bar and the dropdown —
+   from the --nav-dark it inherits from the nav or carries itself, rather
+   than once on the nav for the whole of it. The theme's change
+   (initNavTheme, site.js) writes --nav-dark to the bar frame by frame and
+   to the nav itself only as it settles, so each frame of the change has
+   the browser recalculate the bar's styles alone, and not the closed
+   dropdown's as well — twice the bar's elements, none of them in view. */
+.mega-nav > * {
   /* Each colour is its light value with its dark value mixed in by
      --nav-dark — in Oklab, the space a colour transition takes, so the
      greys between pass evenly from one to the other. */
   --nav-bg: color-mix(in oklab, var(--c-white), var(--c-dark-fg) var(--nav-dark));
   --nav-fg: color-mix(in oklab, var(--c-text), var(--c-white) var(--nav-dark));
   --nav-rule: color-mix(in oklab, var(--c-border), var(--c-border-dark) var(--nav-dark));
-  /* The logo block and Contact: ink in the light state; in the dark one
-     not a pure white on the near-black but a paper white, warm and a
-     touch softer, so the two ends of the bar glow less. */
+  /* Contact: ink in the light state; in the dark one not a pure white on
+     the near-black but a paper white, warm and a touch softer, so the end
+     of the bar glows less. */
   --nav-cta-bg: color-mix(in oklab, #0a0a0a, #f3f0e9 var(--nav-dark));
   --nav-cta-fg: color-mix(in oklab, var(--c-white), var(--c-text) var(--nav-dark));
+  /* The logo block: ink in the light state, as Contact is; dark, a deep
+     grey a step off the bar — the lightest of the bar's dark blocks, so
+     it still opens the bar — with the mark in white throughout. */
+  --nav-logo-bg: color-mix(in oklab, #0a0a0a, #262626 var(--nav-dark));
+  --nav-logo-fg: var(--c-white);
   --nav-alt-bg: color-mix(in oklab, var(--c-white), transparent var(--nav-dark));
   --nav-alt-fg: color-mix(in oklab, var(--c-text), var(--c-white) var(--nav-dark));
   --nav-burger-bg: color-mix(in oklab, var(--c-light-fg), rgba(255, 255, 255, .12) var(--nav-dark));
   /* blocks: the feature block, a near-white grey a step darker than the
      group beside it, and the group — the links and Sign in set together
      on one lighter ground. Dark, the group lifts one step off the bar
-     and the feature block a little further: a quiet grey, so it reads
-     as the block after the logo without competing with it. */
-  --nav-feature-bg: color-mix(in oklab, #e5e5e5, #222222 var(--nav-dark));
+     (its 6% white comes to about #191919) and the feature block a
+     step further still: a deep grey, between the group and the logo
+     block, so it reads as a block of its own after the logo without
+     competing with it. */
+  --nav-feature-bg: color-mix(in oklab, #e5e5e5, #202020 var(--nav-dark));
   --nav-feature-fg: color-mix(in oklab, var(--c-text), var(--c-white) var(--nav-dark));
   --nav-group-bg: color-mix(in oklab, var(--c-light-fg), rgba(255, 255, 255, .06) var(--nav-dark));
   /* dropdown: the Reports column, the service cards' wording and the
@@ -74,34 +118,7 @@
      the red is not legible as text on the near-black, so dark, it takes
      the nav's own white */
   --nav-accent-text: color-mix(in oklab, var(--c-red), var(--c-white) var(--nav-dark));
-
-  --nav-block-pad: 1.25em;
-  /* the space between the group's items, and at either end of it */
-  --nav-item-gap: 1.25em;
-  /* The one type treatment every item takes — For Tech Firms, the links,
-     Sign in and Contact: one face, weight, size and leading. The drawer
-     redeclares the size below 992px, one larger size for every row in
-     it, which is the only way it differs. */
-  --nav-text-size: .9375em;
-  --nav-text-weight: 500;
-  --nav-text-leading: 1.5;
-  /* dropdown: the Services cards and the Resources panels float on the
-     nav's ground, this thin a margin round and between them, on the
-     site's own small radius */
-  --nav-card-gap: .375em;
-  --nav-card-radius: var(--radius);
-
-  z-index: 100;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
 }
-/* The state before the script has read the ground: the attribute, or a
-   page that marks itself dark. Once it has, the tween's own value on the
-   nav's style takes over from these. */
-body:has(.page--dark) .mega-nav:not([data-nav-theme]),
-.mega-nav[data-nav-theme="dark"] { --nav-dark: 100%; }
 
 /* No rule along the bottom: the bar meets the page directly, with
    --nav-h (styles.css) the bar's own height. */
@@ -131,17 +148,16 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
 /* The logo block: from the bar's left edge to the end of Grid Column 1
    — the grid margin plus one Grid Column, from the same tokens the
    overlay is drawn with (column-grid.css), so it holds that line at
-   every width and on every breakpoint's grid. On the Contact button's
-   own fill, so the two inverting together on a dark page bracket the
-   bar from either end, with the mark in the block's foreground. */
+   every width and on every breakpoint's grid. Ink with Contact in the
+   light state; on a dark page a deep grey of its own (--nav-logo-bg). */
 .mega-nav__bar-logo {
   flex: none;
   width: calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
   align-self: stretch;
   justify-content: center;
   align-items: center;
-  color: var(--nav-cta-fg);
-  background-color: var(--nav-cta-bg);
+  color: var(--nav-logo-fg);
+  background-color: var(--nav-logo-bg);
   display: flex;
 }
 /* The triangles a step under twice the size they had inside the round
@@ -307,7 +323,7 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  background-color: rgba(0, 0, 0, .45);
+  background-color: rgba(0, 0, 0, .7);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   position: fixed;
@@ -474,11 +490,10 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
    margin, in one fixed frame (16:9) across all four, so a custom graphic
    can fill an empty frame or replace the photograph later without
    touching the rest. Under it, clear of the picture, the name, set as
-   the homepage's headings are, and one line of description in the
-   muted tone; at the foot, after a little open ground, the site's
-   dotted rule and the arrow at the far end. On hover
-   the card steps a shade darker, the picture eases in a touch and the
-   arrow takes the accent. */
+   the homepage's headings are, one line of description in the muted
+   tone, and the site's dotted rule right under it, closing the card.
+   On hover the card steps a shade darker, the picture eases in a touch
+   and a drawn icon comes up to full strength. */
 .mega-nav__panel-col.is--services {
   flex: 1;
   gap: 0;
@@ -487,12 +502,12 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
 }
 
 /* One set of rows shared by the four cards (each a subgrid of it), so the
-   names, the descriptions and the feet each stand on one line across the
+   names, the descriptions and the rules each stand on one line across the
    panel however their wording wraps: the graphic, the name, the
-   description, the open ground, the foot. */
+   description, the rule. */
 .mega-nav__service-grid {
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto auto auto;
   column-gap: var(--nav-card-gap);
   row-gap: 0;
   width: 100%;
@@ -502,7 +517,7 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
 .mega-nav__service-card {
   --card-inset: var(--nav-card-gap);
   --card-pad: 1.375rem; /* rem: it pads text set at several sizes */
-  grid-row: span 5;
+  grid-row: span 4;
   grid-template-rows: subgrid;
   background-color: var(--nav-feature-bg);
   border-radius: var(--nav-card-radius);
@@ -544,6 +559,14 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   transition: transform .6s cubic-bezier(0.625, 0.05, 0, 1);
 }
 .mega-nav__service-card:hover .mega-nav__service-card-graphic img { transform: scale(1.04); }
+/* A drawn icon: the nav's ink on the frame's grey, held back a step, and
+   coming up to full strength with the card's hover. */
+.mega-nav__service-card-graphic .service-icon {
+  color: var(--nav-fg);
+  opacity: .7;
+  transition: opacity .3s ease;
+}
+.mega-nav__service-card:hover .service-icon { opacity: 1; }
 
 .mega-nav__service-card .mega-nav__panel-link-text {
   padding: 1.375rem var(--card-pad) 0;
@@ -551,7 +574,7 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   font-weight: var(--fw-heading-bold);
   font-size: 1.5em;
   line-height: 1.05;
-  letter-spacing: -0.03em;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   text-wrap: balance;
 }
 .mega-nav__service-card .mega-nav__panel-link-desc {
@@ -562,40 +585,16 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   text-wrap: pretty;
 }
 
-/* The foot: the arrow at the far end, on its own row after the open
-   ground, under the site's dotted rule (--dotted-rule, styles.css). */
-.mega-nav__service-card-foot {
-  grid-row: 5;
-  position: relative;
-  align-items: center;
-  justify-content: flex-end;
-  margin: 1.25rem var(--card-pad) 0;
-  padding: 1rem 0 calc(var(--card-pad) - var(--card-inset));
-  display: flex;
-}
-.mega-nav__service-card-foot::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: calc(-1 * var(--dotted-rule-bleed));
-  right: calc(-1 * var(--dotted-rule-bleed));
+/* The site's dotted rule (--dotted-rule, styles.css) right under the
+   description, closing the card: standing out past the text's edges by
+   the bleed a dot sits in from its tile, and the card's own padding
+   under it. */
+.mega-nav__service-card-rule {
+  grid-row: 4;
   height: 2px;
+  margin: 1.25rem calc(var(--card-pad) - var(--dotted-rule-bleed)) calc(var(--card-pad) - var(--card-inset));
   background: var(--dotted-rule);
 }
-.mega-nav__service-card-arrow {
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.625em;
-  height: 1.625em;
-  border-radius: var(--radius);
-  background-color: var(--nav-fg);
-  color: var(--nav-bg);
-  display: flex;
-  transition: background-color .25s ease;
-}
-.mega-nav__service-card-arrow svg { width: .875em; height: .875em; }
-.mega-nav__service-card:hover .mega-nav__service-card-arrow { background-color: var(--c-red); }
 
 /* Featured report — the latest report as one focal card under the
    Reports link, on the insight card's parts at thumbnail scale: the
@@ -886,14 +885,14 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
     --card-pad: .875rem;
     grid-row: auto;
     grid-template-columns: 6.5em 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto auto;
     column-gap: 0;
   }
   .mega-nav__service-card > :not(.mega-nav__service-card-graphic) { grid-column: 2; }
   .mega-nav__service-card-graphic { grid-row: 1 / -1; grid-column: 1; aspect-ratio: 1; align-self: start; }
   .mega-nav__service-card .mega-nav__panel-link-text { grid-row: 1; padding-top: .625rem; font-size: 1.25em; }
   .mega-nav__service-card .mega-nav__panel-link-desc { grid-row: 2; padding-top: .375rem; }
-  .mega-nav__service-card-foot { grid-row: 4; margin-top: 1rem; padding: .625rem 0 .25rem; }
+  .mega-nav__service-card-rule { grid-row: 3; margin-top: 1rem; margin-bottom: .25rem; }
 }
 
 @media screen and (max-width: 479px) {

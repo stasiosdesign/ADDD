@@ -174,14 +174,14 @@
   .page--grid .pg-hero__col .h1,
   .page--grid .pg-hero__col .h2 { max-width: none; text-wrap: balance; }
   /* the homepage headline's size and setting */
-  .page--grid .pg-hero__col .h1 { font-size: 3.96rem; line-height: 1.05; letter-spacing: -0.03em; }
-  .page--grid .pg-hero__col .h2 { font-size: 3.75rem; line-height: 1.05; letter-spacing: -0.03em; }
+  .page--grid .pg-hero__col .h1 { font-size: 3.96rem; line-height: 1.05; letter-spacing: calc(var(--primary-tracking) - 0.03em); }
+  .page--grid .pg-hero__col .h2 { font-size: 3.75rem; line-height: 1.05; letter-spacing: calc(var(--primary-tracking) - 0.03em); }
 
   /* Section headings in the problem and routes headings' setting */
   .page--grid .section-title :is(.h1, .h2) {
     font-size: 3.75rem;
     line-height: 1.05;
-    letter-spacing: -0.03em;
+    letter-spacing: calc(var(--primary-tracking) - 0.03em);
     text-wrap: balance;
   }
 
@@ -216,7 +216,7 @@
     grid-row: 1;
     font-size: 3.75rem;
     line-height: 1.05;
-    letter-spacing: -0.03em;
+    letter-spacing: calc(var(--primary-tracking) - 0.03em);
   }
   .page--grid .container > .h2 + .accordion {
     grid-column: 7 / 12;

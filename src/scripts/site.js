@@ -18,6 +18,7 @@ import { initLogoMorphLoader } from "./logo-morph-loader.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
+import { mountStickyTitle } from "./sticky-title.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
 
@@ -400,6 +401,7 @@ function resetPage(container) {
 const PAGE_COMPONENTS = [
   ["[data-slider]", initInsightSlider],
   ["[data-approach-slides-init]", initApproachSlides],
+  ["[data-sticky-title=\"wrap\"]", initStickyTitle],
   ["[data-approach-stack]", initApproachStack],
   ["[data-problem-grid-init]", initProblemGrid],
   ["[data-testimonial-wrap]", initLineRevealTestimonials],
@@ -1613,7 +1615,18 @@ function initNavTheme(nav) {
 
   const DURATION = 0.7;
   const state = { dark: 0 }; // how far into the dark state, 0–1
-  const draw = () => nav.style.setProperty("--nav-dark", `${(state.dark * 100).toFixed(2)}%`);
+  const amount = () => `${(state.dark * 100).toFixed(2)}%`;
+  // Each frame of the change is written to the bar alone, the part of the
+  // nav that is in view, so the browser recalculates the bar's styles and
+  // not the closed dropdown's as well — twice the bar's elements, and most
+  // of each frame's cost (nav.css mixes the colours per part). The nav's
+  // own value, which the dropdown takes, is set as the change settles. A
+  // dropdown opened mid-change follows the bar frame by frame until then.
+  const draw = () => {
+    bar.style.setProperty("--nav-dark", amount());
+    if (nav.getAttribute("data-menu-open") === "true") nav.style.setProperty("--nav-dark", amount());
+  };
+  const settle = () => nav.style.setProperty("--nav-dark", amount());
 
   function apply(next) {
     wanted = next;
@@ -1626,6 +1639,7 @@ function initNavTheme(nav) {
     if (first || reducedMotion) {
       state.dark = target;
       draw();
+      settle();
       return;
     }
     gsap.to(state, {
@@ -1633,6 +1647,7 @@ function initNavTheme(nav) {
       duration: DURATION * Math.abs(target - state.dark),
       ease: "navTheme",
       onUpdate: draw,
+      onComplete: settle,
     });
   }
 
@@ -1890,6 +1905,19 @@ function initApproachStack(container) {
   container.querySelectorAll("[data-approach-stack]").forEach((el) => {
     const stack = mountApproachStack(el, { lenis });
     registerPageCleanup(() => stack.destroy());
+  });
+}
+
+/* ============================================================
+   Sticky title — the homepage's statement (sticky-title.js)
+   ============================================================
+   Mounted per page from the registry and torn down with it, like
+   the approach stack after it.
+   ============================================================ */
+function initStickyTitle(container) {
+  container.querySelectorAll('[data-sticky-title="wrap"]').forEach((el) => {
+    const title = mountStickyTitle(el);
+    registerPageCleanup(() => title.destroy());
   });
 }
 
@@ -2284,6 +2312,13 @@ function initLineRevealTestimonials(container) {
         pauseAutoplay();
       },
     });
+    // The callbacks report crossings; where the page opens is read off the
+    // trigger itself. A page opens at its top with the testimonials well
+    // below, and taken as in view regardless, the autoplay ran its line
+    // animations off screen every six seconds, under the hero and the
+    // statements.
+    isInView = trigger.isActive;
+    if (!isInView) pauseAutoplay();
 
     registerPageCleanup(() => {
       window.removeEventListener("keydown", onKeyDown);
