@@ -1500,8 +1500,11 @@ function initNavReveal() {
 
   function hide() {
     if (hidden) return;
-    // nothing that is open, or being used, goes out of view
-    if (nav.getAttribute("data-menu-open") === "true" || nav.contains(document.activeElement)) return;
+    // Nothing that is open, or being used from the keyboard, goes out of
+    // view. Keyboard focus only: a link clicked in the bar keeps focus
+    // after Barba has moved on to its page, and holding the bar for that
+    // left it pinned on every page reached from the nav.
+    if (nav.getAttribute("data-menu-open") === "true" || nav.querySelector(":focus-visible")) return;
     hidden = true;
     gsap.to(nav, { y: outOfView(), duration: duration(), ease: "power3.out", overwrite: true });
   }

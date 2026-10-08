@@ -34,7 +34,7 @@
   --nav-group-bg: var(--c-light-fg);
   --nav-block-pad: 1.25em;
   /* the space between the group's items, and at either end of it */
-  --nav-item-gap: 1.5em;
+  --nav-item-gap: 1.25em;
   /* The one type treatment every item takes — For Tech Firms, the links,
      Sign in and Contact: one face, weight, size and leading. The drawer
      redeclares the size below 992px, one larger size for every row in
@@ -410,103 +410,115 @@ body:has(.page--dark) .mega-nav,
 /* Lead item in a column — the same row, one step up in size. */
 .mega-nav__panel-link.is--lead .mega-nav__panel-link-text { font-size: 1.25em; }
 
-/* Services panel — the four pathways as four blocks, on the language of
-   the routes cards on the home page: a media band carrying the
-   engagement label as a chip top-left, the arrow chip top-right and the
-   service's own icon in the middle, then the name and one line of
-   description beneath. The same icon stands for the same service in both
-   places.
+/* Services panel — the four pathways as four tiles of the 12-Column
+   Grid, hung from the bar. Each takes three Grid Columns (from 992px,
+   below): 1–3, 4–6, 7–9 and 10–12, a full gutter apart, so the third
+   starts on Grid Column 7 — the line the Services link itself starts on
+   in the bar — and the fourth ends where the bar's Contact block does.
+   The outer two run on to the viewport's edges as the bar's own end
+   blocks do; a gutter parts the tiles from the bar, and they run down to
+   the dropdown's foot. No frame of the nav's white round them.
 
-   Laid out as the routes row is: on the 12-Column Grid, three Grid
-   Columns each and a gutter apart, inside the grid margin. Each is two
-   blocks of the bar's own greys — the band on the feature block's,
-   the wording on the group's lighter one — on the nav's ground, so the
-   four are told apart by their edges, never by a line. */
+   Inside, two groups held apart by open ground, after the supplied
+   pricing cards and in the homepage's voice: at the top the engagement
+   label in the label face with the arrow at the far end, ruled off
+   under them, and the service's icon; at the foot the name, set as the
+   homepage's headings are, over one line of description in the muted
+   tone. On hover a tile steps a shade darker and the arrow takes the
+   accent. */
 .mega-nav__panel-col.is--services {
   flex: 1;
   gap: 0;
-  padding: var(--grid-gutter) var(--grid-margin) var(--grid-margin);
+  padding: var(--grid-gutter) 0 0;
   align-items: stretch;
 }
 
+/* One set of rows shared by the four tiles (each a subgrid of it), so
+   the rule, the icon, the names and the descriptions each stand on one
+   line across the panel however their wording wraps: the label row, the
+   icon, the open ground, the name, the description. */
 .mega-nav__service-grid {
   grid-template-columns: repeat(4, 1fr);
-  gap: var(--grid-gutter);
-  align-items: stretch;
+  grid-template-rows: auto auto 1fr auto auto;
+  column-gap: var(--grid-gutter);
+  row-gap: 0;
+  min-height: 23em;
   width: 100%;
   display: grid;
 }
 
 .mega-nav__service-card {
-  flex-flow: column;
+  grid-row: span 5;
+  grid-template-rows: subgrid;
   background-color: var(--nav-tint);
   color: var(--nav-fg);
   min-width: 0;
+  padding: 0 var(--grid-margin) var(--grid-margin);
   text-decoration: none;
+  display: grid;
+  transition: background-color .3s ease;
+}
+.mega-nav__service-card:hover { background-color: var(--nav-feature-bg); }
+/* No lift on hover: the panel animates these very elements in, so GSAP
+   owns their transform and a CSS one would never apply. */
+
+/* The top row: the label and the arrow, ruled off under them. */
+.mega-nav__service-card-media {
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  min-height: 4.25em;
+  border-bottom: 1px solid var(--nav-rule);
   display: flex;
 }
-/* No lift on hover, unlike the routes cards: the panel animates these
-   very elements in, so GSAP owns their transform and a CSS one would
-   never apply. The nav's own hover language carries it instead — the
-   title fades and the arrow chip takes the accent. */
-
-.mega-nav__service-card-media {
-  position: relative;
+.mega-nav__service-card-label {
+  color: var(--nav-fg);
+  font-size: .75em;
+  letter-spacing: var(--label-tracking);
+}
+.mega-nav__service-card-arrow {
   flex: none;
   align-items: center;
   justify-content: center;
-  height: 11.5em;
-  /* the icon centres in the space the chips leave, not in the whole
-     band */
-  padding-top: 1.25em;
-  background-color: var(--nav-feature-bg);
-  display: flex;
-}
-/* The engagement label, sitting on the band as a chip. Inset so its
-   text lines up with the body text under it: the body's 1.5em less the
-   chip's own .5em. */
-.mega-nav__service-card-label {
-  position: absolute;
-  top: 1em;
-  left: 1em;
-  padding: .375em .5em;
-  border-radius: var(--radius);
-  background-color: var(--nav-bg);
-}
-/* The panel's one affordance: the arrow chip takes the accent on hover
-   exactly as it does on the routes cards. */
-.mega-nav__service-card-arrow {
-  position: absolute;
-  top: 1em;
-  right: 1em;
-  align-items: center;
-  justify-content: center;
-  width: 2.25em;
-  height: 2.25em;
+  width: 1.625em;
+  height: 1.625em;
   border-radius: var(--radius);
   background-color: var(--nav-fg);
   color: var(--nav-bg);
   display: flex;
   transition: background-color .25s ease;
 }
-.mega-nav__service-card-arrow svg { width: 1.125em; height: 1.125em; transform: rotate(-45deg); }
+.mega-nav__service-card-arrow svg { width: .875em; height: .875em; transform: rotate(-45deg); }
 .mega-nav__service-card:hover .mega-nav__service-card-arrow { background-color: var(--c-red); }
 
-.mega-nav__service-card-icon { color: var(--nav-fg); display: block; }
-.mega-nav__service-card-icon svg { width: 2.5em; height: 2.5em; display: block; }
-
-.mega-nav__service-card-text {
-  flex-flow: column;
-  flex: 1;
-  align-items: flex-start;
-  gap: .375em;
-  padding: 1.5em 1.5em 1.75em;
-  display: flex;
+/* Under the rule: the icon at the top, the name and its line at the
+   foot, the open ground between them. */
+.mega-nav__service-card-text { display: contents; }
+.mega-nav__service-card-icon {
+  grid-row: 2;
+  justify-self: start;
+  color: var(--nav-fg);
+  display: block;
+  margin: 1.5em 0 3em;
 }
-.mega-nav__service-card .mega-nav__panel-link-text { font-size: 1.25em; }
-
-/* Same fade the panel links use, so hover reads the same across the nav. */
-.mega-nav__service-card:hover .mega-nav__panel-link-text { opacity: .6; }
+.mega-nav__service-card .mega-nav__panel-link-text { grid-row: 4; }
+.mega-nav__service-card .mega-nav__panel-link-desc { grid-row: 5; }
+.mega-nav__service-card-icon svg { width: 1.75em; height: 1.75em; display: block; }
+.mega-nav__service-card .mega-nav__panel-link-text {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 1.75em;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+.mega-nav__service-card .mega-nav__panel-link-desc {
+  margin-top: .75em;
+  max-width: 17em;
+  font-size: .9375em;
+  line-height: 1.4;
+}
 
 /* Featured report — the latest report as one focal card under the
    Reports link, on the insight card's parts at thumbnail scale: the
@@ -612,8 +624,11 @@ body:has(.page--dark) .mega-nav,
     --nav-col: calc((100cqw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
   }
 
+  /* From the end of Grid Column 1 to the end of Grid Column 5: four
+     columns and their four gutters, measured off the bar itself
+     (--nav-col), so its right edge is the column line exactly. */
   .mega-nav__feature {
-    flex: 0 1 calc((100% - var(--grid-margin)) * 4 / 11);
+    flex: 0 1 calc(4 * (var(--nav-col) + var(--grid-gutter)));
   }
 
   .mega-nav__bar-inner { background-color: var(--nav-group-bg); }
@@ -646,6 +661,16 @@ body:has(.page--dark) .mega-nav,
   .mega-nav__dropdown-inner {
     --nav-dropdown-col: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
   }
+  /* The tiles on the grid: the outer two run from Grid Column 1 and 12
+     on out to the viewport's edges, the inner two are three Grid Columns
+     wide, a gutter apart throughout. */
+  .mega-nav__service-grid {
+    grid-template-columns:
+      calc(var(--grid-margin) + 3 * var(--nav-dropdown-col) + 2 * var(--grid-gutter))
+      1fr 1fr
+      calc(var(--grid-margin) + 3 * var(--nav-dropdown-col) + 2 * var(--grid-gutter));
+  }
+
   .mega-nav__panel-col:not(.is--services, .is--tint) {
     flex: 0 0 calc(var(--grid-margin) + 4 * var(--nav-dropdown-col) + 3.5 * var(--grid-gutter));
   }
@@ -767,9 +792,12 @@ body:has(.page--dark) .mega-nav,
   /* Stacked, each pathway keeping its shape, a gutter apart inside the
      drawer's own inset — only the band shortens, so a column of four
      still fits the slide-over panel. */
-  .mega-nav__panel-col.is--services { padding: 1.25em; }
-  .mega-nav__service-grid { grid-template-columns: 1fr; }
-  .mega-nav__service-card-media { height: 6.5em; }
+  .mega-nav__panel-col.is--services { padding: .5em 0 0; }
+  .mega-nav__service-grid { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-rows: auto; row-gap: .5em; min-height: 0; }
+  .mega-nav__service-card { grid-row: auto; grid-template-rows: auto; padding: 0 1.25em 1.5em; }
+  .mega-nav__service-card-media { min-height: 3.5em; }
+  .mega-nav__service-card :is(.mega-nav__service-card-icon, .mega-nav__panel-link-text, .mega-nav__panel-link-desc) { grid-row: auto; }
+  .mega-nav__service-card-icon { margin: 1.25em 0 1.5em; }
 }
 
 @media screen and (max-width: 479px) {

@@ -29,9 +29,29 @@ interface Props {
   arrowLabel: string;
   /** The band's pattern: the dotted canvas, or the Slash Field. */
   pattern?: "dots" | "slash";
+  /** "band" (the homepage): the pattern runs across the top, the copy
+      under it. "split" (For AEC Tech Firms): the pattern takes the left of
+      the viewport, to the end of Grid Column 7, and the copy stands in
+      Grid Columns 9–12 beside it. Below 992px both are the band. */
+  layout?: "band" | "split";
+  /** The pattern's accent: the site's red, or the AEC Tech Firms blue. */
+  accent?: "red" | "blue";
+  /** The copy, the homepage's unless a page has its own. */
+  tagline?: string;
+  lede?: string;
+  heading?: string;
 }
 
-const { arrowHref, arrowLabel, pattern = "dots" } = Astro.props;
+const {
+  arrowHref,
+  arrowLabel,
+  pattern = "dots",
+  layout = "band",
+  accent = "red",
+  tagline = "Independent tech strategy",
+  lede = "See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow.",
+  heading = "Technology strategy for architecture practices",
+} = Astro.props;
 const slash = pattern === "slash";
 
 // The technology labels on the dotted band, each one pitch above the run it
@@ -83,7 +103,7 @@ const screenWords = [
   { text: "Cloud", spot: [0.93, 0.94], from: 740 },
 ];
 ---
-<section class="hero">
+<section class:list={["hero", { "hero--split": layout === "split", "hero--blue": accent === "blue" }]}>
   <div class="hero__media" data-slash-field={slash ? "" : undefined}>
     {slash ? (
       <ul class="hero__labels">
@@ -144,11 +164,11 @@ const screenWords = [
   <div class="container">
     <div class="hero__grid">
       <div class="hero__col hero__col--lede">
-        <p class="text-md">See how workflows, BIM, software, infrastructure, data, costs and AI connect, so better technology decisions follow.</p>
-        <p class="tagline tagline--sm">Independent tech strategy</p>
+        <p class="text-md">{lede}</p>
+        <p class="tagline tagline--sm">{tagline}</p>
       </div>
       <div class="hero__col hero__col--heading">
-        <h1 class="h1 hero__heading">Technology strategy for architecture practices</h1>
+        <h1 class="h1 hero__heading">{heading}</h1>
 
         <div class="hero__cta-row">
           <div class="actions actions--pair">

@@ -79,3 +79,6 @@
    and the footer's */
 .mega-nav .nav-link { --fg: var(--nav-fg); --bg: var(--nav-bg); }
 .site-footer .nav-link { --fg: var(--c-white); --bg: var(--c-dark-fg); }
+/* For AEC Tech Firms takes its page's accent: its box is the blue, with
+   the label in white, on every ground the bar has. */
+.mega-nav .mega-nav__feature.nav-link { --fg: var(--c-blue); --bg: var(--c-white); }

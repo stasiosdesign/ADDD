@@ -8,9 +8,21 @@ import Hero from "../components/Hero.astro";
   description="We’re putting together what ADDD offers technology firms working with architecture practices. In the meantime, get in touch and we’ll talk it through."
   pageName="Tech Firms"
 >
-<main>
+<main class="page--grid">
 
-  <Hero arrowHref="#tech-firms-content" arrowLabel="Scroll down the page" />
+  <!-- The homepage hero for the AEC technology market: the same Slash
+       Field, with the AEC Tech Firms blue as its accent, on the left of
+       the viewport and the copy beside it (Hero.astro, "split"). -->
+  <Hero
+    arrowHref="#tech-firms-content"
+    arrowLabel="Scroll down the page"
+    pattern="slash"
+    layout="split"
+    accent="blue"
+    tagline="For AEC tech firms"
+    heading="Technology strategy for AEC tech firms"
+    lede="How architecture practices really choose, adopt and use software, so your product, positioning and partnerships follow the way projects are delivered."
+  />
 
   <!-- The approach cards that used to open the homepage's approach section
        (Understand, Diagnose, Prioritise), kept here as they were while the

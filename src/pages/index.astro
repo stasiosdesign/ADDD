@@ -293,21 +293,23 @@ const related = [
         </div>
       </div>
 
+      <!-- Two sides, set against each other: who ADDD is for and who it is
+           not, each a large title over a run of rows. -->
       <div class="compare__grid">
-        <div class="compare__card">
-          <h3 class="h4">Best suited to</h3>
+        <div class="compare__side">
+          <h3 class="compare__title">Best suited to</h3>
           <ul class="compare__list">
-            <li><p>Established architecture practices, usually around 25-200 people.</p><img class="icon" src="assets/icons/check.svg" alt="Yes"></li>
-            <li><p>Practices facing connected questions around workflows, software, costs, data, AI or ownership.</p><img class="icon" src="assets/icons/check.svg" alt="Yes"></li>
-            <li><p>Firms ready to act, but unclear about what should happen first.</p><img class="icon" src="assets/icons/check.svg" alt="Yes"></li>
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Established architecture practices, usually around 25–200 people.</p></li>
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Practices facing connected questions around workflows, software, costs, data, AI or ownership.</p></li>
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Firms ready to act, but unclear about what should happen first.</p></li>
           </ul>
         </div>
-        <div class="compare__card">
-          <h3 class="h4">Not primarily for</h3>
+        <div class="compare__side is--not">
+          <h3 class="compare__title">Not primarily for</h3>
           <ul class="compare__list">
-            <li><p>Firms seeking implementation without participating in strategic decisions.</p><img class="icon" src="assets/icons/close.svg" alt="No"></li>
-            <li><p>One-off software training, Tactical BIM production support. orOutsourced IT management.</p><img class="icon" src="assets/icons/close.svg" alt="No"></li>
-            <li><p>Quick recommendations for a particular product.</p><img class="icon" src="assets/icons/close.svg" alt="No"></li>
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Firms seeking implementation without taking part in the strategic decisions.</p></li>
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>One-off software training, tactical BIM production support or outsourced IT management.</p></li>
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Quick recommendations for a particular product.</p></li>
           </ul>
         </div>
       </div>

@@ -43,7 +43,10 @@
   padding: 0;
   cursor: pointer;
   font-family: var(--font-mono);
-  font-size: 0.8125rem;
+  /* 11px at the ideal width: the label a clear step under the slab,
+     which keeps its height and its run to the arrow, so the button reads
+     as the same block with quieter type in it */
+  font-size: 0.6875rem;
   font-weight: var(--fw-label);
   /* A 450: the kit has Adelle Mono at 400 and 500 only, and 500 is too
      heavy here. A hairline outline in the text's own colour thickens every
