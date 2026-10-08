@@ -673,11 +673,23 @@ button, input { font: inherit; color: inherit; }
    the marks. Balanced, as the approach heading under it is, so no word is
    left on a line alone. */
 .logos__title {
-  margin: 0 var(--page-pad) var(--sec-md);
+  margin: 0 var(--page-pad) calc(var(--sec-md) / 2);
   font-weight: var(--fw-heading-medium);
-  line-height: 1.2;
+  line-height: 1.1;
   text-wrap: balance;
 }
+/* A dotted rule between the title and the marks, Grid Columns 1–12:
+   2px dots on a 12px pitch, each centred in its tile. The rule stands
+   out past the margin by the 5px a dot sits in from its tile, and round
+   fits a whole number of tiles, so the first dot starts on Grid Column 1
+   and the last ends on Grid Column 12. It takes the title's step under it
+   in two halves, one either side, so the marks stay where they were. */
+.logos__rule {
+  height: 2px;
+  margin: 0 calc(var(--grid-margin) - 5px) calc(var(--sec-md) / 2);
+  background: linear-gradient(to right, transparent 5px, rgba(255, 255, 255, 0.3) 5px 7px, transparent 7px) center / 12px 2px round;
+}
+
 /* No box: each mark stands on the band on its own. The tile keeps its
    size, so the strip keeps its pitch and the mark its centre. */
 .logo-tile {

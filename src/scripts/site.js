@@ -17,7 +17,7 @@ import { initColumnGrid } from "./column-grid.js";
 import { initLogoStackLoader } from "./logo-stack-loader.js";
 import { initLogoMorphLoader } from "./logo-morph-loader.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
-import { mountSlashField } from "./slash-field.js";
+import { mountSlashField, DECODE } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
@@ -239,12 +239,33 @@ function pageNameFromUrl(href) {
   return PAGE_NAMES[slug] || slug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 }
 
-function runPageLeaveAnimation(current, nextHref) {
-  wipe.labelText.textContent = pageNameFromUrl(nextHref);
+// The label's brief scramble, in the hero field's hex (DECODE in
+// slash-field.js) through GSAP's ScrambleTextPlugin, word by word: the
+// plugin fills spaces too, so a label scrambled whole could break onto
+// different lines while it decodes. Each word keeps its own length in the
+// mono face, so nothing moves.
+const LABEL_SCRAMBLE = { chars: DECODE.chars, speed: DECODE.speed };
 
+function setLabel(name) {
+  wipe.labelText.replaceChildren(...name.split(" ").flatMap((word, i) => {
+    const span = document.createElement("span");
+    span.textContent = word;
+    return i ? [" ", span] : [span];
+  }));
+}
+
+function labelWords() {
+  // a "reveal" arrival opens on the name as the page was built with it
+  if (!wipe.labelText.children.length) setLabel(wipe.labelText.textContent.trim());
+  return [...wipe.labelText.children];
+}
+
+function runPageLeaveAnimation(current, nextHref) {
   // A navigation that starts while the panel is still settling from the last
   // one would otherwise fight the tweens already on it.
-  gsap.killTweensOf([wipe.panel, wipe.label]);
+  gsap.killTweensOf([wipe.panel, wipe.label, ...wipe.labelText.children]);
+
+  setLabel(pageNameFromUrl(nextHref));
 
   const tl = gsap.timeline({
     onComplete: () => current.remove()
@@ -258,6 +279,12 @@ function runPageLeaveAnimation(current, nextHref) {
   tl.set(wipe.panel, { autoAlpha: 1 }, 0);
   tl.fromTo(wipe.panel, { yPercent: 0 }, { yPercent: -100, duration: 0.8 }, 0);
   tl.fromTo(wipe.label, { autoAlpha: 0 }, { autoAlpha: 1 }, "<+=0.2");
+  // the name decodes as it fades in, resolved well before the panel covers
+  tl.to(labelWords(), {
+    duration: 0.4,
+    ease: "none",
+    scrambleText: { text: "{original}", ...LABEL_SCRAMBLE, revealDelay: 0.12 },
+  }, "<");
   tl.fromTo(current, { y: "0vh" }, { y: "-15vh", duration: 0.8 }, 0);
 
   // Barba awaits whatever leave() hands back, and a GSAP timeline is
@@ -318,6 +345,13 @@ function runPageEnterAnimation(next) {
     duration: 0.4,
     overwrite: "auto",
     immediateRender: false
+  }, "startEnter+=0.1");
+
+  // and scrambles again as it goes, never resolving before it has faded
+  tl.to(labelWords(), {
+    duration: 0.4,
+    ease: "none",
+    scrambleText: { text: "{original}", ...LABEL_SCRAMBLE, revealDelay: 0.4 },
   }, "startEnter+=0.1");
 
   tl.from(next, { y: "15vh", duration: 1 }, "startEnter");

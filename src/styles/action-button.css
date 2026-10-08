@@ -44,8 +44,12 @@
   cursor: pointer;
   font-family: var(--font-mono);
   font-size: 0.8125rem;
-  /* a step heavier than the labels, so a call to action reads as one */
-  font-weight: 500;
+  font-weight: var(--fw-label);
+  /* A 450: the kit has Adelle Mono at 400 and 500 only, and 500 is too
+     heavy here. A hairline outline in the text's own colour thickens every
+     stroke evenly without touching the letters' widths; 0.01em lands the
+     ink halfway between the two weights (measured on the label at size). */
+  -webkit-text-stroke: 0.01em currentColor;
   letter-spacing: 0;
   text-transform: uppercase;
   line-height: 1;

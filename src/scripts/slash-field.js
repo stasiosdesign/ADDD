@@ -188,7 +188,7 @@ const SEQUENCE = {
 // more briefly still. The characters are hexadecimal — data rather than
 // decoration — redrawn about fifteen times a second, so even a short decode
 // shows a few of them.
-const DECODE = {
+export const DECODE = {
   chars: "0123456789ABCDEF",
   speed: 0.8,
   major: { hold: 0.12, base: 0.22, perChar: 0.018, min: 0.32, max: 0.62 },
