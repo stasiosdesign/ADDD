@@ -61,6 +61,13 @@ export default defineConfig({
 
   integrations: [...(deployment === "production" ? [buildStamp()] : []), ...(onDemand ? [sanityRoutes()] : [])],
 
+  // Astro's own cross-site POST check would refuse the Studio's publishing
+  // requests (they come from the Studio's origin). The publishing route
+  // checks the caller itself: its origin against its own allow-list, and the
+  // editor's Sanity session token (src/sanity/publish/). Nothing else here
+  // takes a POST.
+  security: { checkOrigin: false },
+
   env: {
     schema: {
       // A Sanity Viewer token, for draft mode on staging and in development.
