@@ -3,19 +3,27 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { blueprintPage as D } from "../sanity/defaults/blueprint";
 
-const faq = [
-  { question: "Who should be involved from our side?", answer: "A sponsor at partner or director level, plus whoever owns BIM, IT and operations. Project leads join for the interview stage." },
-  { question: "How much time does it take from our team?", answer: "Roughly six to ten hours per participant across the eight weeks, mostly in the discovery stage." },
-  { question: "What do we actually receive?", answer: "A written blueprint with findings, a cost picture, prioritised recommendations and a sequenced two to three-year roadmap." },
-  { question: "Do you implement the roadmap?", answer: "The blueprint is strategy, not delivery. Ongoing strategic guidance continues through ADDDvisory." },
-  { question: "Should we start with a workshop instead?", answer: "If the problem is isolated to one workflow or project, start with a workshop. If it spans the practice, start here." },
-];
+// Every section's words come from the Technology Blueprint page document in
+// Sanity (studio/schemaTypes/pages/blueprint.ts), each element falling back
+// to its own (src/sanity/defaults/blueprint.ts): see src/sanity/content.ts.
+// The navigation, the footer, the filter buttons, the enquiry form's inputs
+// and where every button and link leads stay here. Each element names the
+// field it shows (data-page-field) so the Studio's Visual editor can
+// outline it and write drafts into it.
+const { t, list, bg } = reader(await pageDocument(Astro.locals.sanity, "blueprintPage"), D);
+
+const benefits = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string; image?: unknown }>("benefits.tiles");
+const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("delivery.steps");
+const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 ---
 <BaseLayout
   title="Technology Blueprint — ADDD"
   description="The Technology Blueprint is a full practice-wide technology strategy for architecture practices, covering the technology ecosystem, workflows, software, infrastructure, data, security, AI and priorities."
   pageName="Technology Blueprint"
+  doc={{ id: "blueprintPage" }}
 >
 <main class="page--grid">
 
@@ -23,14 +31,14 @@ const faq = [
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Technology Blueprint</p>
-          <h1 class="h1">Eight weeks to a working strategy</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">A technology blueprint is how established architecture practices move from scattered tools and unclear spending to a sequenced roadmap that works. It is the full practice-wide technology strategy: we examine your technology ecosystem, workflows, software and licensing costs, infrastructure, data, security, roles and AI readiness, then hand you back clear priorities you can actually act on. One practice cut their software spend by 40% and reclaimed two days a week. That&rsquo;s what happens when you see what you actually have.</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions">
-            <ActionButton href="contact.html">Enquire</ActionButton>
-            <a class="btn btn--link" href="#delivery">Learn more <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+            <ActionButton href="contact.html"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+            <a class="btn btn--link" href="#delivery"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
       </div>
@@ -40,28 +48,19 @@ const faq = [
 
   <section class="section">
     <div class="container">
-      <div class="grid grid--3">
-        <article class="stack stack--16">
-          <p class="tagline tagline--sm">01</p>
-          <div class="ph" style="aspect-ratio:4/3"></div>
-          <p class="tagline tagline--sm">Coherence</p>
-          <h2 class="h4">One reliable view of the practice</h2>
-          <p>Most practices operate in silos, with each department making technology choices independently. A blueprint connects those choices into one coherent picture, so you understand how decisions in one area affect everything else.</p>
+      <div class="grid grid--3" data-page-list="benefits.tiles">
+        {benefits.map((tile, i) => {
+          const picture = bg(`benefits.tiles.${i}.image`);
+          return (
+        <article class="stack stack--16" data-page-item={tile._key}>
+          <p class="tagline tagline--sm" data-page-item-field="number">{tile.number}</p>
+          <div class="ph" style={picture ? `aspect-ratio:4/3;${picture}` : "aspect-ratio:4/3"} data-page-item-field="image" data-page-item-bg></div>
+          <p class="tagline tagline--sm" data-page-item-field="tagline">{tile.tagline}</p>
+          <h2 class="h4" data-page-item-field="title">{tile.title}</h2>
+          <p data-page-item-field="text">{tile.text}</p>
         </article>
-        <article class="stack stack--16">
-          <p class="tagline tagline--sm">02</p>
-          <div class="ph" style="aspect-ratio:4/3"></div>
-          <p class="tagline tagline--sm">Direction</p>
-          <h2 class="h4">Stop reacting to every problem</h2>
-          <p>Without strategy, you buy software when pressure builds and hope it fits with what you already have. A blueprint lets you choose tools that serve your actual direction instead of chasing problems as they emerge.</p>
-        </article>
-        <article class="stack stack--16">
-          <p class="tagline tagline--sm">03</p>
-          <div class="ph" style="aspect-ratio:4/3"></div>
-          <p class="tagline tagline--sm">Efficiency</p>
-          <h2 class="h4">Eliminate waste and reclaim capacity</h2>
-          <p>Overlapping tools, parallel workflows and unclear ownership drain money and time without anyone tracking it. A blueprint finds that waste and shows you exactly what to change to recover both.</p>
-        </article>
+          );
+        })}
       </div>
     </div>
   </section>
@@ -69,10 +68,10 @@ const faq = [
   <section class="section section--light">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">A technology blueprint examines your practice as one connected system. We don&rsquo;t isolate workflows from software, or software costs from infrastructure&mdash;everything connects.</p>
+        <p class="text-md" data-page-field="examine.lede">{t("examine.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Examine</p>
-          <h2 class="h2">What we look at</h2>
+          <p class="tagline" data-page-field="examine.tagline">{t("examine.tagline")}</p>
+          <h2 class="h2" data-page-field="examine.heading">{t("examine.heading")}</h2>
         </div>
       </div>
 
@@ -89,9 +88,9 @@ const faq = [
       <div class="card" style="margin-top:3rem">
         <div class="card__body card__body--lg">
           <div class="card__text">
-            <p class="tagline tagline--sm">Workflows</p>
-            <h3 class="h3">How work moves through your practice</h3>
-            <p>We trace real project delivery from brief through to completion, finding where tools connect and where teams improvise around gaps. This reveals which workflows are intentional and which are fragile.</p>
+            <p class="tagline tagline--sm" data-page-field="examine.cardTagline">{t("examine.cardTagline")}</p>
+            <h3 class="h3" data-page-field="examine.cardHeading">{t("examine.cardHeading")}</h3>
+            <p data-page-field="examine.cardText">{t("examine.cardText")}</p>
           </div>
         </div>
         <div class="card__media"></div>
@@ -102,43 +101,24 @@ const faq = [
   <section class="section" id="delivery">
     <div class="container">
       <div class="stack">
-        <p class="tagline">Delivery</p>
-        <h2 class="h2" style="max-width:16ch">From current reality to a clear roadmap</h2>
+        <p class="tagline" data-page-field="delivery.tagline">{t("delivery.tagline")}</p>
+        <h2 class="h2" style="max-width:16ch" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
         <div class="actions">
-          <ActionButton href="contact.html" variant="secondary">Explore</ActionButton>
-          <a class="btn btn--link" href="about.html">Learn <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <ActionButton href="contact.html" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
+          <a class="btn btn--link" href="about.html"><span data-page-field="delivery.linkLabel">{t("delivery.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </div>
       </div>
 
-      <div class="steps">
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Week 1</p>
+      <div class="steps" data-page-list="delivery.steps">
+        {steps.map((step) => (
+        <div class="steps__item" data-page-item={step._key}>
+          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
           <div class="steps__body">
-            <h3 class="h4">Mobilisation</h3>
-            <p>We align on scope, timeline and who participates from your practice.</p>
+            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
+            <p data-page-item-field="text">{step.text}</p>
           </div>
         </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Weeks 2&ndash;4</p>
-          <div class="steps__body">
-            <h3 class="h4">Discovery and analysis</h3>
-            <p>Interviews map your workflows. Inventory captures every tool and cost. Gap analysis reveals where systems fail.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Weeks 5&ndash;7</p>
-          <div class="steps__body">
-            <h3 class="h4">Strategy and planning</h3>
-            <p>Recommendations emerge from findings. Cost analysis shows where money goes. Priorities sequence what matters most.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Week 8</p>
-          <div class="steps__body">
-            <h3 class="h4">Finalisation and handover</h3>
-            <p>You receive the blueprint, present it to your leadership, then move into implementation with clear next steps.</p>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </section>
@@ -148,12 +128,12 @@ const faq = [
       <div class="case__panel" style="margin-top:0">
         <div class="case__quote-wrap">
           <div class="case__quote-inner">
-            <blockquote class="quote">&ldquo;ADAM Architecture had three separate software systems doing the same job. The blueprint showed us how to consolidate without losing capability, and we recovered nearly half a day per project.&rdquo;</blockquote>
+            <blockquote class="quote" data-page-field="quote.quote">&ldquo;{t("quote.quote")}&rdquo;</blockquote>
             <div class="avatar">
               <div class="avatar__img"></div>
               <div>
-                <p class="avatar__name">Marcus Reid</p>
-                <p>Technology director, ADAM Architecture</p>
+                <p class="avatar__name" data-page-field="quote.name">{t("quote.name")}</p>
+                <p data-page-field="quote.role">{t("quote.role")}</p>
               </div>
             </div>
           </div>
@@ -166,13 +146,13 @@ const faq = [
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Investment</p>
-          <h2 class="h2">Start here</h2>
-          <p class="text-md">Eight weeks, tailored to your practice&rsquo;s scale and complexity.</p>
+          <p class="tagline" data-page-field="enquiry.tagline">{t("enquiry.tagline")}</p>
+          <h2 class="h2" data-page-field="enquiry.heading">{t("enquiry.heading")}</h2>
+          <p class="text-md" data-page-field="enquiry.lede">{t("enquiry.lede")}</p>
           <ul class="contact-list">
-            <li><a href="mailto:hello@addd.studio">hello@addd.studio</a></li>
-            <li><a href="tel:+442071833675">+44 (0) 207 183 3675</a></li>
-            <li>London, United Kingdom</li>
+            <li><a href="mailto:hello@addd.studio" data-page-field="enquiry.email">{t("enquiry.email")}</a></li>
+            <li><a href="tel:+442071833675" data-page-field="enquiry.phone">{t("enquiry.phone")}</a></li>
+            <li data-page-field="enquiry.address">{t("enquiry.address")}</li>
           </ul>
         </div>
         <div class="pg-hero__col">
@@ -181,7 +161,7 @@ const faq = [
             <div class="field"><label for="bp-email">Email</label><input id="bp-email" type="email" autocomplete="email"></div>
             <div class="field"><label for="bp-msg">Message</label><textarea id="bp-msg" placeholder="Tell us about your practice"></textarea></div>
             <label class="checkbox"><input type="checkbox"> I agree to the privacy policy</label>
-            <ActionButton type="submit" style="align-self:flex-start">Send</ActionButton>
+            <ActionButton type="submit" style="align-self:flex-start"><span data-page-field="enquiry.button">{t("enquiry.button")}</span></ActionButton>
           </form>
         </div>
       </div>
@@ -190,8 +170,8 @@ const faq = [
 
   <section class="section section--light">
     <div class="container">
-      <h2 class="h2">Answers</h2>
-      <Accordion id="faq" items={faq} />
+      <h2 class="h2" data-page-field="faq.heading">{t("faq.heading")}</h2>
+      <Accordion id="faq" items={faq} field="faq.questions" />
     </div>
   </section>
 

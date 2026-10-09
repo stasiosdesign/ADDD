@@ -32,6 +32,8 @@
      by --dotted-rule-bleed either side. */
   --dotted-rule: linear-gradient(to right, transparent 5px, color-mix(in srgb, currentColor 30%, transparent) 5px 7px, transparent 7px) center / 12px 2px round;
   --dotted-rule-bleed: 5px;
+  /* the same rule stood upright, on a 2px-wide box */
+  --dotted-rule-vertical: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 30%, transparent) 5px 7px, transparent 7px) center / 2px 12px round;
 
   /* type */
   --font-display: "parabolica", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -52,6 +54,11 @@
      already generous, and closed up the capitals read as one word. The
      primary face keeps its own (negative) tracking per heading. */
   --label-tracking: -0.02em;
+  /* The accent face's ink: the colour of whatever it is set on, eased a
+     step back — a dark grey on a light ground, a light grey on a dark one —
+     so the mono never reads as harsh as pure black or white beside the
+     primary face. */
+  --label-ink: color-mix(in srgb, currentColor 76%, transparent);
   /* The primary face's tracking (Parabolica, --font-display and --font-body):
      body text takes it as it is, and every heading or display size that
      closes up further takes it plus its own step, so this one value moves
@@ -168,6 +175,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .insight-card__meta,
 .filters button {
   font-family: var(--font-mono);
+  color: var(--label-ink);
   font-weight: var(--fw-label);
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
@@ -488,6 +496,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   gap: 2.5rem;
 }
 .hero__col--lede { flex: 0 0 21.6rem; }
+/* the homepage's lede a step under --t-md, so the headline leads more clearly */
+.hero:not(.hero--split) .hero__col--lede .text-md { font-size: 1rem; }
 /* Pushed to the right edge, so the headline starts around two fifths
    across and the space between it and the lede is the composition. */
 .hero__col--heading { flex: 0 1 auto; margin-left: auto; }
@@ -514,6 +524,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* The pair of blocks sit in the row up to the arrow (on the 12-Column
    Grid, within Grid Column 11 — page-grid.css). */
 .hero__cta-row .actions { flex: 1; }
+/* the hero's pair a step closer than a pair's usual gutter */
+.hero__cta-row .actions--pair { gap: 0.625rem; }
 /* Rotated a quarter turn so it points down the page: it is the scroll
    cue, and it jumps to the section the page is asking you to read. */
 .hero__arrow {

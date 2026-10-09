@@ -28,6 +28,7 @@ import Transition from "../components/Transition.astro";
 import Nav from "../components/Nav.astro";
 import ColumnGrid from "../components/ColumnGrid.astro";
 import Footer from "../components/Footer.astro";
+import DraftModeLabel from "../components/DraftModeLabel.astro";
 import { BUILD_STAMP } from "../build-stamp.js";
 
 // Site stylesheets, bundled into one file in this order — the cascade order
@@ -60,9 +61,18 @@ interface Props {
   /** The homepage: the one page the logo intro opens, since it plays out in
       the hero's own field (see ARRIVAL in src/scripts/site.js). */
   home?: boolean;
+  /** The Sanity document the page shows (src/sanity/content.ts): its ID and,
+      for a collection item, its type. Named on the Barba container for the
+      Studio's Visual editor (src/sanity/live-preview.ts). */
+  doc?: { id: string; type?: string };
 }
 
-const { title, description, pageName, home = false } = Astro.props;
+const { title, description, pageName, home = false, doc } = Astro.props;
+const docAttrs = doc ? { "data-page-doc": doc.id, "data-page-type": doc.type ?? doc.id } : {};
+// Staging and development render on request and are never indexed; a page in
+// draft mode says so to the person looking at it (DraftModeLabel)
+const staging = __DEPLOYMENT__ !== "production";
+const draftMode = staging && Astro.locals.draftMode;
 ---
 <!DOCTYPE html>
 <html lang="en-GB">
@@ -72,6 +82,7 @@ const { title, description, pageName, home = false } = Astro.props;
 <title>{title}</title>
 <meta name="description" content={description}>
 <meta name="build" content={BUILD_STAMP}>
+{staging && <meta name="robots" content="noindex, nofollow">}
 {/* How this document load arrives — the logo intro or the wipe's reveal —
     decided before the first paint, so a loader that is not going to play is
     never shown. The intro is the homepage's: it opens the session's first
@@ -104,7 +115,7 @@ const { title, description, pageName, home = false } = Astro.props;
   })();
 </script>
 <noscript><style>.morph-loader { display: none; }</style></noscript>
-<link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+<link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://use.typekit.net" crossorigin>
 <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -116,10 +127,11 @@ const { title, description, pageName, home = false } = Astro.props;
 <Transition />
 <Nav />
 <ColumnGrid />
-<div data-barba="container" data-page-name={pageName}>
+<div data-barba="container" data-page-name={pageName} {...docAttrs}>
 <slot />
 <Footer />
 </div>
+{draftMode && <DraftModeLabel />}
 <script is:inline src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.min.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.min.js"></script>
 <script is:inline src="https://cdn.jsdelivr.net/npm/gsap@3.15/dist/gsap.min.js"></script>
@@ -132,5 +144,13 @@ const { title, description, pageName, home = false } = Astro.props;
 {/* Bundled as a module, so it runs once the document has parsed — after the
     classic CDN scripts above have defined barba, Lenis and gsap. */}
 <script src="../scripts/site.js"></script>
+{/* Staging and development only: inside the Studio's Visual editor, the
+    click-to-edit layer and live drafts (src/sanity/live-preview.ts), loaded
+    on demand so visitors never download it. Production builds leave it out. */}
+{staging && (
+<script>
+  if (window.self !== window.top) import("../sanity/live-preview");
+</script>
+)}
 </body>
 </html>

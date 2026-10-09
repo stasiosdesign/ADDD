@@ -1,0 +1,41 @@
+{
+  "name": "addd-studio",
+  "private": true,
+  "version": "1.0.0",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "sanity build",
+    "check": "tsc --noEmit && eslint . && npm test",
+    "deploy": "sanity deploy",
+    "dev": "sanity dev",
+    "dev:linked": "sanity dev",
+    "seed": "sanity exec scripts/seed.ts --with-user-token",
+    "start": "sanity start",
+    "test": "node --experimental-strip-types --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --disable-warning=ExperimentalWarning --test \"test/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@sanity/icons": "^5.2.2",
+    "@sanity/image-url": "^2.1.1",
+    "@sanity/ui": "^4.2.4",
+    "@sanity/vercel-protection-bypass": "^5.0.23",
+    "@stasiosdesign/sanity-cms": "1.2.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "sanity": "6.18.0",
+    "styled-components": "^6.1.18"
+  },
+  "devDependencies": {
+    "@sanity/eslint-config-studio": "^7",
+    "@types/node": "^24.13.6",
+    "@types/react": "^19.2.14",
+    "eslint": "^10.8.1",
+    "prettier": "^3.5",
+    "typescript": "^5.8"
+  },
+  "prettier": {
+    "bracketSpacing": false,
+    "printWidth": 100,
+    "semi": false,
+    "singleQuote": true
+  }
+}

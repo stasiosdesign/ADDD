@@ -2,30 +2,43 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import InsightCard from "../components/InsightCard.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { cardOf, indexMeta, type Insight } from "../sanity/insights";
+import { ISSUES_QUERY } from "../sanity/queries";
+import { newsletterPage as D, ISSUE_CARD_DEFAULTS, ISSUE_FILTER_DEFAULTS } from "../sanity/defaults/newsletter";
 
-const articles = [
-  { href: "newsletter-template.html", image: "assets/images/allister-keynote-stage.jpg", category: "Strategy", title: "Implementing AI without losing your practice’s identity", description: "How architecture firms can adopt emerging tools while maintaining their unique approach and values", meta: ["8 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-gesture-warm.jpg", category: "Workflow", title: "The cost of poor software integration in architecture", description: "Why disconnected tools drain resources and how to fix it before it becomes a problem", meta: ["6 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/conference-keynote.jpg", category: "Technology", title: "BIM governance frameworks that actually work", description: "Setting up clear standards and processes that your team will follow without resistance", meta: ["7 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-gesture-close.jpg", category: "Strategy", title: "When technology becomes a distraction from design", description: "Finding the balance between innovation and the work that matters most", meta: ["9 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-podium-portrait.jpg", category: "Workflow", title: "Building teams that understand your software stack", description: "How to hire and develop people who can navigate complex digital environments", meta: ["7 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-headshot-bw.png", category: "Technology", title: "The hidden cost of staying with legacy systems", description: "Why familiar tools sometimes cost more than the alternatives", meta: ["6 min read"] },
-];
+// The heading row's words come from the Newsletter page document in Sanity
+// (studio/schemaTypes/pages/newsletter.ts), each falling back to the page's
+// own (src/sanity/defaults/newsletter.ts): see src/sanity/content.ts. The
+// cards are the newsletter issues, newest first, and the filter buttons
+// their categories in order of first appearance; while there are no issues
+// the page keeps the cards and filters it was built with.
+const { sanity } = Astro.locals;
+const [doc, items] = await Promise.all([pageDocument(sanity, "newsletterPage"), sanity.fetch<Insight[]>(ISSUES_QUERY)]);
+const { t } = reader(doc, D);
+
+const articles = items?.length ? items.map((item) => cardOf(item, indexMeta)) : ISSUE_CARD_DEFAULTS;
+// One button per category, shown as written, matched in lowercase (the
+// card's chip is its filter token: InsightCard.astro)
+const filters = items?.length
+  ? [...new Map(items.filter((item) => item.category).map((item) => [item.category!.toLowerCase(), item.category!])).entries()].map(([target, label]) => ({ target, label }))
+  : ISSUE_FILTER_DEFAULTS;
 ---
 <BaseLayout
   title="Newsletter — ADDD"
   description="ADDDitive, the ADDD newsletter on The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture."
   pageName="Newsletter"
+  doc={{ id: "newsletterPage" }}
 >
 <main class="page--grid">
 
   <section class="pg-hero">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture</p>
+        <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Newsletter</p>
-          <h1 class="h2">More from ADDD</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h2" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
       </div>
 
@@ -36,9 +49,9 @@ const articles = [
       <div class="insight-archive" data-filter-group data-filter-target-match="multi" data-filter-name-match="multi">
         <div class="filters">
           <button type="button" data-filter-target="all">All articles</button>
-          <button type="button" data-filter-target="strategy">Strategy</button>
-          <button type="button" data-filter-target="workflow">Workflow</button>
-          <button type="button" data-filter-target="technology">Technology</button>
+          {filters.map((filter, i) => (
+          <Fragment>{i > 0 && "\n          "}<button type="button" data-filter-target={filter.target}>{filter.label}</button></Fragment>
+          ))}
           <button type="button" class="filters__reset" data-filter-target="reset">Clear filters</button>
         </div>
 

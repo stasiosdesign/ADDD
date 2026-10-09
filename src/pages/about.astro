@@ -2,11 +2,26 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { aboutPage as D } from "../sanity/defaults/about";
+
+// Every section's words come from the About page document in Sanity
+// (studio/schemaTypes/pages/about.ts), each element falling back to its own
+// (src/sanity/defaults/about.ts): see src/sanity/content.ts. Where every
+// button and card link leads stays here. Each element names the field it
+// shows (data-page-field) so the Studio's Visual editor can outline it and
+// write drafts into it.
+const { t, list, bg } = reader(await pageDocument(Astro.locals.sanity, "aboutPage"), D);
+
+// The perspective cards' destinations, by position
+const tiles = list<{ _key: string; title?: string; text?: string; linkLabel?: string }>("perspective.tiles");
+const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "advisory.html"];
 ---
 <BaseLayout
   title="About — ADDD"
   description="I’m Allister Lewis, an architect and technology strategist. I founded ADDD to help architecture leaders understand what is really holding their practice back—across technology, workflows, information, costs and decision-making."
   pageName="About"
+  doc={{ id: "aboutPage" }}
 >
 <main class="page--grid">
 
@@ -14,13 +29,13 @@ import ClosingCta from "../components/ClosingCta.astro";
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <h1 class="h2">A clearer view of how your practice really works.</h1>
+          <h1 class="h2" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">I&rsquo;m Allister Lewis, an architect and technology strategist. I founded ADDD to help architecture leaders understand what is really holding their practice back&mdash;across technology, workflows, information, costs and decision-making.</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions actions--pair">
-            <ActionButton href="contact.html">Discover</ActionButton>
-            <ActionButton href="technology-blueprint.html" variant="secondary">Blueprint</ActionButton>
+            <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+            <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -31,11 +46,11 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section">
     <div class="container">
       <div class="stack">
-        <p class="tagline">Foundation</p>
-        <p class="statement">Architecture practices rarely choose poorly. They choose reactively, without a coherent framework, and then live with the consequences compounding across years. The real problem is structural, not technical.</p>
+        <p class="tagline" data-page-field="foundation.tagline">{t("foundation.tagline")}</p>
+        <p class="statement" data-page-field="foundation.statement">{t("foundation.statement")}</p>
         <div class="actions actions--pair">
-          <ActionButton href="workshops-audits.html" variant="secondary">Services</ActionButton>
-          <ActionButton href="reports.html" variant="secondary">Resources</ActionButton>
+          <ActionButton href="workshops-audits.html" variant="secondary"><span data-page-field="foundation.primaryButton">{t("foundation.primaryButton")}</span></ActionButton>
+          <ActionButton href="reports.html" variant="secondary"><span data-page-field="foundation.secondaryButton">{t("foundation.secondaryButton")}</span></ActionButton>
         </div>
       </div>
     </div>
@@ -44,29 +59,21 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section section--light">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">An external eye finds what internal teams have learned to live with.</p>
+        <p class="text-md" data-page-field="perspective.lede">{t("perspective.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Perspective</p>
-          <h2 class="h2">What Allister sees</h2>
+          <p class="tagline" data-page-field="perspective.tagline">{t("perspective.tagline")}</p>
+          <h2 class="h2" data-page-field="perspective.heading">{t("perspective.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt">
-        <article class="tile" style="background:var(--c-white)">
-          <h3 class="h4">Workarounds that became the system</h3>
-          <p>Every practice has them. Manual steps inserted between tools. Data re-entered because systems do not talk. Email used as workflow because nothing else fits. These are not inefficiencies. They are invisible infrastructure. No one reports them because everyone assumes they are normal. An external review makes them visible and shows what becomes possible when they are removed.</p>
-          <a class="btn btn--link" href="workshops-audits.html">Workflow Workshop <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <div class="grid grid--3 grid--mt" data-page-list="perspective.tiles">
+        {tiles.map((tile, i) => (
+        <article class="tile" style="background:var(--c-white)" data-page-item={tile._key}>
+          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
+          <p data-page-item-field="text">{tile.text}</p>
+          <a class="btn btn--link" href={tileHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{tile.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
-        <article class="tile" style="background:var(--c-white)">
-          <h3 class="h4">Fragmented choices that compound into risk</h3>
-          <p>One team picks software for speed. Another chooses based on cost. A third inherits legacy systems no one wants to replace. Each decision made sense at the time. Together they create governance gaps, duplicated data, conflicting workflows and costs that climb without visibility. The problem is not the tools. It is the absence of a framework that connects them.</p>
-          <a class="btn btn--link" href="technology-blueprint.html">Blueprint <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
-        <article class="tile" style="background:var(--c-white)">
-          <h3 class="h4">The gap between what leadership believes and what actually happens</h3>
-          <p>Partners assume BIM is embedded. Project directors know it is partial. Teams use workarounds leadership has never seen. Investment in training does not translate to adoption. What gets reported upwards and what happens on projects are often two different stories. Closing that gap is where real change begins.</p>
-          <a class="btn btn--link" href="advisory.html">ADDDvisory <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
+        ))}
       </div>
     </div>
   </section>
@@ -75,20 +82,20 @@ import ClosingCta from "../components/ClosingCta.astro";
     <div class="container">
       <div class="section-title">
         <div class="section-title__body">
-          <p class="tagline">Validation</p>
-          <h2 class="h2" style="max-width:18ch">Proven outcomes across architecture practices</h2>
+          <p class="tagline" data-page-field="validation.tagline">{t("validation.tagline")}</p>
+          <h2 class="h2" style="max-width:18ch" data-page-field="validation.heading">{t("validation.heading")}</h2>
         </div>
       </div>
 
       <div class="creds__grid">
         <div class="creds__media">
-          <div class="ph"></div>
-          <div class="ph"></div>
+          <div class="ph" data-page-bg="validation.image1" style={bg("validation.image1")}></div>
+          <div class="ph" data-page-bg="validation.image2" style={bg("validation.image2")}></div>
         </div>
         <div class="creds__text">
-          <p>ADAM Architecture reduced licensing costs by half, uncovered eighteen hidden workflow steps and aligned leadership around a shared digital roadmap. The approach works because it treats technology as a system, not a series of isolated tools. Allister&rsquo;s work spans 1,800+ researched AEC software solutions, direct experience with AJ100 practices and ongoing industry research through reports, speaking and the ADDDitive newsletter.</p>
+          <p data-page-field="validation.text">{t("validation.text")}</p>
           <div class="actions">
-            <ActionButton href="reports.html" variant="secondary">Case study</ActionButton>
+            <ActionButton href="reports.html" variant="secondary"><span data-page-field="validation.button">{t("validation.button")}</span></ActionButton>
           </div>
         </div>
       </div>

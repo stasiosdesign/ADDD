@@ -1,11 +1,22 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { contactPage as D } from "../sanity/defaults/contact";
+
+// The words beside the form come from the Contact page document in Sanity
+// (studio/schemaTypes/pages/contact.ts), each element falling back to its
+// own (src/sanity/defaults/contact.ts): see src/sanity/content.ts. The
+// form's fields, options and labels, and where the email and phone links
+// lead, stay here. Each element names the field it shows (data-page-field)
+// so the Studio's Visual editor can outline it and write drafts into it.
+const { t } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
 ---
 <BaseLayout
   title="Contact — ADDD"
   description="Send your enquiry to ADDD. Tell us what you need."
   pageName="Contact"
+  doc={{ id: "contactPage" }}
 >
 <main class="page--dark page--grid">
 
@@ -13,13 +24,13 @@ import ActionButton from "../components/ActionButton.astro";
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Enquire</p>
-          <h1 class="h2">Send your enquiry</h1>
-          <p class="text-md">Tell us what you need</p>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h2" data-page-field="hero.heading">{t("hero.heading")}</h1>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <ul class="contact-list">
-            <li><a href="mailto:allister@addd.io">allister@addd.io</a></li>
-            <li><a href="tel:+15550000000">+1 (555) 000-0000</a></li>
-            <li>123 Sample St, Sydney NSW 2000 AU</li>
+            <li><a href="mailto:allister@addd.io" data-page-field="hero.email">{t("hero.email")}</a></li>
+            <li><a href="tel:+15550000000" data-page-field="hero.phone">{t("hero.phone")}</a></li>
+            <li data-page-field="hero.address">{t("hero.address")}</li>
           </ul>
         </div>
 
@@ -67,7 +78,7 @@ import ActionButton from "../components/ActionButton.astro";
 
             <label class="checkbox"><input type="checkbox"> I agree to be contacted about my enquiry</label>
 
-            <ActionButton type="submit" style="align-self:flex-start">Send enquiry</ActionButton>
+            <ActionButton type="submit" style="align-self:flex-start"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
           </form>
         </div>
       </div>

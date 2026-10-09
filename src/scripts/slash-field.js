@@ -33,8 +33,8 @@
        data-slash-spot="fx,fy" (its centre, as fractions of the
        container): on a cell boundary and the middle of a row, whole
        inside the container, clear of the other words and on a row of its own
-       where there is one. The pattern stops around it — its cells and one
-       either side are left empty — so the strokes run up to the word and
+       where there is one. The pattern stops around it — only the cells
+       whose strokes would reach into its letters are left empty — so the strokes run up to the word and
        on after it, never through the letters. A word
        with data-slash-from="N" only appears where the container is at
        least N px wide; one that will not fit is hidden;
@@ -97,6 +97,9 @@ const DEFAULTS = {
   fade: 700,
   straight: 0.5,
   blank: 0.06,
+  // the share of cells set with a mark of punctuation — : ; . — instead of a
+  // stroke: a sparse texture of notation through the pattern
+  marks: 0.035,
   // "screen" runs the field on past the container to fill the screen (the
   // homepage's first-load intro sets it: see logo-morph-loader.js)
   extend: "",
@@ -127,6 +130,8 @@ const SHOWN = 0.75;
 // to INSET_Y up from the foot, so the rows read as lines with a gap between.
 const INSET_X = 0.18;
 const INSET_Y = 0.16;
+// How close (px) a stroke may come to a word's letters.
+const WORD_GAP = 1.5;
 // The tints a stroke can take: ink steps for each red step (see colors).
 const SHADES = (2 * LEVELS + 1) * (SIGNAL_LEVELS + 1);
 // How long the system's light takes to die away (s): the ink a signal leaves
@@ -391,6 +396,7 @@ export function mountSlashField(el) {
       fade: num("fade"),
       straight: num("straight"),
       blank: num("blank"),
+      marks: num("marks"),
       extend: String(readOption(el, "extend")).trim(),
       words: String(readOption(el, "words")).trim(),
     };
@@ -539,6 +545,10 @@ export function mountSlashField(el) {
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         if (hash(c, r - above, 1) < opts.blank) continue;
+        if (hash(c, r - above, 3) < opts.marks) {
+          glyph[r * cols + c] = 4 + Math.floor(hash(c, r - above, 4) * 3);
+          continue;
+        }
         const m = hash(c, r - above, 2);
         glyph[r * cols + c] = m < opts.straight ? 2 : m < slant ? 1 : 3;
       }
@@ -692,6 +702,9 @@ export function mountSlashField(el) {
         c,
         n,
         r,
+        // the text's own run across, in the field's px
+        x0: c * cellW + (n * cellW - w) / 2,
+        x1: c * cellW + (n * cellW + w) / 2,
         x: (c + n / 2) * cellW,
         y: (r + 0.5) * cellH,
         last: -Infinity,
@@ -707,13 +720,23 @@ export function mountSlashField(el) {
     // them either. A word not yet born into the field has the strokes run
     // on under it, as if it were not there.
     words.forEach((word) => {
-      if (unborn(word)) return;
-      const { c, n, r } = word;
-      for (let cc = c - 1; cc <= c + n; cc++) {
-        glyph[r * cols + cc] = 0;
-        taken[r * cols + cc] = 1;
-      }
+      if (!unborn(word)) cutWord(word);
     });
+  }
+
+  // The cells on a word's row whose stroke would reach into its letters —
+  // the text's own run across and WORD_GAP px either side — left empty and
+  // kept from signals. A cell whose stroke stops short of that keeps it, so
+  // the pattern runs right up to the word with no more space round it than
+  // the pattern has between its own strokes.
+  function cutWord({ c, n, r, x0, x1 }) {
+    for (let cc = c - 1; cc <= c + n; cc++) {
+      const left = cc * cellW + cellW * INSET_X;
+      const right = (cc + 1) * cellW - cellW * INSET_X;
+      if (right < x0 - WORD_GAP || left > x1 + WORD_GAP) continue;
+      glyph[r * cols + cc] = 0;
+      taken[r * cols + cc] = 1;
+    }
   }
 
   /* ---------- drawing: only the rows that have changed ---------- */
@@ -782,13 +805,31 @@ export function mountSlashField(el) {
     }
   }
 
-  // Adds cell i's stroke — g: 1 /, 2 |, 3 \ — to the path.
+  // Adds cell i's stroke — g: 1 /, 2 |, 3 \, or a mark: 4 :, 5 ;, 6 . — to
+  // the path. A mark's dot is a stroke as long as it is thick, so it takes
+  // the same tints, in the same path, as the strokes.
   function segment(i, g) {
     const x = (i % cols) * cellW;
     const r = (i / cols) | 0;
     const top = r * cellH + cellH * INSET_Y;
     const bottom = (r + 1) * cellH - cellH * INSET_Y;
-    if (g === 2) {
+    if (g >= 4) {
+      const cx = x + cellW / 2;
+      const d = opts.stroke * 1.2;
+      const dot = (y) => {
+        ctx.moveTo(cx, y - d / 2);
+        ctx.lineTo(cx, y + d / 2);
+      };
+      const upper = r * cellH + cellH * 0.44;
+      const lower = bottom - d / 2;
+      if (g === 6) dot(lower);
+      else dot(upper);
+      if (g === 4) dot(lower);
+      if (g === 5) {
+        ctx.moveTo(cx, lower - d / 2);
+        ctx.lineTo(cx - cellW * 0.14, bottom + cellH * 0.07);
+      }
+    } else if (g === 2) {
       ctx.moveTo(x + cellW / 2, top);
       ctx.lineTo(x + cellW / 2, bottom);
     } else if (g === 1) {
@@ -1241,6 +1282,7 @@ export function mountSlashField(el) {
     const x = gx + c * cellW;
     const top = gy + (r + INSET_Y) * cellH;
     const bottom = gy + (r + 1 - INSET_Y) * cellH;
+    if (g >= 4) return [x + cellW / 2, gy + (r + 0.42) * cellH, x + cellW / 2, bottom];
     if (g === 2) return [x + cellW / 2, top, x + cellW / 2, bottom];
     const left = x + cellW * INSET_X;
     const right = x + cellW * (1 - INSET_X);
@@ -1619,11 +1661,7 @@ export function mountSlashField(el) {
       if (!unborn(word)) return;
       born.add(word.label);
       word.label.setAttribute("data-slash-born", "");
-      const { c, n, r } = word;
-      for (let cc = c - 1; cc <= c + n; cc++) {
-        glyph[r * cols + cc] = 0;
-        taken[r * cols + cc] = 1;
-      }
+      cutWord(word);
     });
     wake();
   }

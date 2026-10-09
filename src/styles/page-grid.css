@@ -71,6 +71,22 @@
   /* the pair of blocks from Grid Column 7, kept within Grid Column 11,
      so the arrow has Grid Column 12 to itself */
   .page--grid .hero__cta-row .actions { flex: 0 0 calc((500% - var(--grid-gutter)) / 6); }
+  /* The site's dotted rule stood upright on the end of Grid Column 6,
+     beside the headline and its buttons: from a quarter of the copy's top
+     margin above them to a quarter of the hero's foot padding below, so it runs past
+     both and touches neither the band nor the hero's foot. Set in from
+     the line by two of --dotted-rule-bleed, the rule's own inset, and a grid item
+     of its own, so it moves with the grid. */
+  .page--grid .hero:not(.hero--split) .hero__grid::before {
+    content: "";
+    grid-column: 6;
+    grid-row: 1;
+    justify-self: end;
+    width: 2px;
+    margin: -0.75rem calc(2 * var(--dotted-rule-bleed)) -0.75rem 0;
+    background: var(--dotted-rule-vertical);
+    pointer-events: none;
+  }
 
   /* --- Logo strip: the title in Grid Columns 1–4. The strip is
      full-bleed, so the title is held to the width of four columns and

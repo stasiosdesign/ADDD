@@ -28,8 +28,9 @@
   --action-button-height: 2.25rem;
   --action-button-inset: 1rem;
   --action-button-color: var(--c-white);
-  --action-button-color-background: var(--c-text);
-  --action-button-accent: var(--c-red);
+  /* the label block a softened black, the arrow block a deeper one */
+  --action-button-color-background: #262626;
+  --action-button-accent: #000;
   --action-button-accent-color: var(--c-white);
   --action-button-hover-color-background: var(--action-button-accent);
   --action-button-color-focus: var(--c-text);
@@ -147,15 +148,11 @@
   text-shadow: 0px var(--action-button-text-duplicate-distance) currentColor;
 }
 
-/* The arrow block — joined flush to the label block, in the accent. A
-   third wider than the button is tall: the three triangles run across,
-   and in a square the space either side of them was a fraction of the
-   space above and below. At 4:3 the margins round the mark come out
-   close to even, and the block still reads as a block, not a second
-   label. */
+/* The arrow block — joined flush to the label block, in the accent: a
+   square, as tall as the button, the two triangles centred in it. */
 .action-button__arrow-block {
   flex: none;
-  width: calc(var(--action-button-height) * 4 / 3);
+  width: var(--action-button-height);
   align-self: stretch;
   display: flex;
   align-items: center;
@@ -199,6 +196,8 @@
   --action-button-color-focus: var(--c-white);
 }
 :is(.cta, .page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:not(.is--secondary) {
+  /* black would vanish into a dark ground, so the arrow block keeps the red */
+  --action-button-accent: var(--c-red);
   --action-button-color: var(--c-text);
   --action-button-color-background: var(--c-white);
 }

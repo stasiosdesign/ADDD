@@ -35,8 +35,8 @@ const HOLD = 0.35;
 // turns from red to white, and how quickly — so only the few characters
 // at the leading edge are red at any moment, in the same units
 const CHAR_IN = 0.5;
-const RED_FOR = 0.1;
-const CHAR_SETTLE = 0.16;
+const RED_FOR = 0.22;
+const CHAR_SETTLE = 0.3;
 // the scrub's ease after the scroll (s)
 const SMOOTH = 0.8;
 
@@ -53,6 +53,8 @@ export function mountStickyTitle(wrap) {
         // the held frame's run, after anything the section opens on
         trigger: wrap.querySelector('[data-sticky-title="track"]') || wrap,
         start: "top 40%",
+        // to the held frame's release, so the frame lets go the moment the
+        // last statement has fully come in
         end: "bottom bottom",
         scrub: SMOOTH,
       },
@@ -67,6 +69,12 @@ export function mountStickyTitle(wrap) {
       // the stacked headings, hidden by the CSS until now
       gsap.set(heading, { visibility: "visible" });
       const white = getComputedStyle(heading).color;
+      // the red a character comes in with, mostly eased into the heading's
+      // white, so it reads as a faint warm edge rather than a red line
+      const [r1, g1, b1] = gsap.utils.splitColor(red);
+      const [r2, g2, b2] = gsap.utils.splitColor(white);
+      const mix = (a, b) => Math.round(a + (b - a) * 0.6);
+      const accent = `rgb(${mix(r1, r2)}, ${mix(g1, g2)}, ${mix(b1, b2)})`;
 
       // opacity, not autoAlpha: autoAlpha writes visibility as well, a
       // second inline style per character on every frame of the scroll,
@@ -75,7 +83,7 @@ export function mountStickyTitle(wrap) {
       // leaves zero, as it did with autoAlpha: the one cost left in a fade
       // that is per character, well under a millisecond a frame.)
       const headingTl = gsap.timeline();
-      headingTl.fromTo(split.chars, { opacity: 0, color: red }, {
+      headingTl.fromTo(split.chars, { opacity: 0, color: accent }, {
         opacity: 1,
         duration: CHAR_IN,
         stagger: { amount: REVEAL, from: "start" },
@@ -96,7 +104,9 @@ export function mountStickyTitle(wrap) {
       masterTl.add(headingTl, index === 0 ? 0 : `-=${OVERLAP}`);
       return split;
     });
-    masterTl.to({}, { duration: HOLD });
+    // a run of statements holds the last a moment to be read; a single one
+    // lets go as soon as it has come in, with no scroll left empty after it
+    if (headings.length > 1) masterTl.to({}, { duration: HOLD });
 
     // Run the timeline through once now, while the page is still covered.
     // A tween reads its start values off the element's computed style the

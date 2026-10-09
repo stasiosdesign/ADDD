@@ -2,30 +2,43 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import InsightCard from "../components/InsightCard.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { cardOf, indexMeta, type Insight } from "../sanity/insights";
+import { REPORTS_QUERY } from "../sanity/queries";
+import { reportsPage as D, REPORT_CARD_DEFAULTS, REPORT_FILTER_DEFAULTS } from "../sanity/defaults/reports";
 
-const articles = [
-  { href: "report-template.html", image: "assets/images/allister-podium-full.jpg", category: "Technology", title: "The state of AI in architecture", description: "How generative tools are reshaping design practice and what firms need to know", meta: ["Allister Burt", "12 min read"] },
-  { href: "report-template.html", image: "assets/images/allister-headshot-bw.png", category: "BIM", title: "BIM maturity and implementation strategy", description: "A framework for assessing where your practice stands and what comes next", meta: ["Allister Burt", "9 min read"] },
-  { href: "report-template.html", image: "assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Software selection for architecture teams", description: "Practical guidance on evaluating tools and building your technology stack", meta: ["14 Nov 2024", "8 min read"] },
-  { href: "report-template.html", image: "assets/images/allister-presenting.jpg", category: "Technology", title: "Digital transformation in practice", description: "Lessons from firms that have successfully modernised their operations", meta: ["7 Oct 2024", "9 min read"] },
-  { href: "report-template.html", image: "assets/images/conference-keynote.jpg", category: "AI", title: "Governance and risk in AI adoption", description: "What architecture practices need to consider before implementing AI tools", meta: ["22 Sep 2024", "7 min read"] },
-  { href: "report-template.html", image: "assets/images/allister-gesture-close.jpg", category: "Workflows", title: "Collaboration tools and team productivity", description: "How to choose platforms that actually improve how your team works together", meta: ["5 Aug 2024", "11 min read"] },
-];
+// The heading row's words come from the Reports page document in Sanity
+// (studio/schemaTypes/pages/reports.ts), each falling back to the page's
+// own (src/sanity/defaults/reports.ts): see src/sanity/content.ts. The
+// cards are the reports, newest first, and the filter buttons their
+// categories in order of first appearance; while there are no reports the
+// page keeps the cards and filters it was built with.
+const { sanity } = Astro.locals;
+const [doc, items] = await Promise.all([pageDocument(sanity, "reportsPage"), sanity.fetch<Insight[]>(REPORTS_QUERY)]);
+const { t } = reader(doc, D);
+
+const articles = items?.length ? items.map((item) => cardOf(item, indexMeta)) : REPORT_CARD_DEFAULTS;
+// One button per category, shown as written, matched in lowercase (the
+// card's chip is its filter token: InsightCard.astro)
+const filters = items?.length
+  ? [...new Map(items.filter((item) => item.category).map((item) => [item.category!.toLowerCase(), item.category!])).entries()].map(([target, label]) => ({ target, label }))
+  : REPORT_FILTER_DEFAULTS;
 ---
 <BaseLayout
   title="Reports — ADDD"
   description="Independent ADDD research into how technology actually gets used to make architecture: AI, BIM, software and workflows in architecture practices."
   pageName="Reports"
+  doc={{ id: "reportsPage" }}
 >
 <main class="page--grid">
 
   <section class="pg-hero">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Independent research into how technology actually gets used to make architecture: AI, BIM, software and workflows in practice</p>
+        <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Reports</p>
-          <h1 class="h2">Research and insight</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h2" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
       </div>
 
@@ -36,10 +49,9 @@ const articles = [
       <div class="insight-archive" data-filter-group data-filter-target-match="multi" data-filter-name-match="multi">
         <div class="filters">
           <button type="button" data-filter-target="all">View all</button>
-          <button type="button" data-filter-target="technology">Technology</button>
-          <button type="button" data-filter-target="ai">AI</button>
-          <button type="button" data-filter-target="bim">BIM</button>
-          <button type="button" data-filter-target="workflows">Workflows</button>
+          {filters.map((filter, i) => (
+          <Fragment>{i > 0 && "\n          "}<button type="button" data-filter-target={filter.target}>{filter.label}</button></Fragment>
+          ))}
           <button type="button" class="filters__reset" data-filter-target="reset">Clear filters</button>
         </div>
 

@@ -1,0 +1,46 @@
+# The Studio's checks, on every pull request and push that touches it,
+# including Dependabot's updates of the CMS package: types, lint, the tests
+# (the publishing route and the package agree on contentKey), the schema
+# loads, and a full Studio build. Installs the private package with this
+# repository's own token (Read access in the package's settings); no secret
+# to set.
+name: Studio
+on:
+  pull_request:
+    paths: ['studio/**', 'src/sanity/publish/**', '.github/workflows/studio.yml']
+  push:
+    branches: [main, staging]
+    paths: ['studio/**', 'src/sanity/publish/**', '.github/workflows/studio.yml']
+permissions:
+  contents: read
+  packages: read
+jobs:
+  studio:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            studio/package-lock.json
+          registry-url: https://npm.pkg.github.com
+          scope: '@stasiosdesign'
+      # The site's own packages too: the seed script and the tests read src/
+      - run: npm ci
+        working-directory: .
+      - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Which CMS version
+        run: node -p "'@stasiosdesign/sanity-cms ' + require('@stasiosdesign/sanity-cms/package.json').version"
+      - run: npm run check
+      - name: The schema loads
+        run: npx sanity schemas extract --path "$RUNNER_TEMP/schema.json"
+      - name: The Studio builds
+        run: npx sanity build --yes

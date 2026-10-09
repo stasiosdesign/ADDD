@@ -39,7 +39,7 @@ const VIEWPORT = [
 // step up from rest on an ordinary scroll that a fast flick can't turn
 // into a blur. The push is a target the strip eases up to and back down
 // from (DRAG_EASE), as a drag is, so it gathers pace rather than jumping.
-const SCROLL_SPEED = 0.006;
+const SCROLL_SPEED = 0.0075;
 const MAX_SCROLL_SPEED = 8;
 const DRAG_SPEED = 0.5;
 const MAX_DRAG_SPEED = 75;

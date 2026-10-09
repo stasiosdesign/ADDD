@@ -3,19 +3,48 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { advisoryPage as D } from "../sanity/defaults/advisory";
 
-const faq = [
-  { question: "Who should join?", answer: "Practice leaders who carry technology decisions — directors, partners, operations leads and digital or BIM leads." },
-  { question: "What counts as a question between sessions?", answer: "Short, decision-shaped questions related to the themes covered. Anything needing dedicated analysis becomes a separate engagement." },
-  { question: "Does this include implementation support?", answer: "No. ADDDvisory shapes decisions. Delivery sits with your team, and practice-wide strategy with a Technology Blueprint engagement." },
-  { question: "What if we already have a BIM or digital lead?", answer: "They benefit most. ADDDvisory gives them an external reference point and a framework to bring back to leadership." },
-  { question: "When should we choose a Technology Blueprint instead?", answer: "When you need one evidence-based view of the whole practice before deciding anything, rather than monthly guidance." },
-];
+// Every section's words come from the ADDDvisory page document in Sanity
+// (studio/schemaTypes/pages/advisory.ts), each element falling back to its
+// own (src/sanity/defaults/advisory.ts): see src/sanity/content.ts. The
+// navigation, the footer, the comparison table's column headings and where
+// every button leads stay here. Each element names the field it shows
+// (data-page-field) so the Studio's Visual editor can outline it and write
+// drafts into it; each list names its blocks (data-page-list, data-page-item).
+const { t, list, lines, bg } = reader(await pageDocument(Astro.locals.sanity, "advisoryPage"), D);
+
+const structureTiles = list<{ _key: string; title?: string; text?: string }>("structure.tiles");
+const impactTiles = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string }>("impact.tiles");
+const rows = list<{ _key: string; label?: string; ours?: string; others?: string }>("difference.rows");
+const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
+
+// The four theme squares keep their shape, with a picture behind each once one is set
+const square = (path: string) => {
+  const picture = bg(path);
+  return picture ? `aspect-ratio:1/1;${picture}` : "aspect-ratio:1/1";
+};
+
+// The two price cards, by position: the membership, then the Technology Blueprint
+const card = (i: number) => ({
+  title: t(`pricing.cards.${i}.title`),
+  subtitle: t(`pricing.cards.${i}.subtitle`),
+  pricePrefix: t(`pricing.cards.${i}.pricePrefix`),
+  price: t(`pricing.cards.${i}.price`),
+  priceSuffix: t(`pricing.cards.${i}.priceSuffix`),
+  note: t(`pricing.cards.${i}.note`),
+  includes: lines(`pricing.cards.${i}.includes`),
+  button: t(`pricing.cards.${i}.button`),
+});
+const membership = card(0);
+const blueprint = card(1);
 ---
 <BaseLayout
   title="ADDDvisory — ADDD"
   description="ADDDvisory is ongoing strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities."
   pageName="ADDDvisory"
+  doc={{ id: "advisoryPage" }}
 >
 <main class="page--dark page--grid">
 
@@ -23,14 +52,14 @@ const faq = [
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">ADDDvisory</p>
-          <h1 class="h1">Ongoing strategic guidance for architecture practices</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">After or alongside the main strategic work, ADDDvisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities&mdash;before isolated decisions create more complexity.</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions actions--pair">
-            <ActionButton href="contact.html">Enquire</ActionButton>
-            <ActionButton href="#pricing" variant="secondary">Membership Pricing</ActionButton>
+            <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+            <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -40,41 +69,27 @@ const faq = [
 
   <section class="section section--dark">
     <div class="container">
-      <p class="statement">Architecture practices live in a cycle of technology decisions, but the people making them are pulled in too many directions to think clearly</p>
+      <p class="statement" data-page-field="statement.statement">{t("statement.statement")}</p>
     </div>
   </section>
 
   <section class="section section--dark">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Predictability matters. Your practice knows when to expect guidance, what to prepare, and how to build on the month before. No surprises, no scrambling.</p>
+        <p class="text-md" data-page-field="structure.lede">{t("structure.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Structure</p>
-          <h2 class="h2">How it Works</h2>
+          <p class="tagline" data-page-field="structure.tagline">{t("structure.tagline")}</p>
+          <h2 class="h2" data-page-field="structure.heading">{t("structure.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt">
-        <article class="tile">
-          <h3 class="h4">One focused live session</h3>
-          <p>A 60-minute monthly advisory session centred on a strategic issue affecting architecture practices.</p>
+      <div class="grid grid--3 grid--mt" data-page-list="structure.tiles">
+        {structureTiles.map((item) => (
+        <article class="tile" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
         </article>
-        <article class="tile">
-          <h3 class="h4">A rotating theme</h3>
-          <p>Each session explores a relevant area of technology, workflow, digital leadership or practice performance.</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">Practical frameworks</h3>
-          <p>Use decision frameworks, comparisons and supporting resources informed by ADDD&rsquo;s work inside real practices.</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">Questions between sessions</h3>
-          <p>Raise limited follow-up questions through a shared channel as related decisions emerge.</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">One practice membership</h3>
-          <p>Relevant directors, operations leaders and digital or BIM leads can participate under the same membership.</p>
-        </article>
+        ))}
       </div>
     </div>
   </section>
@@ -82,16 +97,16 @@ const faq = [
   <section class="section section--dark">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Each month rotates based on what matters to your practice</p>
+        <p class="text-md" data-page-field="themes.lede">{t("themes.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2">Themes Covered</h2>
+          <h2 class="h2" data-page-field="themes.heading">{t("themes.heading")}</h2>
         </div>
       </div>
       <div class="grid grid--4 grid--mt">
-        <div class="ph" style="aspect-ratio:1/1"></div>
-        <div class="ph" style="aspect-ratio:1/1"></div>
-        <div class="ph" style="aspect-ratio:1/1"></div>
-        <div class="ph" style="aspect-ratio:1/1"></div>
+        <div class="ph" style={square("themes.image1")} data-page-bg="themes.image1"></div>
+        <div class="ph" style={square("themes.image2")} data-page-bg="themes.image2"></div>
+        <div class="ph" style={square("themes.image3")} data-page-bg="themes.image3"></div>
+        <div class="ph" style={square("themes.image4")} data-page-bg="themes.image4"></div>
       </div>
     </div>
   </section>
@@ -99,38 +114,22 @@ const faq = [
   <section class="section section--dark">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Monthly sessions compound. Better decisions now mean better foundations later.</p>
+        <p class="text-md" data-page-field="impact.lede">{t("impact.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Impact</p>
-          <h2 class="h2">What your practice gains over time</h2>
+          <p class="tagline" data-page-field="impact.tagline">{t("impact.tagline")}</p>
+          <h2 class="h2" data-page-field="impact.heading">{t("impact.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--4 grid--mt">
-        <article class="tile">
-          <p class="tile__num">01</p>
-          <p class="tagline tagline--sm">Clearer priorities</p>
-          <h3 class="h4">Stop chasing everything</h3>
-          <p>You know which technology decisions matter most to your practice right now. The noise quiets down.</p>
+      <div class="grid grid--4 grid--mt" data-page-list="impact.tiles">
+        {impactTiles.map((item) => (
+        <article class="tile" data-page-item={item._key}>
+          <p class="tile__num" data-page-item-field="number">{item.number}</p>
+          <p class="tagline tagline--sm" data-page-item-field="tagline">{item.tagline}</p>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
         </article>
-        <article class="tile">
-          <p class="tile__num">02</p>
-          <p class="tagline tagline--sm">Stronger alignment</p>
-          <h3 class="h4">One shared view</h3>
-          <p>Directors, operations and digital leads work from the same picture instead of separate assumptions.</p>
-        </article>
-        <article class="tile">
-          <p class="tile__num">03</p>
-          <p class="tagline tagline--sm">Better judgement</p>
-          <h3 class="h4">Decide with evidence</h3>
-          <p>Frameworks and comparisons replace vendor claims as the basis for what you choose.</p>
-        </article>
-        <article class="tile">
-          <p class="tile__num">04</p>
-          <p class="tagline tagline--sm">Less reactive work</p>
-          <h3 class="h4">Fewer emergencies</h3>
-          <p>Problems get anticipated and sequenced rather than solved under pressure.</p>
-        </article>
+        ))}
       </div>
     </div>
   </section>
@@ -138,10 +137,10 @@ const faq = [
   <section class="section section--dark">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Most advisory stops at recommendations. We stay for the decisions.</p>
+        <p class="text-md" data-page-field="difference.lede">{t("difference.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Difference</p>
-          <h2 class="h2">Why ADDDvisory stands apart</h2>
+          <p class="tagline" data-page-field="difference.tagline">{t("difference.tagline")}</p>
+          <h2 class="h2" data-page-field="difference.heading">{t("difference.heading")}</h2>
         </div>
       </div>
 
@@ -149,12 +148,10 @@ const faq = [
         <thead>
           <tr><th></th><th>ADDDvisory</th><th>Other</th></tr>
         </thead>
-        <tbody>
-          <tr><td>Diagnoses root causes, not symptoms</td><td>Ongoing</td><td>One-off</td></tr>
-          <tr><td>Understands your entire practice context</td><td>Yes</td><td>Partial</td></tr>
-          <tr><td>Prioritises and sequences decisions</td><td>Yes</td><td>No</td></tr>
-          <tr><td>Builds your own decision-making framework</td><td>Yes</td><td>No</td></tr>
-          <tr><td>Speaks architecture, not just technology</td><td>Yes</td><td>No</td></tr>
+        <tbody data-page-list="difference.rows">
+          {rows.map((row) => (
+          <tr data-page-item={row._key}><td data-page-item-field="label">{row.label}</td><td data-page-item-field="ours">{row.ours}</td><td data-page-item-field="others">{row.others}</td></tr>
+          ))}
         </tbody>
       </table>
     </div>
@@ -163,45 +160,42 @@ const faq = [
   <section class="section section--dark" id="pricing">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">One practice membership, month to month</p>
+        <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Pricing</p>
-          <h2 class="h2">Membership pricing</h2>
+          <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
+          <h2 class="h2" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
         </div>
       </div>
 
       <div class="grid grid--2 grid--mt">
         <article class="price-card">
           <div class="stack stack--16">
-            <h3 class="h4">ADDDvisory membership</h3>
-            <p>Full access, month to month</p>
-            <div class="price"><span class="price__amount">&pound;1,250</span><span>/mo</span></div>
-            <p class="text-sm">From January 2027</p>
+            <h3 class="h4" data-page-field="pricing.cards.0.title">{membership.title}</h3>
+            <p data-page-field="pricing.cards.0.subtitle">{membership.subtitle}</p>
+            <div class="price">{membership.pricePrefix && <Fragment><span data-page-field="pricing.cards.0.pricePrefix">{membership.pricePrefix}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.0.price">{membership.price}</span>{membership.priceSuffix && <span data-page-field="pricing.cards.0.priceSuffix">{membership.priceSuffix}</span>}</div>
+            {membership.note && <p class="text-sm" data-page-field="pricing.cards.0.note">{membership.note}</p>}
           </div>
           <ul class="check-list">
-            <li>One 60-minute session monthly</li>
-            <li>Rotating strategic themes</li>
-            <li>Practical frameworks and guides</li>
-            <li>Limited questions between sessions</li>
-            <li>Team access included</li>
+            {membership.includes.map((line, j) => (
+            <li data-page-field={`pricing.cards.0.includes.${j}`}>{line}</li>
+            ))}
           </ul>
-          <ActionButton href="contact.html">Enquire about ADDDvisory</ActionButton>
+          <ActionButton href="contact.html"><span data-page-field="pricing.cards.0.button">{membership.button}</span></ActionButton>
         </article>
 
         <article class="price-card">
           <div class="stack stack--16">
-            <h3 class="h4">Technology Blueprint</h3>
-            <p>The practice-wide strategy ADDDvisory follows or runs alongside</p>
-            <div class="price"><span>From</span> <span class="price__amount">&pound;18,000</span></div>
+            <h3 class="h4" data-page-field="pricing.cards.1.title">{blueprint.title}</h3>
+            <p data-page-field="pricing.cards.1.subtitle">{blueprint.subtitle}</p>
+            <div class="price">{blueprint.pricePrefix && <Fragment><span data-page-field="pricing.cards.1.pricePrefix">{blueprint.pricePrefix}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.1.price">{blueprint.price}</span>{blueprint.priceSuffix && <span data-page-field="pricing.cards.1.priceSuffix">{blueprint.priceSuffix}</span>}</div>
+            {blueprint.note && <p class="text-sm" data-page-field="pricing.cards.1.note">{blueprint.note}</p>}
           </div>
           <ul class="check-list">
-            <li>Practice-wide workflow analysis</li>
-            <li>Software, licensing and cost review</li>
-            <li>Infrastructure and security assessment</li>
-            <li>AI readiness and capability evaluation</li>
-            <li>Prioritised recommendations and roadmap</li>
+            {blueprint.includes.map((line, j) => (
+            <li data-page-field={`pricing.cards.1.includes.${j}`}>{line}</li>
+            ))}
           </ul>
-          <ActionButton href="technology-blueprint.html" variant="secondary">Explore the Technology Blueprint</ActionButton>
+          <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{blueprint.button}</span></ActionButton>
         </article>
       </div>
     </div>
@@ -210,12 +204,12 @@ const faq = [
   <section class="section section--dark">
     <div class="container">
       <div class="case__quote-inner" style="margin:0 auto">
-        <blockquote class="quote">&ldquo;We thought our problem was choosing between software platforms. It turned out we had no shared understanding of what we actually needed.&rdquo;</blockquote>
+        <blockquote class="quote">&ldquo;<span data-page-field="quote.quote">{t("quote.quote")}</span>&rdquo;</blockquote>
         <div class="avatar">
           <div class="avatar__img" style="background:#f2f2f2"></div>
           <div>
-            <p class="avatar__name">Sarah Mitchell</p>
-            <p>Operations director, ADAM Architecture</p>
+            <p class="avatar__name" data-page-field="quote.name">{t("quote.name")}</p>
+            <p data-page-field="quote.role">{t("quote.role")}</p>
           </div>
         </div>
       </div>
@@ -224,8 +218,8 @@ const faq = [
 
   <section class="section section--dark">
     <div class="container">
-      <h2 class="h2">Answers</h2>
-      <Accordion id="faq" items={faq} />
+      <h2 class="h2" data-page-field="faq.heading">{t("faq.heading")}</h2>
+      <Accordion id="faq" items={faq} field="faq.questions" />
     </div>
   </section>
 

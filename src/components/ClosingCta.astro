@@ -4,40 +4,47 @@
   hero and the routes intro are: a label holding the left edge, the heading
   and its buttons set in from it, and the arrow out on the right gutter.
 
-  The copy is the practice journey's unless a page has its own: For AEC
-  Tech Firms passes its partnership routes, so the two audiences never
-  share one call to action.
+  The words are the Closing call to action section of the Home page document
+  in Sanity (src/sanity/defaults/home.ts while nothing is published), so one
+  edit there changes every page that ends with it. A page with its own call
+  to action — For AEC Tech Firms, with its partnership routes — passes its
+  own `doc` and field, so the two audiences never share one. Where the
+  buttons lead stays here.
 */
 import ActionButton from "./ActionButton.astro";
 import ArrowIcon from "./ArrowIcon.astro";
+import { pageDocument, reader, type Doc } from "../sanity/content";
+import { homePage } from "../sanity/defaults/home";
 
 interface Props {
-  label?: string;
-  heading?: string;
-  primary?: { href: string; label: string; [attr: string]: unknown };
-  secondary?: { href: string; label: string; [attr: string]: unknown };
+  /** The document and section the words come from: the Home page's closingCta unless a page has its own. */
+  doc?: { id: string; defaults: Doc; field?: string };
+  primary?: { href: string; [attr: string]: unknown };
+  secondary?: { href: string; [attr: string]: unknown };
   /** The primary's accent: the site's red, or the AEC Tech Firms blue. */
   accent?: "red" | "blue";
 }
 
 const {
-  label = "For architecture practices",
-  heading = "Need help making sense of your technology setup?",
-  primary = { href: "stack-diagnostic.html", label: "Free Tech Stacks" },
-  secondary = { href: "contact.html", label: "Book a Call" },
+  doc = { id: "homePage", defaults: homePage as Doc },
+  primary = { href: "stack-diagnostic.html" },
+  secondary = { href: "contact.html" },
   accent = "red",
 } = Astro.props;
-const { label: primaryLabel, ...primaryAttrs } = primary;
-const { label: secondaryLabel, ...secondaryAttrs } = secondary;
+const field = (doc as { field?: string }).field ?? "closingCta";
+const { t } = reader(await pageDocument(Astro.locals.sanity, doc.id), doc.defaults);
+// The block names its document for the Visual editor: the Home page's,
+// unless the page passed its own
+const scope = { "data-page-doc": doc.id, "data-page-type": doc.id };
 ---
-<section class:list={["cta", { "cta--blue": accent === "blue" }]}>
+<section class:list={["cta", { "cta--blue": accent === "blue" }]} {...scope}>
   <div class="cta__grid">
-    <p class="tagline tagline--sm cta__label">{label}</p>
+    <p class="tagline tagline--sm cta__label" data-page-field={`${field}.label`}>{t(`${field}.label`)}</p>
     <div class="cta__body">
-      <h2 class="h1 cta__heading">{heading}</h2>
+      <h2 class="h1 cta__heading" data-page-field={`${field}.heading`}>{t(`${field}.heading`)}</h2>
       <div class="actions actions--pair">
-        <ActionButton {...primaryAttrs}>{primaryLabel}</ActionButton>
-        <ActionButton {...secondaryAttrs} variant="secondary">{secondaryLabel}</ActionButton>
+        <ActionButton {...primary}><span data-page-field={`${field}.primaryButton`}>{t(`${field}.primaryButton`)}</span></ActionButton>
+        <ActionButton {...secondary} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{t(`${field}.secondaryButton`)}</span></ActionButton>
       </div>
     </div>
     <span class="cta__mark" aria-hidden="true"><ArrowIcon /></span>

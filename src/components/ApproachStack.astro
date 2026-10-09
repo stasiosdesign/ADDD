@@ -27,27 +27,21 @@
 */
 import ArrowIcon from "./ArrowIcon.astro";
 
+interface Props {
+  /** The three steps' words, from the Home page's Approach section (src/pages/index.astro): title and text, in order. */
+  steps: { title: string; text: string }[];
+}
 
-const steps = [
-  {
-    n: "01",
-    title: "Understand",
-    text: "Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.",
-    schematic: "map",
-  },
-  {
-    n: "02",
-    title: "Diagnose",
-    text: "Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.",
-    schematic: "trace",
-  },
-  {
-    n: "03",
-    title: "Prioritise",
-    text: "Turn what we find into clear priorities: what should change first, who should own it and where investment will have the most impact.",
-    schematic: "rank",
-  },
-];
+// The steps are data, so the copy (from Sanity, or the page's own words),
+// the layout and the script all read the same list; each step's drawing
+// and number stay here, by position.
+const SCHEMATICS = ["map", "trace", "rank"] as const;
+const steps = SCHEMATICS.map((schematic, i) => ({
+  n: String(i + 1).padStart(2, "0"),
+  title: Astro.props.steps[i]?.title ?? "",
+  text: Astro.props.steps[i]?.text ?? "",
+  schematic,
+}));
 
 // The schematics are flat hairline drawings: a few plain shapes on the
 // card's ground and one red signal, nothing labelled. Coordinates are in
@@ -116,7 +110,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
           <article class="step-card" data-step-card>
             <header class="step-card__head">
               <span class="step-card__badge">{step.n}</span>
-              <h3 class="step-card__title">{step.title}</h3>
+              <h3 class="step-card__title" data-page-field={`approach.steps.${i}.title`}>{step.title}</h3>
             </header>
 
             <div class="step-card__panel">
@@ -155,7 +149,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
 
             <div class="step-card__foot">
               <span class="step-card__elbow" aria-hidden="true"></span>
-              <p class="step-card__p">{step.text}</p>
+              <p class="step-card__p" data-page-field={`approach.steps.${i}.text`}>{step.text}</p>
             </div>
           </article>
         </li>

@@ -1,0 +1,182 @@
+---
+import type { GetStaticPaths } from "astro";
+import { PortableText } from "astro-portabletext";
+import type { TypedObject } from "astro-portabletext/types";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ActionButton from "../../components/ActionButton.astro";
+import ClosingCta from "../../components/ClosingCta.astro";
+import InsightSlider from "../../components/InsightSlider.astro";
+import { sanityClient } from "../../sanity/client";
+import { cardOf, type Card, type Insight } from "../../sanity/insights";
+import { ISSUE_QUERY, ISSUES_QUERY } from "../../sanity/queries";
+
+/* One page per newsletter issue in Sanity (studio/schemaTypes/documents/
+   insights.ts), at /newsletter/<slug>.html, set as newsletter-template.astro
+   is. Production builds every published issue as a file; staging and
+   development render each on request, so a draft shows in draft mode. The
+   page sits one folder deep, so every link and asset path it writes is
+   root-relative. */
+export const getStaticPaths =
+  __DEPLOYMENT__ === "production"
+    ? ((async () => {
+        const items = await sanityClient.fetch<Insight[]>(ISSUES_QUERY);
+        return items.map((item) => ({ params: { slug: item.slug } }));
+      }) satisfies GetStaticPaths)
+    : undefined;
+
+/** The issue document, whole (ISSUE_QUERY) */
+type Issue = Insight & {
+  tags?: string[] | null;
+  standfirst?: string | null;
+  body?: TypedObject[] | null;
+};
+
+const { slug = "" } = Astro.params as { slug?: string };
+const { sanity } = Astro.locals;
+const item = await sanity.fetch<Issue | null>(ISSUE_QUERY, { slug });
+if (!item) return new Response("Not found", { status: 404 });
+
+// A card's address and picture, one folder up from here
+const fromHere = (card: Card): Card => ({ ...card, href: `/${card.href}`, image: card.image.startsWith("http") ? card.image : `/${card.image}` });
+
+// The template's own tags and deck, kept while the issue has none
+const TAGS = ["Data", "Workflows", "Strategy"];
+const RELATED: Card[] = [
+  { href: "/newsletter-template.html", image: "/assets/images/allister-gesture-close.jpg", category: "Strategy", title: "Why practices lag on strategy", meta: ["December 2024"] },
+  { href: "/newsletter-template.html", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "AEC software development cycles", meta: ["November 2024"] },
+  { href: "/newsletter-template.html", image: "/assets/images/allister-presenting.jpg", category: "Workflows", title: "Understanding technology costs", meta: ["October 2024"] },
+  { href: "/newsletter-template.html", image: "/assets/images/allister-presenting.jpg", category: "Strategy", title: "Digital transformation in practice", meta: ["September 2024"] },
+  { href: "/newsletter-template.html", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Building better workflows", meta: ["August 2024"] },
+  { href: "/newsletter-template.html", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Software selection reality", meta: ["July 2024"] },
+  { href: "/newsletter-template.html", image: "/assets/images/allister-headshot-bw.png", category: "Data", title: "Data structures that matter", meta: ["June 2024"] },
+];
+
+const tags = item.tags?.filter((tag) => tag?.trim()).length ? item.tags!.filter((tag) => tag?.trim()) : TAGS;
+const body = Array.isArray(item.body) && item.body.length > 0 ? item.body : null;
+
+// The other issues, newest first, or the template's deck while there are none
+const others = (await sanity.fetch<Insight[]>(ISSUES_QUERY)).filter((other) => other._id !== item._id);
+const related = others.length ? others.slice(0, 7).map((other) => fromHere(cardOf(other))) : RELATED;
+---
+<BaseLayout
+  title={`${item.title} — ADDD`}
+  description={item.summary ?? item.standfirst ?? ""}
+  pageName={item.title}
+  doc={{ id: item._id, type: "newsletterIssue" }}
+>
+<main class="page--grid">
+
+  <section class="pg-hero">
+    <div class="container">
+      <div class="pg-hero__grid">
+        <div class="pg-hero__col">
+          <h1 class="h1" data-page-field="title">{item.title}</h1>
+          <div class="actions" style="gap:0.5rem" data-page-field="tags">
+            {tags.map((tag) => (
+            <span class="tag">{tag}</span>
+            ))}
+          </div>
+        </div>
+        <div class="pg-hero__col">
+          <p class="text-md" data-page-field="standfirst">{item.standfirst}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="band band--short"></div>
+
+  <section class="section">
+    <div class="container">
+      {body ? (
+      <div class="prose" data-page-field="body"><PortableText value={body} /></div>
+      ) : (
+      <div class="prose">
+        <h2 class="h3">Why your AI investment isn&rsquo;t working yet</h2>
+        <p>Architecture practices often chase AI solutions before addressing the foundation those solutions need. You cannot teach a machine to find patterns in information that doesn&rsquo;t exist in a usable form. You cannot optimise workflows that remain undocumented. You cannot make reliable decisions when data lives scattered across email, drives, and individual notebooks.</p>
+        <p>The gap between AI&rsquo;s promise and its reality in architecture isn&rsquo;t technical. It&rsquo;s structural. Most practices approach this backwards, identifying a tool first and then attempting to reshape their work around it. The software arrives, sits unused, and the investment becomes another lesson in disappointment.</p>
+        <p>Firms getting genuine value from artificial intelligence have done something different. They mapped their processes before buying anything. They standardised how information moves through their practice. They created systems where data flows predictably and consistently. Only then did they introduce AI to amplify what was already functioning.</p>
+        <p>This matters because readiness determines everything. A practice with clear workflows and structured data can deploy AI meaningfully within weeks. A practice with fragmented information and undocumented processes will struggle for months, if they succeed at all. The technology itself is almost irrelevant. What matters is whether your practice has the clarity to use it.</p>
+        <p>The conversation worth having isn&rsquo;t about which platform to purchase. It&rsquo;s about whether you understand how your practice actually works, how information currently moves through it, and where the real friction points exist. That clarity comes first. The tools come after.</p>
+      </div>
+      )}
+    </div>
+  </section>
+
+  <div class="band band--short"></div>
+
+  <section class="section section--light">
+    <div class="container">
+      <div class="stack" style="align-items:center;text-align:center">
+        <h2 class="h3">Get the next issue</h2>
+        <p class="text-md">The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture</p>
+        <form class="newsletter-signup" style="margin:0 auto;align-items:center" onsubmit="return false">
+          <div class="newsletter-form">
+            <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
+            <button class="newsletter-form__submit" type="submit">Subscribe</button>
+          </div>
+          <fieldset class="newsletter-audience">
+            <legend class="newsletter-audience__legend">Which describes you?</legend>
+            <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+            <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+          </fieldset>
+        </form>
+        <p class="text-sm">We respect your inbox. Unsubscribe at any time.</p>
+      </div>
+    </div>
+  </section>
+
+  {!body && (
+  <section class="section">
+    <div class="container">
+      <div class="prose">
+        <h2 class="h3">Four practical takeaways</h2>
+        <p>The path forward isn&rsquo;t complicated, but it requires discipline. These four steps separate practices that benefit from artificial intelligence from those that merely buy the software and hope something changes.</p>
+        <p>Start with what you have. Before any tool arrives, map the information already moving through your practice. Where does project data live? How do teams share decisions? What gets lost between conversations and documents? This inventory becomes your foundation. You can&rsquo;t improve what you haven&rsquo;t measured.</p>
+        <p>Next, document how work actually happens. Not how you think it happens. Not how the manual says it should happen. How it really happens. Trace a project from brief to completion. Note where decisions get made, who needs to know what, where delays occur. These workflows are the skeleton that artificial intelligence needs to operate effectively.</p>
+        <p>Then establish clear ownership. Someone needs to decide what data matters, how it gets structured, who maintains it, and what happens when it changes. This isn&rsquo;t a technical role. It&rsquo;s a leadership role. It&rsquo;s about creating accountability for information quality across the practice.</p>
+        <p>Finally, test artificial intelligence against a specific problem you&rsquo;ve already identified. Not a hypothetical future problem. Not something you think might be useful. A real operational friction point that you&rsquo;ve documented and measured. This grounds the technology in reality and shows whether it actually solves something that matters to your practice.</p>
+      </div>
+
+      <div class="grid grid--4 grid--mt">
+        <article class="tile tile--outline">
+          <p class="tile__num">First</p>
+          <h3 class="h4">Organise information</h3>
+        </article>
+        <article class="tile tile--outline">
+          <p class="tile__num">Second</p>
+          <h3 class="h4">Map workflows</h3>
+        </article>
+        <article class="tile tile--outline">
+          <p class="tile__num">Third</p>
+          <h3 class="h4">Define ownership</h3>
+        </article>
+        <article class="tile tile--outline">
+          <p class="tile__num">Fourth</p>
+          <h3 class="h4">Test rigorously</h3>
+        </article>
+      </div>
+    </div>
+  </section>
+  )}
+
+  <div class="band band--short"></div>
+
+  <section class="section">
+    <div class="container">
+      <div class="research__controls" style="margin-top:0">
+        <div class="stack stack--16">
+          <p class="tagline">Reading</p>
+          <h2 class="h2">More from the ADDDitive</h2>
+          <p>Continue exploring architecture technology and practice strategy</p>
+        </div>
+        <ActionButton href="/newsletter.html" variant="secondary">View all</ActionButton>
+      </div>
+
+      <InsightSlider items={related} />
+    </div>
+  </section>
+
+  <ClosingCta primary={{ href: "/stack-diagnostic.html" }} secondary={{ href: "/contact.html" }} />
+
+</main>
+</BaseLayout>

@@ -36,26 +36,26 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 // CDN at the frame's size. Not lazy: the nav outlives every page change, so
 // it loads once, at low priority, and is there when the nav opens.
 const unsplash = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=720&h=450&q=70`;
-const services = [
+const services: { href: string; name: string; desc: string; icon?: "link" | "blueprint"; image?: string }[] = [
   {
-    href: "workshops-audits.html",
+    href: "/workshops-audits.html",
     name: "Workflow Workshop",
     desc: "Half-day diagnostic using a live project",
   },
   {
-    href: "before-revit.html",
+    href: "/before-revit.html",
     name: "Before Revit",
     desc: "Early design workflow, before Revit or Archicad",
     icon: "link",
   },
   {
-    href: "technology-blueprint.html",
+    href: "/technology-blueprint.html",
     name: "Technology Blueprint",
     desc: "Practice-wide technology strategy and priorities",
     icon: "blueprint",
   },
   {
-    href: "advisory.html",
+    href: "/advisory.html",
     name: "ADDDvisory",
     desc: "Ongoing strategic guidance for your practice",
     image: unsplash("1770921178335-ef2cd8b00dea"), // a white interior's lines
@@ -69,7 +69,7 @@ const services = [
         <!-- Barba leaves this link to the browser: going home by the logo
              is a document load that opens on the intro (initHomeLink,
              site.js). -->
-        <a data-menu-logo data-barba-prevent href="index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
+        <a data-menu-logo data-barba-prevent href="/index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
           <!-- The ADDD triangles from assets/logo.svg, without the circle,
                cropped to their own bounds and drawn in currentColor; each
                one a letter of the morph at rest. The stroke, in the same
@@ -80,7 +80,7 @@ const services = [
           </svg>
         </a>
         <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
-          <a data-nav-list-item href="tech-firms.html" class="mega-nav__feature nav-link">
+          <a data-nav-list-item href="/tech-firms.html" class="mega-nav__feature nav-link">
             <NavLinkLabel class="mega-nav__bar-link-label">For AEC Tech Firms</NavLinkLabel>
           </a>
           <ul class="mega-nav__bar-list">
@@ -100,7 +100,7 @@ const services = [
               <a href="https://aectechjobs.com/" target="_blank" rel="noopener" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">AEC Jobs</NavLinkLabel></a>
             </li>
             <li data-nav-list-item>
-              <a href="about.html" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">About</NavLinkLabel></a>
+              <a href="/about.html" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">About</NavLinkLabel></a>
             </li>
           </ul>
           <ul data-nav-list-item class="mega-nav__bar-list is--actions">
@@ -108,7 +108,7 @@ const services = [
               <a href="https://app.addd.io/login" target="_blank" rel="noopener" class="mega-nav__bar-cta nav-link"><NavLinkLabel class="mega-nav__bar-link-label">Sign in</NavLinkLabel></a>
             </li>
             <li class="mega-nav__bar-action">
-              <a href="contact.html" class="contact-button">
+              <a href="/contact.html" class="contact-button">
                 <span class="contact-button__block"></span>
                 <span data-contact-button-element class="contact-button__element is--default">
                   <span data-contact-button-text class="contact-button__text">Contact</span>
@@ -171,7 +171,7 @@ const services = [
           <div data-menu-fade class="mega-nav__panel-col"><span class="mega-nav__panel-label">Explore</span>
             <ul class="mega-nav__panel-list">
               <li>
-                <a href="stack-diagnostic.html" class="mega-nav__panel-link is--lead">
+                <a href="/stack-diagnostic.html" class="mega-nav__panel-link is--lead">
                   <span class="mega-nav__panel-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M11.4508 1.67245C11.7836 1.45159 12.2164 1.45159 12.5492 1.67245L22.0492 7.977C22.3265 8.16103 22.4932 8.47172 22.4932 8.80453V15.1954C22.4932 15.5283 22.3265 15.8389 22.0492 16.023L12.5492 22.3275C12.2164 22.5484 11.7836 22.5484 11.4508 22.3275L1.95082 16.023C1.67352 15.8389 1.50682 15.5283 1.50682 15.1954V8.80453C1.50682 8.47172 1.67352 8.16103 1.95082 7.977L11.4508 1.67245ZM3.49318 10.6556V13.3303L5.49463 11.9839L3.49318 10.6556ZM7.28607 13.1727L4.28768 15.1898L11.0068 19.6489V15.642L7.28607 13.1727ZM12.9932 15.642V19.6489L19.7123 15.1898L16.7139 13.1727L12.9932 15.642ZM18.5054 11.9839L20.5068 13.3303V10.6556L18.5054 11.9839ZM19.7039 8.80453L16.7214 10.7838L12.9932 8.27567V4.35109L19.7039 8.80453ZM11.0068 4.35109V8.27567L7.27856 10.7838L4.29615 8.80453L11.0068 4.35109ZM12 10.0015L9.07 11.9726L12 13.9171L14.93 11.9726L12 10.0015Z" fill="currentColor"></path></svg></span>
                   <span class="mega-nav__panel-link-body">
                     <span class="mega-nav__panel-link-text">Free Tech Stacks</span>
@@ -196,7 +196,7 @@ const services = [
           <div data-menu-fade class="mega-nav__panel-col is--tint"><span class="mega-nav__panel-label">Reports</span>
             <ul class="mega-nav__panel-list">
               <li>
-                <a href="reports.html" class="mega-nav__panel-link is--lead">
+                <a href="/reports.html" class="mega-nav__panel-link is--lead">
                   <span class="mega-nav__panel-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18L5 13.5L16.5 2H17.5L20 4.5V5.5L8.5 17L4 18Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14.5 3.5L18.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M3.5 21.5H20.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
                   <span class="mega-nav__panel-link-body">
                     <span class="mega-nav__panel-link-text">Reports &amp; Guides</span>
@@ -205,9 +205,9 @@ const services = [
                 </a>
               </li>
               <li>
-                <a href="report-template.html" class="mega-nav__featured">
+                <a href="/report-template.html" class="mega-nav__featured">
                   <span class="mega-nav__featured-media" aria-hidden="true">
-                    <img src="assets/images/allister-podium-full.jpg" alt="" loading="lazy">
+                    <img src="/assets/images/allister-podium-full.jpg" alt="" loading="lazy">
                   </span>
                   <span class="mega-nav__featured-text">
                     <span class="mega-nav__panel-label mega-nav__featured-label">Latest report</span>
@@ -226,7 +226,7 @@ const services = [
           <div data-menu-fade class="mega-nav__panel-col is--colored"><span class="mega-nav__panel-label">Newsletter</span>
             <ul class="mega-nav__panel-list">
               <li>
-                <a href="newsletter.html" class="mega-nav__panel-link is--lead">
+                <a href="/newsletter.html" class="mega-nav__panel-link is--lead">
                   <span class="mega-nav__panel-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 5.5H21.5V18.5H2.5V5.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M2.5 5.5L12 12.5L21.5 5.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
                   <span class="mega-nav__panel-link-body">
                     <span class="mega-nav__panel-link-text">ADDDitive Newsletter</span>

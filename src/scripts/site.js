@@ -41,9 +41,9 @@ reducedMotionQuery.addEventListener("change", e => (reducedMotion = e.matches));
 
 // Smooth scroll, driven by the GSAP ticker rather than its own rAF so the
 // transition can stop and restart it around a navigation. The lerp sets the
-// glide: at 0.14 a wheel step settles in about a third of a second — a touch
-// smoother than 0.165, still quick enough not to trail the hand.
-const lenis = new Lenis({ lerp: 0.14, wheelMultiplier: 1.25 });
+// glide: at 0.1 a wheel step settles in about half a second — a slower,
+// calmer scroll — and a wheel tick moves the page its native distance.
+const lenis = new Lenis({ lerp: 0.1, wheelMultiplier: 1 });
 lenis.on("scroll", ScrollTrigger.update);
 gsap.ticker.add(time => lenis.raf(time * 1000));
 gsap.ticker.lagSmoothing(0);
@@ -1459,6 +1459,30 @@ function initNavReveal() {
   let hidden = false;
   let lastY = window.scrollY;
   let travel = 0;
+  // While a section marked data-nav-hold (the homepage's logo strip and its
+  // held statements) is on the screen — from its top coming up from the
+  // screen's foot, so as soon as the hero is left, to its foot leaving the
+  // top — the nav stays out of
+  // view, scrolling up as well as down. A ScrollTrigger per section, so the
+  // bounds are the section's own, kept up to date as the page lays out, and
+  // cost no layout read on scroll.
+  let holding = false;
+  let holdTriggers = [];
+  function watchHolds() {
+    holdTriggers.forEach((t) => t.kill());
+    holding = false;
+    holdTriggers = [...document.querySelectorAll("[data-nav-hold]")].map((trigger) =>
+      ScrollTrigger.create({
+        trigger,
+        start: "top bottom",
+        end: "bottom top",
+        onToggle: (self) => {
+          holding = self.isActive;
+          if (holding && window.scrollY > barHeight) hide();
+        },
+      }),
+    );
+  }
 
   const duration = () => (reducedMotionQuery.matches ? 0 : 0.45);
 
@@ -1525,7 +1549,7 @@ function initNavReveal() {
     if (!dy) return;
     travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy;
     if (travel > TRAVEL) hide();
-    else if (travel < -TRAVEL) show();
+    else if (travel < -TRAVEL && !holding) show();
   }
 
   window.addEventListener("scroll", onScroll, { passive: true });
@@ -1537,6 +1561,8 @@ function initNavReveal() {
     travel = 0;
     show(true);
   });
+  barba.hooks.afterEnter(watchHolds);
+  watchHolds();
 
   initNavTheme(nav);
 }

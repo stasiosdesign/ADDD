@@ -7,14 +7,64 @@ import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { hasImage, imageAttrs } from "../sanity/image";
+import { cardOf, type Insight } from "../sanity/insights";
+import { CLIENT_LOGOS_QUERY, INSIGHTS_QUERY } from "../sanity/queries";
+import { homePage as D, INSIGHT_DEFAULTS } from "../sanity/defaults/home";
+import { CLIENTS } from "../sanity/defaults/clients";
 
-const related = [
-  { href: "report-template.html", image: "assets/images/allister-podium-full.jpg", category: "Technology", title: "The state of AI in architecture", description: "How generative tools are reshaping design practice and what firms need to know", meta: ["Report", "12 min read"] },
-  { href: "report-template.html", image: "assets/images/allister-headshot-bw.png", category: "BIM", title: "BIM maturity and implementation strategy", description: "A framework for assessing where your practice stands and what comes next", meta: ["Report", "9 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-keynote-stage.jpg", category: "Strategy", title: "Implementing AI without losing your identity", description: "How firms can adopt emerging tools while keeping their own approach and values", meta: ["Newsletter", "8 min read"] },
-  { href: "report-template.html", image: "assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Software selection for architecture teams", description: "Practical guidance on evaluating tools and building your technology stack", meta: ["Report", "8 min read"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-gesture-warm.jpg", category: "Workflow", title: "The cost of poor software integration", description: "Why disconnected tools drain resources and how to fix it before it becomes a problem", meta: ["Newsletter", "6 min read"] },
-  { href: "report-template.html", image: "assets/images/conference-keynote.jpg", category: "AI", title: "Governance and risk in AI adoption", description: "What architecture practices need to consider before implementing AI tools", meta: ["Report", "7 min read"] },
+// Every section's words and pictures come from the Home page document in
+// Sanity (studio/schemaTypes/pages/home.ts), each element falling back to
+// its own (src/sanity/defaults/home.ts): see src/sanity/content.ts. The
+// logo strip's clients come in the order set in the Studio, the research
+// slider's cards from the reports and newsletter issues, newest first. The
+// navigation, the footer, the hero's pattern and where every button leads
+// stay here. Each element names the field it shows (data-page-field) so
+// the Studio's Visual editor can outline it and write drafts into it.
+const { sanity } = Astro.locals;
+const [doc, clients, insights] = await Promise.all([
+  pageDocument(sanity, "homePage"),
+  sanity.fetch<{ _id: string; name: string; logo?: unknown }[]>(CLIENT_LOGOS_QUERY),
+  sanity.fetch<Insight[]>(INSIGHTS_QUERY),
+]);
+const { t, list, lines, img, bg } = reader(doc, D);
+
+// The strip's logos: the clients in the Studio, each with its mark, or the
+// ten files the strip has always shown
+type Logo = { id: string; name: string; src: string; width?: number; height?: number };
+const logos: Logo[] = clients?.length
+  ? clients.map((client) => ({ id: client._id, name: client.name, ...(hasImage(client.logo) ? imageAttrs(client.logo, 600) : { src: "" }) }))
+  : CLIENTS.map((client) => ({ id: client._id, name: client.name, src: client.logo.path }));
+
+const steps = list<{ _key: string; title?: string; text?: string }>("approach.steps").map((step, i) => ({
+  title: step.title || D.approach.steps[i]?.title || "",
+  text: step.text || D.approach.steps[i]?.text || "",
+}));
+const costCards = list<{ _key: string; title?: string; text?: string; image?: unknown }>("cost.cards");
+const routeCards = list<{ _key: string; tagline?: string; title?: string; text?: string }>("routes.cards");
+const quotes = list<{ _key: string; quote?: string; name?: string; role?: string; client?: { name?: string; logo?: unknown }; clientId?: string }>("testimonials.items");
+const quoteLogo = (quote: (typeof quotes)[number]) => {
+  if (quote.client && hasImage(quote.client.logo)) return { ...imageAttrs(quote.client.logo, 600), alt: quote.client.name ?? "" };
+  const own = CLIENTS.find((client) => client._id === quote.clientId);
+  return { src: own?.logo.path ?? "", width: undefined, height: undefined, alt: own?.name ?? "" };
+};
+
+// The route cards' destinations and icons stay here, by position
+const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];
+const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
+
+// The cost cards' and route cards' icons, by position
+const costIcons = [
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg>`,
+];
+const routeIcons = [
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg>`,
+  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg>`,
 ];
 ---
 <BaseLayout
@@ -22,6 +72,7 @@ const related = [
   description="Independent research and technology strategy for architecture practices: how technology actually gets used to make architecture, and which decisions to make first."
   pageName="Home"
   home
+  doc={{ id: "homePage" }}
 >
 <main class="page--grid">
 
@@ -30,7 +81,15 @@ const related = [
        leaves (initHeroParallax in src/scripts/site.js) -->
   <div data-hero-parallax class="hero-wrap">
     <div data-hero-parallax-inner>
-      <Hero arrowHref="#approach" arrowLabel="Scroll to the ADDD approach" />
+      <Hero
+        arrowHref="#approach"
+        arrowLabel="Scroll to the ADDD approach"
+        tagline={t("hero.tagline")}
+        lede={t("hero.lede")}
+        heading={t("hero.heading")}
+        primaryCta={{ href: "stack-diagnostic.html", label: t("hero.primaryButton") }}
+        secondaryCta={{ href: "contact.html", label: t("hero.secondaryButton") }}
+      />
     </div>
     <div data-hero-parallax-dark class="hero-wrap__dark"></div>
   </div>
@@ -45,38 +104,28 @@ const related = [
        they always have; its carousel is the top of the statement's held
        frame — it comes up the page, stays at the top of the screen over
        the statements while they are held, and leaves with them. -->
-  <StickyTitle id="approach" class="logos" headings={[
-    "Most technology problems aren’t really technology problems.",
-    "They come from how workflows, tools, people and decisions connect. ADDD looks across the practice to find what’s holding it back and what should change first.",
-    "Here’s how ADDD helps.",
-  ]}>
+  <StickyTitle id="approach" class="logos" navHold headings={[t("approach.statement")]} field="approach.statement">
     <Fragment slot="before">
-      <h2 class="h4 logos__title">Trusted by leading practices across the UK</h2>
+      <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
       <div class="dotted-rule logos__rule" aria-hidden="true"></div>
     </Fragment>
     <div data-wavy-marquee-init class="wavy-marquee" slot="top">
       <div class="wavy-marquee__collection">
         <!-- Wide single-line wordmarks alternate with compact, stacked
              marks, five of each, so no two of a kind meet — across the
-             loop's seam either. -->
+             loop's seam either. The marks are the clients in the Studio
+             (Home page → Logo strip), in their order. -->
         <div data-wavy-marquee-list class="wavy-marquee__list">
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/ADAM-Logo.png" alt="ADAM Architecture" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/epr-architects-logo.png" alt="EPR Architects" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/studio-seilern-logo.png" alt="Studio Seilern Architects" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Architecture-PLB-Logo.png" alt="Architecture PLB" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/ackroyd-lowrie-logo.png" alt="Ackroyd Lowrie" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Morris-Company-Logo.png" alt="Morris + Company" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/dmwr-architects-logo.png" alt="DMWR Architects" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/Ormsss-Logo.png" alt="ORMS" draggable="false"></div></div>
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src="assets/logos/White/SHH-logo.png" alt="SHH" draggable="false"></div></div>
+          {logos.map((logo) => (
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src={logo.src} width={logo.width} height={logo.height} alt={logo.name} draggable="false"></div></div>
+          ))}
         </div>
       </div>
     </div>
   </StickyTitle>
 
   <!-- ========== 4. APPROACH STEPS ========== -->
-  <ApproachStack />
+  <ApproachStack steps={steps} />
 
   </div>
 
@@ -86,47 +135,28 @@ const related = [
     <div class="container">
       <div class="problem-head">
         <div class="problem-head__lede">
-          <p class="text-md">Tools multiply. Workflows drift. Information fragments. AI gets added without clear direction or ownership.</p>
-          <p class="tagline tagline--sm">The cost of standing still</p>
+          <p class="text-md" data-page-field="cost.lede">{t("cost.lede")}</p>
+          <p class="tagline tagline--sm" data-page-field="cost.tagline">{t("cost.tagline")}</p>
         </div>
-        <h2 class="problem-head__h">What actually costs you time</h2>
+        <h2 class="problem-head__h" data-page-field="cost.heading">{t("cost.heading")}</h2>
       </div>
 
       <div data-problem-grid-init class="problem-grid">
-
+        {costCards.map((card, i) => {
+          const picture = img(`cost.cards.${i}.image`, 1200, D.cost.cards[i]?.image);
+          return (
         <article class="problem-card">
           <div class="problem-card__media">
-            <img src="assets/images/conference-keynote.jpg" loading="lazy" alt="" class="problem-card__image">
-            <span class="problem-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
+            <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt={picture.alt} class="problem-card__image" data-page-field={`cost.cards.${i}.image`} data-page-width="1200">
+            <span class="problem-card__icon" aria-hidden="true" set:html={costIcons[i] ?? ""}></span>
           </div>
           <div class="problem-card__body">
-            <h3 class="problem-card__h">Tools accumulate without discipline</h3>
-            <p class="problem-card__p">Each year brings new software, rarely any removal</p>
+            <h3 class="problem-card__h" data-page-field={`cost.cards.${i}.title`}>{card.title}</h3>
+            <p class="problem-card__p" data-page-field={`cost.cards.${i}.text`}>{card.text}</p>
           </div>
         </article>
-
-        <article class="problem-card">
-          <div class="problem-card__media">
-            <img src="assets/images/allister-keynote-stage.jpg" loading="lazy" alt="" class="problem-card__image">
-            <span class="problem-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
-          </div>
-          <div class="problem-card__body">
-            <h3 class="problem-card__h">Processes vary between projects</h3>
-            <p class="problem-card__p">Teams work differently depending on the job</p>
-          </div>
-        </article>
-
-        <article class="problem-card">
-          <div class="problem-card__media">
-            <img src="assets/images/allister-presenting.jpg" loading="lazy" alt="" class="problem-card__image">
-            <span class="problem-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
-          </div>
-          <div class="problem-card__body">
-            <h3 class="problem-card__h">Information lives in multiple places</h3>
-            <p class="problem-card__p">Data gets re-entered, duplicated or lost between tools</p>
-          </div>
-        </article>
-
+          );
+        })}
       </div>
     </div>
   </section>
@@ -136,130 +166,61 @@ const related = [
     <div class="container">
       <div class="routes__head">
         <div class="routes__lede">
-          <p class="text-md" style="max-width:21.875rem">From a focused workflow problem or early-stage design to practice-wide strategy and ongoing guidance. Choose the route that fits the issue.</p>
-          <p class="tagline tagline--sm">Ways to work with ADDD</p>
+          <p class="text-md" style="max-width:21.875rem" data-page-field="routes.lede">{t("routes.lede")}</p>
+          <p class="tagline tagline--sm" data-page-field="routes.tagline">{t("routes.tagline")}</p>
         </div>
-        <h2 class="routes__h">Start with what needs solving</h2>
+        <h2 class="routes__h" data-page-field="routes.heading">{t("routes.heading")}</h2>
       </div>
     </div>
 
     <div class="routes__grid">
-
-        <a class="route-card" href="workshops-audits.html">
+        {routeCards.map((card, i) => (
+        <a class="route-card" href={routeHrefs[i] ?? "contact.html"}>
           <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label">A focused issue</span>
+            <span class="tagline tagline--sm route-card__label" data-page-field={`routes.cards.${i}.tagline`}>{card.tagline}</span>
             <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
-            <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg></span>
+            <span class="route-card__icon" aria-hidden="true" set:html={routeIcons[i] ?? ""}></span>
           </div>
           <div class="route-card__body">
-            <h3 class="route-card__h">Workflow Workshop</h3>
-            <p class="route-card__p">A half-day diagnostic using a live project, to show where to start.</p>
+            <h3 class="route-card__h" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
+            <p class="route-card__p" data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
           </div>
         </a>
-
-        <a class="route-card" href="before-revit.html">
-          <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label">Early-stage design workflow</span>
-            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
-            <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg></span>
-          </div>
-          <div class="route-card__body">
-            <h3 class="route-card__h">Before Revit</h3>
-            <p class="route-card__p">A review of the early stages of design, before work moves into Revit or Archicad.</p>
-          </div>
-        </a>
-
-        <a class="route-card" href="technology-blueprint.html">
-          <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label">A practice-wide issue</span>
-            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
-            <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg></span>
-          </div>
-          <div class="route-card__body">
-            <h3 class="route-card__h">Technology Blueprint</h3>
-            <p class="route-card__p">Practice-wide technology strategy, from workflows to data, security and AI.</p>
-          </div>
-        </a>
-
-        <a class="route-card" href="advisory.html">
-          <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label">Ongoing guidance</span>
-            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
-            <span class="route-card__icon" aria-hidden="true"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-          </div>
-          <div class="route-card__body">
-            <h3 class="route-card__h">ADDDvisory</h3>
-            <p class="route-card__p">Ongoing strategic guidance, after or alongside the main strategic work.</p>
-          </div>
-        </a>
-
+        ))}
     </div>
   </section>
 
   <!-- ========== 6. TESTIMONIALS ========== -->
   <section class="testimonials">
-    <h2 class="h4 testimonials__title">Trusted by leading firms</h2>
+    <h2 class="h4 testimonials__title" data-page-field="testimonials.heading">{t("testimonials.heading")}</h2>
     <div data-testimonial-wrap="" data-autoplay="true" data-autoplay-duration="6000" class="testimonial-lines">
       <div role="list" data-testimonial-list="" class="testimonial-lines__list">
-
-        <div aria-hidden="false" data-testimonial-item="" role="listitem" class="testimonial-lines__item is--active">
+        {quotes.map((quote, i) => {
+          const logo = quoteLogo(quote);
+          return (
+        <div aria-hidden={i === 0 ? "false" : "true"} data-testimonial-item="" role="listitem" class:list={["testimonial-lines__item", { "is--active": i === 0 }]}>
           <div class="testimonial-lines__aside">
             <span class="testimonial-lines__mark" aria-hidden="true">&ldquo;</span>
             <div class="testimonial-lines__firm">
               <div data-testimonial-img="" class="testimonial-lines__logo">
-                <img src="assets/logos/White/ADAM-Logo.png" alt="ADAM Architecture">
+                <img src={logo.src} width={logo.width} height={logo.height} alt={logo.alt}>
               </div>
               <div class="testimonial-lines__meta">
-                <p data-testimonial-split="" class="testimonial-lines__name">Sarah Mitchell</p>
-                <p data-testimonial-split="" class="tagline tagline--sm testimonial-lines__role">Operations director, ADAM Architecture</p>
+                <p data-testimonial-split="" class="testimonial-lines__name" data-page-field={`testimonials.items.${i}.name`}>{quote.name}</p>
+                <p data-testimonial-split="" class="tagline tagline--sm testimonial-lines__role" data-page-field={`testimonials.items.${i}.role`}>{quote.role}</p>
               </div>
             </div>
           </div>
           <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__quote">We thought our problem was choosing between software platforms. It turned out we had no shared understanding of what we actually needed.</blockquote>
+            <blockquote data-testimonial-text="" class="testimonial-lines__quote" data-page-field={`testimonials.items.${i}.quote`}>{quote.quote}</blockquote>
           </div>
         </div>
-
-        <div aria-hidden="true" data-testimonial-item="" role="listitem" class="testimonial-lines__item">
-          <div class="testimonial-lines__aside">
-            <span class="testimonial-lines__mark" aria-hidden="true">&ldquo;</span>
-            <div class="testimonial-lines__firm">
-              <div data-testimonial-img="" class="testimonial-lines__logo">
-                <img src="assets/logos/White/ADAM-Logo.png" alt="ADAM Architecture">
-              </div>
-              <div class="testimonial-lines__meta">
-                <p data-testimonial-split="" class="testimonial-lines__name">Marcus Reid</p>
-                <p data-testimonial-split="" class="tagline tagline--sm testimonial-lines__role">Technology director, ADAM Architecture</p>
-              </div>
-            </div>
-          </div>
-          <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__quote">ADAM Architecture had three separate software systems doing the same job. The blueprint showed us how to consolidate without losing capability, and we recovered nearly half a day per project.</blockquote>
-          </div>
-        </div>
-
-        <div aria-hidden="true" data-testimonial-item="" role="listitem" class="testimonial-lines__item">
-          <div class="testimonial-lines__aside">
-            <span class="testimonial-lines__mark" aria-hidden="true">&ldquo;</span>
-            <div class="testimonial-lines__firm">
-              <div data-testimonial-img="" class="testimonial-lines__logo">
-                <img src="assets/logos/White/Haworth-Tompkins-Logo.png" alt="Haworth Tompkins">
-              </div>
-              <div class="testimonial-lines__meta">
-                <p data-testimonial-split="" class="testimonial-lines__name">Elena Foster</p>
-                <p data-testimonial-split="" class="tagline tagline--sm testimonial-lines__role">Design director, Haworth Tompkins</p>
-              </div>
-            </div>
-          </div>
-          <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__quote">We thought we needed better software. The workshop showed us we needed better workflows.</blockquote>
-          </div>
-        </div>
-
+          );
+        })}
       </div>
 
       <div class="testimonial-lines__controls">
-        <p class="tagline tagline--sm testimonial-lines__count"><span data-current="">1</span> / <span data-total="">3</span></p>
+        <p class="tagline tagline--sm testimonial-lines__count"><span data-current="">1</span> / <span data-total="">{quotes.length}</span></p>
         <div class="testimonial-lines__buttons">
           <button data-prev="" aria-label="Previous testimonial" class="testimonial-lines__button">
             <ArrowIcon class="testimonial-lines__arrow is--prev" aria-hidden="true" />
@@ -276,8 +237,8 @@ const related = [
   <section class="section">
     <div class="container">
       <div class="creds__title">
-        <p class="tagline tagline--plain">Credentials</p>
-        <h2 class="h2">Strategy built on real architecture practice</h2>
+        <p class="tagline tagline--plain" data-page-field="credentials.tagline">{t("credentials.tagline")}</p>
+        <h2 class="h2" data-page-field="credentials.heading">{t("credentials.heading")}</h2>
       </div>
 
       <div class="creds__grid">
@@ -286,9 +247,9 @@ const related = [
           <div class="ph"></div>
         </div>
         <div class="creds__text">
-          <p>Allister combines 25 years of architecture experience with BIM, Head of Technology and AEC software product expertise. His advice is grounded in how projects are actually delivered, how teams use tools and how vendor products perform in practice.</p>
+          <p data-page-field="credentials.text">{t("credentials.text")}</p>
           <div class="actions">
-            <ActionButton href="about.html" variant="secondary">About Allister</ActionButton>
+            <ActionButton href="about.html" variant="secondary"><span data-page-field="credentials.button">{t("credentials.button")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -299,10 +260,10 @@ const related = [
   <section class="section section--light compare">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">ADDD is most useful when the problem is no longer isolated to one tool, one project or one team.</p>
+        <p class="text-md" data-page-field="fit.lede">{t("fit.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline--plain">Fit</p>
-          <h2 class="h2" style="max-width:45.625rem">For practices where technology is now a leadership issue.</h2>
+          <p class="tagline--plain" data-page-field="fit.tagline">{t("fit.tagline")}</p>
+          <h2 class="h2" style="max-width:45.625rem" data-page-field="fit.heading">{t("fit.heading")}</h2>
         </div>
       </div>
 
@@ -310,19 +271,19 @@ const related = [
            not, each a large title over a run of rows. -->
       <div class="compare__grid">
         <div class="compare__side">
-          <h3 class="compare__title">Best suited to</h3>
+          <h3 class="compare__title" data-page-field="fit.forTitle">{t("fit.forTitle")}</h3>
           <ul class="compare__list">
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Established architecture practices, usually around 25–200 people.</p></li>
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Practices facing connected questions around workflows, software, costs, data, AI or ownership.</p></li>
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Firms ready to act, but unclear about what should happen first.</p></li>
+            {lines("fit.forItems").map((item, i) => (
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p data-page-field={`fit.forItems.${i}`}>{item}</p></li>
+            ))}
           </ul>
         </div>
         <div class="compare__side is--not">
-          <h3 class="compare__title">Not primarily for</h3>
+          <h3 class="compare__title" data-page-field="fit.notTitle">{t("fit.notTitle")}</h3>
           <ul class="compare__list">
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Firms seeking implementation without taking part in the strategic decisions.</p></li>
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>One-off software training, tactical BIM production support or outsourced IT management.</p></li>
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p>Quick recommendations for a particular product.</p></li>
+            {lines("fit.notItems").map((item, i) => (
+            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p data-page-field={`fit.notItems.${i}`}>{item}</p></li>
+            ))}
           </ul>
         </div>
       </div>
@@ -333,9 +294,9 @@ const related = [
   <section class="section">
     <div class="container">
       <div class="research__head section-title">
-        <p class="text-md">The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture.</p>
+        <p class="text-md" data-page-field="research.lede">{t("research.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2">Research and insight</h2>
+          <h2 class="h2" data-page-field="research.heading">{t("research.heading")}</h2>
         </div>
       </div>
 
@@ -345,8 +306,8 @@ const related = [
            shared signup (styles.css), with the audience question. -->
       <div class="research__signup">
         <div class="stack stack--16">
-          <p class="tagline tagline--sm">ADDDitive newsletter</p>
-          <h3 class="h4">Get ADDDitive in your inbox</h3>
+          <p class="tagline tagline--sm" data-page-field="research.signupTagline">{t("research.signupTagline")}</p>
+          <h3 class="h4" data-page-field="research.signupHeading">{t("research.signupHeading")}</h3>
         </div>
         <form class="newsletter-signup" onsubmit="return false">
           <div class="newsletter-form">

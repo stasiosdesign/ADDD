@@ -2,11 +2,34 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { licensingAuditPage as D } from "../sanity/defaults/licensing-audit";
+
+// Every section's words come from the Software & Licensing Audit page
+// document in Sanity (studio/schemaTypes/pages/licensing-audit.ts), each
+// element falling back to its own (src/sanity/defaults/licensing-audit.ts):
+// see src/sanity/content.ts. The navigation, the footer, the chevron icons
+// and where every button and link leads stay here. Each element names the
+// field it shows (data-page-field) so the Studio's Visual editor can outline
+// it and write drafts into it; each list names its blocks (data-page-list,
+// data-page-item).
+const { t, list } = reader(await pageDocument(Astro.locals.sanity, "licensingAuditPage"), D);
+
+type Tile = { _key: string; title?: string; text?: string; linkLabel?: string };
+const fitTiles = list<Tile>("fit.tiles");
+const alternatives = list<Tile>("fit.alternatives");
+const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
+const nextTiles = list<Tile>("next.tiles");
+
+// Where the outlined cards' and the closing cards' links lead, by position
+const alternativeHrefs = ["stack-diagnostic.html", "technology-blueprint.html"];
+const nextHrefs = ["technology-blueprint.html", "workshops-audits.html", "advisory.html"];
 ---
 <BaseLayout
   title="Software & Licensing Audit — ADDD"
   description="Software cost and licensing review, assessed by ADDD as part of the wider technology strategy and the Technology Blueprint: every seat, renewal date and overlapping subscription set against real usage."
   pageName="Software & Licensing Audit"
+  doc={{ id: "licensingAuditPage" }}
 >
 <main class="page--grid">
 
@@ -14,14 +37,14 @@ import ClosingCta from "../components/ClosingCta.astro";
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Part of the Technology Blueprint</p>
-          <h1 class="h1">Software &amp; Licensing Audit</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">A complete account of what your practice pays for and what it actually uses. Every seat, every renewal date, every overlapping subscription&mdash;set against real usage, so renewal conversations start from evidence instead of habit. ADDD assesses software cost and licensing as part of the wider technology strategy, usually within a Technology Blueprint.</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions">
-            <ActionButton href="technology-blueprint.html">Technology Blueprint</ActionButton>
-            <a class="btn btn--link" href="#how-it-works">How it works <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+            <ActionButton href="technology-blueprint.html"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+            <a class="btn btn--link" href="#how-it-works"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
       </div>
@@ -32,39 +55,30 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section" id="who-its-for">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">This suits practices where software spend has climbed steadily, nobody can explain exactly why, and a large renewal is close enough to matter.</p>
+        <p class="text-md" data-page-field="fit.lede">{t("fit.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Fit</p>
-          <h2 class="h2" style="max-width:16ch">Who it&rsquo;s for</h2>
+          <p class="tagline" data-page-field="fit.tagline">{t("fit.tagline")}</p>
+          <h2 class="h2" style="max-width:16ch" data-page-field="fit.heading">{t("fit.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt">
-        <article class="tile">
-          <h3 class="h4">Practices facing a major renewal</h3>
-          <p>A multi-year agreement is up and the only available comparison is last year&rsquo;s invoice. You need a position before the conversation, not after it.</p>
+      <div class="grid grid--3 grid--mt" data-page-list="fit.tiles">
+        {fitTiles.map((item) => (
+        <article class="tile" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
         </article>
-        <article class="tile">
-          <h3 class="h4">Finance and operations without visibility</h3>
-          <p>Subscriptions sit across departments, cards and cost centres. Nobody holds a single view of what is paid for, by whom, or whether it is used.</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">Practices paying for seats nobody uses</h3>
-          <p>Headcount changed, projects ended, tools were replaced&mdash;but the licences renewed anyway. The cost is real and rarely visible.</p>
-        </article>
+        ))}
       </div>
 
-      <div class="grid grid--2" style="margin-top:2rem">
-        <article class="tile tile--outline">
-          <h3 class="h4">If you do not yet know what you run</h3>
-          <p>An audit prices the stack. If the stack itself is unclear, map it first&mdash;then the numbers mean something.</p>
-          <a class="btn btn--link" href="stack-diagnostic.html">Free Tech Stacks <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <div class="grid grid--2" style="margin-top:2rem" data-page-list="fit.alternatives">
+        {alternatives.map((item, i) => (
+        <article class="tile tile--outline" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
+          <a class="btn btn--link" href={alternativeHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{item.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
-        <article class="tile tile--outline">
-          <h3 class="h4">If cost is a symptom of something larger</h3>
-          <p>When spending is only one of several connected problems, the audit becomes one input into a broader strategy.</p>
-          <a class="btn btn--link" href="technology-blueprint.html">Technology Blueprint <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
+        ))}
       </div>
     </div>
   </section>
@@ -72,47 +86,28 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section section--light" id="how-it-works">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Four stages across roughly four weeks. The heaviest lift is gathering records at the start; after that the work sits with us until the readout.</p>
+        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Method</p>
-          <h2 class="h2">How it works</h2>
+          <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
+          <h2 class="h2" data-page-field="method.heading">{t("method.heading")}</h2>
         </div>
       </div>
 
-      <div class="steps">
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage one</p>
+      <div class="steps" data-page-list="method.steps">
+        {steps.map((step) => (
+        <div class="steps__item" data-page-item={step._key}>
+          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
           <div class="steps__body">
-            <h3 class="h4">Collect the records</h3>
-            <p>Invoices, licence agreements, admin consoles and expense lines. We build one register of every product, contract term, renewal date and seat count.</p>
+            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
+            <p data-page-item-field="text">{step.text}</p>
           </div>
         </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage two</p>
-          <div class="steps__body">
-            <h3 class="h4">Match seats to use</h3>
-            <p>Allocated seats are compared against actual activity. Dormant licences, duplicated products and users holding access they no longer need are identified by name.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage three</p>
-          <div class="steps__body">
-            <h3 class="h4">Test the commercial position</h3>
-            <p>Pricing, tiers and bundling are checked against how comparable products are sold. This is where consolidation and renegotiation opportunities surface.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage four</p>
-          <div class="steps__body">
-            <h3 class="h4">Recommendations and renewal calendar</h3>
-            <p>You receive a costed set of recommendations&mdash;what to cut, consolidate, renegotiate or leave alone&mdash;plus a dated renewal calendar so the next cycle is planned rather than reactive.</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div class="actions" style="margin-top:3rem">
-        <ActionButton href="contact.html">Enquire about software costs</ActionButton>
-        <a class="btn btn--link" href="reports.html">Read the research <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+        <ActionButton href="contact.html"><span data-page-field="method.button">{t("method.button")}</span></ActionButton>
+        <a class="btn btn--link" href="reports.html"><span data-page-field="method.linkLabel">{t("method.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
       </div>
     </div>
   </section>
@@ -120,27 +115,19 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Software cost is rarely the whole problem. These are the routes practices take to the wider questions.</p>
+        <p class="text-md" data-page-field="next.lede">{t("next.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2">Where it leads</h2>
+          <h2 class="h2" data-page-field="next.heading">{t("next.heading")}</h2>
         </div>
       </div>
-      <div class="grid grid--3 grid--mt">
-        <article class="tile">
-          <h3 class="h4">Technology Blueprint</h3>
-          <p>Take software cost into the full practice-wide technology strategy.</p>
-          <a class="btn btn--link" href="technology-blueprint.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <div class="grid grid--3 grid--mt" data-page-list="next.tiles">
+        {nextTiles.map((item, i) => (
+        <article class="tile" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
+          <a class="btn btn--link" href={nextHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{item.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
-        <article class="tile">
-          <h3 class="h4">Workflow Workshop</h3>
-          <p>Find where the time goes, using a real project as the test case.</p>
-          <a class="btn btn--link" href="workshops-audits.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
-        <article class="tile">
-          <h3 class="h4">ADDDvisory</h3>
-          <p>Bring vendor and licensing decisions into a standing monthly conversation.</p>
-          <a class="btn btn--link" href="advisory.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
+        ))}
       </div>
     </div>
   </section>

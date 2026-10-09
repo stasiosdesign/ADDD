@@ -24,11 +24,15 @@ interface Props {
   /** Classes for the section, e.g. "logos" for the logo strip's own. */
   class?: string;
   "aria-label"?: string;
+  /** Keeps the nav out of view, scrolling up too, while the section is under it. */
+  navHold?: boolean;
+  /** The Sanity field the statements come from (data-page-field, for the Studio's Visual editor), where a page reads them from its document. */
+  field?: string;
 }
 
-const { headings, id, class: className, "aria-label": label } = Astro.props;
+const { headings, id, class: className, "aria-label": label, navHold = false, field } = Astro.props;
 ---
-<section data-sticky-title="wrap" class:list={["sticky-title", className]} id={id} aria-label={label} style={`--headings:${headings.length}`}>
+<section data-sticky-title="wrap" class:list={["sticky-title", className]} id={id} aria-label={label} data-nav-hold={navHold ? "" : undefined} style={`--headings:${headings.length}`}>
   <slot name="before" />
   <div data-sticky-title="track" class="sticky-title__track">
     <div class="sticky-title__container">
@@ -36,7 +40,7 @@ const { headings, id, class: className, "aria-label": label } = Astro.props;
       <div class="sticky-title__stage">
         <div class="sticky-title__inner">
           {headings.map((text, i) => (
-            <h2 data-sticky-title="heading" class:list={["sticky-title__el", { "is--stacked": i > 0 }]}>{text}</h2>
+            <h2 data-sticky-title="heading" class:list={["sticky-title__el", { "is--stacked": i > 0 }]} data-page-field={field && headings.length === 1 ? field : undefined}>{text}</h2>
           ))}
         </div>
       </div>

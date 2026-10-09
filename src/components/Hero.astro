@@ -28,13 +28,15 @@ interface Props {
   layout?: "band" | "split";
   /** The pattern's accent: the site's red, or the AEC Tech Firms blue. */
   accent?: "red" | "blue";
-  /** The copy, the homepage's unless a page has its own. */
-  tagline?: string;
-  lede?: string;
-  heading?: string;
-  /** The two buttons, the practice routes unless a page has its own. */
-  primaryCta?: { href: string; label: string };
-  secondaryCta?: { href: string; label: string };
+  /** The copy: the page's Opening section in Sanity, or its own words (src/sanity/defaults/). */
+  tagline: string;
+  lede: string;
+  heading: string;
+  /** The two buttons: where each leads, and its label from the same section. */
+  primaryCta: { href: string; label: string };
+  secondaryCta: { href: string; label: string };
+  /** The section the words come from (data-page-field, for the Studio's Visual editor); "hero" on every page. */
+  field?: string;
 }
 
 const {
@@ -42,11 +44,12 @@ const {
   arrowLabel,
   layout = "band",
   accent = "red",
-  tagline = "Independent research",
-  lede = "See how technology, workflows, BIM, software, data and AI connect in practice, so you can make better decisions about how your practice works.",
-  heading = "Technology Strategy for Architecture Practices",
-  primaryCta = { href: "stack-diagnostic.html", label: "Free Tech Stacks" },
-  secondaryCta = { href: "contact.html", label: "Work With Us" },
+  tagline,
+  lede,
+  heading,
+  primaryCta,
+  secondaryCta,
+  field = "hero",
 } = Astro.props;
 
 // The Slash Field's vocabulary: BIM, Software, Infrastructure and AI, and
@@ -103,16 +106,16 @@ const screenWords = [
   <div class="container">
     <div class="hero__grid">
       <div class="hero__col hero__col--lede">
-        <p class="text-md">{lede}</p>
-        <p class="tagline tagline--sm">{tagline}</p>
+        <p class="text-md" data-page-field={`${field}.lede`}>{lede}</p>
+        <p class="tagline tagline--sm" data-page-field={`${field}.tagline`}>{tagline}</p>
       </div>
       <div class="hero__col hero__col--heading">
-        <h1 class="h1 hero__heading">{heading}</h1>
+        <h1 class="h1 hero__heading" data-page-field={`${field}.heading`}>{heading}</h1>
 
         <div class="hero__cta-row">
           <div class="actions actions--pair">
-            <ActionButton href={primaryCta.href}>{primaryCta.label}</ActionButton>
-            <ActionButton href={secondaryCta.href} variant="secondary">{secondaryCta.label}</ActionButton>
+            <ActionButton href={primaryCta.href}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
+            <ActionButton href={secondaryCta.href} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
           </div>
           <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>
         </div>

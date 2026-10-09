@@ -1,25 +1,159 @@
 # ADDD — website
 
-The ADDD website, built with [Astro](https://astro.build) as a fully static site.
-No UI framework: Astro components for the markup, plain CSS, and plain JavaScript
-on GSAP, Barba and Lenis.
+The ADDD website, built with [Astro](https://astro.build), whose content is
+managed in [Sanity](https://www.sanity.io). No UI framework: Astro components
+for the markup, plain CSS, and plain JavaScript on GSAP, Barba and Lenis. One
+repository, two apps: the website at the root, deployed by Vercel, and the
+Sanity Studio in `studio/`, where the content is edited.
 
 ## Commands
 
-Requires Node 22.12 or later.
+Requires Node 22.12 or later. The two apps install their own dependencies:
+`npm install`, then `npm install` in `studio/` (the Studio's CMS package is
+private: see "The CMS").
 
 ```bash
-npm install
-npm run dev       # dev server on http://localhost:4321
-npm run build     # production build into dist/
-npm run preview   # serve the production build locally
+npm run dev            # dev server on http://localhost:4321 (staging's behaviour)
+npm run studio         # the Studio on http://localhost:3333; its Visual editor shows 4321
+npm run build          # production build into dist/ (static, from the production dataset)
+npm run preview        # serve the production build locally
+npm run check          # type-checks the site, then the Studio's checks and tests
+npm run studio:deploy  # deploys the hosted Studio
 ```
 
-## Deployment
+## Addresses
 
-Vercel builds the site from GitHub: every push to `main` deploys. Vercel detects
-Astro on its own (build command `astro build`, output directory `dist`), so the
-project needs no `vercel.json` and no adapter — the output is plain static files.
+|            | URL                                                   | From                        |
+| ---------- | ----------------------------------------------------- | --------------------------- |
+| Production | https://addd-final-wireframes.vercel.app              | `main`                      |
+| Staging    | https://addd-git-staging-stasiosdesign.vercel.app     | `staging`                   |
+| Studio     | https://addd.sanity.studio                            | `studio/`, deployed by hand |
+
+Staging's URL is Vercel's alias for the `staging` branch: it always shows the
+branch's latest deployment. The Vercel project is `addd`, in the
+`stasiosdesign` team; the Sanity project is `xqa8b0u9`.
+
+## Production and staging
+
+|                | Production (`main`)                     | Staging (`staging`)                            |
+| -------------- | --------------------------------------- | ---------------------------------------------- |
+| Built          | static, at deploy time                  | on each request, by a Vercel Function          |
+| Sanity content | the `production` dataset                | the `staging` dataset; drafts in draft mode    |
+| Visual editor  | never                                   | the Studio's Visual editor shows staging       |
+| Search engines | indexed                                 | never: `noindex, nofollow` on every response   |
+| Access         | public                                  | Vercel Authentication (and the Studio's bypass)|
+
+Which is which comes from Vercel itself (`VERCEL_ENV`: `production` for
+`main`, `preview` for every other branch), read in `astro.config.mjs`. Nothing
+depends on a hostname, so adding a domain changes no code. `npm run dev`
+behaves like staging, on your machine. The site keeps its `.html` addresses
+in both (`build.format: "file"`; Astro's router accepts them where staging
+renders on request).
+
+## Workflow
+
+```
+local (npm run dev, npm run studio)  →  staging  →  review  →  main
+```
+
+1. Work locally. Nothing is deployed until you push.
+2. Send changes to staging: `git switch staging`, commit, `git push`.
+3. Review on the staging URL, or in the Studio's Visual editor, where staging
+   shows unpublished drafts too.
+4. Promote to production once approved: `git switch main`, `git merge
+   --ff-only staging`, `git push`, `git switch staging`.
+
+## Content: draft, staging, live
+
+Two datasets, one for each site (`src/sanity/client.ts` picks one by
+deployment), and Sanity's own drafts in the one the Studio edits:
+
+| State   | Where                                | Made by                  | Shown by                                       |
+| ------- | ------------------------------------ | ------------------------ | ---------------------------------------------- |
+| Draft   | `staging`, `drafts.<id>`             | typing in the Studio     | staging, in draft mode only (the Visual editor)|
+| Staging | `staging`, the published document    | **Publish to Staging**   | staging, to everyone                           |
+| Live    | `production`, the published document | **Publish Live…**        | production, at its next build                  |
+
+- **Production** is built from the `production` dataset alone, at build time.
+  Its build has no draft-mode routes, no publishing route and no
+  visual-editing code. A code release rebuilds it from that dataset as it is,
+  so deploying code never publishes content, and publishing content never
+  deploys code.
+- **Staging** reads the `staging` dataset on every request: published
+  documents for anyone, drafts for a browser in **draft mode**, which the
+  Studio's Visual editor switches on through `/api/draft-mode/enable`
+  (`src/sanity/draft-mode/`; the read token stays on the server).
+- The Studio's publishing control (the CMS package's) sends every action to
+  `/api/publish` on staging (`src/sanity/publish/`), which checks the caller's
+  Studio session and role, writes with its own token, and after every live
+  write calls the Vercel deploy hook for `main`, so the static production
+  site is rebuilt with the new content (about a minute; the control watches
+  `/build.json`). **Publish to Staging** never touches production; **Publish
+  Live…** asks for confirmation first.
+
+### What is editable
+
+Every page has a document in the Studio's Page editor (`studio/schemaTypes/pages/`),
+holding the words and pictures its code no longer fixes: taglines, headings,
+standfirsts, the words on buttons, the cards, steps, questions, price cards
+and quotes, the home page's logo strip (the clients) and the closing call to
+action most pages end on (from the Home page). Layout, navigation, the footer,
+forms, icons and where buttons lead stay in the code. Two collections,
+**Reports** and **Newsletter**, list on their pages and in the sliders, and
+each item has its own page (`/reports/<slug>.html`, `/newsletter/<slug>.html`).
+
+Every bound element falls back to the page's own words
+(`src/sanity/defaults/`, exactly the text the pages had) while a field is
+empty, so the site reads the same until something is published. `npm run
+seed` in `studio/` writes those defaults into the staging dataset, once.
+
+## Environment variables
+
+Set in Vercel (Settings → Environment Variables) and locally in
+`.env.development.local` (see `.env.example`):
+
+| Variable                           | Production | Preview                  | Local                     |
+| ---------------------------------- | ---------- | ------------------------ | ------------------------- |
+| `SANITY_API_READ_TOKEN` (secret)   | not set    | Git branch `staging` only| optional, for drafts      |
+| `SANITY_API_WRITE_TOKEN` (secret)  | not set    | Git branch `staging` only| optional, for Publish Live|
+| `VERCEL_DEPLOY_HOOK_URL` (secret)  | not set    | Git branch `staging` only| optional                  |
+
+The Studio's, in committed files: `SANITY_STUDIO_PREVIEW_ORIGIN` (staging's
+URL in `studio/.env.production`, http://localhost:4321 in
+`studio/.env.development`) and `SANITY_STUDIO_PRODUCTION_ORIGIN` (the live
+site). Both are public settings.
+
+## Vercel
+
+- One project, `addd`, connected to `stasiosdesign/ADDD`; production branch
+  `main`. Build settings and headers (the build stamp's CORS, staging's
+  noindex) are in `vercel.ts`.
+- **Deployment Protection:** Vercel Authentication protects every deployment
+  except the production domain. The Studio gets through with Vercel's
+  *Protection Bypass for Automation* secret, saved once in the Studio's
+  **Vercel Protection Bypass** tool (`/vercel-protection-bypass`).
+- **Deploy hook** on `main`, whose URL is `VERCEL_DEPLOY_HOOK_URL` for the
+  `staging` branch's environment: `/api/publish` calls it after every live
+  publish, unpublish or delete.
+
+## Adding a custom domain
+
+No code changes: add the domain to the Vercel project for Production (and a
+`staging.` domain for the Git branch `staging`, if wanted); set
+`SANITY_STUDIO_PRODUCTION_ORIGIN` (and the preview origin, for a staging
+domain) in `studio/.env.production`, add any new staging origin to Sanity's
+CORS origins, then `npm run studio:deploy`.
+
+## The CMS
+
+The Studio is the shared CMS package `@stasiosdesign/sanity-cms` (private,
+GitHub Packages; the `sanity-cms` repository): the layout, editors,
+publishing control and design every Stasios Design Studio shares, set up for
+this site by `studio/project.ts` (brand, sites, pages, collections, routes)
+and `studio/schemaTypes/` (the content model). Updates arrive as Dependabot
+pull requests against `staging`; CLAUDE.md, "The CMS", has the rules. First
+time on a machine: give npm read access to GitHub Packages (the package's
+README, "Access"), then `npm install` in `studio/`.
 
 ## Pages
 

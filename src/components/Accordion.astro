@@ -8,31 +8,38 @@
   the page's heading outline and the browser supplies the keyboard and
   focus behaviour. `id` prefixes the ids that tie each toggle to its answer;
   it only has to be unique on the page.
+
+  `field` names the page's list the questions come from (data-page-list,
+  e.g. "faq.questions"): the Studio's Visual editor then redraws the list as
+  questions are added, removed or moved, and a click on one opens that very
+  question in its panel (src/sanity/live-preview.ts). Each item carries its
+  key for that.
 */
 interface Props {
   id: string;
-  items: { question: string; answer: string }[];
+  items: { _key?: string; question?: string; answer?: string }[];
+  field?: string;
 }
 
-const { id, items } = Astro.props;
+const { id, items, field } = Astro.props;
 ---
 <div data-accordion-init data-accordion-close-siblings="true" class="accordion">
-  <ul class="accordion__list">
-    {items.map(({ question, answer }, i) => {
+  <ul class="accordion__list" data-page-list={field}>
+    {items.map(({ _key, question, answer }, i) => {
       const open = i === 0;
       const answerId = `${id}-answer-${i + 1}`;
       return (
-        <li data-accordion-status={open ? "active" : "not-active"} class="accordion__item">
+        <li data-accordion-status={open ? "active" : "not-active"} class="accordion__item" data-page-item={field ? _key : undefined}>
           <h3 class="accordion__heading">
             <button type="button" data-accordion-toggle aria-expanded={open ? "true" : "false"} aria-controls={answerId} class="accordion__toggle">
-              {question}
+              <span data-page-item-field={field ? "question" : undefined}>{question}</span>
               <span class="accordion__icon" aria-hidden="true"><svg class="accordion__icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></span>
             </button>
           </h3>
           <div id={answerId} class="accordion__panel">
             <div class="accordion__panel-inner">
               <div class="accordion__content">
-                <p class="accordion__text">{answer}</p>
+                <p class="accordion__text" data-page-item-field={field ? "answer" : undefined}>{answer}</p>
               </div>
             </div>
           </div>

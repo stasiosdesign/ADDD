@@ -3,19 +3,31 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { workshopPage as D } from "../sanity/defaults/workshop";
 
-const faq = [
-  { question: "Who should attend the workshop?", answer: "Anyone who shapes how work moves through the practice — a director or partner, the project lead for the chosen project, and whoever owns BIM, IT or operations." },
-  { question: "How many people should come?", answer: "Between four and eight. Enough perspectives to see the whole flow, few enough that everyone contributes." },
-  { question: "What preparation is required?", answer: "A short questionnaire and the selection of one real project. Nothing else needs to be produced in advance." },
-  { question: "Does it have to be in person?", answer: "Yes. The workshop works because people are in the room together, working through a real project. Remote doesn’t create the same clarity." },
-  { question: "When do we get the report?", answer: "Within two weeks of the session." },
-];
+// Every section's words come from the Workflow Workshop page document in
+// Sanity (studio/schemaTypes/pages/workshop.ts), each element falling back
+// to its own (src/sanity/defaults/workshop.ts): see src/sanity/content.ts.
+// The navigation, the footer, the two price cards' looks and where every
+// button leads stay here. Each element names the field it shows
+// (data-page-field) so the Studio's Visual editor can outline it and write
+// drafts into it.
+const { t, list, lines, bg } = reader(await pageDocument(Astro.locals.sanity, "workshopPage"), D);
+
+type Tile = { _key: string; tagline?: string; title?: string; text?: string; image?: unknown };
+type Step = { _key: string; label?: string; title?: string; text?: string };
+const symptoms = list<Tile>("symptoms.tiles");
+const methods = list<Tile>("method.tiles");
+const journey = list<Step>("journey.steps");
+const stages = list<Tile>("pricing.tiles");
+const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 ---
 <BaseLayout
   title="Workflow Workshop — ADDD"
   description="A half-day diagnostic using a live project, for practice leaders who know something is not working but need clarity on where to start. Map how work moves, find the friction and receive a written report."
   pageName="Workflow Workshop"
+  doc={{ id: "workshopPage" }}
 >
 <main class="page--grid">
 
@@ -23,14 +35,14 @@ const faq = [
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Workflow Workshop</p>
-          <h1 class="h1">Find where your practice is losing time</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">A half-day diagnostic using a live project, for practice leaders who know something isn&rsquo;t working but need clarity on where to start. You&rsquo;ll map how work moves through the practice, identify where workflows and tools create friction, and receive a written report with findings and priorities</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions actions--pair">
-            <ActionButton href="contact.html">Enquire</ActionButton>
-            <ActionButton href="#pricing" variant="secondary">Workshop Pricing</ActionButton>
+            <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+            <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -41,29 +53,19 @@ const faq = [
   <section class="section">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Most practices don&rsquo;t have a software problem. They have a workflow problem. The same issues recur across projects. Teams solve similar problems in different ways. Information gets lost or recreated. Tools accumulate without clear purpose.</p>
+        <p class="text-md" data-page-field="symptoms.lede">{t("symptoms.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2">Does This Sound Like Your Practice?</h2>
+          <h2 class="h2" data-page-field="symptoms.heading">{t("symptoms.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--2 grid--mt">
-        <article class="tile">
-          <h3 class="h4">The same problems surface on every project</h3>
-          <p>Coordination delays, rework and information loss repeat without lasting solutions</p>
+      <div class="grid grid--2 grid--mt" data-page-list="symptoms.tiles">
+        {symptoms.map((tile) => (
+        <article class="tile" data-page-item={tile._key}>
+          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
+          <p data-page-item-field="text">{tile.text}</p>
         </article>
-        <article class="tile">
-          <h3 class="h4">Teams work in different ways across the practice</h3>
-          <p>No shared method means knowledge stays siloed and effort duplicates</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">Information disappears between handoffs</h3>
-          <p>Data is recreated rather than passed forward, wasting time and introducing error</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">Growth has exposed weak foundations</h3>
-          <p>Systems that worked at 30 people don&rsquo;t scale to 80 without breaking</p>
-        </article>
+        ))}
       </div>
     </div>
   </section>
@@ -71,30 +73,25 @@ const faq = [
   <section class="section section--light">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">A structured half-day that examines a real project to reveal where workflows break down.</p>
+        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Method</p>
-          <h2 class="h2">How the workshop works</h2>
+          <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
+          <h2 class="h2" data-page-field="method.heading">{t("method.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt">
-        <article class="stack stack--16">
-          <div class="ph" style="aspect-ratio:4/3"></div>
-          <h3 class="h4">Examine one project</h3>
-          <p>You select a recent or current project that exposed workflow problems or delays.</p>
+      <div class="grid grid--3 grid--mt" data-page-list="method.tiles">
+        {methods.map((tile, i) => {
+          const picture = bg(`method.tiles.${i}.image`);
+          return (
+        <article class="stack stack--16" data-page-item={tile._key}>
+          <div class="ph" style={picture ? `aspect-ratio:4/3;${picture}` : "aspect-ratio:4/3"} data-page-item-field="image" data-page-item-bg></div>
+          {tile.tagline && <p class="tagline tagline--sm" data-page-item-field="tagline">{tile.tagline}</p>}
+          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
+          <p data-page-item-field="text">{tile.text}</p>
         </article>
-        <article class="stack stack--16">
-          <div class="ph" style="aspect-ratio:4/3"></div>
-          <h3 class="h4">Map the actual flow</h3>
-          <p>Four hours tracing how information, decisions and work move through your practice from start to finish.</p>
-        </article>
-        <article class="stack stack--16">
-          <div class="ph" style="aspect-ratio:4/3"></div>
-          <p class="tagline tagline--sm">Diagnostic</p>
-          <h3 class="h4">Identify friction and lost time</h3>
-          <p>Spot where duplication happens, information disappears, decisions go unrecorded and responsibility blurs.</p>
-        </article>
+          );
+        })}
       </div>
     </div>
   </section>
@@ -102,42 +99,23 @@ const faq = [
   <section class="section">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">ADDD arrives to trace how information, decisions and work move through your practice from brief to completion. You&rsquo;ll identify where duplication happens, where information disappears and where responsibility blurs.</p>
+        <p class="text-md" data-page-field="journey.lede">{t("journey.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Journey</p>
-          <h2 class="h2">How the Workshop works</h2>
+          <p class="tagline" data-page-field="journey.tagline">{t("journey.tagline")}</p>
+          <h2 class="h2" data-page-field="journey.heading">{t("journey.heading")}</h2>
         </div>
       </div>
 
-      <div class="steps">
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Prepare</p>
+      <div class="steps" data-page-list="journey.steps">
+        {journey.map((step) => (
+        <div class="steps__item" data-page-item={step._key}>
+          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
           <div class="steps__body">
-            <h3 class="h4">You complete the questionnaire</h3>
-            <p>A short questionnaire arrives with guidance on choosing a project that exposed real workflow problems. You&rsquo;ll also receive details on who should attend and how to prepare.</p>
+            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
+            <p data-page-item-field="text">{step.text}</p>
           </div>
         </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Attend</p>
-          <div class="steps__body">
-            <h3 class="h4">Half day in the room</h3>
-            <p>ADDD facilitates a structured session tracing how work, information and decisions move through your practice. You&rsquo;ll map the actual flow, identify where friction occurs and agree on what matters most.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Review</p>
-          <div class="steps__body">
-            <h3 class="h4">The report arrives</h3>
-            <p>A tailored written report is delivered within two weeks. It contains findings, priority areas, practical recommendations and suggested next steps specific to your practice and the project examined.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Act</p>
-          <div class="steps__body">
-            <h3 class="h4">What you leave with</h3>
-            <p>A clear map of where time disappears, which problems to address first, and a practical starting point for change without requiring a larger commitment or further investment.</p>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </section>
@@ -146,19 +124,19 @@ const faq = [
     <div class="container">
       <div class="section-title">
         <div class="section-title__body">
-          <p class="tagline">What practices discover</p>
-          <h2 class="h2">How a 90-person practice found where time was disappearing</h2>
+          <p class="tagline" data-page-field="story.tagline">{t("story.tagline")}</p>
+          <h2 class="h2" data-page-field="story.heading">{t("story.heading")}</h2>
         </div>
       </div>
       <div class="case__panel">
         <div class="case__quote-wrap">
           <div class="case__quote-inner">
-            <blockquote class="quote">We thought we needed better software. The workshop showed us we needed better workflows.</blockquote>
+            <blockquote class="quote" data-page-field="quote.quote">{t("quote.quote")}</blockquote>
             <div class="avatar">
               <div class="avatar__img"></div>
               <div>
-                <p class="avatar__name">Design director</p>
-                <p>90-person London practice</p>
+                <p class="avatar__name" data-page-field="quote.name">{t("quote.name")}</p>
+                <p data-page-field="quote.role">{t("quote.role")}</p>
               </div>
             </div>
           </div>
@@ -170,63 +148,57 @@ const faq = [
   <section class="section" id="pricing">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">One half-day session. Everything needed to find where time disappears.</p>
+        <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Investment</p>
-          <h2 class="h2">The workshop</h2>
+          <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
+          <h2 class="h2" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt">
-        <article class="tile tile--outline">
-          <h3 class="h4">Before arrival</h3>
-          <p>Short questionnaire and project selection guidance sent in advance</p>
+      <div class="grid grid--3 grid--mt" data-page-list="pricing.tiles">
+        {stages.map((tile) => (
+        <article class="tile tile--outline" data-page-item={tile._key}>
+          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
+          <p data-page-item-field="text">{tile.text}</p>
         </article>
-        <article class="tile tile--outline">
-          <h3 class="h4">During the session</h3>
-          <p>Four hours mapping workflows, identifying friction and prioritising opportunities</p>
-        </article>
-        <article class="tile tile--outline">
-          <h3 class="h4">After completion</h3>
-          <p>Tailored written report with findings, recommendations and next steps</p>
-        </article>
+        ))}
       </div>
 
       <div class="grid grid--2" style="margin-top:2rem">
         <article class="price-card">
           <div class="stack stack--16">
-            <h3 class="h4">Workflow Workshop</h3>
-            <p>Includes everything above</p>
-            <div class="price"><span class="price__amount">&pound;1,995</span></div>
+            <h3 class="h4" data-page-field="pricing.cards.0.title">{t("pricing.cards.0.title")}</h3>
+            {t("pricing.cards.0.subtitle") && <p data-page-field="pricing.cards.0.subtitle">{t("pricing.cards.0.subtitle")}</p>}
+            <div class="price">{t("pricing.cards.0.pricePrefix") && <Fragment><span data-page-field="pricing.cards.0.pricePrefix">{t("pricing.cards.0.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.0.price">{t("pricing.cards.0.price")}</span>{t("pricing.cards.0.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.0.priceSuffix">{t("pricing.cards.0.priceSuffix")}</span></Fragment>}</div>
+            {t("pricing.cards.0.note") && <p data-page-field="pricing.cards.0.note">{t("pricing.cards.0.note")}</p>}
           </div>
-          <p class="tagline tagline--sm">Includes</p>
+          {t("pricing.cards.0.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.0.includesLabel">{t("pricing.cards.0.includesLabel")}</p>}
+          {lines("pricing.cards.0.includes").length > 0 && (
           <ul class="check-list">
-            <li>Pre-workshop questionnaire &mdash; attendee and preparation guidance</li>
-            <li>Four-hour facilitated session &mdash; real project analysis and mapping</li>
-            <li>Tailored written report &mdash; key findings and priority areas</li>
-            <li>Practical recommendations &mdash; quick wins and next steps</li>
-            <li>Optional executive readout &mdash; leadership-facing presentation of findings</li>
+            {lines("pricing.cards.0.includes").map((line, j) => (
+            <li data-page-field={`pricing.cards.0.includes.${j}`}>{line}</li>
+            ))}
           </ul>
-          <ActionButton href="contact.html">Enquire about a workshop</ActionButton>
+          )}
+          <ActionButton href="contact.html"><span data-page-field="pricing.cards.0.button">{t("pricing.cards.0.button")}</span></ActionButton>
         </article>
 
         <article class="price-card price-card--dark">
           <div class="stack stack--16">
-            <h3 class="h4">Technology Blueprint</h3>
-            <div class="price"><span>From</span> <span class="price__amount">&pound;18,000</span></div>
+            <h3 class="h4" data-page-field="pricing.cards.1.title">{t("pricing.cards.1.title")}</h3>
+            {t("pricing.cards.1.subtitle") && <p data-page-field="pricing.cards.1.subtitle">{t("pricing.cards.1.subtitle")}</p>}
+            <div class="price">{t("pricing.cards.1.pricePrefix") && <Fragment><span data-page-field="pricing.cards.1.pricePrefix">{t("pricing.cards.1.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.1.price">{t("pricing.cards.1.price")}</span>{t("pricing.cards.1.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.1.priceSuffix">{t("pricing.cards.1.priceSuffix")}</span></Fragment>}</div>
+            {t("pricing.cards.1.note") && <p data-page-field="pricing.cards.1.note">{t("pricing.cards.1.note")}</p>}
           </div>
-          <p class="tagline tagline--sm">Includes</p>
+          {t("pricing.cards.1.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.1.includesLabel">{t("pricing.cards.1.includesLabel")}</p>}
+          {lines("pricing.cards.1.includes").length > 0 && (
           <ul class="check-list">
-            <li>Practice-wide workflow analysis</li>
-            <li>Software, licensing and cost review</li>
-            <li>Infrastructure and security assessment</li>
-            <li>Governance and decision structure</li>
-            <li>AI readiness and capability evaluation</li>
-            <li>Vendor strategy and cost optimisation</li>
-            <li>Two to three-year implementation roadmap</li>
-            <li>Prioritised recommendations and quick wins</li>
+            {lines("pricing.cards.1.includes").map((line, j) => (
+            <li data-page-field={`pricing.cards.1.includes.${j}`}>{line}</li>
+            ))}
           </ul>
-          <ActionButton href="technology-blueprint.html" variant="secondary">Explore the Technology Blueprint</ActionButton>
+          )}
+          <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{t("pricing.cards.1.button")}</span></ActionButton>
         </article>
       </div>
     </div>
@@ -234,8 +206,8 @@ const faq = [
 
   <section class="section section--light">
     <div class="container">
-      <h2 class="h2">Common Questions</h2>
-      <Accordion id="faq" items={faq} />
+      <h2 class="h2" data-page-field="faq.heading">{t("faq.heading")}</h2>
+      <Accordion id="faq" items={faq} field="faq.questions" />
     </div>
   </section>
 

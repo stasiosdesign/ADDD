@@ -1,8 +1,25 @@
-# Dependencies and build output
+# Dependencies and build output, for the site and for studio/
 node_modules/
 dist/
 .astro/
+
+# Sanity Studio: the dev server's runtime and TypeGen's schema extract
+studio/.sanity/
+studio/schema.json
+*.tsbuildinfo
+
+# Local tool state, and the Vercel adapter's build output (.vercel/output)
 .vercel/
+
+# Environment files and keys: real values never go in Git. .env.example lists
+# the site's variables. The Studio's two committed files hold only public
+# settings (every SANITY_STUDIO_ value is compiled into the public Studio);
+# overrides for one machine go in the git-ignored .env*.local files.
+.env
+.env.*
+!.env.example
+!studio/.env.development
+!studio/.env.production
 
 # OS
 .DS_Store

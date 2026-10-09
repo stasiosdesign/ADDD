@@ -1,0 +1,184 @@
+---
+import type { GetStaticPaths } from "astro";
+import { PortableText } from "astro-portabletext";
+import type { TypedObject } from "astro-portabletext/types";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ActionButton from "../../components/ActionButton.astro";
+import ClosingCta from "../../components/ClosingCta.astro";
+import InsightSlider from "../../components/InsightSlider.astro";
+import { sanityClient } from "../../sanity/client";
+import { hasImage, urlFor } from "../../sanity/image";
+import { cardOf, type Card, type Insight } from "../../sanity/insights";
+import { REPORT_QUERY, REPORTS_QUERY } from "../../sanity/queries";
+
+/* One page per report in Sanity (studio/schemaTypes/documents/insights.ts),
+   at /reports/<slug>.html, set as report-template.astro is. Production
+   builds every published report as a file; staging and development render
+   each on request, so a draft shows in draft mode. The page sits one folder
+   deep, so every link and asset path it writes is root-relative. */
+export const getStaticPaths =
+  __DEPLOYMENT__ === "production"
+    ? ((async () => {
+        const items = await sanityClient.fetch<Insight[]>(REPORTS_QUERY);
+        return items.map((item) => ({ params: { slug: item.slug } }));
+      }) satisfies GetStaticPaths)
+    : undefined;
+
+/** The report document, whole (REPORT_QUERY) */
+type Report = Insight & {
+  standfirst?: string | null;
+  coversLede?: string | null;
+  contents?: string[] | null;
+  highlightTitle?: string | null;
+  highlightText?: string | null;
+  body?: TypedObject[] | null;
+};
+
+const { slug = "" } = Astro.params as { slug?: string };
+const { sanity } = Astro.locals;
+const item = await sanity.fetch<Report | null>(REPORT_QUERY, { slug });
+if (!item) return new Response("Not found", { status: 404 });
+
+// A card's address and picture, one folder up from here
+const fromHere = (card: Card): Card => ({ ...card, href: `/${card.href}`, image: card.image.startsWith("http") ? card.image : `/${card.image}` });
+
+// The template's own words, kept where the report leaves a field empty
+const COVERS_LEDE = "A breakdown of the platforms, tools, and approaches shaping BIM practice today. This report examines what works, what doesn’t, and where your practice fits in.";
+const CONTENTS = ["BIM platforms", "Generative tools", "Interoperability", "Workflow fit", "Selection"];
+const HIGHLIGHT = {
+  title: "Leading BIM 2.0 platforms and their capabilities",
+  text: "A detailed look at the tools reshaping how architecture practices work with data and design.",
+};
+const RELATED: Card[] = [
+  { href: "/report-template.html", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Building a software strategy", meta: ["7 min read"] },
+  { href: "/report-template.html", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Redesigning processes effectively", meta: ["9 min read"] },
+  { href: "/report-template.html", image: "/assets/images/allister-podium-full.jpg", category: "AI and BIM", title: "Understanding AI’s real impact", meta: ["November 2024"] },
+  { href: "/report-template.html", image: "/assets/images/allister-gesture-warm.jpg", category: "Strategy", title: "Software selection frameworks", meta: ["October 2024"] },
+  { href: "/report-template.html", image: "/assets/images/allister-gesture-close.jpg", category: "Implementation", title: "Process mapping essentials", meta: ["September 2024"] },
+  { href: "/report-template.html", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "Evaluating emerging tools", meta: ["August 2024"] },
+];
+
+const coversLede = item.coversLede?.trim() || COVERS_LEDE;
+const contents = item.contents?.filter((line) => line?.trim()).length ? item.contents!.filter((line) => line?.trim()) : CONTENTS;
+const highlightTitle = item.highlightTitle?.trim() || HIGHLIGHT.title;
+const highlightText = item.highlightText?.trim() || HIGHLIGHT.text;
+const body = Array.isArray(item.body) && item.body.length > 0 ? item.body : null;
+const coverStyle = hasImage(item.cover) ? `background-image:url(${urlFor(item.cover).width(1200).url()})` : undefined;
+
+// The other reports, newest first, or the template's deck while there are none
+const others = (await sanity.fetch<Insight[]>(REPORTS_QUERY)).filter((other) => other._id !== item._id);
+const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardOf(other))) : RELATED;
+---
+<BaseLayout
+  title={`${item.title} — ADDD`}
+  description={item.summary ?? item.standfirst ?? ""}
+  pageName={item.title}
+  doc={{ id: item._id, type: "report" }}
+>
+<main class="page--grid">
+
+  <section class="pg-hero">
+    <div class="container">
+      <div class="pg-hero__grid">
+        <div class="pg-hero__col">
+          <div class="cover" style={coverStyle}></div>
+        </div>
+        <div class="pg-hero__col">
+          <p class="tagline">Report</p>
+          <h1 class="h2" data-page-field="title">{item.title}</h1>
+          <p class="text-md" data-page-field="standfirst">{item.standfirst}</p>
+          <form class="newsletter-form" onsubmit="return false">
+            <input type="email" placeholder="Work email" aria-label="Work email">
+            <button class="newsletter-form__submit" type="submit">Download</button>
+          </form>
+          <p class="text-sm">We respect your inbox. Unsubscribe at any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--light">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="coversLede">{coversLede}</p>
+        <div class="section-title__body">
+          <p class="tagline">Inside</p>
+          <h2 class="h2">What this report covers</h2>
+        </div>
+      </div>
+
+      <div class="pg-hero__grid" style="margin-top:5rem">
+        <div class="pg-hero__col" style="flex:0 0 20rem">
+          <ul class="steps" style="margin-top:0;width:100%" data-page-field="contents">
+            {contents.map((line) => (
+            <li class="steps__item" style="padding:1.25rem 0"><span class="text-md">{line}</span></li>
+            ))}
+          </ul>
+        </div>
+        <div class="pg-hero__col">
+          <div class="tile tile--lg" style="background:var(--c-white);width:100%">
+            <div class="card__icon"><img src="/assets/icons/visibility.svg" alt=""></div>
+            <h3 class="h3" data-page-field="highlightTitle">{highlightTitle}</h3>
+            <p data-page-field="highlightText">{highlightText}</p>
+            <div class="actions">
+              <ActionButton href="#download" variant="secondary">Read</ActionButton>
+              <a class="btn btn--link" href="/reports.html">Explore <img class="icon" src="/assets/icons/chevron_right.svg" alt=""></a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {body && (
+  <section class="section">
+    <div class="container">
+      <div class="prose" data-page-field="body"><PortableText value={body} /></div>
+    </div>
+  </section>
+  )}
+
+  <section class="section">
+    <div class="container">
+      <div class="research__controls" style="margin-top:0">
+        <div class="stack stack--16">
+          <p class="tagline">Resources</p>
+          <h2 class="h2">Related reports</h2>
+          <p>Explore more insight-led content to guide your practice forward</p>
+        </div>
+        <ActionButton href="/reports.html" variant="secondary">View all</ActionButton>
+      </div>
+
+      <InsightSlider items={related} />
+    </div>
+  </section>
+
+  <section class="section" id="download">
+    <div class="container">
+      <div class="card">
+        <div class="card__body card__body--lg">
+          <div class="card__text">
+            <h2 class="h3">Get the BIM 2.0 report</h2>
+            <p>Download your copy and explore what&rsquo;s reshaping architecture practice today</p>
+          </div>
+          <form class="newsletter-signup" onsubmit="return false">
+            <div class="newsletter-form">
+              <input type="email" name="email" placeholder="Work email" aria-label="Work email" required>
+              <button class="newsletter-form__submit" type="submit">Download report</button>
+            </div>
+            <fieldset class="newsletter-audience">
+              <legend class="newsletter-audience__legend">Which describes you?</legend>
+              <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+              <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+            </fieldset>
+          </form>
+          <p class="text-sm">We respect your inbox. Unsubscribe at any time.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <ClosingCta primary={{ href: "/stack-diagnostic.html" }} secondary={{ href: "/contact.html" }} />
+
+</main>
+</BaseLayout>

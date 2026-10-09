@@ -2,11 +2,34 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
+
+// Every section's words come from the Stack Diagnostic page document in
+// Sanity (studio/schemaTypes/pages/stack-diagnostic.ts), each element falling
+// back to its own (src/sanity/defaults/stack-diagnostic.ts): see
+// src/sanity/content.ts. The navigation, the footer, the chevron icons and
+// where every button and link leads stay here. Each element names the field
+// it shows (data-page-field) so the Studio's Visual editor can outline it and
+// write drafts into it; each list names its blocks (data-page-list,
+// data-page-item).
+const { t, list } = reader(await pageDocument(Astro.locals.sanity, "stackDiagnosticPage"), D);
+
+type Tile = { _key: string; title?: string; text?: string; linkLabel?: string };
+const fitTiles = list<Tile>("fit.tiles");
+const alternatives = list<Tile>("fit.alternatives");
+const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
+const nextTiles = list<Tile>("next.tiles");
+
+// Where the outlined cards' and the closing cards' links lead, by position
+const alternativeHrefs = ["workshops-audits.html", "technology-blueprint.html"];
+const nextHrefs = ["workshops-audits.html", "technology-blueprint.html", "advisory.html"];
 ---
 <BaseLayout
   title="Stack Diagnostic — ADDD"
   description="A short, focused assessment of the technology your practice actually runs—what each tool is for, who depends on it, and where two tools do the same job."
   pageName="Stack Diagnostic"
+  doc={{ id: "stackDiagnosticPage" }}
 >
 <main class="page--grid">
 
@@ -14,14 +37,14 @@ import ClosingCta from "../components/ClosingCta.astro";
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Resources &middot; Free Tech Stacks</p>
-          <h1 class="h1">Stack Diagnostic</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">A short, focused assessment of the technology your practice actually runs&mdash;what each tool is for, who depends on it, where two tools do the same job, and which parts of the stack no longer earn their place.</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions">
-            <ActionButton href="https://app.addd.io/sign-up" target="_blank" rel="noopener">Access the Free Stack</ActionButton>
-            <a class="btn btn--link" href="#how-it-works">How it works <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+            <ActionButton href="https://app.addd.io/sign-up" target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+            <a class="btn btn--link" href="#how-it-works"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
       </div>
@@ -32,39 +55,30 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section" id="who-its-for">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">The Stack Diagnostic suits practices that have accumulated tools faster than they have retired them, and now need one clear picture before deciding anything else.</p>
+        <p class="text-md" data-page-field="fit.lede">{t("fit.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Fit</p>
-          <h2 class="h2" style="max-width:16ch">Who it&rsquo;s for</h2>
+          <p class="tagline" data-page-field="fit.tagline">{t("fit.tagline")}</p>
+          <h2 class="h2" style="max-width:16ch" data-page-field="fit.heading">{t("fit.heading")}</h2>
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt">
-        <article class="tile">
-          <h3 class="h4">Practices that have grown past their tooling</h3>
-          <p>Software was chosen team by team as the practice expanded. Nobody has stepped back to look at the whole stack since.</p>
+      <div class="grid grid--3 grid--mt" data-page-list="fit.tiles">
+        {fitTiles.map((item) => (
+        <article class="tile" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
         </article>
-        <article class="tile">
-          <h3 class="h4">Leaders who cannot see what they own</h3>
-          <p>There is no single list of tools, owners and dependencies&mdash;so every technology conversation starts by arguing about the facts.</p>
-        </article>
-        <article class="tile">
-          <h3 class="h4">Teams about to commit to something large</h3>
-          <p>A platform migration, a new BIM standard or an AI pilot is coming. Knowing what you already run changes what you should buy.</p>
-        </article>
+        ))}
       </div>
 
-      <div class="grid grid--2" style="margin-top:2rem">
-        <article class="tile tile--outline">
-          <h3 class="h4">If the problem is one workflow, not the whole stack</h3>
-          <p>When friction is concentrated in how a single project runs, a half-day session on a real project will get you further, faster.</p>
-          <a class="btn btn--link" href="workshops-audits.html">Workflow Workshop <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <div class="grid grid--2" style="margin-top:2rem" data-page-list="fit.alternatives">
+        {alternatives.map((item, i) => (
+        <article class="tile tile--outline" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
+          <a class="btn btn--link" href={alternativeHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{item.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
-        <article class="tile tile--outline">
-          <h3 class="h4">If you need a strategy, not a snapshot</h3>
-          <p>The diagnostic tells you what you have. When you need a sequenced plan across workflows, costs, roles and AI, start with the blueprint.</p>
-          <a class="btn btn--link" href="technology-blueprint.html">Technology Blueprint <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
+        ))}
       </div>
     </div>
   </section>
@@ -72,47 +86,28 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section section--light" id="how-it-works">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">Four stages across roughly three weeks. Most of the work happens away from your team&mdash;you are needed for a kickoff, a handful of short interviews and the readout.</p>
+        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Method</p>
-          <h2 class="h2">How it works</h2>
+          <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
+          <h2 class="h2" data-page-field="method.heading">{t("method.heading")}</h2>
         </div>
       </div>
 
-      <div class="steps">
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage one</p>
+      <div class="steps" data-page-list="method.steps">
+        {steps.map((step) => (
+        <div class="steps__item" data-page-item={step._key}>
+          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
           <div class="steps__body">
-            <h3 class="h4">Inventory</h3>
-            <p>We collect every tool in use across the practice, including the ones bought on a card and never registered centrally. Each entry gets an owner, a purpose and a dependency.</p>
+            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
+            <p data-page-item-field="text">{step.text}</p>
           </div>
         </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage two</p>
-          <div class="steps__body">
-            <h3 class="h4">Interviews</h3>
-            <p>Short conversations with the people who actually use the stack. What they reach for, what they avoid, and what they have quietly built a workaround around.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage three</p>
-          <div class="steps__body">
-            <h3 class="h4">Overlap and gap analysis</h3>
-            <p>We map where two tools do one job, where one tool does none, and where a dependency sits with a single person. Findings are checked against independent product research rather than vendor claims.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Stage four</p>
-          <div class="steps__body">
-            <h3 class="h4">Readout</h3>
-            <p>You receive a written stack map with consolidation candidates, risks and a short list of what to change first. Delivered as a document and walked through with leadership.</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div class="actions" style="margin-top:3rem">
-        <ActionButton href="contact.html">Enquire about a diagnostic</ActionButton>
-        <a class="btn btn--link" href="technology-blueprint.html">Software costs in the Blueprint <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+        <ActionButton href="contact.html"><span data-page-field="method.button">{t("method.button")}</span></ActionButton>
+        <a class="btn btn--link" href="technology-blueprint.html"><span data-page-field="method.linkLabel">{t("method.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
       </div>
     </div>
   </section>
@@ -120,27 +115,19 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">The diagnostic is a starting point, not a commitment. Most practices use it to decide which of these comes next.</p>
+        <p class="text-md" data-page-field="next.lede">{t("next.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2">Where it leads</h2>
+          <h2 class="h2" data-page-field="next.heading">{t("next.heading")}</h2>
         </div>
       </div>
-      <div class="grid grid--3 grid--mt">
-        <article class="tile">
-          <h3 class="h4">Workflow Workshop</h3>
-          <p>Find where the time goes, using a live project as the test case.</p>
-          <a class="btn btn--link" href="workshops-audits.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <div class="grid grid--3 grid--mt" data-page-list="next.tiles">
+        {nextTiles.map((item, i) => (
+        <article class="tile" data-page-item={item._key}>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
+          <a class="btn btn--link" href={nextHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{item.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
-        <article class="tile">
-          <h3 class="h4">Technology Blueprint</h3>
-          <p>Take the findings into a sequenced roadmap across the whole practice.</p>
-          <a class="btn btn--link" href="technology-blueprint.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
-        <article class="tile">
-          <h3 class="h4">ADDDvisory</h3>
-          <p>Keep an external reference point as the decisions arrive month to month.</p>
-          <a class="btn btn--link" href="advisory.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
+        ))}
       </div>
     </div>
   </section>

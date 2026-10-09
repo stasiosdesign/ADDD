@@ -2,11 +2,25 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
+
+// Every section's words come from the Before Revit page document in Sanity
+// (studio/schemaTypes/pages/before-revit.ts), each element falling back to
+// its own (src/sanity/defaults/before-revit.ts): see src/sanity/content.ts.
+// The navigation, the footer, the two price cards' looks and where every
+// button leads stay here. Each element names the field it shows
+// (data-page-field) so the Studio's Visual editor can outline it and write
+// drafts into it.
+const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "beforeRevitPage"), D);
+
+const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
 ---
 <BaseLayout
   title="Before Revit — ADDD"
   description="Before Revit is an engagement for architecture practices reviewing their early-stage design workflow: what happens in the early stages of design, before the work moves into Revit or Archicad."
   pageName="Before Revit"
+  doc={{ id: "beforeRevitPage" }}
 >
 <main class="page--grid">
 
@@ -14,14 +28,14 @@ import ClosingCta from "../components/ClosingCta.astro";
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <p class="tagline">Before Revit</p>
-          <h1 class="h1">Early-stage design workflow</h1>
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
-          <p class="text-md">An engagement for practices reviewing what happens in the early stages of design, before the work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.</p>
+          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions actions--pair">
-            <ActionButton href="contact.html">Enquire</ActionButton>
-            <ActionButton href="#pricing" variant="secondary">Investment</ActionButton>
+            <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+            <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -32,35 +46,23 @@ import ClosingCta from "../components/ClosingCta.astro";
   <section class="section section--light" id="how-it-works">
     <div class="container">
       <div class="section-title">
-        <p class="text-md">The ADDD approach, applied to the start of the design process rather than the whole practice.</p>
+        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
-          <p class="tagline">Method</p>
-          <h2 class="h2">How it works</h2>
+          <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
+          <h2 class="h2" data-page-field="method.heading">{t("method.heading")}</h2>
         </div>
       </div>
 
-      <div class="steps">
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Understand</p>
+      <div class="steps" data-page-list="method.steps">
+        {steps.map((step) => (
+        <div class="steps__item" data-page-item={step._key}>
+          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
           <div class="steps__body">
-            <h3 class="h4">Map early-stage design as it actually happens</h3>
-            <p>How work, tools, information and decisions move through the early stages of design, not how they are supposed to.</p>
+            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
+            <p data-page-item-field="text">{step.text}</p>
           </div>
         </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Diagnose</p>
-          <div class="steps__body">
-            <h3 class="h4">Trace what carries forward and what is lost</h3>
-            <p>Where early design work connects to what follows in Revit or Archicad, and where it is recreated or lost on the way.</p>
-          </div>
-        </div>
-        <div class="steps__item">
-          <p class="tagline tagline--sm steps__label">Prioritise</p>
-          <div class="steps__body">
-            <h3 class="h4">Decide what should change first</h3>
-            <p>Clear priorities for the early-stage workflow: what should change first, who should own it and where investment will have the most impact.</p>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   </section>
@@ -69,28 +71,46 @@ import ClosingCta from "../components/ClosingCta.astro";
     <div class="container">
       <div class="section-title">
         <div class="section-title__body">
-          <p class="tagline">Investment</p>
-          <h2 class="h2">Before Revit</h2>
+          <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
+          <h2 class="h2" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
         </div>
       </div>
 
       <div class="grid grid--2 grid--mt">
         <article class="price-card">
           <div class="stack stack--16">
-            <h3 class="h4">Before Revit</h3>
-            <p>Early-stage design workflow</p>
-            <div class="price"><span>From</span> <span class="price__amount">&pound;9,500</span></div>
+            <h3 class="h4" data-page-field="pricing.cards.0.title">{t("pricing.cards.0.title")}</h3>
+            {t("pricing.cards.0.subtitle") && <p data-page-field="pricing.cards.0.subtitle">{t("pricing.cards.0.subtitle")}</p>}
+            <div class="price">{t("pricing.cards.0.pricePrefix") && <Fragment><span data-page-field="pricing.cards.0.pricePrefix">{t("pricing.cards.0.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.0.price">{t("pricing.cards.0.price")}</span>{t("pricing.cards.0.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.0.priceSuffix">{t("pricing.cards.0.priceSuffix")}</span></Fragment>}</div>
+            {t("pricing.cards.0.note") && <p data-page-field="pricing.cards.0.note">{t("pricing.cards.0.note")}</p>}
           </div>
-          <ActionButton href="contact.html">Enquire about Before Revit</ActionButton>
+          {t("pricing.cards.0.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.0.includesLabel">{t("pricing.cards.0.includesLabel")}</p>}
+          {lines("pricing.cards.0.includes").length > 0 && (
+          <ul class="check-list">
+            {lines("pricing.cards.0.includes").map((line, j) => (
+            <li data-page-field={`pricing.cards.0.includes.${j}`}>{line}</li>
+            ))}
+          </ul>
+          )}
+          <ActionButton href="contact.html"><span data-page-field="pricing.cards.0.button">{t("pricing.cards.0.button")}</span></ActionButton>
         </article>
 
         <article class="price-card price-card--dark">
           <div class="stack stack--16">
-            <h3 class="h4">Not sure where to start?</h3>
-            <p>The Workflow Workshop is a half-day diagnostic using a live project, for when something is not working but the starting point is unclear.</p>
-            <div class="price"><span class="price__amount">&pound;1,995</span></div>
+            <h3 class="h4" data-page-field="pricing.cards.1.title">{t("pricing.cards.1.title")}</h3>
+            {t("pricing.cards.1.subtitle") && <p data-page-field="pricing.cards.1.subtitle">{t("pricing.cards.1.subtitle")}</p>}
+            <div class="price">{t("pricing.cards.1.pricePrefix") && <Fragment><span data-page-field="pricing.cards.1.pricePrefix">{t("pricing.cards.1.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.1.price">{t("pricing.cards.1.price")}</span>{t("pricing.cards.1.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.1.priceSuffix">{t("pricing.cards.1.priceSuffix")}</span></Fragment>}</div>
+            {t("pricing.cards.1.note") && <p data-page-field="pricing.cards.1.note">{t("pricing.cards.1.note")}</p>}
           </div>
-          <ActionButton href="workshops-audits.html" variant="secondary">Explore the Workflow Workshop</ActionButton>
+          {t("pricing.cards.1.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.1.includesLabel">{t("pricing.cards.1.includesLabel")}</p>}
+          {lines("pricing.cards.1.includes").length > 0 && (
+          <ul class="check-list">
+            {lines("pricing.cards.1.includes").map((line, j) => (
+            <li data-page-field={`pricing.cards.1.includes.${j}`}>{line}</li>
+            ))}
+          </ul>
+          )}
+          <ActionButton href="workshops-audits.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{t("pricing.cards.1.button")}</span></ActionButton>
         </article>
       </div>
     </div>

@@ -1,5 +1,8 @@
 {
   "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "types": ["astro/client", "node"]
+  },
   "include": [".astro/types.d.ts", "**/*"],
-  "exclude": ["dist"]
+  "exclude": ["dist", "studio", "webflow-billing-toggle"]
 }

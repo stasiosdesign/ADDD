@@ -3,22 +3,33 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
+
+// Every section's words and pictures come from the For AEC Tech Firms page
+// document in Sanity (studio/schemaTypes/pages/tech-firms.ts), each element
+// falling back to its own (src/sanity/defaults/tech-firms.ts): see
+// src/sanity/content.ts. The hero's pattern, the cards' tones and crops and
+// where every button leads stay here. Each element names the field it shows
+// (data-page-field) so the Studio's Visual editor can outline it and write
+// drafts into it.
+const { t, list, img } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
 
 // The routes into ADDD's audience, one pinned card each (initApproachSlides,
-// site.js). The last is left unpinned and closed over by the shutter.
-const opportunities = [
-  { title: "Content sponsorship", text: "Sponsor workflow content and episodes that show how technology actually gets used to make architecture, across people, process and projects.", tone: "is--ink", image: "assets/images/allister-podium-portrait.jpg", crop: "is--crop-left" },
-  { title: "Newsletter placement", text: "A placement in ADDDitive, the ADDD newsletter for people who run and work in architecture practices.", tone: "is--dark", image: "assets/images/allister-gesture-close.jpg", crop: "is--crop-centre" },
-  { title: "Intelligence and research", text: "ADDD research into how architecture practices choose, adopt and use software across their workflows.", tone: "is--ink", image: "assets/images/allister-keynote-stage.jpg", crop: "is--crop-centre" },
-  { title: "Events and content", text: "Relevant events and content opportunities that put your product in front of the architecture audience. Nobody pays for recommendations or rankings.", tone: "is--grey", image: "assets/images/allister-gesture-warm.jpg", crop: "is--crop-right" },
-];
+// site.js). The last is left unpinned and closed over by the shutter. The
+// cards are bound by position (not as a redrawable list) because the
+// pinning animates them by position; each card's tone and crop stay here.
+const opportunities = list<{ _key: string; title?: string; text?: string; image?: unknown }>("opportunities.items");
+const tones = ["is--ink", "is--dark", "is--ink", "is--grey"];
+const crops = ["is--crop-left", "is--crop-centre", "is--crop-centre", "is--crop-right"];
 
-const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet", label: "Request the Fee Sheet" };
+const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet" };
 ---
 <BaseLayout
   title="For AEC Tech Firms — ADDD"
   description="Sponsorship and partnerships that give technology companies access to ADDD’s architecture audience: workflow and episode content, ADDDitive newsletter placement, research and events."
   pageName="Tech Firms"
+  doc={{ id: "techFirmsPage" }}
 >
 <main class="page--grid">
 
@@ -31,11 +42,11 @@ const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet"
     arrowLabel="Scroll to the partnership opportunities"
     layout="split"
     accent="blue"
-    tagline="For AEC tech firms"
-    heading="Reach architecture practices through ADDD"
-    lede="Sponsorship and partnerships that give technology companies access to ADDD’s architecture audience, through its content, the ADDDitive newsletter, research and events."
-    primaryCta={{ href: "contact.html", label: "Partnership Enquiry" }}
-    secondaryCta={fees}
+    tagline={t("hero.tagline")}
+    lede={t("hero.lede")}
+    heading={t("hero.heading")}
+    primaryCta={{ href: "contact.html", label: t("hero.primaryButton") }}
+    secondaryCta={{ href: fees.href, label: t("hero.secondaryButton") }}
   />
 
   <!-- The opportunities, on the approach cards that used to open the
@@ -48,19 +59,20 @@ const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet"
     <div data-approach-slides-init class="approach__slides">
       {opportunities.map((item, i) => {
         const last = i === opportunities.length - 1;
+        const picture = img(`opportunities.items.${i}.image`, 1200, D.opportunities.items[i]?.image);
         return (
           <div class="approach__slide" data-shutter-scroll-section={last ? "" : undefined}>
             <div class="approach__slide-wrapper">
-              <div class={`approach__card ${item.tone}`}>
+              <div class={`approach__card ${tones[i] ?? tones[tones.length - 1]}`}>
                 <div class="approach__card-top">
-                  <h3 class="approach__card-h">{item.title}</h3>
+                  <h3 class="approach__card-h" data-page-field={`opportunities.items.${i}.title`}>{item.title}</h3>
                   <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
                 </div>
                 <div class="approach__card-bottom">
-                  <p class="approach__card-p">{item.text}</p>
+                  <p class="approach__card-p" data-page-field={`opportunities.items.${i}.text`}>{item.text}</p>
                   <div class="approach__card-aside">
                     <p class="approach__card-num">({String(i + 1).padStart(2, "0")})</p>
-                    <img src={item.image} loading="lazy" alt="" class={`approach__card-image ${item.crop}`}>
+                    <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt="" class={`approach__card-image ${crops[i] ?? crops[crops.length - 1]}`} data-page-field={`opportunities.items.${i}.image`} data-page-width="1200">
                   </div>
                 </div>
               </div>
@@ -75,10 +87,9 @@ const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet"
   </section>
 
   <ClosingCta
-    label="For technology companies"
-    heading="Talk to us about partnering with ADDD"
-    primary={{ href: "contact.html", label: "Partnership Enquiry" }}
-    secondary={fees}
+    doc={{ id: "techFirmsPage", defaults: D, field: "closingCta" }}
+    primary={{ href: "contact.html" }}
+    secondary={{ href: fees.href }}
     accent="blue"
   />
 
