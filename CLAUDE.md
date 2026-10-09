@@ -112,11 +112,14 @@ the reference implementation this one follows.
   background slot `data-page-bg`. Add the field to the schema and its
   current text to the defaults. Then rebuild and confirm the page is
   unchanged.
-- `studio/package.json` pins an exact release; updates arrive as Dependabot
-  pull requests against `staging` (`.github/dependabot.yml`), checked by
-  `.github/workflows/studio.yml`. Merging is the user's approval; then the
-  usual staging → main promotion and `npm run studio:deploy`. Never merge
-  or deploy an update without approval. Read the package's CHANGELOG.md for
+- `studio/package.json` pins an exact release. A CMS release updates this
+  Studio by itself: `.github/workflows/studio-update.yml` (started by the
+  package's release, or by hand from the Actions tab) installs the version,
+  runs the checks, deploys the hosted Studio and commits the version to
+  `main`, then merges `main` into `staging`. The user chose this
+  (2026-10-09): releasing is the approval. It needs the `SANITY_AUTH_TOKEN`
+  secret (a deploy token for this site's Sanity project, the user's to
+  create). Dependabot pull requests stay as a fallback. Read the package's CHANGELOG.md for
   what a version asks of the site.
 - A change that needs both sides: the shared part in the shared package;
   run this Studio on it with `npm run dev:linked` in `studio/`; commit this
