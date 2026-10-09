@@ -17,9 +17,6 @@ desktop.ini
 # Local Claude Code settings
 .claude/settings.local.json
 
-# Asset intake (see assets/README.md): contents stay on this computer, never in Git.
-# Client originals and references may be confidential, and the repositories are public.
-assets/inbox/*
-assets/originals/*
-assets/references/*
-!assets/*/.gitkeep
+# Unpublished source material and new files to add: stays on this computer, never in Git.
+# The repositories are public and this may hold confidential originals.
+source-assets/
