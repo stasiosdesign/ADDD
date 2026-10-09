@@ -30,4 +30,4 @@ The user keeps uncommitted design work here. Never revert or stage files you did
 
 ## Future Sanity (not installed)
 
-Planned. When added: `studio/` at the project root with its own `package.json`, same pattern as `tomrow-studios/tomrow-website`. The site is static, so a Sanity build also needs a rebuild-hook decision first. Do not add it unless asked.
+Planned. When added: `studio/` at the project root with its own `package.json`, built on the shared CMS package `@stasiosdesign/sanity-cms` (see the workspace `CLAUDE.md`; Tomrow Studios, `Tomrowstudios/tomrowstudios-website`, is the reference). The site is static, so a Sanity build also needs a rebuild-hook decision first. Do not add it unless asked.
