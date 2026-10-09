@@ -9,10 +9,10 @@ conventions and the CMS: read it before editing.
 ## Branches and deployments
 
 - `main` is **production**: every push deploys the public site
-  (https://addd-final-wireframes.vercel.app until a domain is connected).
+  (https://addd-io.vercel.app until a domain is connected).
   Keep it production-ready at all times.
 - `staging` is the permanent **staging** branch: every push updates the
-  stable staging URL (https://addd-git-staging-stasiosdesign.vercel.app). It
+  stable staging URL (https://addd-staging.vercel.app). It
   is not a feature branch; never delete it.
 
 ## How to work

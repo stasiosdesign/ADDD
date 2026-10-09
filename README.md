@@ -25,8 +25,8 @@ npm run studio:deploy  # deploys the hosted Studio
 
 |            | URL                                                   | From                        |
 | ---------- | ----------------------------------------------------- | --------------------------- |
-| Production | https://addd-final-wireframes.vercel.app              | `main`                      |
-| Staging    | https://addd-git-staging-stasiosdesign.vercel.app     | `staging`                   |
+| Production | https://addd-io.vercel.app              | `main`                      |
+| Staging    | https://addd-staging.vercel.app     | `staging`                   |
 | Studio     | https://addd.sanity.studio                            | `studio/`, deployed by hand |
 
 Staging's URL is Vercel's alias for the `staging` branch: it always shows the
