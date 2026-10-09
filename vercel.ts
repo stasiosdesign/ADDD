@@ -14,6 +14,12 @@ export const config: VercelConfig = {
   framework: 'astro',
   buildCommand: 'npm run build',
   outputDirectory: 'dist',
+  // Staging renders on request, where Astro's router has no /about.html: Vercel
+  // rewrites each .html address to the route that renders it before the
+  // function sees it (src/middleware.ts does the same, as a fallback; on Vercel
+  // alone the fallback answers 404 while rendering the right page). Production
+  // serves the .html files themselves.
+  ...(staging ? { rewrites: [{ source: '/:path*.html', destination: '/:path*' }] } : {}),
   headers: [
     // The build stamp (astro.config.mjs): read by the Studio, on another
     // origin, and never from a cache, so it always says when the site was
