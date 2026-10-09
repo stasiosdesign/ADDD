@@ -80,8 +80,8 @@ export default defineConfig({
     // and so on — rather than moving to /about/. The markup links between
     // pages with relative hrefs ("about.html", "assets/logo.svg"), and Barba
     // fetches those same URLs on a navigation, so the files have to sit flat
-    // at the root exactly as they did before. (Astro's router accepts the
-    // same .html addresses where staging renders on request.)
+    // at the root exactly as they did before. (Where staging renders on
+    // request, src/middleware.ts rewrites each .html address to its route.)
     format: "file",
   },
 

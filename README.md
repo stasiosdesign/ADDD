@@ -47,8 +47,8 @@ Which is which comes from Vercel itself (`VERCEL_ENV`: `production` for
 `main`, `preview` for every other branch), read in `astro.config.mjs`. Nothing
 depends on a hostname, so adding a domain changes no code. `npm run dev`
 behaves like staging, on your machine. The site keeps its `.html` addresses
-in both (`build.format: "file"`; Astro's router accepts them where staging
-renders on request).
+in both (`build.format: "file"`; where staging renders on request,
+`src/middleware.ts` rewrites each `.html` address to the route that renders it).
 
 ## Workflow
 

@@ -22,7 +22,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   context.locals.sanity = drafts ?? sanityClient;
   context.locals.draftMode = drafts !== null;
 
-  const response = await next();
+  // The site's addresses end in .html (astro.config.mjs, build.format):
+  // production serves them as files, and here, where every request is
+  // rendered, each is rewritten to the route that renders it, so staging
+  // answers the same addresses as production (/about.html, /reports/x.html)
+  const { pathname, search } = context.url;
+  const rewrite = pathname.endsWith('.html') ? `${pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '')}${search}` : undefined;
+  const response = await (rewrite ? next(rewrite) : next());
   const headers: Record<string, string> = { 'X-Robots-Tag': 'noindex, nofollow' };
   // Drafts are for this browser only: never stored by a cache on the way
   if (drafts) headers['Cache-Control'] = 'private, no-store';
