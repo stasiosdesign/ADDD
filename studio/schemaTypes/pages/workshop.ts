@@ -1,6 +1,6 @@
-import {defineField, defineType} from 'sanity'
+import {defineType} from 'sanity'
 import {PresentationIcon} from '@sanity/icons/Presentation'
-import {headingField, heroSection, itemsField, pageSection, sectionHead, taglineField} from '../shared/fields'
+import {headingField, heroSection, itemsField, pageSection, quoteSection, sectionHead, taglineField} from '../shared/fields'
 
 /* The Workflow Workshop page, one section per part of the page, in the
    order the page shows them (src/pages/workshops-audits.astro; the page's
@@ -32,7 +32,7 @@ export const workshopPage = defineType({
       itemsField('steps', 'Steps', 'step', 'The steps, top to bottom: the label on the left, the title and the text.'),
     ]),
     pageSection('story', 'What practices discover', 'The tagline and heading above the quote.', [taglineField(), headingField()]),
-    defineField({name: 'quote', title: 'Quote', type: 'quote', description: 'The quote under “What practices discover”, and who said it. The avatar placeholder stays in the code.'}),
+    quoteSection('The quote under “What practices discover”, and who said it. The avatar placeholder stays in the code.'),
     pageSection('pricing', 'Investment', 'The heading row, the three outlined cards on what the workshop includes, and the two price cards. The cards’ looks and where their buttons lead stay in the site’s code.', [
       ...sectionHead(),
       itemsField('tiles', 'Cards', 'tile', 'The three outlined cards: a title and a line of text each.'),

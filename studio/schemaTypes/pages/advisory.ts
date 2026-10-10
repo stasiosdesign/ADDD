@@ -1,6 +1,6 @@
-import {defineField, defineType} from 'sanity'
+import {defineType} from 'sanity'
 import {UsersIcon} from '@sanity/icons/Users'
-import {headingField, heroSection, imageField, itemsField, leadField, pageSection, sectionHead} from '../shared/fields'
+import {headingField, heroSection, imageField, itemsField, leadField, pageSection, quoteSection, sectionHead} from '../shared/fields'
 
 /* The ADDDvisory page, one section per part of the page, in the order the
    page shows them (src/pages/advisory.astro; the page's own words in
@@ -44,7 +44,7 @@ export const advisoryPage = defineType({
       ...sectionHead(),
       itemsField('cards', 'Cards', 'priceCard', 'The two cards: the membership on the left, the Technology Blueprint on the right. There are always two.'),
     ]),
-    defineField({name: 'quote', title: 'Quote', type: 'quote', description: 'The testimonial between the pricing and the questions: the quote, and who said it.'}),
+    quoteSection('The testimonial between the pricing and the questions: the quote, and who said it.'),
     pageSection('faq', 'Answers', 'The heading and the questions that end the page, each with its answer.', [
       headingField(),
       itemsField('questions', 'Questions', 'faqItem', 'The questions, in order; the first starts open.'),

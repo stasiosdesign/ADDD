@@ -1,5 +1,5 @@
 import {defineArrayMember, defineField} from 'sanity'
-import {pageSection} from '@stasiosdesign/sanity-cms'
+import {pageSection, SectionField} from '@stasiosdesign/sanity-cms'
 
 /* The building blocks of the page documents (schemaTypes/pages): one section
    per part of a page, each a folded bar in the form (pageSection, the CMS
@@ -88,3 +88,14 @@ export const sectionHead = (lede = 'The standfirst beside the heading.') => [
   taglineField(),
   headingField(),
 ]
+
+/** A page's testimonial (the quote block), folded into a bar like the page's sections. */
+export const quoteSection = (description: string) =>
+  defineField({
+    name: 'quote',
+    title: 'Quote',
+    type: 'quote',
+    description,
+    options: {collapsible: true, collapsed: true},
+    components: {field: SectionField},
+  })

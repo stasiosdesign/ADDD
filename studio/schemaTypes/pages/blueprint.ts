@@ -1,6 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {BlockElementIcon} from '@sanity/icons/BlockElement'
-import {buttonField, headingField, itemsField, leadField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, pageSection, quoteSection, sectionHead, taglineField, textField} from '../shared/fields'
 
 /* The Technology Blueprint page, one section per part of the page, in the
    order the page shows them (src/pages/technology-blueprint.astro; the
@@ -41,7 +41,7 @@ export const blueprintPage = defineType({
       linkField('The text link beside the button; it links to the About page.'),
       itemsField('steps', 'Steps', 'step', 'The steps, top to bottom: the week on the left, the title and the text.'),
     ]),
-    defineField({name: 'quote', title: 'Quote', type: 'quote', description: 'The quote between the delivery steps and the enquiry, and who said it. The avatar placeholder stays in the code.'}),
+    quoteSection('The quote between the delivery steps and the enquiry, and who said it. The avatar placeholder stays in the code.'),
     pageSection('enquiry', 'Start here', 'The tagline, heading, standfirst and contact details beside the enquiry form, and the words on its button. The form’s fields and where the details link stay in the site’s code.', [
       taglineField(),
       headingField(),

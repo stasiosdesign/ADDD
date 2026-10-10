@@ -9,6 +9,7 @@ import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { hasImage, imageAttrs } from "../sanity/image";
+import { logoShape } from "../sanity/logo-balance";
 import { cardOf, type Insight } from "../sanity/insights";
 import { CLIENT_LOGOS_QUERY, INSIGHTS_QUERY } from "../sanity/queries";
 import { homePage as D, INSIGHT_DEFAULTS } from "../sanity/defaults/home";
@@ -31,11 +32,18 @@ const [doc, clients, insights] = await Promise.all([
 const { t, list, lines, img, bg } = reader(doc, D);
 
 // The strip's logos: the clients in the Studio, each with its mark, or the
-// ten files the strip has always shown
-type Logo = { id: string; name: string; src: string; width?: number; height?: number };
-const logos: Logo[] = clients?.length
-  ? clients.map((client) => ({ id: client._id, name: client.name, ...(hasImage(client.logo) ? imageAttrs(client.logo, 600) : { src: "" }) }))
-  : CLIENTS.map((client) => ({ id: client._id, name: client.name, src: client.logo.path }));
+// ten files the strip has always shown. Each is sized to balance the others
+// (src/sanity/logo-balance.ts): the same area of ink box, whatever its shape.
+type Logo = { id: string; name: string; src: string; width?: number; height?: number; style?: string };
+const logos: Logo[] = await Promise.all(
+  (clients?.length
+    ? clients.map((client) => ({ id: client._id, name: client.name, ...(hasImage(client.logo) ? imageAttrs(client.logo, 600) : { src: "" }) }))
+    : CLIENTS.map((client) => ({ id: client._id, name: client.name, src: client.logo.path }))
+  ).map(async (logo: Logo) => {
+    const shape = logo.src ? await logoShape(logo.src, logo.width, logo.height) : undefined;
+    return { ...logo, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined };
+  }),
+);
 
 const steps = list<{ _key: string; title?: string; text?: string }>("approach.steps").map((step, i) => ({
   title: step.title || D.approach.steps[i]?.title || "",
@@ -117,7 +125,7 @@ const routeIcons = [
              (Home page → Logo strip), in their order. -->
         <div data-wavy-marquee-list class="wavy-marquee__list">
           {logos.map((logo) => (
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src={logo.src} width={logo.width} height={logo.height} alt={logo.name} draggable="false"></div></div>
+          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src={logo.src} width={logo.width} height={logo.height} alt={logo.name} style={logo.style} draggable="false"></div></div>
           ))}
         </div>
       </div>
