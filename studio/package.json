@@ -6,6 +6,7 @@
   "scripts": {
     "build": "sanity build",
     "check": "tsc --noEmit && eslint . && npm test",
+    "predeploy": "node scripts/check-deploy.mjs",
     "deploy": "sanity deploy",
     "dev": "sanity dev",
     "dev:linked": "sanity dev",

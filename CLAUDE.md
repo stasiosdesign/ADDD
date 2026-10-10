@@ -85,7 +85,12 @@ development machine at `3 - Claude/1 - HQ/shared-sanity-cms`, with its own
 CLAUDE.md) set up for this website. This repository lives in its client
 folder, `3 - Claude/ADDD/addd-website`; shared changes are never made from
 here. Tomrow Studios (`3 - Claude/Tomrowstudios/tomrowstudios-website`) is
-the reference implementation this one follows.
+the reference implementation this one follows. Before writing any Studio
+code, decide whether it's for every Studio or only this one, using the
+workspace `CLAUDE.md` ("Every Studio, or only this one? Claude decides"), and
+say the decision in one line. Dashboard behaviour wanted only here goes in
+the package as an option that is off by default, switched on in
+`studio/project.ts`.
 
 | Kind of change | Where |
 | --- | --- |
@@ -114,9 +119,9 @@ the reference implementation this one follows.
   unchanged.
 - `studio/package.json` pins an exact release. A CMS release updates this
   Studio by itself: `.github/workflows/studio-update.yml` (started by the
-  package's release, or by hand from the Actions tab) installs the version,
-  runs the checks, deploys the hosted Studio and commits the version to
-  `main`, then merges `main` into `staging`. The user chose this
+  package's release, or by hand from the Actions tab) installs the version
+  on `main`, runs the checks, merges `main` into `staging`, deploys the
+  hosted Studio from `staging`, then pushes both. The user chose this
   (2026-10-09): releasing is the approval. It needs the `SANITY_AUTH_TOKEN`
   secret (a deploy token for this site's Sanity project, the user's to
   create). Dependabot pull requests stay as a fallback. Read the package's CHANGELOG.md for
@@ -127,11 +132,16 @@ the reference implementation this one follows.
 - Use only the package's entry points (`@stasiosdesign/sanity-cms`,
   `/protocol`, `/cli`); ESLint refuses deep imports. Never copy package code
   into this repository.
-- The hosted Studio (https://addd.sanity.studio) is deployed by hand
-  (`npm run studio:deploy`), from whichever branch is checked out, and
-  serves both environments. Deploy it after schema or Studio changes, and
-  keep schema changes backward-compatible with the code on `main` (they
-  share one dataset).
+- The hosted Studio (https://addd.sanity.studio) serves both environments
+  and is always the `staging` branch's Studio, as pushed to GitHub, on the
+  latest CMS release (workspace `CLAUDE.md`, "How changes reach the hosted
+  Studios"). After a schema or Studio change: commit, push `staging`, then
+  `npm run studio:deploy`. Its check (`studio/scripts/check-deploy.mjs`)
+  refuses another branch, an out-of-date folder, uncommitted Studio changes
+  or an old CMS, and says what to do. Never run `npx sanity deploy`: on 10
+  Oct 2026 a deploy from this folder, two updates behind, rolled the hosted
+  Studio back from 1.5.0 to 1.3.0. Keep schema changes backward-compatible
+  with the code on `main` (they share one dataset).
 - Sanity is pinned (`autoUpdates: false` in `studio/sanity.cli.ts`):
   upgrades start in the package and the stasiosdesign.com Studio.
 - Dataset writes from here may be blocked by auto mode; `npm run seed` is
