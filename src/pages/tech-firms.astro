@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "../components/ActionButton.astro";
 import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
@@ -13,21 +14,34 @@ import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 // where every button leads stay here. Each element names the field it shows
 // (data-page-field) so the Studio's Visual editor can outline it and write
 // drafts into it.
-const { t, list, img } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
+const { t, list, lines, img } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
 
-// The routes into ADDD's audience, one pinned card each (initApproachSlides,
-// site.js). The last is left unpinned and closed over by the shutter. The
-// cards are bound by position (not as a redrawable list) because the
-// pinning animates them by position; each card's tone and crop stay here.
-const opportunities = list<{ _key: string; title?: string; text?: string; image?: unknown }>("opportunities.items");
-const tones = ["is--ink", "is--dark", "is--ink", "is--grey"];
-const crops = ["is--crop-left", "is--crop-centre", "is--crop-centre", "is--crop-right"];
+type Offer = { _key: string; title?: string; audience?: string; subtitle?: string; price?: string; priceSuffix?: string; note?: string; includesLabel?: string; includes?: string[]; conditions?: string; button?: string };
 
-const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet" };
+const whyTiles = list<{ _key: string; number?: string; title?: string; text?: string }>("why.tiles");
+const formatSteps = list<{ _key: string; label?: string; title?: string; text?: string }>("example.steps");
+const processTiles = list<{ _key: string; number?: string; title?: string; text?: string }>("process.tiles");
+const offers = list<Offer>("options.cards");
+const placements = list<Offer>("more.cards");
+
+// The three objectives, one pinned card each (initApproachSlides, site.js),
+// the last closed over by the shutter. Bound by position, since the pinning
+// animates them by position; each card's tone, crop and the offer it leads
+// to stay here.
+const routes = list<{ _key: string; title?: string; text?: string; linkLabel?: string; image?: unknown }>("routes.items");
+const tones = ["is--ink", "is--dark", "is--grey"];
+const crops = ["is--crop-left", "is--crop-centre", "is--crop-right"];
+
+// Each offer's anchor and the name it carries into the enquiry form
+// (contact.html?offer=…, initEnquiryOffer in site.js), by position
+const offerIds = ["sponsorship", "episode", "intelligence"];
+const placementIds = ["newsletter", "events"];
+const routeHrefs = offerIds.map((id) => `#offer-${id}`);
+const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(offer ?? "partnership")}`;
 ---
 <BaseLayout
   title="AEC Tech Partners — ADDD"
-  description="Sponsorship and partnerships that give technology companies access to ADDD’s architecture audience: workflow and episode content, ADDDitive newsletter placement, research and events."
+  description="Partnerships for technology companies: channel sponsorship, featured workflow episodes and practice intelligence that help architects understand where your technology fits."
   pageName="AEC Tech Partners"
   doc={{ id: "techFirmsPage" }}
 >
@@ -35,44 +49,80 @@ const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet"
 
   <!-- The homepage hero for the AEC technology market: the same Slash
        Field, with the AEC Tech Firms blue as its accent, on the left of
-       the viewport and the copy beside it (Hero.astro, "split"). Its
-       buttons are the partnership routes, never the practice ones. -->
+       the viewport and the copy beside it (Hero.astro, "split"). -->
   <Hero
-    arrowHref="#tech-firms-content"
-    arrowLabel="Scroll to the partnership opportunities"
+    arrowHref="#why"
+    arrowLabel="Scroll to why ADDD"
     layout="split"
     accent="blue"
     tagline={t("hero.tagline")}
     lede={t("hero.lede")}
     heading={t("hero.heading")}
-    primaryCta={{ href: "contact.html", label: t("hero.primaryButton") }}
-    secondaryCta={{ href: fees.href, label: t("hero.secondaryButton") }}
+    primaryCta={{ href: enquire(), label: t("hero.primaryButton") }}
+    secondaryCta={{ href: "#options", label: t("hero.secondaryButton") }}
   />
 
-  <!-- The opportunities, on the approach cards that used to open the
-       homepage: each pinned in turn and tipped away as the next arrives,
-       the last closed over by the shutter (initApproachSlides and
-       initShutterScrollTransition in src/scripts/site.js). The shutter
-       starts 40% of a viewport before the last card's bottom reaches the
-       fold, which buys its rows more scroll to close in. -->
-  <section class="approach" id="tech-firms-content">
+  <!-- ========== WHY ADDD ========== -->
+  <section class="section" id="why">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="why.lede">{t("why.lede")}</p>
+        <div class="section-title__body">
+          <p class="tagline" data-page-field="why.tagline">{t("why.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="why.heading">{t("why.heading")}</h2>
+        </div>
+      </div>
+
+      <div class="grid grid--3 grid--mt" data-page-list="why.tiles">
+        {whyTiles.map((item) => (
+        <article class="tile" data-page-item={item._key}>
+          <p class="tile__num" data-page-item-field="number">{item.number}</p>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
+        </article>
+        ))}
+      </div>
+
+      <div class="partner-benefits">
+        <h3 class="h4" data-page-field="why.benefitsTitle">{t("why.benefitsTitle")}</h3>
+        <div class="stack">
+          <ul class="check-list">
+            {lines("why.benefits").map((line, i) => (
+            <li data-page-field={`why.benefits.${i}`}>{line}</li>
+            ))}
+          </ul>
+          <p class="text-sm partner-note" data-page-field="why.note">{t("why.note")}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== THREE OBJECTIVES ==========
+       The approach cards that used to open the homepage: each pinned in
+       turn and tipped away as the next arrives, the last closed over by
+       the shutter (initApproachSlides and initShutterScrollTransition in
+       src/scripts/site.js). Each leads to its offer below. -->
+  <section class="approach" id="objectives">
     <div data-approach-slides-init class="approach__slides">
-      {opportunities.map((item, i) => {
-        const last = i === opportunities.length - 1;
-        const picture = img(`opportunities.items.${i}.image`, 1200, D.opportunities.items[i]?.image);
+      {routes.map((item, i) => {
+        const last = i === routes.length - 1;
+        const picture = img(`routes.items.${i}.image`, 1200, D.routes.items[i]?.image);
         return (
           <div class="approach__slide" data-shutter-scroll-section={last ? "" : undefined}>
             <div class="approach__slide-wrapper">
               <div class={`approach__card ${tones[i] ?? tones[tones.length - 1]}`}>
                 <div class="approach__card-top">
-                  <h3 class="approach__card-h" data-page-field={`opportunities.items.${i}.title`}>{item.title}</h3>
-                  <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
+                  <h3 class="approach__card-h" data-page-field={`routes.items.${i}.title`}>{item.title}</h3>
+                  <a class="approach__card-link" href={routeHrefs[i] ?? "#options"}>
+                    <span data-page-field={`routes.items.${i}.linkLabel`}>{item.linkLabel}</span>
+                    <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
+                  </a>
                 </div>
                 <div class="approach__card-bottom">
-                  <p class="approach__card-p" data-page-field={`opportunities.items.${i}.text`}>{item.text}</p>
+                  <p class="approach__card-p" data-page-field={`routes.items.${i}.text`}>{item.text}</p>
                   <div class="approach__card-aside">
                     <p class="approach__card-num">({String(i + 1).padStart(2, "0")})</p>
-                    <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt="" class={`approach__card-image ${crops[i] ?? crops[crops.length - 1]}`} data-page-field={`opportunities.items.${i}.image`} data-page-width="1200">
+                    <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt="" class={`approach__card-image ${crops[i] ?? crops[crops.length - 1]}`} data-page-field={`routes.items.${i}.image`} data-page-width="1200">
                   </div>
                 </div>
               </div>
@@ -86,10 +136,140 @@ const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet"
     </div>
   </section>
 
+  <!-- ========== WHAT AN EPISODE LOOKS LIKE ==========
+       The format, labelled as such: no completed episode is shown as a
+       case study until one exists. -->
+  <section class="section">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="example.lede">{t("example.lede")}</p>
+        <div class="section-title__body">
+          <p class="tagline" data-page-field="example.tagline">{t("example.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="example.heading">{t("example.heading")}</h2>
+        </div>
+      </div>
+
+      <ol class="steps" data-page-list="example.steps">
+        {formatSteps.map((step) => (
+        <li class="steps__item" data-page-item={step._key}>
+          <p class="steps__label tagline tagline--sm" data-page-item-field="label">{step.label}</p>
+          <div class="steps__body">
+            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
+            <p data-page-item-field="text">{step.text}</p>
+          </div>
+        </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- ========== PARTNERSHIP OPTIONS ==========
+       The three partnerships side by side, each set out the same way so
+       they compare at a glance: who it is for, what it is, the price, what
+       you receive, its conditions. Then the two smaller placements. -->
+  <section class="section section--light" id="options">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="options.lede">{t("options.lede")}</p>
+        <div class="section-title__body">
+          <p class="tagline" data-page-field="options.tagline">{t("options.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="options.heading">{t("options.heading")}</h2>
+        </div>
+      </div>
+
+      <div class="grid grid--3 grid--mt offer-grid">
+        {offers.map((offer, i) => (
+        <article class="price-card offer" id={`offer-${offerIds[i] ?? i}`}>
+          <div class="stack stack--16">
+            <h3 class="h4" data-page-field={`options.cards.${i}.title`}>{offer.title}</h3>
+            <div class="offer__fit">
+              <p class="tagline tagline--sm">Best suited to</p>
+              <p data-page-field={`options.cards.${i}.audience`}>{offer.audience}</p>
+            </div>
+            <p class="text-sm" data-page-field={`options.cards.${i}.subtitle`}>{offer.subtitle}</p>
+          </div>
+          <div class="stack stack--16">
+            <div class="price"><span class="price__amount" data-page-field={`options.cards.${i}.price`}>{offer.price}</span>{offer.priceSuffix && <span data-page-field={`options.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}</div>
+            {offer.note && <p class="text-sm" data-page-field={`options.cards.${i}.note`}>{offer.note}</p>}
+          </div>
+          <div class="stack stack--16">
+            {offer.includesLabel && <p class="tagline tagline--sm" data-page-field={`options.cards.${i}.includesLabel`}>{offer.includesLabel}</p>}
+            <ul class="check-list">
+              {(offer.includes ?? []).map((line, j) => (
+              <li data-page-field={`options.cards.${i}.includes.${j}`}>{line}</li>
+              ))}
+            </ul>
+          </div>
+          {offer.conditions && <p class="text-sm offer__conditions" data-page-field={`options.cards.${i}.conditions`}>{offer.conditions}</p>}
+          <ActionButton href={enquire(offer.title)}><span data-page-field={`options.cards.${i}.button`}>{offer.button}</span></ActionButton>
+        </article>
+        ))}
+      </div>
+
+      <h3 class="h4 offer-more__title" data-page-field="more.heading">{t("more.heading")}</h3>
+      <div class="grid grid--2 offer-more">
+        {placements.map((offer, i) => (
+        <article class="tile tile--outline offer offer--small" id={`offer-${placementIds[i] ?? i}`}>
+          <div class="offer__row">
+            <h4 class="h4" data-page-field={`more.cards.${i}.title`}>{offer.title}</h4>
+            <div class="price"><span class="offer__amount" data-page-field={`more.cards.${i}.price`}>{offer.price}</span>{offer.priceSuffix && <span data-page-field={`more.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}</div>
+          </div>
+          <p data-page-field={`more.cards.${i}.subtitle`}>{offer.subtitle}</p>
+          <div class="offer__fit">
+            <p class="tagline tagline--sm">Best suited to</p>
+            <p class="text-sm" data-page-field={`more.cards.${i}.audience`}>{offer.audience}</p>
+          </div>
+          {offer.conditions && <p class="text-sm offer__conditions" data-page-field={`more.cards.${i}.conditions`}>{offer.conditions}</p>}
+          <ActionButton href={enquire(offer.title)} variant="secondary"><span data-page-field={`more.cards.${i}.button`}>{offer.button}</span></ActionButton>
+        </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PROCESS, MEASUREMENT AND INDEPENDENCE ========== -->
+  <section class="section" id="process">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="process.lede">{t("process.lede")}</p>
+        <div class="section-title__body">
+          <p class="tagline" data-page-field="process.tagline">{t("process.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="process.heading">{t("process.heading")}</h2>
+        </div>
+      </div>
+
+      <div class="grid grid--4 grid--mt" data-page-list="process.tiles">
+        {processTiles.map((item) => (
+        <article class="tile" data-page-item={item._key}>
+          <p class="tile__num" data-page-item-field="number">{item.number}</p>
+          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+          <p data-page-item-field="text">{item.text}</p>
+        </article>
+        ))}
+      </div>
+
+      <div class="grid grid--2 grid--mt">
+        <div class="stack">
+          <h3 class="h4" data-page-field="process.measurementTitle">{t("process.measurementTitle")}</h3>
+          <p data-page-field="process.measurement">{t("process.measurement")}</p>
+          <p data-page-field="process.intelligenceMeasurement">{t("process.intelligenceMeasurement")}</p>
+        </div>
+        <div class="tile tile--outline" id="independence">
+          <h3 class="h4" data-page-field="process.independenceTitle">{t("process.independenceTitle")}</h3>
+          <ul class="check-list">
+            {lines("process.independence").map((line, i) => (
+            <li data-page-field={`process.independence.${i}`}>{line}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <ClosingCta
     doc={{ id: "techFirmsPage", defaults: D, field: "closingCta" }}
-    primary={{ href: "contact.html" }}
-    secondary={{ href: fees.href }}
+    primary={{ href: enquire() }}
+    secondary={{ href: "#options" }}
     accent="blue"
   />
 

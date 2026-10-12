@@ -3,7 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
-import ServiceDiagram from "../components/ServiceDiagram.astro";
+import LayersDiagram from "../components/LayersDiagram.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { blueprintPage as D } from "../sanity/defaults/blueprint";
 
@@ -33,7 +33,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
           <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
+          <h1 class="h1" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
@@ -72,7 +72,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         <p class="text-md" data-page-field="examine.lede">{t("examine.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="examine.tagline">{t("examine.tagline")}</p>
-          <h2 class="h2" data-page-field="examine.heading">{t("examine.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="examine.heading">{t("examine.heading")}</h2>
         </div>
       </div>
 
@@ -95,7 +95,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
           </div>
         </div>
         <div class="examine-panel__media">
-          <ServiceDiagram index={4} class="examine-panel__diagram" />
+          <LayersDiagram class="examine-panel__diagram" />
         </div>
       </div>
     </div>
@@ -105,7 +105,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
     <div class="container">
       <div class="stack">
         <p class="tagline" data-page-field="delivery.tagline">{t("delivery.tagline")}</p>
-        <h2 class="h2" style="max-width:16ch" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
+        <h2 class="h2" data-split="heading" style="max-width:16ch" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
         <div class="actions">
           <ActionButton href="contact.html" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
           <a class="btn btn--link" href="about.html"><span data-page-field="delivery.linkLabel">{t("delivery.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
@@ -150,7 +150,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
           <p class="tagline" data-page-field="enquiry.tagline">{t("enquiry.tagline")}</p>
-          <h2 class="h2" data-page-field="enquiry.heading">{t("enquiry.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="enquiry.heading">{t("enquiry.heading")}</h2>
           <p class="text-md" data-page-field="enquiry.lede">{t("enquiry.lede")}</p>
           <ul class="contact-list">
             <li><a href="mailto:hello@addd.studio" data-page-field="enquiry.email">{t("enquiry.email")}</a></li>
@@ -173,7 +173,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
 
   <section class="section section--light">
     <div class="container">
-      <h2 class="h2" data-page-field="faq.heading">{t("faq.heading")}</h2>
+      <h2 class="h2" data-split="heading" data-page-field="faq.heading">{t("faq.heading")}</h2>
       <Accordion id="faq" items={faq} field="faq.questions" />
     </div>
   </section>

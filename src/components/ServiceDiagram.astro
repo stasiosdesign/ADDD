@@ -1,218 +1,261 @@
 ---
 /*
-  A service's diagram: a small isometric drawing on the card's field of
-  dots (ServiceCard.astro), one per service, in the services' order:
+  A service's diagram, one per service in the services' order, drawn as
+  the homepage's approach schematics are (ApproachStack.astro): exploded
+  isometric drawings, forms built of layers stood apart one over the next
+  with fine dashed guides between them, each form filled with its field's
+  ground so it reads as solid and hides what is behind it, edged in
+  hairlines; under each, the same dashed setting-out cross with a ring at
+  each end; centred in its field and symmetric about its middle. Solid
+  lines draw things; dotted ones draw what moves between or relates them
+  (the loop work takes, a design carried across, a part mapped into a
+  plan, a roadmap). The site's red only ever draws a line.
 
-    0  Workflow Workshop     two units on a loop, the step in red on it
-    1  Before Revit          an open idea, a red threshold, then the
-                             block marked R
-    2  Technology Blueprint  the practice as a plan, two parts on it, and
-                             the red brackets of what to focus on
-    3  Ongoing Advisory      three linked units, one face in red
-    4  (Technology Blueprint page, "What we look at") the practice's
-                             layers as slabs on one line, two in red
+    0  Workflow Workshop     the project's site, the floor where the work
+                             loops round its four units, the one at the
+                             front where it sticks in red, and over it
+                             the written report, the red line rising from
+                             the sticking point to its mark on it
+    1  Before Revit          the plate split by a red threshold: the early
+                             design as three loose sheets stood apart
+                             before it, the storeyed block marked R
+                             (Revit) after it
+    2  Technology Blueprint  the practice's parts on its slab, and over it
+                             the blueprint, a plan on a grid with the red
+                             roadmap down its centre through three
+                             milestones
+    3  Ongoing Advisory      the practice as three floors stood apart, a
+                             ring round each, the middle one red with four
+                             regular sessions on it
 
-  Drawn in a world of x, y and z (z up) and projected isometrically:
-  x runs down to the right, y down to the left. A box shows its top, its
-  +x face and its +y face; each is a polygon, drawn back to front in the
-  order given. The viewBox is fitted to what is drawn, so the drawing
-  centres itself in the field. Ink lines, light greys for the faces, the
-  site's red for the one thing that matters in each.
+  Used on the homepage's service stack (dark) and the nav's Services cards
+  (light): the lines are drawn in the field's ink (--c-text) and the faces
+  in its ground (--diagram-ground), so one drawing serves both, and the
+  lines keep one pixel's weight at any size (styles.css, "service
+  diagrams"). Coordinates are in a 400 × 256 viewBox, projected by
+  src/scripts/iso.js.
 */
+import { boxFaces, floorLines, path, plane, projector } from "../scripts/iso.js";
+
 interface Props {
   index: number;
   class?: string;
 }
 const { index, class: className } = Astro.props;
 
-type P3 = [number, number, number];
-type Shape =
-  | { kind: "poly"; pts: P3[]; fill?: string; stroke?: string; width?: number; dash?: string; closed?: boolean }
-  | { kind: "screen"; d: string; stroke: string; width: number }
-  | { kind: "text"; text: string; origin: P3; size: number; fill: string };
+type Projector = (x: number, y: number, z?: number) => number[];
+type Faces = { top: string; left: string; right: string };
+const fmt = (n: number) => +n.toFixed(1);
+const COS30 = Math.cos(Math.PI / 6);
 
-const COS = Math.cos(Math.PI / 6);
-const UNIT = 20;
-const project = ([x, y, z]: P3): [number, number] => [(x - y) * COS * UNIT, ((x + y) * 0.5 - z) * UNIT];
+// the setting-out: the dashed cross through the origin, ringed at its ends
+const cross = (P: Projector, reach: number) => ({
+  lines: [path([P(-reach, 0), P(reach, 0)], false), path([P(0, -reach), P(0, reach)], false)],
+  rings: [P(-reach, 0), P(reach, 0), P(0, -reach), P(0, reach)].map(([cx, cy]) => ({ cx: fmt(cx), cy: fmt(cy) })),
+});
+// a square slab centred on (x, y)
+const slab = (P: Projector, x: number, y: number, half: number, z: number, t: number) => boxFaces(P, x - half, y - half, z, 2 * half, 2 * half, t);
+// dashed verticals from one height to another at the given points
+const verticals = (P: Projector, points: number[][], from: number, to: number) => points.map(([x, y]) => path([P(x, y, from), P(x, y, to)], false));
+// the left and right corners of a square centred on (x, y)
+const sides = (x: number, y: number, half: number) => [[x - half, y + half], [x + half, y - half]];
 
-const INK = "var(--c-text)";
-// The accent: the site's red, unless the field the diagram sits on sets
-// --diagram-accent (a red field draws its accent in white).
-const RED = "var(--diagram-accent, var(--c-red))";
-const TOP = "#f2f2f2";
-const SIDE_X = "#dcdcdc";
-const SIDE_Y = "#c9c9c9";
-const PAPER = "var(--c-white)";
-
-// A box from its corner (x, y, z) and its size along each axis: its
-// three visible faces, the +y face, the +x face, then the top.
-function box(
-  [x, y, z]: P3,
-  [w, d, h]: P3,
-  fills: { top?: string; sx?: string; sy?: string } = {},
-  line: { stroke?: string; dash?: string } = {},
-): Shape[] {
-  const stroke = line.stroke ?? INK;
-  return [
-    { kind: "poly", pts: [[x, y + d, z], [x + w, y + d, z], [x + w, y + d, z + h], [x, y + d, z + h]], fill: fills.sy ?? SIDE_Y, stroke },
-    { kind: "poly", pts: [[x + w, y, z], [x + w, y + d, z], [x + w, y + d, z + h], [x + w, y, z + h]], fill: fills.sx ?? SIDE_X, stroke },
-    { kind: "poly", pts: [[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]], fill: fills.top ?? TOP, stroke },
-  ];
+// a horizontal circle of radius r round the vertical axis at height z, as
+// its back and front halves, so a form inside it can stand between them:
+// in this projection it is an upright ellipse, r·√2·cos30° across and
+// r·√2·½ deep
+function ring3d(P: Projector, r: number, z: number) {
+  const [cx, cy] = P(0, 0, z);
+  const rx = fmt(r * Math.SQRT2 * COS30);
+  const ry = fmt(r * Math.SQRT2 * 0.5);
+  const left = `${fmt(cx - rx)} ${fmt(cy)}`;
+  const right = `${fmt(cx + rx)} ${fmt(cy)}`;
+  return { back: `M${left}A${rx} ${ry} 0 0 1 ${right}`, front: `M${right}A${rx} ${ry} 0 0 1 ${left}`, cx: fmt(cx), cy: fmt(cy), rx, ry };
 }
 
-// An open box: every edge drawn, the three hidden ones dashed.
-function wire([x, y, z]: P3, [w, d, h]: P3): Shape[] {
-  const c = (i: number, j: number, k: number): P3 => [x + i * w, y + j * d, z + k * h];
-  const line = (a: P3, b: P3, dash?: string): Shape => ({ kind: "poly", pts: [a, b], stroke: INK, dash, closed: false });
-  const hidden = "3 3";
-  return [
-    line(c(0, 0, 0), c(1, 0, 0), hidden),
-    line(c(0, 0, 0), c(0, 1, 0), hidden),
-    line(c(0, 0, 0), c(0, 0, 1), hidden),
-    line(c(1, 0, 0), c(1, 1, 0)), line(c(0, 1, 0), c(1, 1, 0)),
-    line(c(1, 0, 0), c(1, 0, 1)), line(c(0, 1, 0), c(0, 1, 1)), line(c(1, 1, 0), c(1, 1, 1)),
-    line(c(0, 0, 1), c(1, 0, 1)), line(c(0, 0, 1), c(0, 1, 1)),
-    line(c(1, 0, 1), c(1, 1, 1)), line(c(0, 1, 1), c(1, 1, 1)),
-  ];
-}
+// 0 — Workflow Workshop: the site, the floor over it, the report over that
+const wP = projector(200, 157);
+const W_FLOOR = 34;
+const W_REPORT = 84;
+const W_LOOP = 36;
+const W_UNIT = 12;
+const wTop = W_FLOOR + 6;
+const workshop = {
+  cross: cross(wP, 112),
+  site: slab(wP, 0, 0, 70, 0, 6),
+  floor: slab(wP, 0, 0, 56, W_FLOOR, 6),
+  loop: plane(wP, -W_LOOP, -W_LOOP, 2 * W_LOOP, 2 * W_LOOP, wTop),
+  // back, left, right; then the front, where it sticks
+  units: [[-W_LOOP, -W_LOOP], [-W_LOOP, W_LOOP], [W_LOOP, -W_LOOP]].map(([x, y]) => boxFaces(wP, x - W_UNIT / 2, y - W_UNIT / 2, wTop, W_UNIT, W_UNIT, W_UNIT)),
+  stuck: boxFaces(wP, W_LOOP - W_UNIT / 2, W_LOOP - W_UNIT / 2, wTop, W_UNIT, W_UNIT, W_UNIT),
+  stuckMark: plane(wP, W_LOOP - 12, W_LOOP - 12, 24, 24, wTop),
+  // the report's corners dropped to the floor, and the red line from the
+  // sticking point up to its mark
+  guides: verticals(wP, sides(0, 0, 44), wTop, W_REPORT),
+  rise: path([wP(W_LOOP, W_LOOP, wTop + W_UNIT), wP(W_LOOP, W_LOOP, W_REPORT)], false),
+  report: slab(wP, 0, 0, 44, W_REPORT, 3),
+  lines: [-22, -10, 2].map((y) => path([wP(-30, y, W_REPORT + 3), wP(14, y, W_REPORT + 3)], false)),
+  mark: plane(wP, W_LOOP - 6, W_LOOP - 6, 12, 12, W_REPORT + 3),
+};
 
-const path = (pts: P3[], stroke = RED, width = 2): Shape => ({ kind: "poly", pts, stroke, width, closed: false });
+// 1 — Before Revit: three loose sheets, the threshold, the storeyed block
+const rP = projector(200, 128);
+const R_PLATE = 5;
+const R_AT = 38;
+const R_SIZE = 40;
+const R_SHEETS = [10, 28, 46];
+const rBlock = { x0: R_AT - R_SIZE / 2, y0: -R_AT - R_SIZE / 2 };
+// the R set on the block's face towards the threshold (its +y face):
+// along the face is x, down it is -z, so the letter keeps the face's slant
+const [glyphX, glyphY] = rP(R_AT, rBlock.y0 + R_SIZE, R_PLATE + R_SIZE / 2);
+const beforeRevit = {
+  cross: cross(rP, 122),
+  plate: slab(rP, 0, 0, 80, 0, R_PLATE),
+  threshold: path([rP(-80, -80, R_PLATE), rP(80, 80, R_PLATE)], false),
+  thresholdEnds: [rP(-80, -80, R_PLATE), rP(80, 80, R_PLATE)].map(([cx, cy]) => ({ cx: fmt(cx), cy: fmt(cy) })),
+  link: path([rP(-R_AT, R_AT, R_PLATE), rP(R_AT, -R_AT, R_PLATE)], false),
+  // the design carried over the threshold: a dotted path from the top
+  // sheet to the top of the block
+  carry: path([rP(-R_AT, R_AT, R_SHEETS[R_SHEETS.length - 1] + 3), rP(0, 0, R_PLATE + R_SIZE + 22), rP(R_AT, -R_AT, R_PLATE + R_SIZE)], false),
+  sheetGuides: verticals(rP, sides(-R_AT, R_AT, 22), R_PLATE, R_SHEETS[R_SHEETS.length - 1]),
+  sheets: R_SHEETS.map((z) => slab(rP, -R_AT, R_AT, 22, z, 3)),
+  block: boxFaces(rP, rBlock.x0, rBlock.y0, R_PLATE, R_SIZE, R_SIZE, R_SIZE),
+  // its storeys, on the side away from the threshold only, so the R's
+  // face stays clear
+  storeys: [R_SIZE / 3, (2 * R_SIZE) / 3].map((h) =>
+    path([rP(rBlock.x0 + R_SIZE, rBlock.y0 + R_SIZE, R_PLATE + h), rP(rBlock.x0 + R_SIZE, rBlock.y0, R_PLATE + h)], false),
+  ).join(""),
+  badge: path([
+    rP(rBlock.x0 + 6, rBlock.y0 + R_SIZE, R_PLATE + 6), rP(rBlock.x0 + R_SIZE - 6, rBlock.y0 + R_SIZE, R_PLATE + 6),
+    rP(rBlock.x0 + R_SIZE - 6, rBlock.y0 + R_SIZE, R_PLATE + R_SIZE - 6), rP(rBlock.x0 + 6, rBlock.y0 + R_SIZE, R_PLATE + R_SIZE - 6),
+  ]),
+  glyph: `matrix(${fmt(COS30)} 0.5 0 1 ${fmt(glyphX)} ${fmt(glyphY)})`,
+};
 
-const DIAGRAMS: Shape[][] = [
-  // 0 — Workflow Workshop: a loop on the ground, a tall unit at its left
-  // corner and one on its far edge, the red step on its near edge
-  [
-    { kind: "poly", pts: [[0, 0, 0], [6, 0, 0], [6, 4, 0], [0, 4, 0]], stroke: RED, width: 2 },
-    ...box([1.6, -0.35, 0], [0.7, 1.1, 2.2]),
-    { kind: "poly", pts: [[2.3, 0.15, 1.05], [2.3, 0.45, 1.05], [2.3, 0.45, 1.45], [2.3, 0.15, 1.45]], fill: PAPER, stroke: INK },
-    ...box([5.45, 2.1, 0], [1.1, 1.1, 0.3], { top: RED }),
-    ...box([-0.35, 3.3, 0], [0.7, 1.1, 2.2]),
-    { kind: "poly", pts: [[0.35, 3.65, 1.05], [0.35, 3.95, 1.05], [0.35, 3.95, 1.45], [0.35, 3.65, 1.45]], fill: PAPER, stroke: INK },
-  ],
-  // 1 — Before Revit: the open cube, a red line through a red upright
-  // plane to the block marked R
-  [
-    ...wire([0, 0, 0], [2, 2, 2]),
-    path([[2, 1, 0.6], [6.2, 1, 0.6]]),
-    { kind: "poly", pts: [[4, 0.1, -0.2], [4, 1.9, -0.2], [4, 1.9, 1.6], [4, 0.1, 1.6]], fill: RED },
-    ...box([6.2, 0.8, -0.4], [2, 0.45, 2.2], { sx: "#3a3a3a", sy: "#4a4a4a", top: "#5a5a5a" }),
-    { kind: "text", text: "R", origin: [7.2, 1.25, 0.7], size: 1.3, fill: PAPER },
-  ],
-  // 2 — Technology Blueprint: a plan on the ground, two parts on it joined
-  // by a line, and the red brackets on the point between them
-  [
-    { kind: "poly", pts: [[0, 0, 0], [8, 0, 0], [8, 6, 0], [0, 6, 0]], stroke: INK },
-    path([[2.6, 1.6, 0.25], [5.6, 4.1, 0.25]], "#9a9a9a", 2.5),
-    ...box([1.2, 1, 0], [1.6, 1.2, 0.7], { top: "#d0d0d0", sx: "#bdbdbd", sy: "#a9a9a9" }),
-    ...box([5.3, 3.8, 0], [1.6, 1.2, 0.7], { top: PAPER, sx: PAPER, sy: PAPER }),
-    { kind: "screen", d: "BRACKETS", stroke: RED, width: 2.5 },
-  ],
-  // 3 — Ongoing Advisory: three units, an open one up and to the right of
-  // the first, the third level with it further right; the red links run
-  // centre to centre under them, so each unit covers its own end
-  [
-    path([[1, 1, 1], [0.74, -2.84, 3]]),
-    path([[1, 1, 1], [4.7, -1.7, 1]]),
-    ...box([-0.26, -3.84, 2], [2, 2, 2], { top: PAPER, sx: PAPER, sy: PAPER }),
-    ...box([0, 0, 0], [2, 2, 2]),
-    ...box([3.7, -2.7, 0], [2, 2, 2], { sx: RED }),
-  ],
-  // 4 — the Technology Blueprint's "What we look at": the practice's
-  // layers as a run of slabs threaded on one line, each its own height,
-  // two of them in red, the line running on out of either end. Drawn
-  // from the far end so the nearer slabs cover the ones behind.
-  [
-    path([[1.3, 3, 1.1], [1.3, -13, 1.1]], INK, 1),
-    ...[
-      { y: -10.4, h: 1.6, z: 0.3, tone: "pale" },
-      { y: -9.6, h: 2.2, z: 0, tone: "ink" },
-      { y: -8.8, h: 1.9, z: 0.15, tone: "mid" },
-      { y: -8.0, h: 2.6, z: -0.2, tone: "red" },
-      { y: -7.2, h: 2.0, z: 0.1, tone: "ink" },
-      { y: -6.4, h: 2.4, z: -0.1, tone: "pale" },
-      { y: -5.6, h: 1.8, z: 0.2, tone: "mid" },
-      { y: -4.8, h: 2.8, z: -0.3, tone: "ink" },
-      { y: -4.0, h: 2.1, z: 0, tone: "pale" },
-      { y: -3.2, h: 2.5, z: -0.15, tone: "red" },
-      { y: -2.4, h: 1.9, z: 0.1, tone: "ink" },
-      { y: -1.6, h: 2.3, z: -0.05, tone: "mid" },
-      { y: -0.8, h: 3, z: -0.4, tone: "pale" },
-    ].flatMap(({ y, h, z, tone }) =>
-      box(
-        [0, y, z],
-        [2.6, 0.22, h],
-        tone === "ink"
-          ? { sy: "#1a1a1a", sx: "#2a2a2a", top: "#3a3a3a" }
-          : tone === "red"
-            ? { sy: RED, sx: "#9e0000", top: "#e04a4a" }
-            : tone === "mid"
-              ? { sy: "#9a9a9a", sx: "#b5b5b5", top: "#cfcfcf" }
-              : { sy: PAPER, sx: "#e6e6e6", top: PAPER },
-      ),
-    ),
-  ],
-];
+// 2 — Technology Blueprint: the parts on the slab, the blueprint over them
+const bP = projector(200, 144);
+const B_BASE = 84;
+const B_SHEET = 52;
+const B_HIGH = 60;
+const B_CELL = (2 * B_SHEET) / 3;
+const bTop = B_HIGH + 4;
+const blueprint = {
+  cross: cross(bP, 126),
+  base: slab(bP, 0, 0, B_BASE, 0, 6),
+  // the parts by the slab's left, right and front corners, where the
+  // blueprint over them leaves them in view
+  parts: [[-60, 60], [60, -60], [60, 60]].map(([x, y]) => ({
+    ...boxFaces(bP, x - 11, y - 11, 6, 22, 22, 16),
+    floors: floorLines(bP, x - 11, y - 11, 6, 22, 22, 16, 8),
+  })),
+  // each part mapped into the plan: a dotted line from its top to the
+  // blueprint's corner nearest it
+  maps: [[-60, 60, -B_SHEET, B_SHEET], [60, -60, B_SHEET, -B_SHEET], [60, 60, B_SHEET, B_SHEET]].map(([x, y, cx, cy]) =>
+    path([bP(x, y, 22), bP(cx, cy, B_HIGH)], false),
+  ),
+  sheet: slab(bP, 0, 0, B_SHEET, B_HIGH, 4),
+  grid: [-B_CELL / 2, B_CELL / 2].flatMap((t) => [
+    path([bP(t, -B_SHEET, bTop), bP(t, B_SHEET, bTop)], false),
+    path([bP(-B_SHEET, t, bTop), bP(B_SHEET, t, bTop)], false),
+  ]),
+  roadmap: path([bP(-B_CELL, -B_CELL, bTop), bP(B_CELL, B_CELL, bTop)], false),
+  milestones: [-B_CELL, 0, B_CELL].map((t) => plane(bP, t - 5, t - 5, 10, 10, bTop)),
+};
 
-const shapes = DIAGRAMS[index] ?? [];
-
-// Fit the viewBox to every point drawn, with room for the line widths.
-const points = shapes.flatMap((s) => (s.kind === "poly" ? s.pts.map(project) : s.kind === "text" ? [project(s.origin)] : []));
-const xs = points.map((p) => p[0]);
-const ys = points.map((p) => p[1]);
-const PAD = 6;
-const minX = Math.min(...xs) - PAD;
-const minY = Math.min(...ys) - PAD;
-const vbW = Math.max(...xs) + PAD - minX;
-const vbH = Math.max(...ys) + PAD - minY;
-
-const fmt = (n: number) => +n.toFixed(2);
-const toPoints = (pts: P3[]) => pts.map((p) => project(p).map(fmt).join(",")).join(" ");
-
-// The focus brackets: four screen-square corners round the middle of the
-// plan's line, as a camera frames a subject (drawn flat, not in the plan).
-function brackets(): string {
-  const [cx, cy] = project([4.1, 2.85, 0.25]);
-  const r = 13;
-  const a = 6;
-  const corner = (sx: number, sy: number) =>
-    `M${fmt(cx + sx * r)} ${fmt(cy + sy * (r - a))}V${fmt(cy + sy * r)}H${fmt(cx + sx * (r - a))}`;
-  return [corner(-1, -1), corner(1, -1), corner(-1, 1), corner(1, 1)].join("");
-}
-
-// The R on the block's +y face: x runs along the face, z up it, so the
-// letter is set on the face's own slant.
-function faceTransform([x, y, z]: P3): string {
-  const [ox, oy] = project([x, y, z]);
-  return `matrix(${fmt(COS)} 0.5 0 1 ${fmt(ox)} ${fmt(oy)})`;
-}
+// 3 — Ongoing Advisory: three floors stood apart, a ring round each
+const aP = projector(200, 164);
+const A_FLOORS = [0, 34, 68];
+const A_R = 64;
+const A_ACTIVE = 1;
+const advisory = {
+  cross: cross(aP, 110),
+  levels: A_FLOORS.map((z, k) => ({
+    k,
+    ring: ring3d(aP, A_R, z + 12),
+    floor: boxFaces(aP, -18, -18, z, 36, 36, 24),
+  })),
+  // the rings' outer edges, joined, so they read as one drum
+  drum: [-1, 1].map((s) => {
+    const low = ring3d(aP, A_R, A_FLOORS[0] + 12);
+    const high = ring3d(aP, A_R, A_FLOORS[A_FLOORS.length - 1] + 12);
+    return `M${fmt(low.cx + s * low.rx)} ${low.cy}V${high.cy}`;
+  }),
+  sessions: [[A_R, 0], [0, A_R], [-A_R, 0], [0, -A_R]].map(([x, y]) => {
+    const [cx, cy] = aP(x, y, A_FLOORS[A_ACTIVE] + 12);
+    return { cx: fmt(cx), cy: fmt(cy) };
+  }),
+};
 ---
-<svg
-  class={className}
-  viewBox={`${fmt(minX)} ${fmt(minY)} ${fmt(vbW)} ${fmt(vbH)}`}
-  xmlns="http://www.w3.org/2000/svg"
-  aria-hidden="true"
-  fill="none"
-  stroke-linejoin="round"
->
-  {shapes.map((s) =>
-    s.kind === "poly" ? (
-      s.closed === false ? (
-        <polyline points={toPoints(s.pts)} stroke={s.stroke} stroke-width={s.width ?? 1} stroke-dasharray={s.dash} stroke-linecap="square" />
-      ) : (
-        <polygon points={toPoints(s.pts)} fill={s.fill ?? "none"} stroke={s.stroke ?? "none"} stroke-width={s.width ?? 1} />
-      )
-    ) : s.kind === "screen" ? (
-      <path d={brackets()} stroke={s.stroke} stroke-width={s.width} stroke-linecap="square" />
-    ) : (
-      <text
-        transform={faceTransform(s.origin)}
-        font-family="var(--font-display)"
-        font-weight="700"
-        font-size={fmt(s.size * UNIT)}
-        fill={s.fill}
-        text-anchor="middle"
-        dominant-baseline="central"
-      >{s.text}</text>
-    ),
+<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none">
+  {index === 0 && (
+    <Fragment>
+      {workshop.cross.lines.map((d) => <path class="service-diagram__line is--dash" d={d} />)}
+      {workshop.cross.rings.map((r) => <circle class="service-diagram__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+      <g class="service-diagram__solid is--soft"><path d={workshop.site.left} /><path d={workshop.site.right} /><path d={workshop.site.top} /></g>
+      <g class="service-diagram__solid"><path d={workshop.floor.left} /><path d={workshop.floor.right} /><path d={workshop.floor.top} /></g>
+      <path class="service-diagram__line is--path" d={workshop.loop} />
+      <path class="service-diagram__accent is--dash" d={workshop.stuckMark} />
+      {workshop.units.map((f: Faces) => (
+        <g class="service-diagram__solid"><path d={f.left} /><path d={f.right} /><path d={f.top} /></g>
+      ))}
+      <g class="service-diagram__solid is--accent"><path d={workshop.stuck.left} /><path d={workshop.stuck.right} /><path d={workshop.stuck.top} /></g>
+      {workshop.guides.map((d) => <path class="service-diagram__line is--dash" d={d} />)}
+      <path class="service-diagram__accent is--dash" d={workshop.rise} />
+      <g class="service-diagram__solid is--soft"><path d={workshop.report.left} /><path d={workshop.report.right} /><path d={workshop.report.top} /></g>
+      {workshop.lines.map((d) => <path class="service-diagram__line is--soft" d={d} />)}
+      <path class="service-diagram__accent" d={workshop.mark} />
+    </Fragment>
+  )}
+
+  {index === 1 && (
+    <Fragment>
+      {beforeRevit.cross.lines.map((d) => <path class="service-diagram__line is--dash" d={d} />)}
+      {beforeRevit.cross.rings.map((r) => <circle class="service-diagram__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+      <g class="service-diagram__solid is--soft"><path d={beforeRevit.plate.left} /><path d={beforeRevit.plate.right} /><path d={beforeRevit.plate.top} /></g>
+      <path class="service-diagram__line is--soft is--dash" d={beforeRevit.link} />
+      <path class="service-diagram__accent is--dash" d={beforeRevit.threshold} />
+      {beforeRevit.thresholdEnds.map((r) => <circle class="service-diagram__ring is--accent" cx={r.cx} cy={r.cy} r="2.5" />)}
+      {beforeRevit.sheetGuides.map((d) => <path class="service-diagram__line is--dash" d={d} />)}
+      {beforeRevit.sheets.map((f: Faces, k: number) => (
+        <g class:list={["service-diagram__solid", { "is--soft": k < beforeRevit.sheets.length - 1 }]}><path d={f.left} /><path d={f.right} /><path d={f.top} /></g>
+      ))}
+      <g class="service-diagram__solid"><path d={beforeRevit.block.left} /><path d={beforeRevit.block.right} /><path d={beforeRevit.block.top} /></g>
+      <path class="service-diagram__line is--soft" d={beforeRevit.storeys} />
+      <path class="service-diagram__line is--soft" d={beforeRevit.badge} />
+      <path class="service-diagram__line is--path" d={beforeRevit.carry} />
+      <text class="service-diagram__glyph" transform={beforeRevit.glyph} text-anchor="middle" dominant-baseline="central">R</text>
+    </Fragment>
+  )}
+
+  {index === 2 && (
+    <Fragment>
+      {blueprint.cross.lines.map((d) => <path class="service-diagram__line is--dash" d={d} />)}
+      {blueprint.cross.rings.map((r) => <circle class="service-diagram__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+      <g class="service-diagram__solid is--soft"><path d={blueprint.base.left} /><path d={blueprint.base.right} /><path d={blueprint.base.top} /></g>
+      {blueprint.parts.map((f) => (
+        <g class="service-diagram__solid"><path d={f.left} /><path d={f.right} /><path d={f.top} /><path class="service-diagram__floors" d={f.floors} /></g>
+      ))}
+      {blueprint.maps.map((d) => <path class="service-diagram__line is--path is--soft" d={d} />)}
+      <g class="service-diagram__solid"><path d={blueprint.sheet.left} /><path d={blueprint.sheet.right} /><path d={blueprint.sheet.top} /></g>
+      {blueprint.grid.map((d) => <path class="service-diagram__line is--soft is--dash" d={d} />)}
+      <path class="service-diagram__accent is--dash" d={blueprint.roadmap} />
+      {blueprint.milestones.map((d) => <path class="service-diagram__accent is--mark" d={d} />)}
+    </Fragment>
+  )}
+
+  {index === 3 && (
+    <Fragment>
+      {advisory.cross.lines.map((d) => <path class="service-diagram__line is--dash" d={d} />)}
+      {advisory.cross.rings.map((r) => <circle class="service-diagram__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+      {advisory.drum.map((d) => <path class="service-diagram__line is--soft is--dash" d={d} />)}
+      {advisory.levels.map(({ k, ring, floor }) => (
+        <Fragment>
+          <path class:list={[k === A_ACTIVE ? "service-diagram__accent" : "service-diagram__line is--soft", "is--dash"]} d={ring.back} />
+          <g class:list={["service-diagram__solid", { "is--soft": k !== A_FLOORS.length - 1 }]}><path d={floor.left} /><path d={floor.right} /><path d={floor.top} /></g>
+          <path class:list={[k === A_ACTIVE ? "service-diagram__accent" : "service-diagram__line is--soft", "is--dash"]} d={ring.front} />
+        </Fragment>
+      ))}
+      {advisory.sessions.map((r) => <circle class="service-diagram__ring is--session" cx={r.cx} cy={r.cy} r="3" />)}
+    </Fragment>
   )}
 </svg>

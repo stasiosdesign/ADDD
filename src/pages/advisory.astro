@@ -53,7 +53,7 @@ const blueprint = card(1);
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
           <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
+          <h1 class="h1" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
@@ -69,7 +69,7 @@ const blueprint = card(1);
 
   <section class="section section--dark">
     <div class="container">
-      <p class="statement" data-page-field="statement.statement">{t("statement.statement")}</p>
+      <p class="statement" data-split="heading" data-page-field="statement.statement">{t("statement.statement")}</p>
     </div>
   </section>
 
@@ -79,7 +79,7 @@ const blueprint = card(1);
         <p class="text-md" data-page-field="structure.lede">{t("structure.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="structure.tagline">{t("structure.tagline")}</p>
-          <h2 class="h2" data-page-field="structure.heading">{t("structure.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="structure.heading">{t("structure.heading")}</h2>
         </div>
       </div>
 
@@ -99,7 +99,7 @@ const blueprint = card(1);
       <div class="section-title">
         <p class="text-md" data-page-field="themes.lede">{t("themes.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2" data-page-field="themes.heading">{t("themes.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="themes.heading">{t("themes.heading")}</h2>
         </div>
       </div>
       <div class="grid grid--4 grid--mt">
@@ -117,7 +117,7 @@ const blueprint = card(1);
         <p class="text-md" data-page-field="impact.lede">{t("impact.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="impact.tagline">{t("impact.tagline")}</p>
-          <h2 class="h2" data-page-field="impact.heading">{t("impact.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="impact.heading">{t("impact.heading")}</h2>
         </div>
       </div>
 
@@ -140,7 +140,7 @@ const blueprint = card(1);
         <p class="text-md" data-page-field="difference.lede">{t("difference.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="difference.tagline">{t("difference.tagline")}</p>
-          <h2 class="h2" data-page-field="difference.heading">{t("difference.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="difference.heading">{t("difference.heading")}</h2>
         </div>
       </div>
 
@@ -163,7 +163,7 @@ const blueprint = card(1);
         <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
-          <h2 class="h2" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
         </div>
       </div>
 
@@ -218,7 +218,7 @@ const blueprint = card(1);
 
   <section class="section section--dark">
     <div class="container">
-      <h2 class="h2" data-page-field="faq.heading">{t("faq.heading")}</h2>
+      <h2 class="h2" data-split="heading" data-page-field="faq.heading">{t("faq.heading")}</h2>
       <Accordion id="faq" items={faq} field="faq.questions" />
     </div>
   </section>

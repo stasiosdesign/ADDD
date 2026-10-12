@@ -15,7 +15,7 @@ export const client = defineType({
       name: 'logo',
       title: 'Logo',
       type: 'image',
-      description: 'A white mark on a transparent background: the strip and the testimonials show it on ink.',
+      description: 'A white mark on a transparent background: the logo strip shows it on ink, and the testimonials set it in ink on the page.',
       validation: (rule) => rule.required(),
     }),
     defineField({

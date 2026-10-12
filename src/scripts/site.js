@@ -20,6 +20,8 @@ import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 import { mountStickyTitle } from "./sticky-title.js";
 import { mountWordCycle } from "./word-cycle.js";
+import { mountDotField } from "./dot-field.js";
+import { mountTestimonialSlider } from "./testimonial-slider.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
 
@@ -39,6 +41,17 @@ ScrollTrigger.clearScrollMemory("manual");
 const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 let reducedMotion = reducedMotionQuery.matches;
 reducedMotionQuery.addEventListener("change", e => (reducedMotion = e.matches));
+
+// When the current page is in view. Each page is built while it is still
+// covered (beforeEnter), so anything that should play as it is seen — the
+// line reveal of a heading already on screen — waits on this: a promise
+// made as a page starts to arrive and kept once the arrival or the wipe
+// has uncovered it.
+let showPage = () => {};
+let pageShown = Promise.resolve();
+function coverPage() {
+  pageShown = new Promise(resolve => (showPage = resolve));
+}
 
 // Smooth scroll, driven by the GSAP ticker rather than its own rAF so the
 // transition can stop and restart it around a navigation. The lerp sets the
@@ -94,6 +107,7 @@ function runArrival(next) {
   const root = document.documentElement;
   const arrival = root.dataset.arrival === "reveal" ? runReveal(next) : runIntro(next);
   return Promise.resolve(arrival).then(() => {
+    showPage();
     delete root.dataset.arrival;
     reloadScroll = 0;
   });
@@ -295,6 +309,7 @@ function runPageEnterAnimation(next) {
     // timeline so the container comes back in the same frame nextAdded hid it,
     // rather than a frame later. The panel is only ever up here on a reveal.
     gsap.set(next, { autoAlpha: 1 });
+    showPage();
     gsap.set(wipe.panel, { autoAlpha: 0 });
     tl.add("pageReady");
     tl.call(resetPage, [next], "pageReady");
@@ -317,6 +332,8 @@ function runPageEnterAnimation(next) {
   });
 
   tl.set(next, { autoAlpha: 1 }, "startEnter");
+  // the panel a third of the way off: the page counts as seen
+  tl.call(() => showPage(), null, "startEnter+=0.3");
 
   tl.fromTo(wipe.panel, {
     yPercent: -100,
@@ -405,10 +422,14 @@ const PAGE_COMPONENTS = [
   ["[data-sticky-title=\"wrap\"]", initStickyTitle],
   ["[data-approach-stack]", initApproachStack],
   ["[data-problem-grid-init]", initProblemGrid],
-  ["[data-routes-reveal]", initRoutesReveal],
-  ["[data-testimonial-wrap]", initLineRevealTestimonials],
+  ['[data-parallax="trigger"]', initGlobalParallax],
+  ["[data-testimonial-slider]", initTestimonialSlider],
   ["[data-shutter-scroll-transition]", initShutterScrollTransition],
   ["[data-accordion-init]", initAccordions],
+  ["[data-split=\"heading\"]", initLineReveal],
+  ["[data-service-stack]", initServiceStack],
+  ["[data-dot-field]", initDotFields],
+  ["[data-enquiry-offer]", initEnquiryOffer],
   ["[data-slash-field]", initSlashField],
   ["[data-word-cycle]", initWordCycle],
   ["[data-filter-group]", initFilterGroups],
@@ -471,6 +492,7 @@ barba.hooks.nextAdded(data => {
 // so none of it can read as a jump. On a document load Barba runs this ahead
 // of once(), so the first page is set up the same way.
 barba.hooks.beforeEnter(data => {
+  coverPage();
   lenis.stop();
   resetScroll();
 
@@ -811,19 +833,22 @@ function initInsightSlider(container) {
    Lives outside the Barba container, so this runs once per document.
    ============================================================ */
 function initMegaNav() {
-  // The panel opens as one considered move: the container heights out on the
-  // site's own osmo ease while the content settles in behind it. The stagger
-  // is deliberately near-nothing — enough to stop the items landing on a
-  // single hard frame, not enough to read as a cascade.
+  // On desktop both panels open block by block: no shared ground behind
+  // them and no container growing open. The open panel stands in the
+  // dropdown's flow, so the dropdown is its height without being measured
+  // or animated, and each block (Services' cards, Resources' columns)
+  // drops in from under the bar on its own, clipped by the dropdown's top
+  // edge, one after the next; closing, they lift back up under it, the
+  // last first. Only transforms and opacity move.
   const DUR = {
-    bgMorph: 0.45,
-    contentIn: 0.35,
-    contentOut: 0.2,
+    // the mobile drawer's panels, item by item
     stagger: 0.06,
     backdropIn: 0.35,
     backdropOut: 0.25,
-    openScale: 0.45,
-    closeScale: 0.3,
+    dropIn: 0.55,
+    dropStagger: 0.07,
+    liftOut: 0.3,
+    liftStagger: 0.04,
   };
 
   const HOVER_ENTER = 120;
@@ -849,6 +874,8 @@ function initMegaNav() {
   // State
   const state = {
     isOpen: false,
+    // the close is playing: still open until it ends, but not to be kept
+    closing: false,
     activePanel: null,
     isMobile: window.innerWidth <= 991,
     mobileMenuOpen: false,
@@ -870,7 +897,6 @@ function initMegaNav() {
   const getPanel = (name) => panelByName.get(name);
   const getToggle = (name) => toggleByName.get(name);
   const getFade = (el) => fadeByPanel.get(el);
-  const getIndex = (name) => toggles.indexOf(getToggle(name));
   const stagger = (n) => (n <= 1 ? 0 : { amount: DUR.stagger });
 
   function clearTimers() {
@@ -885,7 +911,6 @@ function initMegaNav() {
 
   function killDropdown() {
     killTl("tl");
-    gsap.killTweensOf(dropContainer);
     gsap.killTweensOf(backdrop);
     panels.forEach((p) => { gsap.killTweensOf(p); gsap.killTweensOf(getFade(p)); });
   }
@@ -906,13 +931,23 @@ function initMegaNav() {
     toggles.forEach((t) => t.setAttribute("aria-expanded", "false"));
   }
 
-  function resetDesktop() {
-    panels.forEach((p) => {
-      gsap.set(p, { visibility: "hidden", opacity: 0, pointerEvents: "none", x: 0, y: 0, xPercent: 0 });
-      gsap.set(getFade(p), { autoAlpha: 0, x: 0, y: 0, xPercent: 0 });
-    });
+  // A desktop panel put away: hidden, out of the dropdown's flow, its
+  // blocks back to rest.
+  function hidePanel(p) {
+    gsap.set(p, { visibility: "hidden", opacity: 0, pointerEvents: "none", x: 0, y: 0, xPercent: 0, clearProps: "position,zIndex" });
+    gsap.set(getFade(p), { autoAlpha: 0, x: 0, y: 0, xPercent: 0, yPercent: 0 });
+  }
 
-    gsap.set(dropContainer, { height: 0, clearProps: "transform" });
+  // The panel being opened: in the dropdown's flow, so the dropdown is its
+  // height, and over any panel still leaving.
+  function showPanel(p) {
+    gsap.set(p, { position: "relative", zIndex: 1, visibility: "visible", opacity: 1, pointerEvents: "auto" });
+  }
+
+  function resetDesktop() {
+    panels.forEach(hidePanel);
+
+    gsap.set(dropContainer, { clearProps: "height,transform" });
     gsap.set(backdrop, { autoAlpha: 0 });
 
     menuWrap.setAttribute("data-menu-open", "false");
@@ -921,8 +956,8 @@ function initMegaNav() {
 
   function setupMobile() {
     panels.forEach((p) => {
-      gsap.set(p, { autoAlpha: 0, xPercent: 0, visibility: "visible", pointerEvents: "none" });
-      gsap.set(getFade(p), { xPercent: 20, autoAlpha: 0 });
+      gsap.set(p, { autoAlpha: 0, xPercent: 0, visibility: "visible", pointerEvents: "none", clearProps: "position,zIndex" });
+      gsap.set(getFade(p), { xPercent: 20, yPercent: 0, autoAlpha: 0 });
     });
     gsap.set(navItems, { xPercent: 0, y: 0, autoAlpha: 1 });
     gsap.set(navList, { autoAlpha: 0, x: 0 });
@@ -932,95 +967,94 @@ function initMegaNav() {
     gsap.set(backdrop, { autoAlpha: 0 });
   }
 
-  function measurePanel(name) {
-    const el = getPanel(name);
-    if (!el) return 0;
-    const s = el.style;
-    const prev = [s.visibility, s.opacity, s.pointerEvents];
-    Object.assign(s, { visibility: "visible", opacity: "0", pointerEvents: "none" });
-    const h = el.getBoundingClientRect().height;
-    [s.visibility, s.opacity, s.pointerEvents] = prev;
-    return h;
+  // DESKTOP — a panel's blocks dropping in from under the bar, one after
+  // the next, from wherever they are (so a panel caught leaving comes
+  // straight back rather than starting over)
+  function dropIn(tl, blocks, at = 0) {
+    if (!blocks.length) return;
+    gsap.set(blocks, { autoAlpha: 1 });
+    tl.to(blocks, { yPercent: 0, duration: DUR.dropIn, stagger: DUR.dropStagger, ease: "osmo" }, at);
+  }
+
+  // DESKTOP — and lifting back up under it, the last first
+  function liftOut(tl, blocks, at = 0) {
+    if (!blocks.length) return;
+    tl.to(blocks, { yPercent: -100, duration: DUR.liftOut, stagger: { each: DUR.liftStagger, from: "end" }, ease: "power2.in" }, at);
   }
 
   // DESKTOP — open dropdown (first open)
   function openDropdown(panelName) {
     if (state.navigating) return;
-    if (state.isOpen && state.activePanel === panelName) return;
-    if (state.isOpen) return switchPanel(state.activePanel, panelName);
-
-    const height = measurePanel(panelName);
-    if (!height) return;
-
-    killDropdown();
-    resetDesktop();
+    if (state.isOpen && !state.closing && state.activePanel === panelName) return;
+    if (state.isOpen && !state.closing) return switchPanel(state.activePanel, panelName);
 
     const el = getPanel(panelName);
-    const fade = getFade(el);
+    if (!el) return;
+    const blocks = getFade(el);
     const toggle = getToggle(panelName);
+    // back over the panel that is shutting: its blocks come back down from
+    // where they are; anything else opens from rest, blocks above the edge
+    const reopening = state.closing && state.activePanel === panelName;
+
+    killDropdown();
+    if (!reopening) {
+      resetDesktop();
+      gsap.set(blocks, { yPercent: -100 });
+    }
 
     state.isOpen = true;
+    state.closing = false;
     state.activePanel = panelName;
     menuWrap.setAttribute("data-menu-open", "true");
+    resetToggles();
     if (toggle) toggle.setAttribute("aria-expanded", "true");
 
-    gsap.set(dropContainer, { height: 0 });
-
+    showPanel(el);
     const tl = gsap.timeline();
     state.tl = tl;
     tl.to(backdrop, { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0);
-    tl.to(dropContainer, { height, duration: DUR.openScale, ease: "osmo" }, 0);
-    tl.set(el, { visibility: "visible", opacity: 1, pointerEvents: "auto" }, 0.05);
-    if (fade.length) {
-      tl.fromTo(fade,
-        { autoAlpha: 0, y: 6 },
-        { autoAlpha: 1, y: 0, duration: DUR.contentIn, stagger: stagger(fade.length), ease: "power2.out" },
-        0.12
-      );
-    }
+    dropIn(tl, blocks);
   }
 
   // DESKTOP — close dropdown
   function closeDropdown() {
-    if (!state.isOpen || state.navigating) return;
+    if (!state.isOpen || state.closing || state.navigating) return;
     const el = getPanel(state.activePanel);
-    const fade = el ? getFade(el) : [];
 
     killDropdown();
+    state.closing = true;
 
     const tl = gsap.timeline({
       onComplete() {
         state.isOpen = false;
+        state.closing = false;
         state.activePanel = null;
         state.tl = null;
         resetDesktop();
       },
     });
     state.tl = tl;
-    if (fade.length) tl.to(fade, { autoAlpha: 0, y: -4, duration: DUR.contentOut * 0.7, ease: "power2.in" }, 0);
-    tl.to(dropContainer, { height: 0, duration: DUR.closeScale, ease: "osmo" }, 0.05);
-    tl.to(backdrop, { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0);
-    if (el) tl.set(el, { visibility: "hidden", opacity: 0, pointerEvents: "none" });
+    if (el) {
+      gsap.set(el, { pointerEvents: "none" });
+      liftOut(tl, getFade(el));
+    }
+    tl.to(backdrop, { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0.05);
   }
 
-  // DESKTOP — switch panel (directional)
+  // DESKTOP — switch panel: the open panel's blocks lift out while the
+  // other's drop in over them
   function switchPanel(fromName, toName) {
-    const dir = getIndex(toName) > getIndex(fromName) ? 1 : -1;
     const fromEl = getPanel(fromName), toEl = getPanel(toName);
     if (!fromEl || !toEl) return;
-
-    const fromFade = getFade(fromEl), toFade = getFade(toEl);
-    const toHeight = measurePanel(toName);
-    if (!toHeight) return;
+    const fromBlocks = getFade(fromEl), toBlocks = getFade(toEl);
 
     killDropdown();
-
-    panels.forEach((p) => {
-      gsap.set(p, { visibility: "hidden", opacity: 0, pointerEvents: "none", xPercent: 0 });
-      gsap.set(getFade(p), { autoAlpha: 0, x: 0, y: 0 });
-    });
-    gsap.set(fromEl, { visibility: "visible", opacity: 1, pointerEvents: "auto", x: 0 });
-    if (fromFade.length) gsap.set(fromFade, { autoAlpha: 1, x: 0, y: 0 });
+    panels.forEach((p) => { if (p !== fromEl) hidePanel(p); });
+    // the panel leaving: out of the flow, under the one arriving, still
+    // drawn where it was while its blocks go
+    gsap.set(fromEl, { position: "absolute", zIndex: 0, pointerEvents: "none" });
+    gsap.set(toBlocks, { yPercent: -100 });
+    showPanel(toEl);
     gsap.set(backdrop, { autoAlpha: 1 });
 
     const toToggle = getToggle(toName);
@@ -1028,27 +1062,22 @@ function initMegaNav() {
     resetToggles();
     if (toToggle) toToggle.setAttribute("aria-expanded", "true");
 
-    const xOut = dir * -30, xIn = dir * 30;
     const tl = gsap.timeline();
     state.tl = tl;
-
-    if (fromFade.length) tl.to(fromFade, { autoAlpha: 0, x: xOut, duration: DUR.contentOut, ease: "power2.in" }, 0);
-    tl.set(fromEl, { visibility: "hidden", opacity: 0, pointerEvents: "none", xPercent: 0 }, DUR.contentOut);
-    if (fromFade.length) tl.set(fromFade, { x: 0 }, DUR.contentOut);
-    tl.to(dropContainer, { height: toHeight, duration: DUR.bgMorph, ease: "osmo" }, 0.05);
-    tl.set(toEl, { visibility: "visible", opacity: 1, pointerEvents: "auto", xPercent: 0 }, DUR.contentOut * 0.5);
-    if (toFade.length) {
-      tl.fromTo(toFade,
-        { autoAlpha: 0, x: xIn },
-        { autoAlpha: 1, x: 0, duration: DUR.contentIn, stagger: stagger(toFade.length), ease: "power3.out" },
-        DUR.contentOut * 0.6
-      );
-    }
+    liftOut(tl, fromBlocks);
+    tl.add(() => hidePanel(fromEl));
+    dropIn(tl, toBlocks, 0.1);
   }
 
-  // DESKTOP — hover intent
+  // DESKTOP — hover intent, for a mouse or a pen. A tap on a touch screen
+  // fires its own mouseenter and mouseleave around the click, which would
+  // open the dropdown and shut it again; a tap is the click's to handle
+  // (handleToggleClick), so the hover handlers stand aside for it.
+  let lastPointer = "mouse";
+  const byTouch = () => lastPointer === "touch";
+
   function handleToggleEnter(e) {
-    if (state.isMobile) return;
+    if (state.isMobile || byTouch()) return;
     const name = e.currentTarget.getAttribute("data-dropdown-toggle");
     if (!name) return;
     clearTimeout(state.leaveTimer); state.leaveTimer = null;
@@ -1056,20 +1085,28 @@ function initMegaNav() {
     state.hoverTimer = setTimeout(() => openDropdown(name), state.isOpen ? 0 : HOVER_ENTER);
   }
 
-  function handleToggleLeave() {
-    if (state.isMobile) return;
-    clearTimeout(state.hoverTimer); state.hoverTimer = null;
+  // one pending close at a time: a new one replaces any already waiting
+  function scheduleClose() {
+    clearTimeout(state.leaveTimer);
     state.leaveTimer = setTimeout(closeDropdown, HOVER_LEAVE);
+  }
+
+  function handleToggleLeave() {
+    if (state.isMobile || byTouch()) return;
+    clearTimeout(state.hoverTimer); state.hoverTimer = null;
+    scheduleClose();
   }
 
   function handleWrapperEnter() {
-    if (state.isMobile) return;
+    if (state.isMobile || byTouch()) return;
     clearTimeout(state.leaveTimer); state.leaveTimer = null;
+    // back over the dropdown while it is shutting: open it again
+    if (state.closing && state.activePanel) openDropdown(state.activePanel);
   }
 
   function handleWrapperLeave() {
-    if (state.isMobile) return;
-    state.leaveTimer = setTimeout(closeDropdown, HOVER_LEAVE);
+    if (state.isMobile || byTouch()) return;
+    scheduleClose();
   }
 
   // DESKTOP — close behaviours
@@ -1309,9 +1346,21 @@ function initMegaNav() {
   }
 
   function handleToggleClick(e) {
-    if (!state.isMobile || !state.mobileMenuOpen) return;
     const name = e.currentTarget.getAttribute("data-dropdown-toggle");
-    if (name) { e.preventDefault(); openMobilePanel(name); }
+    if (!name) return;
+    // desktop, from a tap: the tap opens the dropdown and a second tap on
+    // the same toggle shuts it (a tap anywhere else shuts it too,
+    // handleDocClick)
+    if (!state.isMobile) {
+      if (!byTouch()) return;
+      e.preventDefault();
+      if (state.isOpen && !state.closing && state.activePanel === name) closeDropdown();
+      else openDropdown(name);
+      return;
+    }
+    if (!state.mobileMenuOpen) return;
+    e.preventDefault();
+    openMobilePanel(name);
   }
 
   // A navigation leaves the menu exactly as it is while the page wipe rises
@@ -1343,7 +1392,7 @@ function initMegaNav() {
       }
     } else if (state.isOpen) {
       killDropdown();
-      state.isOpen = false;
+      state.isOpen = false; state.closing = false;
       state.activePanel = null;
       resetDesktop();
     }
@@ -1386,7 +1435,7 @@ function initMegaNav() {
 
       if (!was && state.isMobile) {
         killDropdown();
-        state.isOpen = false; state.activePanel = null;
+        state.isOpen = false; state.closing = false; state.activePanel = null;
         clearTimers();
         menuWrap.setAttribute("data-menu-open", "false");
         resetToggles();
@@ -1397,6 +1446,13 @@ function initMegaNav() {
   }
 
   // EVENT BINDING
+  // which kind of pointer was last used, so a tap is told from a click
+  // (the hover handlers above), and a mouse moved again after a tap, on a
+  // device with both, hovers again
+  const notePointer = (e) => { lastPointer = e.pointerType || "mouse"; };
+  document.addEventListener("pointerdown", notePointer, { capture: true, passive: true });
+  document.addEventListener("pointermove", notePointer, { capture: true, passive: true });
+
   toggles.forEach((btn) => {
     btn.addEventListener("mouseenter", handleToggleEnter);
     btn.addEventListener("mouseleave", handleToggleLeave);
@@ -1428,134 +1484,171 @@ function initMegaNav() {
 }
 
 /* ============================================================
-   Nav reveal — the bar steps out of the way on the way down
+   Nav reveal — the bar steps out of the way where a section asks
    ============================================================
-   Scrolling down, the nav slides up out of view; the moment the
-   page moves back up, it slides back in. It is always there within
-   its own height of the top of the page, while a menu or dropdown
-   is open, whenever focus is inside it, and on every new page.
+   The bar is in place over the page's main content whichever way
+   the page scrolls, and out of view only where a section holds it
+   out:
 
-   Read off window scroll, which Lenis drives for the wheel and a
-   trackpad and the browser does natively for touch, so all three
-   behave the same. A few pixels of travel in one direction count
-   before it turns, so a jittery trackpad or a scroll bouncing off
-   the end of the page never flickers it. The slide is a GSAP tween
-   of the nav's own y; once it is back, the transform is cleared,
-   because a transformed nav would become the containing block for
-   the fixed drawer and backdrop inside it.
+     - the homepage's hero ([data-hero-parallax]): as the page leaves
+       it, the bar goes up with the hero, at the hero's own pace. The
+       hero is scrubbed down a share of its height as its wrap scrolls
+       away (initHeroParallax), so it rises slower than the scroll, and
+       the bar, which sits on it, rises with it until it is out of
+       view; scrolled back up, it comes back down with it;
+     - a section marked data-nav-hold (the homepage's logo strip and
+       its held statements): from where the hero lets the bar go (on a
+       page without one, the section's top coming up the screen) to the
+       moment the section's foot has passed the bar's, so its
+       statements play out with nothing over them and the bar comes
+       back as the next section takes the screen;
+     - the closing call to action (.cta), from the moment its top
+       reaches the bar's foot to the end of the page, the footer under
+       it included.
+
+   It is always in place while a menu is open or keyboard focus is in
+   it. Scroll direction plays no part.
+
+   One writer, so nothing else ever moves the bar: how far out of view
+   it is, 0 to 1, a single number drawn as the bar's y. In the hero it
+   follows the scroll exactly; everywhere else it eases between 0 and
+   1 on the site's curve as a boundary is crossed, and a change of mind
+   part-way turns round from where it is. Where the hero takes over
+   from a change still under way, the bar catches up with the hero in
+   a moment rather than jumping, and every change takes the time its
+   share of the way calls for. The boundaries are page positions,
+   measured on each ScrollTrigger refresh (load, resize, the webfont),
+   so nothing is read while the page scrolls. A page opens with the
+   bar where its scroll puts it, at once: in place at the top, out of
+   view on a reload into a held section.
+
+   It goes up by its height rounded up to whole device pixels: the
+   bar's height is fluid (3.9em on the scaling system's size), so it is
+   rarely a whole number of device pixels — 68.79px is 103.19 of them
+   at 1.5x — and moved by exactly that, its last, partly covered row of
+   pixels would show on the screen's top edge once the compositor snaps
+   the layer to the pixel grid. In place, its transform is cleared,
+   because a transformed nav would become the containing block for the
+   fixed drawer and backdrop inside it.
    ============================================================ */
+const NAV_REVEAL = { duration: 0.6, ease: "osmo", catchUp: 0.2 };
+
 function initNavReveal() {
   const nav = document.querySelector("[data-menu-wrap]");
   if (!nav) return;
 
-  const TRAVEL = 6;
-  let hidden = false;
-  let lastY = window.scrollY;
-  let travel = 0;
-  // While a section marked data-nav-hold (the homepage's logo strip and its
-  // held statements) is on the screen — from its top coming up from the
-  // screen's foot, so as soon as the hero is left, to its foot leaving the
-  // top — the nav stays out of
-  // view, scrolling up as well as down. A ScrollTrigger per section, so the
-  // bounds are the section's own, kept up to date as the page lays out, and
-  // cost no layout read on scroll.
-  let holding = false;
-  let holdTriggers = [];
-  function watchHolds() {
-    holdTriggers.forEach((t) => t.kill());
-    holding = false;
-    holdTriggers = [...document.querySelectorAll("[data-nav-hold]")].map((trigger) =>
-      ScrollTrigger.create({
-        trigger,
-        start: "top bottom",
-        end: "bottom top",
-        onToggle: (self) => {
-          holding = self.isActive;
-          if (holding && window.scrollY > barHeight) hide();
-        },
-      }),
-    );
-  }
+  const state = { out: 0 };
+  let distance = 0;
+  let drawn = 0;
+  let zones = null;
+  let watcher = null;
+  let easing = null;
+  let goal = 0;
 
-  const duration = () => (reducedMotionQuery.matches ? 0 : 0.45);
-
-  // How far up it goes: its own height, rounded up to whole device pixels.
-  // The bar's height is fluid (4.3em on the scaling system's size), so it is
-  // rarely a whole number of device pixels — 68.79px is 103.19 of them at
-  // 1.5x. Moved up by exactly that, its last, partly covered row of pixels
-  // ends on the screen's top edge, and once the compositor snaps the layer
-  // to the pixel grid that row shows as a sliver of the bar. Rounding the
-  // distance up to the next whole device pixel takes that row with it.
   const outOfView = () => {
     const dpr = window.devicePixelRatio || 1;
-    return -Math.ceil(nav.getBoundingClientRect().height * dpr) / dpr;
+    return Math.ceil(nav.getBoundingClientRect().height * dpr) / dpr;
   };
 
-  function show(immediate) {
-    if (!hidden && !immediate) return;
-    hidden = false;
-    gsap.to(nav, {
-      y: 0,
-      duration: immediate ? 0 : duration(),
-      ease: "power3.out",
-      overwrite: true,
-      onComplete: () => gsap.set(nav, { clearProps: "transform" }),
+  function draw() {
+    const y = state.out > 0 ? -state.out * distance : 0;
+    if (y === drawn) return;
+    drawn = y;
+    if (y) gsap.set(nav, { y });
+    else gsap.set(nav, { clearProps: "transform" });
+  }
+
+  // Where the sections hold the bar, as page positions, for the page in
+  // container: the hero's run, if it has one, and the held stretches.
+  function measure(container) {
+    const page = (el) => el.getBoundingClientRect().top + window.scrollY;
+    const bar = nav.offsetHeight;
+    distance = outOfView();
+    let hero = null;
+    const wrap = container.querySelector("[data-hero-parallax]");
+    const inner = wrap?.querySelector("[data-hero-parallax-inner]");
+    if (wrap && inner) {
+      // the hero's pace: the scroll less what the parallax takes back
+      const start = Math.max(0, page(wrap));
+      const pace = 1 - (parallaxTravel(inner) / 100) * inner.offsetHeight / wrap.offsetHeight;
+      hero = { start, end: start + distance / Math.max(pace, 0.1), foot: page(wrap) + wrap.offsetHeight };
+    }
+    // A held section straight after the hero takes the bar over exactly
+    // where the hero lets it go, however tall the hero is beside the
+    // screen; any other from its top coming up the screen.
+    const holds = [...container.querySelectorAll("[data-nav-hold]")].map((section) => {
+      const top = page(section);
+      const afterHero = hero && top <= hero.foot + 1;
+      return [afterHero ? hero.end : top - window.innerHeight, top + section.offsetHeight - bar];
+    });
+    const cta = container.querySelector(".cta");
+    if (cta) holds.push([page(cta) - bar, Infinity]);
+    zones = { hero, holds };
+  }
+
+  // Where the bar should be at scroll y: how far out, and whether it
+  // follows the scroll (the hero) or eases there.
+  function wanted(y) {
+    if (nav.getAttribute("data-menu-open") === "true" || nav.querySelector(":focus-visible")) return [0, false];
+    if (!zones) return [0, false];
+    const { hero, holds } = zones;
+    if (hero && y > hero.start && y < hero.end) return [(y - hero.start) / (hero.end - hero.start), true];
+    return [holds.some(([from, to]) => y >= from && y < to) ? 1 : 0, false];
+  }
+
+  function update(immediate = false) {
+    const [out, follows] = wanted(window.scrollY);
+    if (immediate || (follows && !easing?.isActive())) {
+      easing?.kill();
+      easing = null;
+      goal = out;
+      state.out = out;
+      draw();
+      return;
+    }
+    if (out === goal && (easing?.isActive() || state.out === out)) return;
+    goal = out;
+    easing?.kill();
+    // the time in proportion to the way left to go, so the last of the
+    // hero's run, or a turn part-way, is not drawn out over the whole
+    const share = NAV_REVEAL.duration * Math.abs(out - state.out);
+    easing = gsap.to(state, {
+      out,
+      duration: reducedMotion ? 0 : follows ? NAV_REVEAL.catchUp : Math.max(NAV_REVEAL.catchUp, share),
+      ease: NAV_REVEAL.ease,
+      onUpdate: draw,
     });
   }
 
-  function hide() {
-    if (hidden) return;
-    // Nothing that is open, or being used from the keyboard, goes out of
-    // view. Keyboard focus only: a link clicked in the bar keeps focus
-    // after Barba has moved on to its page, and holding the bar for that
-    // left it pinned on every page reached from the nav.
-    if (nav.getAttribute("data-menu-open") === "true" || nav.querySelector(":focus-visible")) return;
-    hidden = true;
-    gsap.to(nav, { y: outOfView(), duration: duration(), ease: "power3.out", overwrite: true });
+  // A page's own watcher: its boundaries on every refresh, the bar on
+  // every scroll. Bound to the container, so it goes with the page.
+  function bind(container) {
+    watcher?.kill();
+    watcher = null;
+    zones = null;
+    if (!container) return;
+    watcher = ScrollTrigger.create({
+      trigger: container,
+      start: 0,
+      end: "max",
+      onUpdate: () => update(),
+      onRefresh: () => {
+        measure(container);
+        update(true);
+      },
+    });
+    measure(container);
+    update(true);
   }
 
-  // The bar's height, kept rather than read on every scroll event: read
-  // there, straight after the frame's GSAP writes, it forced a layout on
-  // every frame of a scroll.
-  let barHeight = nav.offsetHeight;
+  // Opening or closing a menu, and keyboard focus coming into the bar or
+  // leaving it, settle it again where it is.
+  new MutationObserver(() => update()).observe(nav, { attributes: true, attributeFilter: ["data-menu-open"] });
+  nav.addEventListener("focusin", () => update());
+  nav.addEventListener("focusout", () => gsap.delayedCall(0, () => update()));
 
-  // the bar's height and the pixel ratio both change with the window (and
-  // with the browser's zoom), so a hidden bar is put back out of view
-  window.addEventListener("resize", () => {
-    barHeight = nav.offsetHeight;
-    if (hidden) gsap.set(nav, { y: outOfView(), overwrite: true });
-  });
-
-  function onScroll() {
-    // Overscroll at either end of the page is not a change of direction.
-    // The page's end is Lenis's own limit, which it keeps up to date as the
-    // content changes size, so the clamp costs no layout read either.
-    const y = Math.min(Math.max(window.scrollY, 0), Math.max(lenis.limit, 0));
-    const dy = y - lastY;
-    lastY = y;
-
-    if (y <= barHeight) {
-      travel = 0;
-      show();
-      return;
-    }
-    if (!dy) return;
-    travel = Math.sign(dy) === Math.sign(travel) ? travel + dy : dy;
-    if (travel > TRAVEL) hide();
-    else if (travel < -TRAVEL && !holding) show();
-  }
-
-  window.addEventListener("scroll", onScroll, { passive: true });
-  nav.addEventListener("focusin", () => show());
-  // a new page always opens with the nav in place — at the top, or where a
-  // reload put it back (an earlier beforeEnter), which is no scroll down
-  barba.hooks.beforeEnter(() => {
-    lastY = window.scrollY;
-    travel = 0;
-    show(true);
-  });
-  barba.hooks.afterEnter(watchHolds);
-  watchHolds();
+  barba.hooks.beforeEnter((data) => bind(data?.next?.container));
+  barba.hooks.afterLeave(() => bind(null));
 
   initNavTheme(nav);
 }
@@ -2071,294 +2164,21 @@ function initApproachSlides(container) {
 }
 
 /* ============================================================
-   Line reveal testimonials — masked lines, one slide at a time
+   Testimonial slider — the homepage's quotes (testimonial-slider.js)
    ============================================================
-   The reference component's logic is kept as shipped: the slides
-   stack in one grid cell, SplitText masks each slide's lines, and
-   a change wipes the outgoing lines up and the incoming lines in
-   behind them, with the same durations, eases and staggers. Its
-   counter, autoplay, arrow buttons, arrow-key handling and the
-   in-view ScrollTrigger are all unchanged.
-
-   Three adaptations so it lives in this codebase:
-
-     - it is queried against the Barba container, not document, and
-       runs from the page registry rather than DOMContentLoaded;
-     - its listeners, ScrollTrigger, autoplay call and splits are
-       torn down through registerPageCleanup, so nothing outlives
-       the DOM it measured;
-     - the portrait's circular clip becomes a straight fade, since
-       what sits there is a logo on a square tile, not a face.
+   Mounted per page from the registry and torn down with it; its
+   first quote waits for the page to be uncovered, as the headings'
+   line reveal does, and in the Studio's preview it is left unsplit.
    ============================================================ */
-function initLineRevealTestimonials(container) {
-  container.querySelectorAll("[data-testimonial-wrap]").forEach((wrap) => {
-    const list = wrap.querySelector("[data-testimonial-list]");
-    if (!list) return;
-
-    const items = Array.from(list.querySelectorAll("[data-testimonial-item]"));
-    if (!items.length) return;
-
-    const btnPrev = wrap.querySelector("[data-prev]");
-    const btnNext = wrap.querySelector("[data-next]");
-    const elCurrent = wrap.querySelector("[data-current]");
-    const elTotal = wrap.querySelector("[data-total]");
-
-    if (elTotal) elTotal.textContent = String(items.length);
-
-    let activeIndex = items.findIndex((el) => el.classList.contains("is--active"));
-    if (activeIndex < 0) activeIndex = 0;
-
-    let isAnimating = false;
-    const reduceMotion = reducedMotion;
-
-    const autoplayEnabled = wrap.getAttribute("data-autoplay") === "true";
-    const autoplayDuration = parseInt(wrap.getAttribute("data-autoplay-duration"), 10) || 4000;
-
-    let autoplayCall = null;
-    let isInView = true;
-
-    const slides = items.map((item) => ({
-      item,
-      image: item.querySelector("[data-testimonial-img]"),
-
-      splitTargets: [
-        item.querySelector("[data-testimonial-text]"),
-        ...item.querySelectorAll("[data-testimonial-split]"),
-      ].filter(Boolean),
-
-      splitInstances: [],
-
-      getLines() {
-        return this.splitInstances.flatMap((instance) => instance.lines);
-      },
-    }));
-
-    function setSlideState(slideIndex, isActive) {
-      const { item } = slides[slideIndex];
-      item.classList.toggle("is--active", isActive);
-      item.setAttribute("aria-hidden", String(!isActive));
-      gsap.set(item, {
-        autoAlpha: isActive ? 1 : 0,
-        pointerEvents: isActive ? "auto" : "none",
-      });
-    }
-
-    function updateCounter() {
-      if (elCurrent) elCurrent.textContent = String(activeIndex + 1);
-    }
-
-    function startAutoplay() {
-      if (!autoplayEnabled || slides.length < 2) return;
-      if (autoplayCall) autoplayCall.kill();
-
-      autoplayCall = gsap.delayedCall(autoplayDuration / 1000, () => {
-        if (!isInView || isAnimating) {
-          startAutoplay();
-          return;
-        }
-        goTo((activeIndex + 1) % slides.length);
-        startAutoplay();
-      });
-    }
-
-    function pauseAutoplay() {
-      if (autoplayCall) autoplayCall.pause();
-    }
-
-    function resumeAutoplay() {
-      if (!autoplayEnabled) return;
-      if (!autoplayCall) startAutoplay();
-      else autoplayCall.resume();
-    }
-
-    function resetAutoplay() {
-      if (!autoplayEnabled) return;
-      startAutoplay();
-    }
-
-    // Set initial state
-    slides.forEach((_, i) => setSlideState(i, i === activeIndex));
-    updateCounter();
-
-    // Create SplitText instances
-    slides.forEach((slide, slideIndex) => {
-      slide.splitInstances = slide.splitTargets.map((el) =>
-        SplitText.create(el, {
-          type: "lines",
-          mask: "lines",
-          linesClass: "text-line",
-          autoSplit: true,
-          onSplit(self) {
-            if (reduceMotion) return;
-
-            const isActive = slideIndex === activeIndex;
-            gsap.set(self.lines, { yPercent: isActive ? 0 : 110 });
-
-            if (slide.image) {
-              gsap.set(slide.image, { autoAlpha: isActive ? 1 : 0 });
-            }
-          },
-        })
-      );
+function initTestimonialSlider(container) {
+  container.querySelectorAll("[data-testimonial-slider]").forEach((el) => {
+    const slider = mountTestimonialSlider(el, {
+      reducedMotion,
+      still: document.documentElement.hasAttribute("data-draft"),
+      shown: () => pageShown,
+      start: LINE_REVEAL.start,
     });
-
-    function goTo(nextIndex) {
-      if (isAnimating || nextIndex === activeIndex) return;
-      isAnimating = true;
-
-      const outgoingSlide = slides[activeIndex];
-      const incomingSlide = slides[nextIndex];
-
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setSlideState(activeIndex, false);
-          setSlideState(nextIndex, true);
-          activeIndex = nextIndex;
-          updateCounter();
-          isAnimating = false;
-        },
-      });
-
-      if (reduceMotion) {
-        tl.to(outgoingSlide.item, {
-            autoAlpha: 0,
-            duration: 0.4,
-            ease: "power2"
-          }, 0)
-          .fromTo(incomingSlide.item, {
-            autoAlpha: 0
-          }, {
-            autoAlpha: 1,
-            duration: 0.4,
-            ease: "power2"
-          }, 0);
-
-        return;
-      }
-
-      const outgoingLines = outgoingSlide.getLines();
-      const incomingLines = incomingSlide.getLines();
-
-      gsap.set(incomingSlide.item, { autoAlpha: 1, pointerEvents: "auto" });
-      gsap.set(incomingLines, { yPercent: 110 });
-
-      if (outgoingSlide.image) gsap.set(outgoingSlide.image, { autoAlpha: 1 });
-
-      tl.to(outgoingLines, {
-        yPercent: -110,
-        duration: 0.6,
-        ease: "power4.inOut",
-        stagger: { amount: 0.25 },
-      }, 0);
-
-      if (outgoingSlide.image) {
-        tl.to(outgoingSlide.image, {
-          autoAlpha: 0,
-          duration: 0.4,
-          ease: "power2.inOut",
-        }, 0);
-      }
-
-      tl.to(incomingLines, {
-        yPercent: 0,
-        duration: 0.7,
-        ease: "power4.inOut",
-        stagger: { amount: 0.4 },
-      }, ">-=0.3");
-
-      if (incomingSlide.image) {
-        tl.fromTo(incomingSlide.image, {
-          autoAlpha: 0,
-        }, {
-          autoAlpha: 1,
-          duration: 0.5,
-          ease: "power2.inOut",
-        }, "<");
-      }
-
-      tl.set(outgoingSlide.item, { autoAlpha: 0 }, ">");
-    }
-
-    // Start autoplay on the wrap (only works if autoplay is set to 'true')
-    startAutoplay();
-
-    const onNext = () => {
-      resetAutoplay();
-      goTo((activeIndex + 1) % slides.length);
-    };
-    const onPrev = () => {
-      resetAutoplay();
-      goTo((activeIndex - 1 + slides.length) % slides.length);
-    };
-
-    if (btnNext) btnNext.addEventListener("click", onNext);
-    if (btnPrev) btnPrev.addEventListener("click", onPrev);
-
-    function onKeyDown(e) {
-      if (!isInView) return;
-
-      // Don't hijack arrow keys while user is typing.
-      const t = e.target;
-      const isTypingTarget =
-        t &&
-        (t.tagName === "INPUT" ||
-          t.tagName === "TEXTAREA" ||
-          t.isContentEditable);
-
-      if (isTypingTarget) return;
-
-      if (e.key === "ArrowRight") {
-        e.preventDefault();
-        onNext();
-      }
-
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        onPrev();
-      }
-    }
-
-    // Listen for left/right arrows
-    window.addEventListener("keydown", onKeyDown);
-
-    // Enable/disable keyboard + autoplay depending on scroll position
-    const trigger = ScrollTrigger.create({
-      trigger: wrap,
-      start: "top bottom",
-      end: "bottom top",
-      onEnter: () => {
-        isInView = true;
-        resumeAutoplay();
-      },
-      onEnterBack: () => {
-        isInView = true;
-        resumeAutoplay();
-      },
-      onLeave: () => {
-        isInView = false;
-        pauseAutoplay();
-      },
-      onLeaveBack: () => {
-        isInView = false;
-        pauseAutoplay();
-      },
-    });
-    // The callbacks report crossings; where the page opens is read off the
-    // trigger itself. A page opens at its top with the testimonials well
-    // below, and taken as in view regardless, the autoplay ran its line
-    // animations off screen every six seconds, under the hero and the
-    // statements.
-    isInView = trigger.isActive;
-    if (!isInView) pauseAutoplay();
-
-    registerPageCleanup(() => {
-      window.removeEventListener("keydown", onKeyDown);
-      if (btnNext) btnNext.removeEventListener("click", onNext);
-      if (btnPrev) btnPrev.removeEventListener("click", onPrev);
-      if (autoplayCall) autoplayCall.kill();
-      trigger.kill();
-      slides.forEach((slide) => slide.splitInstances.forEach((instance) => instance.revert()));
-    });
+    registerPageCleanup(() => slider.destroy());
   });
 }
 
@@ -2580,37 +2400,72 @@ function initProblemGrid(container) {
 }
 
 /* ============================================================
-   Routes cards — the four services staggered in as the row arrives
+   Global parallax — Osmo Supply's Global Parallax Setup
    ============================================================
-   Held down and hidden from the start, then raised one after the
-   other, left to right, once the row is well into view, and only
-   once. A tween rather than a CSS transition with per-card delays:
-   the delays would stay on the cards' own hover lift afterwards,
-   and the props are cleared when it ends so the hover is the
-   card's own again. Nothing under reduced motion.
+   Its data attributes and tween as supplied: [data-parallax="trigger"]
+   (and an optional [data-parallax="target"] child to move), -start and
+   -end in percent, -direction, -scrub, -scroll-start, -scroll-end and
+   -disable ("mobile", "mobileLandscape", "tablet"). Adapted only to run
+   here: on the page's GSAP, ScrollTrigger and Lenis (wired up at the
+   top), per Barba container, reverted with the page, and with a
+   reduced-motion condition so the blocks stay put when asked.
+
+   Used by the homepage's approach steps: each card moves as one
+   piece, a few percent of its own height, at its own rate, so the
+   staggered layout keeps its shape; a wrapper takes the transform,
+   so the card's own entrance stays its own.
    ============================================================ */
-function initRoutesReveal(container) {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+function initGlobalParallax(container) {
+  const mm = gsap.matchMedia();
 
-  container.querySelectorAll("[data-routes-reveal]").forEach((grid) => {
-    const cards = grid.querySelectorAll(".route-card");
-    if (!cards.length) return;
+  mm.add({
+    isMobile: "(max-width: 479px)",
+    isMobileLandscape: "(max-width: 767px)",
+    isTablet: "(max-width: 991px)",
+    isDesktop: "(min-width: 992px)",
+    reduceMotion: "(prefers-reduced-motion: reduce)",
+  }, (context) => {
+    const { isMobile, isMobileLandscape, isTablet, reduceMotion } = context.conditions;
+    if (reduceMotion) return;
 
-    gsap.set(cards, { autoAlpha: 0, y: 48 });
-    const tween = gsap.to(cards, {
-      autoAlpha: 1,
-      y: 0,
-      duration: 0.9,
-      ease: "power3.out",
-      stagger: 0.12,
-      clearProps: "opacity,visibility,transform",
-      scrollTrigger: { trigger: grid, start: "top 80%", once: true },
+    const ctx = gsap.context(() => {
+      container.querySelectorAll('[data-parallax="trigger"]').forEach((trigger) => {
+        const disable = trigger.getAttribute("data-parallax-disable");
+
+        if (
+          (disable === "mobile" && isMobile) ||
+          (disable === "mobileLandscape" && isMobileLandscape) ||
+          (disable === "tablet" && isTablet)
+        ) return;
+
+        const target = trigger.querySelector('[data-parallax="target"]') || trigger;
+        const direction = trigger.getAttribute("data-parallax-direction") || "vertical";
+        const prop = direction === "horizontal" ? "xPercent" : "yPercent";
+
+        const scrubAttr = trigger.getAttribute("data-parallax-scrub");
+        const startAttr = trigger.getAttribute("data-parallax-start");
+        const endAttr = trigger.getAttribute("data-parallax-end");
+
+        const scrub = scrubAttr !== null ? parseFloat(scrubAttr) : true;
+        const startVal = startAttr !== null ? parseFloat(startAttr) : 20;
+        const endVal = endAttr !== null ? parseFloat(endAttr) : -20;
+
+        const scrollStart = `clamp(${trigger.getAttribute("data-parallax-scroll-start") || "top bottom"})`;
+        const scrollEnd = `clamp(${trigger.getAttribute("data-parallax-scroll-end") || "bottom top"})`;
+
+        scrubTween(target, { [prop]: startVal }, { [prop]: endVal }, {
+          trigger,
+          start: scrollStart,
+          end: scrollEnd,
+          scrub,
+        });
+      });
     });
-    registerPageCleanup(() => {
-      tween.scrollTrigger?.kill();
-      tween.kill();
-    });
+
+    return () => ctx.revert();
   });
+
+  registerPageCleanup(() => mm.revert());
 }
 
 /* ============================================================
@@ -2650,6 +2505,199 @@ function initAccordions(container) {
       }
     });
   });
+}
+
+/* ============================================================
+   Line reveal — the marked headings rising line by line
+   ============================================================
+   After the Osmo Masked Text Reveal: every [data-split="heading"]
+   is split into its lines, each wrapped in a mask, and the lines rise
+   into it one after another the first time the heading comes up the
+   screen. Lines only, never words or letters, a short stagger and an
+   ease that settles, so a heading reads as set rather than performed.
+
+   Adapted to the site:
+     - mounted per page from the registry and reverted with it;
+     - a heading already on screen when its page arrives waits for the
+       page to be uncovered (pageShown), so it rises as it is seen and
+       not under the wipe;
+     - autoSplit re-splits a heading whenever its width changes or the
+       webfont arrives, so its lines are always its real lines; the
+       tween handed back to SplitText is carried over to the new lines
+       at the progress it had reached, so a resize never replays it;
+     - SplitText's own aria handling keeps each heading read whole;
+     - with reduced motion, or in the Studio's preview, headings are
+       left as they are (and styles.css never hides them);
+     - each line's mask is opened by the face's overhang past its line
+       box (styles.css), so no glyph is cut, and a line starts far
+       enough down to be wholly out of it.
+
+   When: once the heading's top is well up the screen (28% of it up
+   from the foot), so it is being looked at, not still at the edge; and
+   on an ease that keeps moving long enough to be seen, rather than one
+   that has done nearly all of its travel in the first quarter-second.
+   ============================================================ */
+const LINE_REVEAL = { yPercent: 125, duration: 0.9, stagger: 0.09, ease: "power3.out", start: "clamp(top 72%)" };
+
+function initLineReveal(container) {
+  if (reducedMotion || document.documentElement.hasAttribute("data-draft")) return;
+
+  container.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+    let trigger = null;
+    const split = SplitText.create(heading, {
+      type: "lines",
+      mask: "lines",
+      autoSplit: true,
+      linesClass: "line",
+      onSplit(self) {
+        trigger?.kill();
+        gsap.set(heading, { visibility: "visible" });
+        const reveal = gsap.from(self.lines, {
+          yPercent: LINE_REVEAL.yPercent,
+          duration: LINE_REVEAL.duration,
+          stagger: LINE_REVEAL.stagger,
+          ease: LINE_REVEAL.ease,
+          paused: true,
+        });
+        trigger = ScrollTrigger.create({
+          trigger: heading,
+          start: LINE_REVEAL.start,
+          once: true,
+          onEnter: () => pageShown.then(() => reveal.play()),
+        });
+        // A heading near the top of its page has its start clamped to the
+        // top, which a page arriving at the top sits exactly on and
+        // ScrollTrigger does not count as entered; once the page is seen,
+        // any heading the scroll has already reached rises too.
+        const own = trigger;
+        pageShown.then(() => {
+          if (own === trigger && own.scroll() >= own.start) reveal.play();
+        });
+        return reveal;
+      },
+    });
+
+    registerPageCleanup(() => {
+      trigger?.kill();
+      split.revert();
+      gsap.set(heading, { clearProps: "visibility" });
+    });
+  });
+}
+
+/* ============================================================
+   Service stack — the homepage's routes as a stack of files
+   ============================================================
+   The stacking itself is the stylesheet's (position: sticky,
+   styles.css "service stack"). Two things are added here:
+
+     - depth: as each card rises over the one before, that one draws
+       back, darkening under its shade while its tab fades (never
+       shrinking, so every edge stays on the grid), scrubbed with the
+       scroll from the moment it settles to the moment the next settles
+       on it, so it runs back exactly on the way up. Opacity only. Not
+       with reduced motion, where the stylesheet lets the cards simply
+       follow one another;
+     - bringing a card back: a card is on top of the stack at the
+       scroll where it has just come to rest, its place in the page's
+       flow less the height it sticks at. A tab goes there, on Lenis,
+       so every card after it slides back down and off it, the
+       reverse of how it was covered. Without the script the tab is a
+       plain link to its card.
+
+   Nothing else: a card arriving on the stack, scrolled to or brought
+   back by its tab, comes in as it is, with no flash or flicker as it
+   seats.
+
+   The scroll positions are worked out from the stack, which does not
+   stick, and the cards' own heights, rather than measured off the
+   sticky cards, whose positions depend on the scroll they are read at.
+   ============================================================ */
+const STACK_DEPTH = { shade: 0.6, tab: 0.45 };
+// the scroll back to a card: ease in and out (cubic)
+const STACK_EASE = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+// The dot fields behind the service stack's diagrams (dot-field.js),
+// mounted per page and torn down with it.
+function initDotFields(container) {
+  container.querySelectorAll("[data-dot-field]").forEach((el) => {
+    const field = mountDotField(el);
+    registerPageCleanup(() => field.destroy());
+  });
+}
+
+function initServiceStack(container) {
+  container.querySelectorAll("[data-service-stack]").forEach((stack) => {
+    const items = [...stack.querySelectorAll("[data-service-stack-item]")];
+    const part = (item, name) => item.querySelector(`[data-service-stack-${name}]`);
+    const stickAt = (item) => parseFloat(getComputedStyle(item).top);
+
+    // where card i rests on top: the stack's top in the page, the cards
+    // before it in the flow, less the height it sticks at
+    const restingAt = (i) => {
+      const top = stack.getBoundingClientRect().top + window.scrollY + parseFloat(getComputedStyle(stack).paddingTop);
+      const before = items.slice(0, i).reduce((sum, item) => sum + item.offsetHeight, 0);
+      return top + before - stickAt(items[i]);
+    };
+
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      items.slice(0, -1).forEach((item, i) => {
+        gsap.timeline({
+          defaults: { ease: "none" },
+          scrollTrigger: {
+            // from this card coming to rest, the next rising under it,
+            // to the next coming to rest on it
+            start: () => restingAt(i),
+            end: () => restingAt(i + 1),
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        })
+          .to(part(item, "shade"), { opacity: STACK_DEPTH.shade }, 0)
+          .to(part(item, "tab"), { opacity: STACK_DEPTH.tab }, 0);
+      });
+    });
+
+    const onClick = (e) => {
+      const tab = e.target.closest("[data-service-stack-tab]");
+      const i = tab ? items.indexOf(tab.closest("[data-service-stack-item]")) : -1;
+      if (i < 0) return;
+      e.preventDefault();
+      if (reducedMotion) return lenis.scrollTo(restingAt(i), { immediate: true });
+      // unhurried, and longer the further it has to go, easing in and out
+      // so the cards lift off and settle rather than snap
+      const target = restingAt(i);
+      const distance = Math.abs(target - window.scrollY);
+      lenis.scrollTo(target, {
+        duration: gsap.utils.clamp(1.2, 2.4, 0.9 + distance / 1800),
+        easing: STACK_EASE,
+      });
+    };
+
+    stack.addEventListener("click", onClick);
+    registerPageCleanup(() => {
+      stack.removeEventListener("click", onClick);
+      mm.revert();
+    });
+  });
+}
+
+// The enquiry form, reached from an AEC Tech Partners button
+// (contact.html?offer=…): the topic set to AEC Tech Partners and the
+// message opened with the partnership the visitor chose.
+function initEnquiryOffer(container) {
+  const form = container.querySelector("[data-enquiry-offer]");
+  const offer = new URLSearchParams(window.location.search).get("offer");
+  if (!form || !offer) return;
+  const topic = form.querySelector("#topic");
+  if (topic) topic.value = "AEC Tech Partners";
+  const message = form.querySelector("#msg");
+  if (message && !message.value) {
+    message.value = offer === "partnership"
+      ? "I’d like to discuss a partnership with ADDD.\n\n"
+      : `I’m interested in: ${offer}.\n\n`;
+  }
 }
 
 /* ============================================================
@@ -2725,35 +2773,40 @@ function initHeroParallax(container) {
 // attributes: [data-<name>-parallax] on the clipping wrap, -inner on the
 // panel that travels inside it and -dark on the scrim over it; shade is the
 // scrim's opacity at the far end from rest.
+// How far a parallax panel travels inside its wrap, in percent of its own
+// height: a quarter of it, or, stacked on a phone or tablet, where the
+// panel runs to two screens or more, the same quarter of the screen. The
+// nav reads it too, to leave the homepage at the hero's pace
+// (initNavReveal). Read on each refresh, never per frame.
+function parallaxTravel(inner) {
+  const stacked = window.matchMedia("(max-width: 991px)").matches;
+  return stacked && inner.offsetHeight ? 25 * window.innerHeight / inner.offsetHeight : 25;
+}
+
 function initParallaxCover(container, name, { leaving = false, shade = 0.5 } = {}) {
   const wraps = container.querySelectorAll(`[data-${name}-parallax]`);
-  const stacked = window.matchMedia("(max-width: 991px)");
 
-  const timelines = [];
+  const tweens = [];
 
   wraps.forEach(wrap => {
     const inner = wrap.querySelector(`[data-${name}-parallax-inner]`);
     const scrim = wrap.querySelector(`[data-${name}-parallax-dark]`);
     if (!inner && !scrim) return;
 
-    const tl = gsap.timeline({
-      scrollTrigger: {
-        trigger: wrap,
-        // coming in, while the wrap rises from the foot of the viewport to
-        // its top; going out, while it carries on until it has left
-        start: leaving ? "clamp(top top)" : "clamp(top bottom)",
-        end: leaving ? "clamp(bottom top)" : "clamp(top top)",
-        scrub: true,
-        // re-reads the travel below when the layout changes; both ends of
-        // each tween are explicit, so re-recording them is always safe
-        invalidateOnRefresh: true
-      }
-    });
+    const scroll = {
+      trigger: wrap,
+      // coming in, while the wrap rises from the foot of the viewport to
+      // its top; going out, while it carries on until it has left
+      start: leaving ? "clamp(top top)" : "clamp(top bottom)",
+      end: leaving ? "clamp(bottom top)" : "clamp(top top)",
+      scrub: true,
+      // re-reads the travel below when the layout changes; both ends of
+      // each tween are explicit, so re-recording them is always safe
+      invalidateOnRefresh: true
+    };
 
     // the panel's offset from rest: above it coming in, below it going out
-    const travel = () => (stacked.matches && inner.offsetHeight
-      ? 25 * window.innerHeight / inner.offsetHeight
-      : 25) * (leaving ? 1 : -1);
+    const travel = () => parallaxTravel(inner) * (leaving ? 1 : -1);
 
     // coming in, the panel settles out of its offset and its shadow; going
     // out, it runs the same way backwards, from rest into both
@@ -2764,18 +2817,24 @@ function initParallaxCover(container, name, { leaving = false, shade = 0.5 } = {
       fade.reverse();
     }
 
-    if (inner) tl.fromTo(inner, offset[0], { ...offset[1], ease: "none" });
-    if (scrim) tl.fromTo(scrim, fade[0], { ...fade[1], ease: "none" }, "<");
-
-    timelines.push(tl);
+    // the panel and its scrim on the same scroll, so they move as one
+    if (inner) tweens.push(scrubTween(inner, offset[0], offset[1], scroll));
+    if (scrim) tweens.push(scrubTween(scrim, fade[0], fade[1], scroll));
   });
 
   registerPageCleanup(() => {
-    timelines.forEach(tl => {
-      if (tl.scrollTrigger) tl.scrollTrigger.kill();
-      tl.kill();
+    tweens.forEach(tween => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
     });
   });
+}
+
+// The one scroll-scrubbed tween every parallax on the site is made of —
+// the footer's reveal, the hero's exit and the global [data-parallax]
+// blocks: from one set of values to another, linear, over a ScrollTrigger.
+function scrubTween(target, from, to, scrollTrigger) {
+  return gsap.fromTo(target, from, { ...to, ease: "none", scrollTrigger });
 }
 
 /* ============================================================

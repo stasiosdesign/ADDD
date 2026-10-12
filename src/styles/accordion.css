@@ -30,8 +30,10 @@
   gap: 0.5rem;
 }
 
+/* a white tile on the off-white page, its chip in the light grey, so the
+   two never flatten into each other */
 .accordion__item {
-  background-color: var(--c-light-fg);
+  background-color: var(--c-white);
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
   overflow: hidden;
@@ -75,7 +77,7 @@
   width: 2rem;
   height: 2rem;
   border-radius: var(--radius);
-  background-color: var(--c-white);
+  background-color: var(--c-light-fg);
   color: var(--c-text);
   transform: rotate(180deg);
   transition: transform 0.6s var(--ease-osmo),
@@ -123,11 +125,6 @@
   font-size: var(--t-rg);
   line-height: 1.4;
 }
-
-/* On a light section the tile lifts to white; the chip drops to the
-   section tint so the two never flatten into each other. */
-.section--light .accordion__item { background-color: var(--c-white); }
-.section--light .accordion__icon { background-color: var(--c-light-fg); }
 
 /* On the dark band the tile goes darker than the section, not lighter. */
 .section--dark .accordion__item {

@@ -34,7 +34,7 @@
    own --nav-bg and its text --nav-fg, and the ink-filled chips are the
    pair the other way round, so each of them inverts with the bar. */
 .mega-nav {
-  --nav-height: 4.3em;
+  --nav-height: 3.9em;
 
   /* How far the nav is into its dark state: 0% light, 100% dark. */
   --nav-dark: 0%;
@@ -317,7 +317,7 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
-  background-color: rgba(0, 0, 0, .7);
+  background-color: rgba(0, 0, 0, .82);
   -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   position: fixed;
@@ -336,15 +336,11 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
 
 .mega-nav__dropdown-container { position: relative; overflow: hidden; }
 
-/* No rule along its foot: the dropdown ends where its blocks do, over
-   the dimmed page. */
-.mega-nav__dropdown-bg {
-  will-change: transform;
-  background-color: var(--nav-bg);
-  position: absolute;
-  inset: 0;
-}
-
+/* The dropdown has no ground of its own: each panel's blocks are their
+   own grounds, the dimmed page showing between and under them. The
+   panels are out of the flow until one opens (initMegaNav sets it in the
+   flow), so the dropdown is the open panel's height without being
+   measured, and its top edge clips the blocks as they drop in. */
 .mega-nav__dropdown-panel {
   opacity: 0;
   pointer-events: none;
@@ -354,14 +350,9 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   overflow: hidden;
 }
 
-/* The dropdown is as tall as whichever panel is open — each panel sets
-   its own height from its content, and the container animates between
-   the two.
-
-   It is the bar continued downwards, and like the bar it is built from
-   blocks told apart by their tone rather than ruled off by lines: both
-   panels' blocks float on the nav's own ground, a thin margin apart, in
-   the feature block's grey, set on the 12-Column Grid. */
+/* It is the bar continued downwards, and like the bar it is built from
+   blocks told apart by their tone rather than ruled off by lines, set on
+   the 12-Column Grid. */
 .mega-nav__dropdown-inner { display: flex; align-items: stretch; }
 
 .mega-nav__panel-col {
@@ -380,9 +371,10 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
 .mega-nav__panel-col.is--colored { background-color: var(--nav-feature-bg); }
 
 /* Resources, in the Services cards' language: the three columns are three
-   panels floating on the nav's white, the same thin margin round and
-   between them, each on the feature block's grey with the small radius.
-   Inside, the featured report is a card of the nav's white on that grey. */
+   blocks of their own, a thin gap apart, each on its own grey with the
+   small radius, no ground behind them (on a phone, inside the drawer's
+   panel, a thin margin round them too). Inside, the featured report is a
+   card of the nav's white on that grey. */
 .mega-nav__dropdown-inner.is--resources {
   gap: var(--nav-card-gap);
   padding: var(--nav-card-gap);
@@ -493,11 +485,23 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   --cards-gap: 0px;
   --cards-cols: 4;
   grid-template-columns: repeat(4, 1fr);
-  border-top: 1px solid var(--nav-rule);
   width: 100%;
   display: grid;
 }
+/* Each card carries its own rules on its own ground: the dropdown has no
+   ground of its own (initMegaNav), so each card is a block of the nav's
+   colour, its translucent top rule and the hairline between cards drawn
+   over that rather than over the dimmed page. */
+.mega-nav__service-grid .route-card {
+  border-top: 1px solid var(--nav-rule);
+  background: var(--nav-bg);
+}
 .mega-nav__service-grid .route-card + .route-card { border-left: 1px solid var(--nav-rule); }
+/* In the dropdown the cards' movement is the menu script's alone (they
+   drop in on open, initMegaNav): no CSS transition re-easing it frame by
+   frame, and no hover lift, which an inline transform overrides anyway. */
+.mega-nav__service-grid .route-card { transition: none; }
+.mega-nav__service-grid .route-card:hover { transform: none; }
 
 /* Featured report — the latest report as one focal card under the
    Reports link, on the insight card's parts at thumbnail scale: the
@@ -647,10 +651,14 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   .mega-nav__dropdown-inner {
     --nav-dropdown-col: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
   }
-  /* less the margin at the edge and half the margin between panels, so
-     each gap stays centred on its gutter */
+  /* The three columns are blocks of their own with no ground round them,
+     so they run to the screen's edges, as the Services cards do, a thin
+     gap of the dimmed page between them. */
+  .mega-nav__dropdown-inner.is--resources { padding: 0; }
+  /* less half the gap between panels, so each gap stays centred on its
+     gutter */
   .mega-nav__panel-col:not(.is--services, .is--tint) {
-    flex: 0 0 calc(var(--grid-margin) + 4 * var(--nav-dropdown-col) + 3.5 * var(--grid-gutter) - 1.5 * var(--nav-card-gap));
+    flex: 0 0 calc(var(--grid-margin) + 4 * var(--nav-dropdown-col) + 3.5 * var(--grid-gutter) - 0.5 * var(--nav-card-gap));
   }
 }
 
@@ -800,7 +808,6 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
     position: fixed;
   }
   .mega-nav__dropdown-container { height: 100%; overflow: auto; }
-  .mega-nav__dropdown-bg { display: none; }
   .mega-nav__dropdown-panel { background-color: var(--nav-bg); bottom: 0; overflow: auto; overscroll-behavior: contain; }
   .mega-nav__dropdown-inner { flex-flow: column; }
 

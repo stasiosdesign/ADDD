@@ -1,0 +1,96 @@
+---
+/*
+  The Technology Blueprint page's "What we look at" drawing
+  (technology-blueprint.astro): the practice's layers as a run of slabs
+  threaded on one line, each its own height, two of them in red, the line
+  running on out of either end. Drawn from the far end so the nearer
+  slabs cover the ones behind.
+
+  Drawn in a world of x, y and z (z up) and projected isometrically: x
+  runs down to the right, y down to the left. A slab shows its top, its
+  +x face and its +y face; each is a polygon, drawn back to front. The
+  viewBox is fitted to what is drawn, so the drawing centres itself in
+  its field. (Until October 2026 this was the fifth of the services'
+  diagrams, ServiceDiagram.astro.)
+*/
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+
+type P3 = [number, number, number];
+type Poly = { pts: P3[]; fill?: string; stroke?: string; width?: number; closed?: boolean };
+
+const COS = Math.cos(Math.PI / 6);
+const UNIT = 20;
+const project = ([x, y, z]: P3): [number, number] => [(x - y) * COS * UNIT, ((x + y) * 0.5 - z) * UNIT];
+
+const INK = "var(--c-text)";
+const RED = "var(--diagram-accent, var(--c-red))";
+const PAPER = "var(--c-white)";
+
+// A slab from its corner (x, y, z) and its size along each axis: its
+// three visible faces, the +y face, the +x face, then the top.
+function box([x, y, z]: P3, [w, d, h]: P3, fills: { top: string; sx: string; sy: string }): Poly[] {
+  return [
+    { pts: [[x, y + d, z], [x + w, y + d, z], [x + w, y + d, z + h], [x, y + d, z + h]], fill: fills.sy, stroke: INK },
+    { pts: [[x + w, y, z], [x + w, y + d, z], [x + w, y + d, z + h], [x + w, y, z + h]], fill: fills.sx, stroke: INK },
+    { pts: [[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]], fill: fills.top, stroke: INK },
+  ];
+}
+
+const TONES = {
+  ink: { sy: "#1a1a1a", sx: "#2a2a2a", top: "#3a3a3a" },
+  red: { sy: RED, sx: "#9e0000", top: "#e04a4a" },
+  mid: { sy: "#9a9a9a", sx: "#b5b5b5", top: "#cfcfcf" },
+  pale: { sy: PAPER, sx: "#e6e6e6", top: PAPER },
+};
+
+const shapes: Poly[] = [
+  { pts: [[1.3, 3, 1.1], [1.3, -13, 1.1]], stroke: INK, width: 1, closed: false },
+  ...([
+    { y: -10.4, h: 1.6, z: 0.3, tone: "pale" },
+    { y: -9.6, h: 2.2, z: 0, tone: "ink" },
+    { y: -8.8, h: 1.9, z: 0.15, tone: "mid" },
+    { y: -8.0, h: 2.6, z: -0.2, tone: "red" },
+    { y: -7.2, h: 2.0, z: 0.1, tone: "ink" },
+    { y: -6.4, h: 2.4, z: -0.1, tone: "pale" },
+    { y: -5.6, h: 1.8, z: 0.2, tone: "mid" },
+    { y: -4.8, h: 2.8, z: -0.3, tone: "ink" },
+    { y: -4.0, h: 2.1, z: 0, tone: "pale" },
+    { y: -3.2, h: 2.5, z: -0.15, tone: "red" },
+    { y: -2.4, h: 1.9, z: 0.1, tone: "ink" },
+    { y: -1.6, h: 2.3, z: -0.05, tone: "mid" },
+    { y: -0.8, h: 3, z: -0.4, tone: "pale" },
+  ] as const).flatMap(({ y, h, z, tone }) => box([0, y, z], [2.6, 0.22, h], TONES[tone])),
+];
+
+// Fit the viewBox to every point drawn, with room for the line widths.
+const points = shapes.flatMap((s) => s.pts.map(project));
+const xs = points.map((p) => p[0]);
+const ys = points.map((p) => p[1]);
+const PAD = 6;
+const minX = Math.min(...xs) - PAD;
+const minY = Math.min(...ys) - PAD;
+const vbW = Math.max(...xs) + PAD - minX;
+const vbH = Math.max(...ys) + PAD - minY;
+
+const fmt = (n: number) => +n.toFixed(2);
+const toPoints = (pts: P3[]) => pts.map((p) => project(p).map(fmt).join(",")).join(" ");
+---
+<svg
+  class={className}
+  viewBox={`${fmt(minX)} ${fmt(minY)} ${fmt(vbW)} ${fmt(vbH)}`}
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  fill="none"
+  stroke-linejoin="round"
+>
+  {shapes.map((s) =>
+    s.closed === false ? (
+      <polyline points={toPoints(s.pts)} stroke={s.stroke} stroke-width={s.width ?? 1} stroke-linecap="square" />
+    ) : (
+      <polygon points={toPoints(s.pts)} fill={s.fill ?? "none"} stroke={s.stroke ?? "none"} stroke-width={s.width ?? 1} />
+    ),
+  )}
+</svg>

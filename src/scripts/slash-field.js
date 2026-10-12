@@ -103,6 +103,12 @@ const DEFAULTS = {
   // "screen" runs the field on past the container to fill the screen (the
   // homepage's first-load intro sets it: see logo-morph-loader.js)
   extend: "",
+  // A shape the pattern builds rather than fills (the footer's logo):
+  // polygons in shares of the container's width and height, "x,y x,y …"
+  // with ";" between polygons. Only the cells whose middle falls inside
+  // one keep their stroke, so the shape is made of whole strokes and its
+  // edges step with the grid. Empty: every cell, as in the hero.
+  shape: "",
   // "unborn" keeps the words out of the field until the intro's pulse
   // brings each one in (bear): until then the strokes run on under it
   words: "",
@@ -303,6 +309,25 @@ function readOption(el, name) {
   return DEFAULTS[name];
 }
 
+// A shape option, "x,y x,y …;x,y …", to a list of polygons of [x, y] points.
+function parseShape(value) {
+  return String(value || "")
+    .split(";")
+    .map((poly) => poly.trim().split(/\s+/).filter(Boolean).map((pt) => pt.split(",").map(Number)))
+    .filter((poly) => poly.length >= 3 && poly.every((pt) => pt.length === 2 && pt.every(Number.isFinite)));
+}
+
+// Whether the point (x, y) is inside the polygon (even-odd ray cast).
+function inside(poly, x, y) {
+  let hit = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
+  }
+  return hit;
+}
+
 // Any CSS colour to [r, g, b, a], through the canvas's own parser.
 function toRGBA(color, ctx) {
   ctx.fillStyle = "#000";
@@ -399,6 +424,7 @@ export function mountSlashField(el) {
       marks: num("marks"),
       extend: String(readOption(el, "extend")).trim(),
       words: String(readOption(el, "words")).trim(),
+      shape: parseShape(readOption(el, "shape")),
     };
     const base = toRGBA(readOption(el, "base"), ctx);
     const hot = toRGBA(readOption(el, "hot"), ctx);
@@ -553,11 +579,27 @@ export function mountSlashField(el) {
         glyph[r * cols + c] = m < opts.straight ? 2 : m < slant ? 1 : 3;
       }
     }
+    if (opts.shape.length) keepShape();
 
     placeWords();
     if (hole.length) clearHole();
     plan(SEQUENCE.first);
     draw();
+  }
+
+  // The shape built from the pattern (opts.shape): every cell whose middle
+  // is outside it is emptied and kept from signals, so what is left of the
+  // pattern, unchanged, is the shape.
+  function keepShape() {
+    for (let r = 0; r < rows; r++) {
+      const y = ((r + 0.5) * cellH - oy) / height;
+      for (let c = 0; c < cols; c++) {
+        const x = ((c + 0.5) * cellW - ox) / width;
+        if (opts.shape.some((poly) => inside(poly, x, y))) continue;
+        glyph[r * cols + c] = 0;
+        taken[r * cols + c] = 1;
+      }
+    }
   }
 
   // The canvas at the pattern's size, sharp for the device's pixels; it sits

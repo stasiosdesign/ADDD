@@ -2,12 +2,12 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
-import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
-import ServiceCard from "../components/ServiceCard.astro";
+import ServiceDiagram from "../components/ServiceDiagram.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
+import TestimonialSlider from "../components/TestimonialSlider.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { hasImage, imageAttrs } from "../sanity/image";
 import { logoShape } from "../sanity/logo-balance";
@@ -30,7 +30,7 @@ const [doc, clients, insights] = await Promise.all([
   sanity.fetch<{ _id: string; name: string; logo?: unknown }[]>(CLIENT_LOGOS_QUERY),
   sanity.fetch<Insight[]>(INSIGHTS_QUERY),
 ]);
-const { t, list, lines, img, bg } = reader(doc, D);
+const { t, list, lines, img } = reader(doc, D);
 
 // The strip's logos: the clients in the Studio, each with its mark, or the
 // ten files the strip has always shown. Each is sized to balance the others
@@ -58,11 +58,24 @@ const quoteLogo = (quote: (typeof quotes)[number]) => {
   const own = CLIENTS.find((client) => client._id === quote.clientId);
   return { src: own?.logo.path ?? "", width: undefined, height: undefined, alt: own?.name ?? "" };
 };
+// Each quote with its practice's logo, balanced by its ink as the logo
+// strip's are (src/sanity/logo-balance.ts)
+const testimonials = await Promise.all(
+  quotes.map(async (quote) => {
+    const logo = quoteLogo(quote);
+    const shape = logo.src ? await logoShape(logo.src, logo.width, logo.height) : undefined;
+    return {
+      quote: quote.quote ?? "",
+      name: quote.name,
+      role: quote.role,
+      logo: { ...logo, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined },
+    };
+  }),
+);
 
-// The route cards' destinations stay here, by position (their icons are
-// the services' own: ServiceCard.astro)
-const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];
-const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
+// The route cards' destinations stay here, by position (their diagrams
+// are the services' own: ServiceDiagram.astro)
+const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
 
 // The cost cards' icons, by position
 const costIcons = [
@@ -109,7 +122,7 @@ const costIcons = [
        they always have; its carousel is the top of the statement's held
        frame — it comes up the page, stays at the top of the screen over
        the statements while they are held, and leaves with them. -->
-  <StickyTitle id="approach" class="logos" navHold rule headings={[t("approach.statement")]} field="approach.statement" mark="work better">
+  <StickyTitle id="approach" class="logos" navHold rule headings={[t("approach.statement")]} field="approach.statement" mark="understanding">
     <Fragment slot="before">
       <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
       <div class="dotted-rule logos__rule" aria-hidden="true"></div>
@@ -143,7 +156,7 @@ const costIcons = [
           <p class="text-md" data-page-field="cost.lede">{t("cost.lede")}</p>
           <p class="tagline tagline--sm" data-page-field="cost.tagline">{t("cost.tagline")}</p>
         </div>
-        <h2 class="problem-head__h" data-page-field="cost.heading">{t("cost.heading")}</h2>
+        <h2 class="problem-head__h" data-split="heading" data-page-field="cost.heading">{t("cost.heading")}</h2>
       </div>
 
       <div data-problem-grid-init class="problem-grid">
@@ -167,65 +180,54 @@ const costIcons = [
   </section>
 
   <!-- ========== 5. ROUTES ========== -->
-  <section class="section section--dark routes">
+  <section class="section routes">
     <div class="container">
       <div class="routes__head">
         <div class="routes__lede">
           <p class="text-md" style="max-width:21.875rem" data-page-field="routes.lede">{t("routes.lede")}</p>
-          <p class="tagline tagline--sm" data-page-field="routes.tagline">{t("routes.tagline")}</p>
         </div>
-        <h2 class="routes__h" data-page-field="routes.heading">{t("routes.heading")}</h2>
+        <h2 class="routes__h" data-split="heading" data-page-field="routes.heading">{t("routes.heading")}</h2>
       </div>
     </div>
 
-    <div class="routes__grid" data-routes-reveal>
-        {routeCards.map((card, i) => (
-        <ServiceCard href={routeHrefs[i] ?? "contact.html"} index={i} title={card.title ?? ""} text={card.text ?? ""} label={card.tagline} field={`routes.cards.${i}`} />
-        ))}
+    <!-- The four routes as a stack of files (initServiceStack, site.js;
+         styles.css, "service stack"): each a full-width card with a
+         folder tab on its quarter of the grid, held at the one height, so
+         each new card covers the last and its tab joins the row; the
+         card behind draws back and dims. Once all four are in, the row of
+         tabs holds a moment before the stack leaves together; a tab
+         brings its card back to the top of the stack. -->
+    <div class="service-stack" data-service-stack style={`--stack-n:${routeCards.length}`}>
+      {routeCards.map((card, i) => (
+      <article class="service-stack__item" id={`service-${i + 1}`} style={`--i:${i}`} data-service-stack-item>
+        <a class="service-stack__tab" href={`#service-${i + 1}`} data-service-stack-tab>
+          <span class="service-stack__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+          <h3 class="service-stack__name" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
+        </a>
+        <div class="service-stack__card">
+          <span class="service-stack__shade" data-service-stack-shade aria-hidden="true"></span>
+          <div class="service-stack__copy">
+            <p class="service-stack__p" data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
+            <ActionButton href={routeHrefs[i] ?? "contact.html"}>View the service</ActionButton>
+          </div>
+          <div class="service-stack__media">
+            <!-- the field's dots, set out to fit it (dot-field.js) -->
+            <div class="service-stack__pattern" data-dot-field aria-hidden="true"></div>
+            <ServiceDiagram index={i} class="service-stack__diagram" />
+          </div>
+        </div>
+      </article>
+      ))}
+      <div class="service-stack__hold" aria-hidden="true"></div>
     </div>
   </section>
 
   <!-- ========== 6. TESTIMONIALS ========== -->
+  <!-- The title centred over the slider (TestimonialSlider.astro): the
+       quotes stacked in one place, changed line by line -->
   <section class="testimonials">
     <h2 class="h4 testimonials__title" data-page-field="testimonials.heading">{t("testimonials.heading")}</h2>
-    <div data-testimonial-wrap="" data-autoplay="true" data-autoplay-duration="6000" class="testimonial-lines">
-      <div role="list" data-testimonial-list="" class="testimonial-lines__list">
-        {quotes.map((quote, i) => {
-          const logo = quoteLogo(quote);
-          return (
-        <div aria-hidden={i === 0 ? "false" : "true"} data-testimonial-item="" role="listitem" class:list={["testimonial-lines__item", { "is--active": i === 0 }]}>
-          <div class="testimonial-lines__aside">
-            <span class="testimonial-lines__mark" aria-hidden="true">&ldquo;</span>
-            <div class="testimonial-lines__firm">
-              <div data-testimonial-img="" class="testimonial-lines__logo">
-                <img src={logo.src} width={logo.width} height={logo.height} alt={logo.alt}>
-              </div>
-              <div class="testimonial-lines__meta">
-                <p data-testimonial-split="" class="testimonial-lines__name" data-page-field={`testimonials.items.${i}.name`}>{quote.name}</p>
-                <p data-testimonial-split="" class="tagline tagline--sm testimonial-lines__role" data-page-field={`testimonials.items.${i}.role`}>{quote.role}</p>
-              </div>
-            </div>
-          </div>
-          <div class="testimonial-lines__body">
-            <blockquote data-testimonial-text="" class="testimonial-lines__quote" data-page-field={`testimonials.items.${i}.quote`}>{quote.quote}</blockquote>
-          </div>
-        </div>
-          );
-        })}
-      </div>
-
-      <div class="testimonial-lines__controls">
-        <p class="tagline tagline--sm testimonial-lines__count"><span data-current="">1</span> / <span data-total="">{quotes.length}</span></p>
-        <div class="testimonial-lines__buttons">
-          <button data-prev="" aria-label="Previous testimonial" class="testimonial-lines__button">
-            <ArrowIcon class="testimonial-lines__arrow is--prev" aria-hidden="true" />
-          </button>
-          <button data-next="" aria-label="Next testimonial" class="testimonial-lines__button">
-            <ArrowIcon class="testimonial-lines__arrow" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-    </div>
+    <TestimonialSlider items={testimonials} field="testimonials.items" />
   </section>
 
   <!-- ========== 7. CREDENTIALS ========== -->
@@ -233,7 +235,7 @@ const costIcons = [
     <div class="container">
       <div class="creds__title">
         <p class="tagline tagline--plain" data-page-field="credentials.tagline">{t("credentials.tagline")}</p>
-        <h2 class="h2" data-page-field="credentials.heading">{t("credentials.heading")}</h2>
+        <h2 class="h2" data-split="heading" data-page-field="credentials.heading">{t("credentials.heading")}</h2>
       </div>
 
       <div class="creds__grid">
@@ -258,7 +260,7 @@ const costIcons = [
         <p class="text-md" data-page-field="fit.lede">{t("fit.lede")}</p>
         <div class="section-title__body">
           <p class="tagline--plain" data-page-field="fit.tagline">{t("fit.tagline")}</p>
-          <h2 class="h2" style="max-width:45.625rem" data-page-field="fit.heading">{t("fit.heading")}</h2>
+          <h2 class="h2" data-split="heading" style="max-width:45.625rem" data-page-field="fit.heading">{t("fit.heading")}</h2>
         </div>
       </div>
 
@@ -291,7 +293,7 @@ const costIcons = [
       <div class="research__head section-title">
         <p class="text-md" data-page-field="research.lede">{t("research.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2" data-page-field="research.heading">{t("research.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="research.heading">{t("research.heading")}</h2>
         </div>
       </div>
 

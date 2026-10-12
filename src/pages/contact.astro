@@ -25,7 +25,7 @@ const { t } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
           <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h2" data-page-field="hero.heading">{t("hero.heading")}</h1>
+          <h1 class="h2" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <ul class="contact-list">
             <li><a href="mailto:allister@addd.io" data-page-field="hero.email">{t("hero.email")}</a></li>
@@ -35,7 +35,7 @@ const { t } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
         </div>
 
         <div class="pg-hero__col">
-          <form class="form" style="width:100%" onsubmit="return false">
+          <form class="form" style="width:100%" onsubmit="return false" data-enquiry-offer>
             <div class="form__row">
               <div class="field"><label for="fn">First name</label><input id="fn" type="text" autocomplete="given-name"></div>
               <div class="field"><label for="ln">Last name</label><input id="ln" type="text" autocomplete="family-name"></div>

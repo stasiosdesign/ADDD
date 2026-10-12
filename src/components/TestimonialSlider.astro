@@ -1,0 +1,89 @@
+---
+/*
+  The homepage's testimonials, after the Outsource Consultants slider
+  (oci.madebybuzzworthy.com): not a track that slides, but every quote
+  mounted at once and stacked in one place, the one showing changed line
+  by line. Set on the 12-Column Grid, from 992px:
+
+    - the site's dotted rule, stood upright on the left edge of Grid
+      Column 3, the full height of the slider, its spine: the practice's
+      logo sits centred on it at the top, level with the quote, and the
+      two round controls stacked on it at the foot, level with the
+      attribution, each with the rule broken round it;
+    - the quote, large, on Grid Columns 5–11, and under it, on the same
+      columns' own grid, the count (Grid Column 5) and who said it (from
+      Grid Column 6).
+
+  Below 992px the quote, the count and the attribution run the width,
+  and under them the rule lies down across the grid with the logo at its
+  start and the controls, side by side, at its end.
+
+  Every quote, attribution, logo and number of the count is in the
+  markup, each stack sized by its longest, so the layout never moves as
+  they change: only the active one of each shows (testimonial-slider.js,
+  styles.css "testimonial slider"). Words and logos come from the Home
+  page's Testimonials section (index.astro); quotes are stored without
+  quotation marks, which are set here.
+*/
+import ArrowIcon from "./ArrowIcon.astro";
+
+interface Props {
+  /** The quotes in the order they turn through, each with its practice's logo (sized by logoShape, index.astro). */
+  items: {
+    quote: string;
+    name?: string;
+    role?: string;
+    logo: { src: string; width?: number; height?: number; alt: string; style?: string };
+  }[];
+  /** The Sanity field the quotes come from, for the Studio's Visual editor. */
+  field: string;
+}
+
+const { items, field } = Astro.props;
+const total = items.length;
+const pad = (n: number) => String(n).padStart(2, "0");
+---
+<div class="testimonial-slider" data-testimonial-slider role="group" aria-roledescription="carousel" aria-label="Testimonials">
+  <div class="testimonial-slider__main">
+    <!-- the quotes, one cell; the active one is announced as it changes -->
+    <div class="testimonial-slider__quotes" id="testimonial-quotes" aria-live="polite">
+      {items.map((item, i) => (
+      <blockquote class:list={["testimonial-slider__quote", { "is--active": i === 0 }]} data-testimonial-quote aria-hidden={i === 0 ? undefined : "true"}>&ldquo;<span data-page-field={`${field}.${i}.quote`}>{item.quote}</span>&rdquo;</blockquote>
+      ))}
+    </div>
+
+    <p class="tagline testimonial-slider__count" aria-hidden="true">
+      <span class="testimonial-slider__stack">
+        {items.map((_, i) => <span class:list={["testimonial-slider__swap", { "is--active": i === 0 }]} data-testimonial-swap={i}>{pad(i + 1)}</span>)}
+      </span>
+      <span>/ {pad(total)}</span>
+    </p>
+
+    <div class="testimonial-slider__stack testimonial-slider__credits">
+      {items.map((item, i) => (
+      <p class:list={["tagline testimonial-slider__swap testimonial-slider__credit", { "is--active": i === 0 }]} data-testimonial-swap={i} aria-hidden={i === 0 ? undefined : "true"}>
+        {item.name && <span data-page-field={`${field}.${i}.name`}>{item.name}</span>}
+        {item.role && <span data-page-field={`${field}.${i}.role`}>{item.role}</span>}
+      </p>
+      ))}
+    </div>
+  </div>
+
+  <div class="testimonial-slider__side">
+    <div class="testimonial-slider__logos testimonial-slider__stack">
+      {items.map((item, i) => item.logo.src && (
+      <img class:list={["testimonial-slider__swap testimonial-slider__logo", { "is--active": i === 0 }]} data-testimonial-swap={i} src={item.logo.src} width={item.logo.width} height={item.logo.height} alt={item.logo.alt} style={item.logo.style} loading="lazy" draggable="false" aria-hidden={i === 0 ? undefined : "true"}>
+      ))}
+    </div>
+
+    <div class="testimonial-slider__controls">
+      {[["prev", "Previous testimonial"], ["next", "Next testimonial"]].map(([way, label]) => (
+      <button type="button" class={`testimonial-slider__button is--${way}`} data-testimonial-button={way} aria-label={label} aria-controls="testimonial-quotes" disabled={total < 2}>
+        <ArrowIcon class="testimonial-slider__arrow" aria-hidden="true" />
+        <span class="testimonial-slider__fill" data-testimonial-fill aria-hidden="true"></span>
+        <span class="testimonial-slider__over" data-testimonial-over aria-hidden="true"><ArrowIcon class="testimonial-slider__arrow" /></span>
+      </button>
+      ))}
+    </div>
+  </div>
+</div>

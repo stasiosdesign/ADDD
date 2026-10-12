@@ -128,27 +128,6 @@
   /* --- Problems: the cards share Grid Columns 2–11 ------------- */
   .page--grid .problem-grid { gap: var(--grid-gutter); }
 
-  /* --- Testimonials: the band splits at the end of Grid Column 5 -
-     The ink panel is the margin and Grid Columns 1–5, its quote mark
-     on Grid Column 1 and the firm on Grid Column 2. The title, the
-     quote and the controls start on Grid Column 7: halfway across
-     plus half a gutter on the page, and a column and two gutters on
-     from the split inside the off-white panel, whose width is the
-     margin and seven columns and gutters. */
-  .page--grid .testimonial-lines__item {
-    grid-template-columns:
-      calc(var(--grid-margin) + (100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) * 5 / 12 + 4 * var(--grid-gutter))
-      1fr;
-  }
-  .page--grid .testimonial-lines__firm {
-    margin-left: calc((100% + var(--grid-margin) - 4 * var(--grid-gutter)) / 5 + var(--grid-gutter));
-  }
-  .page--grid .testimonial-lines__body {
-    padding-left: calc((100% - var(--grid-margin) - 7 * var(--grid-gutter)) / 7 + 2 * var(--grid-gutter));
-  }
-  .page--grid .testimonials__title { margin-left: calc(50% + var(--grid-gutter) / 2); }
-  .page--grid .testimonial-lines__controls { left: calc(50% + var(--grid-gutter) / 2); }
-
   /* --- Credentials: the pictures in Grid Columns 2–7, three columns
      each, and the copy in Grid Columns 8–11 ----------------------- */
   .page--grid .creds__media {
@@ -176,11 +155,23 @@
      The list takes the slider's width — Grid Columns 2–11 — so a card
      can be sized from it; the cards run on past it into the clipped
      overflow as before. */
+  /* The card is sized from the slider itself (its container, cqw), so it
+     keeps its three columns however far the viewport runs past it. */
+  .page--grid .insight-slider { container-type: inline-size; }
   .page--grid .insight-slider__list { width: 100%; }
   .page--grid .insight-slider__item {
-    width: calc((100% - 9 * var(--grid-gutter)) * 3 / 10 + 2 * var(--grid-gutter));
+    width: calc((100cqw - 9 * var(--grid-gutter)) * 3 / 10 + 2 * var(--grid-gutter));
     max-width: none;
     margin-right: var(--grid-gutter);
+  }
+  /* The homepage's research deck starts on Grid Column 2 and runs on
+     past Grid Column 11 to the screen's right edge: its viewport reaches
+     out over Grid Column 12, the gutter before it and the page margin
+     ((100% − 9 gutters) / 10 is one column of the slider's ten). Every
+     card is still reached by dragging, the arrows and the dots. */
+  .page--grid .research__head + .insight-slider .insight-slider__viewport {
+    width: auto;
+    margin-right: calc(-1 * ((100% - 9 * var(--grid-gutter)) / 10 + var(--grid-gutter) + var(--page-pad)));
   }
 
   /* --- Closing CTA: the label in Grid Columns 2–4, the heading and
@@ -220,7 +211,16 @@
 
   /* Rows of cards a gutter apart; two across stand on five Grid
      Columns each. */
-  .page--grid :is(.grid, .insight-grid) { gap: var(--grid-gutter); }
+  .page--grid .grid { gap: var(--grid-gutter); }
+
+  /* The Reports and Newsletter archives run the full width between the
+     page margins, Grid Columns 1–12, three cards across with a narrow
+     gap, as the reference lays out its card wall; the filters still
+     start on Grid Column 2, under the heading. */
+  .page--grid .container > .insight-archive { grid-column: 1 / -1; }
+  .page--grid .insight-archive > .filters {
+    margin-left: calc((100% - 11 * var(--grid-gutter)) / 12 + var(--grid-gutter));
+  }
 
   /* A statement on the left eight, Grid Columns 2–9; long-form copy on
      the middle six, Grid Columns 4–9. */
@@ -260,6 +260,6 @@
    each takes four: Grid Columns 2–5 and 6–9 at rest. */
 @media screen and (min-width: 992px) and (max-width: 1199px) {
   .page--grid .insight-slider__item {
-    width: calc((100% - 9 * var(--grid-gutter)) * 4 / 10 + 3 * var(--grid-gutter));
+    width: calc((100cqw - 9 * var(--grid-gutter)) * 4 / 10 + 3 * var(--grid-gutter));
   }
 }

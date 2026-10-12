@@ -34,9 +34,46 @@
   --stack-step: 30rem;
 
   position: relative;
-  padding: var(--sec-lg) var(--grid-margin) 9rem;
+  /* a long run of the band at its foot, the cards and the field's dots
+     gone, before the section after it */
+  padding: var(--sec-lg) var(--grid-margin) 16rem;
   background: var(--c-dark-fg);
   color: var(--c-white);
+}
+
+/* --- The field -------------------------------------------------
+   A grid of small dots behind the stack, from the statement's end
+   down, the screen's full width: a column on the rail's line (--field-x,
+   set by the script; the page's centre line from 992px, so the grid
+   sits square in the band) and the rest every 18px out from it; its
+   rows every 18px from where the rail's dots are counted (--field-y,
+   set by the script). The rail's dots are 18px apart too, so they fall
+   on the column's own and the rail reads as a stretch of the grid lit
+   up. Faint, fading in after the statement and out at the band's
+   foot. The cards are set on it (approach-stack.js, placeCards): their
+   edges and the lines between their blocks run midway between its
+   lines of dots, so the field lays the cards out rather than sitting
+   behind them as a texture. */
+.approach-stack__field {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40vh, #000 calc(100% - 30vh), transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 40vh, #000 calc(100% - 30vh), transparent);
+}
+.approach-stack__field-dots {
+  --field-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Crect x='8' y='8' width='2' height='2'/%3E%3C/svg%3E");
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.13);
+  /* the script's offsets to the rail's line and its first dot; without
+     them, 50% across puts a column on the centre line (the tile's dot is
+     at its middle) */
+  -webkit-mask: var(--field-tile) var(--field-x, 50%) var(--field-y, 0px) / 18px 18px repeat;
+  mask: var(--field-tile) var(--field-x, 50%) var(--field-y, 0px) / 18px 18px repeat;
 }
 
 /* --- The stack -------------------------------------------------- */
@@ -52,7 +89,11 @@
   padding: 0;
   list-style: none;
 }
-.approach-stack__slot { grid-row: var(--step) / span 2; }
+.approach-stack__slot {
+  grid-row: var(--step) / span 2;
+  /* moved onto the field's lines, by half a step at most (the script) */
+  margin: var(--snap-top, 0px) var(--snap-right, 0px) 0 var(--snap-left, 0px);
+}
 .approach-stack__slot.is--left { grid-column: 2 / 6; }
 .approach-stack__slot.is--right { grid-column: 8 / 12; }
 
@@ -96,24 +137,17 @@
   top: calc(50vh - 9.5rem);
   top: calc(50svh - 9.5rem);
   height: 19rem;
+  /* Both ends fade out, into the field's own column of dots: faded by a
+     mask rather than painted over with the band's colour, which would
+     blot out the field's dots under them. How far they fade is set by
+     the script while the window grows out of the statement's line
+     (--rail-ends, 0 none to 1 all the way). */
+  --rail-edge: rgb(0 0 0 / calc(1 - var(--rail-ends, 1)));
+  -webkit-mask-image: linear-gradient(to bottom, var(--rail-edge), #000 22%, #000 78%, var(--rail-edge));
+  mask-image: linear-gradient(to bottom, var(--rail-edge), #000 22%, #000 78%, var(--rail-edge));
 }
-/* Both ends fade into the band. */
-.approach-stack__window::before,
-.approach-stack__window::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 3;
-  height: 22%;
-  /* set by the script while the window grows out of the statement's line */
-  opacity: var(--rail-ends, 1);
-  pointer-events: none;
-}
-.approach-stack__window::before { top: 0; background: linear-gradient(to bottom, var(--c-dark-fg), rgba(10, 10, 10, 0)); }
-.approach-stack__window::after { bottom: 0; background: linear-gradient(to top, var(--c-dark-fg), rgba(10, 10, 10, 0)); }
 
-/* Square dots, 2px every 12px, down the middle. */
+/* Square dots, 2px every 18px, down the middle. */
 .approach-stack__dots {
   position: absolute;
   top: 0;
@@ -121,7 +155,7 @@
   left: 50%;
   width: 2px;
   margin-left: -1px;
-  background: linear-gradient(to bottom, var(--stack-dot) 2px, transparent 2px) 0 0 / 2px 12px repeat-y;
+  background: linear-gradient(to bottom, var(--stack-dot) 2px, transparent 2px) 0 0 / 2px 18px repeat-y;
 }
 /* The mark on the rail: the logo's triangle (ArrowIcon.astro) in the
    site's red, the colour of its velocity trail, centred on the rail,
@@ -199,7 +233,8 @@
   background: var(--tone-number);
   font-family: var(--font-mono);
   color: var(--label-ink);
-  font-size: var(--t-sm);
+  /* a step over the labels' usual size, so the number holds its square */
+  font-size: var(--t-rg);
   font-weight: var(--fw-label);
   letter-spacing: var(--label-tracking);
   line-height: 1;
@@ -225,26 +260,38 @@
 .step-card__media {
   display: flex;
   justify-content: center;
-  padding: 2rem var(--card-pad);
+  /* the script makes the block a whole number of the field's steps */
+  padding: var(--media-pad, 2rem) var(--card-pad);
 }
 
 /* the copy's block */
 .step-card__foot {
   grid-column: 1 / -1;
+  /* at least its copy, made up to a whole number of the field's steps
+     (the script), the copy in the middle of it */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--foot-min, 0px);
   padding: var(--card-pad);
   background: var(--tone-copy);
 }
 .step-card__p {
   max-width: 28rem;
-  font-size: var(--t-rg);
+  font-size: var(--t-md);
   line-height: 1.4;
   color: var(--stack-text);
 }
 
 /* --- Schematics ----------------------------------------------
-   Small flat drawings in hairlines: a few plain shapes on the
-   card's ground, in the band's whites, with the site's red as the
-   one signal. Sized by the viewBox, so they scale with the card. */
+   Isometric wireframes (src/scripts/iso.js), one family: hairlines
+   in three weights — the main edges, the quieter ones, the dashed
+   setting-out with a small ring at each end — centred on the card
+   and symmetric about its middle. A form that has to hide what is
+   behind it is filled with the card's own ground, so it still
+   reads as lines; the site's red is the one signal, and it only
+   ever draws a line, never a fill. Sized by the viewBox, so they
+   scale with the card. */
 .schematic {
   display: block;
   width: 100%;
@@ -253,15 +300,40 @@
   aspect-ratio: 400 / 256;
   overflow: visible;
 }
-/* filled a step under the card's ground, so a shape reads as set into it */
-.schematic__shape {
-  fill: #0d0d0d;
-  stroke: rgba(255, 255, 255, 0.45);
+.schematic__line {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.schematic__line.is--soft { stroke: rgba(255, 255, 255, 0.3); }
+.schematic__line.is--dash {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-dasharray: 3 3;
+}
+.schematic__ring {
+  fill: var(--tone-media);
+  stroke: rgba(255, 255, 255, 0.3);
   stroke-width: 1;
 }
-/* the bar that leads, before the script takes the ranking over */
-.schematic__shape.is--first { fill: var(--c-red); stroke: var(--c-red); }
+/* A solid: its edges are the group's stroke, which its faces inherit,
+   so the scan and the ranking light a whole form with one tween; its
+   faces are the card's ground. */
+.schematic__solid {
+  stroke: rgba(255, 255, 255, 0.55);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+.schematic__face { fill: var(--tone-media); }
+/* the lower layers of an exploded stack, a weight quieter than the top */
+.schematic__solid.is--soft { stroke: rgba(255, 255, 255, 0.34); }
+/* a tower's floor lines, fainter than its edges, in their colour */
+.schematic__floors { fill: none; stroke-opacity: 0.45; }
+/* the block that leads, before the script takes the ranking over */
+.schematic__solid.is--first { stroke: var(--c-red); }
+
 .schematic__route {
+  fill: none;
   stroke: rgba(255, 255, 255, 0.4);
   stroke-width: 1;
   stroke-linejoin: round;
@@ -270,21 +342,26 @@
   stroke: rgba(255, 255, 255, 0.28);
   stroke-dasharray: 3 4;
 }
-.schematic__base {
-  stroke: rgba(255, 255, 255, 0.3);
-  stroke-width: 1;
+/* the chevrons that close in on the cause */
+.schematic__frame {
+  fill: none;
+  stroke: var(--c-red);
+  stroke-width: 1.25;
+  stroke-linejoin: miter;
 }
-.schematic__marker { fill: var(--c-red); }
+/* the cause's outline sent out from it, dashed */
 .schematic__ping {
   fill: none;
   stroke: var(--c-red);
   stroke-width: 1;
+  stroke-dasharray: 3 3;
   opacity: 0;
 }
 /* A short dash run along a path from end to end (pathLength="1"). */
 .schematic__pulse {
+  fill: none;
   stroke: var(--c-red);
-  stroke-width: 2.5;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-dasharray: 0.08 1;
   stroke-dashoffset: 0.08;
@@ -292,7 +369,7 @@
 
 /* --- Tablet: one column, the rail down Grid Column 1 ----------- */
 @media (max-width: 991px) {
-  .approach-stack { padding-bottom: 7rem; }
+  .approach-stack { padding-bottom: 12rem; }
   .approach-stack__list {
     grid-template-rows: none;
     row-gap: 7.5rem;
@@ -306,7 +383,7 @@
 
 /* --- Phone: one column, no rail ------------------------------ */
 @media (max-width: 767px) {
-  .approach-stack { padding-bottom: 5rem; }
+  .approach-stack { padding-bottom: 8rem; }
   .approach-stack__list { row-gap: 4.5rem; }
   .approach-stack__slot,
   .approach-stack__slot.is--left,

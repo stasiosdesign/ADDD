@@ -24,7 +24,7 @@ interface Props {
   /** Classes for the section, e.g. "logos" for the logo strip's own. */
   class?: string;
   "aria-label"?: string;
-  /** Keeps the nav out of view, scrolling up too, while the section is under it. */
+  /** Keeps the nav out of view while the section plays out, either way, until its foot has passed the nav's (initNavReveal, site.js). */
   navHold?: boolean;
   /** The Sanity field the statements come from (data-page-field, for the Studio's Visual editor), where a page reads them from its document. */
   field?: string;

@@ -33,9 +33,9 @@
 .stack { display: flex; flex-direction: column; gap: 1.5rem; align-items: flex-start; }
 .stack--16 { gap: 1rem; }
 
-/* light tile / bordered card */
+/* tile, white on the off-white page / bordered card */
 .tile {
-  background: var(--c-light-fg);
+  background: var(--c-white);
   border-radius: var(--radius);
   padding: 2rem;
   display: flex;
@@ -89,7 +89,8 @@
   /* A size container, so a CTA too long for a narrow card can close up
      (action-button.css). */
   container-type: inline-size;
-  background: var(--c-light-fg);
+  /* white on the off-white page */
+  background: var(--c-white);
   border-radius: var(--radius);
   padding: 2.5rem;
   display: flex;
@@ -158,7 +159,7 @@
 /* Tabs — the filter row set as a row of tabs over the panel they head
    (the Technology Blueprint's "What we look at"): centred, in the body
    face as written rather than the label voice, each a quiet block of
-   the page's white, the selected one in the red. */
+   white on the off-white page, the selected one in the red. */
 .filters--tabs { justify-content: center; gap: 0.375rem; }
 .filters--tabs button {
   font-family: var(--font-body);
@@ -177,7 +178,7 @@
 /* The panel under the tabs: the words on the left, on white — the
    heading at the top, then a row drawn by a hairline with its marker,
    its label and the description — and on the right, on a shade darker,
-   the section's drawing (ServiceDiagram.astro), centred. */
+   the section's drawing (LayersDiagram.astro), centred. */
 .examine-panel {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
@@ -283,7 +284,8 @@
   /* the containing block for whatever is filtered out of it */
   position: relative;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+  /* the reference's narrow gap: the cards read as one wall */
+  gap: 0.625rem;
   margin-top: 3rem;
   align-items: stretch;
 }
@@ -308,7 +310,7 @@
 /* Text inputs only — a radio or a checkbox inside a .field is a
    control, not a box to fill the row with. */
 .field input:not([type="radio"]):not([type="checkbox"]), .field select, .field textarea {
-  background: var(--c-light-fg);
+  background: var(--c-white);
   border: 1px solid var(--c-border);
   border-radius: var(--radius);
   padding: 0.75rem;
@@ -390,10 +392,11 @@
 /* A page is light by default. .page--dark makes the whole page the
    site's near-black (--c-dark-fg), rather than the #1a1a1a an
    individual dark section uses — by redeclaring
-   --c-dark-bg on the page root. Every .section--dark, .pg-hero--dark
-   and the closing CTA already paint themselves from that token, so
-   they follow without a rule of their own and the page reads as one
-   continuous field instead of a stack of near-identical bands.
+   --c-dark-bg on the page root. Every .section--dark and
+   .pg-hero--dark already paints itself from that token, so they follow
+   without a rule of their own and the page reads as one continuous
+   field instead of a stack of near-identical bands; the closing CTA
+   keeps its off-white, the page's close.
    The nav — bar and dropdown — reads the dark ground under it and
    turns dark with it (initNavTheme, site.js; nav.css). */
 .page--dark {
@@ -411,3 +414,54 @@
 .page--dark .pg-hero,
 .page--dark .section { background: transparent; }
 .page--dark .section--light { background: rgba(255, 255, 255, .06); }
+
+/* ============================================================
+   AEC Tech Partners (tech-firms.astro)
+   ============================================================ */
+/* what a partner gains, beside its heading, under the three tiles */
+.partner-benefits {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  margin-top: 5rem;
+}
+.partner-note { opacity: .7; max-width: 40rem; }
+
+/* the objective cards' link to their offer, in place of the bare arrow */
+.approach__card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: inherit;
+  text-decoration: none;
+  font-size: var(--t-sm);
+}
+
+/* the offers: the same parts in the same order on every card */
+.offer-grid { align-items: stretch; }
+.offer { scroll-margin-top: 6rem; }
+.offer__fit { display: flex; flex-direction: column; gap: 0.375rem; }
+.offer__conditions {
+  padding-top: 1rem;
+  border-top: 1px solid var(--c-border);
+  opacity: .8;
+}
+.price-card.offer > .action-button { margin-top: auto; }
+.offer-more__title { margin-top: 5rem; }
+.offer-more { margin-top: 2rem; }
+.offer--small > .action-button { align-self: flex-start; margin-top: auto; }
+.offer__row { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+.offer__amount { font-family: var(--font-display); font-size: var(--t-h4); }
+
+.cta__lede { max-width: 36rem; margin-top: 1.5rem; }
+
+@media screen and (max-width: 991px) {
+  .offer-grid { grid-template-columns: 1fr; }
+  .partner-benefits { grid-template-columns: 1fr; }
+}
+@media screen and (max-width: 767px) {
+  .offer-more { grid-template-columns: 1fr; }
+}
+/* a price range sets one size down so it holds one line */
+.offer .price { flex-wrap: wrap; }
+.offer .price__amount { font-size: var(--t-h3); white-space: nowrap; }

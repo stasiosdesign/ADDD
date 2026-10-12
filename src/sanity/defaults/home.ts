@@ -21,7 +21,7 @@ export const homePage = {
   },
   approach: {
     statement:
-      'The right technology decisions don’t start with software. They start with understanding how a practice really works, and what could work better.',
+      'The right technology decisions don’t start with software. They begin with understanding how a practice truly works, and where it could work better.',
     steps: keyed('step', [
       { title: 'Understand', text: 'Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.' },
       { title: 'Diagnose', text: 'Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.' },
@@ -43,10 +43,10 @@ export const homePage = {
     tagline: 'Ways to work with ADDD',
     heading: 'Start with what needs solving',
     cards: keyed('route', [
-      { tagline: 'A focused issue', title: 'Workflow Workshop', text: 'A focused review of your tools and workflows' },
-      { tagline: 'Early-stage design workflow', title: 'Before Revit', text: 'Early-stage design workflows before BIM' },
-      { tagline: 'A practice-wide issue', title: 'Technology Blueprint', text: 'Practice-wide technology strategy and priorities' },
-      { tagline: 'Ongoing guidance', title: 'Ongoing Advisory', text: 'Ongoing technology guidance for your practice' },
+      { tagline: 'A focused issue', title: 'Workflow Workshop', text: 'A half-day diagnostic on a live project: map how work moves through the practice, find where tools and workflows create friction, and leave with a written report of priorities.' },
+      { tagline: 'Early-stage design workflow', title: 'Before Revit', text: 'A review of the early stages of design, before work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.' },
+      { tagline: 'A practice-wide issue', title: 'Technology Blueprint', text: 'An eight-week, practice-wide strategy across workflows, software and licensing costs, infrastructure, data and AI readiness, ending in a sequenced roadmap.' },
+      { tagline: 'Ongoing guidance', title: 'Ongoing Advisory', text: 'Regular strategic guidance for practice leaders on AI, BIM, software and digital priorities, before isolated decisions add more complexity.' },
     ]),
   },
   testimonials: {

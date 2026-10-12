@@ -74,7 +74,7 @@
 
 /* The dotted line beside the statement, as the hero's beside its
    heading (page-grid.css): a gutter and two of --dotted-rule-bleed out
-   from the text, and running a little past it at either end. Its dots are the approach stack's, 2px every 12px from the
+   from the text, and running a little past it at either end. Its dots are the approach stack's, 2px every 18px from the
    top, in the hero rule's tone, so the rail's window can take its place
    dot for dot and grow out of it (approach-stack.js); the script draws
    it down as the statement comes in. */
@@ -84,7 +84,7 @@
   bottom: -0.75rem;
   left: calc(-1 * (var(--grid-gutter) + 2 * var(--dotted-rule-bleed) + 2px));
   width: 2px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 2px, transparent 2px) 0 0 / 2px 12px repeat-y;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 2px, transparent 2px) 0 0 / 2px 18px repeat-y;
   transform-origin: 50% 0;
   pointer-events: none;
 }
@@ -98,9 +98,19 @@
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
   /* the measure, in the statement's own ems so it holds as the scaling
      system sizes it, that sets this one on four lines, each ending on a
-     pause in the sense */
-  max-width: 17.75em;
+     pause in the sense. It is held close to the widest of the four
+     (15.35em), so the block is no wider than its words and its centre,
+     set in the grid by .sticky-title__inner, is the words' centre; the
+     few hundredths over it are headroom against rendering differences
+     (15.35em itself breaks onto five). */
+  max-width: 15.6em;
   text-wrap: pretty;
+}
+/* On a desktop the four lines are balanced to near one width, so the
+   statement reads as a block rather than long and short lines in turn;
+   narrower, it simply flows. */
+@media (min-width: 992px) {
+  .sticky-title__el { text-wrap: balance; }
 }
 /* A marked phrase (StickyTitle.astro): a white chip with the lens in red,
    then the words on the red, the ground running the line's full height.
@@ -109,24 +119,39 @@
    and the ground carries on to the next line). The words keep the
    statement's own white. */
 .sticky-title__mark { white-space: nowrap; }
-/* The chip and the words' ground are each exactly one line high (the
-   statement's own leading), the chip square, the two set edge to edge,
-   their tops on the line's top. */
+/* The chip and the words' ground: the same height, set edge to edge, and
+   fitted to the type rather than the line. Measured in the face
+   (Parabolica) at the statement's 1.15 leading: its ascenders start
+   0.27em below the line's top, its x-height 0.19em below them, and its
+   baseline is 0.149em above the line's foot. The words are mostly
+   x-height, so a ground as far over the ascenders as under the baseline
+   read as top-heavy. It starts 0.2em down instead, just over the
+   ascenders, and still ends at the line's foot, keeping the room under
+   the baseline (the descenders run into it, as they did). */
+.sticky-title__mark {
+  --mark-drop: 0.2em;
+  --mark-h: calc(1.15em - var(--mark-drop));
+}
 .sticky-title__mark-chip {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.15em;
-  height: 1.15em;
+  width: var(--mark-h);
+  height: var(--mark-h);
   vertical-align: top;
+  margin-top: var(--mark-drop);
   background: var(--c-white);
   color: var(--c-red);
 }
-.sticky-title__mark-chip svg { display: block; width: 0.62em; height: 0.62em; }
+.sticky-title__mark-chip svg { display: block; width: 0.56em; height: 0.56em; }
 .sticky-title__mark-text {
   display: inline-block;
-  height: 1.15em;
-  line-height: 1.15;
+  height: var(--mark-h);
+  vertical-align: top;
+  margin-top: var(--mark-drop);
+  /* the leading less twice the drop: half of it comes off above the
+     words, which lifts them back onto the statement's baseline */
+  line-height: calc(1.15em - 2 * var(--mark-drop));
   padding: 0 0.14em;
   background: var(--c-red);
 }

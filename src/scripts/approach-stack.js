@@ -29,6 +29,9 @@
    supplies the trail's speed.
    ============================================================ */
 
+import { boxFaces, floorLines, projector } from "./iso.js";
+import { mountDotFlicker } from "./dot-field.js";
+
 // The velocity trail, as the spec sets it: lengths are shares (%) of the
 // window's half, and the line fades out over the last 15% of the rail.
 const TRAIL = { gain: 2, max: 50, minSpeed: 0.5, fadeFrom: 0.85, idle: 150 };
@@ -48,6 +51,146 @@ export function mountApproachStack(root, { lenis } = {}) {
   const lead = root.parentElement?.querySelector("[data-rail-lead]") ?? null;
   const leadFrame = lead?.closest(".sticky-title__container") ?? null;
   const leadTrack = lead?.closest('[data-sticky-title="track"]') ?? null;
+
+  // The band's field of dots (approach-stack.css): its columns and rows
+  // are set to run through the rail's dots, so the rail is a stretch of
+  // one of its columns. origin is the page position the rail's dots are
+  // counted from; the rail's line is the middle of its box; the field's
+  // tile has its dot 8px into it each way. Without a rail (a phone), the
+  // stylesheet's defaults: a column down the middle.
+  const field = root.querySelector("[data-approach-stack-field]");
+  const FIELD = { pitch: 18, dot: 8 };
+  let fieldX = null;
+  let fieldY = 0;
+  // origin null: no rail (a phone, or reduced motion), the defaults
+  const placeField = (origin) => {
+    if (!field) return;
+    if (origin === null) {
+      fieldX = null;
+      fieldY = 0;
+      field.style.removeProperty("--field-x");
+      field.style.removeProperty("--field-y");
+    } else {
+      const box = field.getBoundingClientRect();
+      const line = rail.getBoundingClientRect();
+      fieldX = line.left + line.width / 2 - 1 - box.left - FIELD.dot;
+      fieldY = origin - (box.top + window.scrollY) - FIELD.dot;
+      field.style.setProperty("--field-x", `${fieldX}px`);
+      field.style.setProperty("--field-y", `${fieldY}px`);
+    }
+    placeCards();
+  };
+
+  // The cards set on the field, so its dots lay them out rather than
+  // lie behind them: every line of a card — its sides, its top and
+  // foot, where the number's square meets the name and where each
+  // block meets the next — runs midway between two lines of dots, and
+  // the dots stand the same step clear of all of them. So each card's
+  // edges are moved to the nearest such line (by half a step at most,
+  // from where the 12-Column Grid puts them), each block is made a
+  // whole number of steps, and the padding a step and a half, which
+  // starts the name and the copy on a column of dots. The field never
+  // moves: its columns and rows are the rail's (placeField). Only the
+  // middle card is still; the outer two drift (initGlobalParallax),
+  // through their rest on the field as each stands at the middle of
+  // the screen (ApproachStack.astro, PARALLAX). Measured again on every
+  // refresh; a change that moves the page under it asks for one more,
+  // so the triggers below the stack measure the page as it now stands.
+  const SNAP = ["--snap-left", "--snap-right", "--snap-top"];
+  const SIZE = ["--card-top", "--card-pad", "--media-pad", "--foot-min"];
+  let placed = "";
+  function placeCards() {
+    if (!field || !cards?.length) return;
+    const { pitch } = FIELD;
+    const box = field.getBoundingClientRect();
+    // the dots' middles: a column (in the screen) and a row (on the page)
+    const column = box.left + (fieldX === null ? box.width / 2 : fieldX + FIELD.dot + 1);
+    const row = box.top + window.scrollY + fieldY + FIELD.dot + 1;
+    const between = (v, o) => o + pitch / 2 + Math.round((v - o - pitch / 2) / pitch) * pitch;
+    const steps = (v) => Math.max(1, Math.round(v / pitch)) * pitch;
+    const px = (v) => `${+v.toFixed(2)}px`;
+
+    // where the grid puts each card and its blocks, without any of this
+    cards.forEach(({ slot, el }) => {
+      SNAP.forEach((p) => slot.style.removeProperty(p));
+      SIZE.forEach((p) => el.style.removeProperty(p));
+    });
+    const sides = cards.map(({ slot, el }) => {
+      const r = slot.getBoundingClientRect();
+      const pad = parseFloat(getComputedStyle(el.querySelector(".step-card__foot")).paddingLeft);
+      return { r, head: el.querySelector(".step-card__head").offsetHeight, pad };
+    });
+    // its sides, the number's square and the padding on the field
+    cards.forEach(({ slot, el }, i) => {
+      const { r, head, pad } = sides[i];
+      slot.style.setProperty("--snap-left", px(between(r.left, column) - r.left));
+      slot.style.setProperty("--snap-right", px(r.right - between(r.right, column)));
+      el.style.setProperty("--card-top", px(steps(head)));
+      el.style.setProperty("--card-pad", px((Math.max(1, Math.round(pad / pitch - 0.5)) + 0.5) * pitch));
+    });
+    // then, at the width that gives them, the schematic's block and the
+    // copy's in whole steps: the drawing centred in its block, the copy
+    // in its own
+    const blocks = cards.map(({ el }) => ({
+      media: el.querySelector(".step-card__media").offsetHeight,
+      drawing: el.querySelector("[data-schematic]")?.getBoundingClientRect().height ?? 0,
+      foot: el.querySelector(".step-card__foot").offsetHeight,
+    }));
+    cards.forEach(({ el }, i) => {
+      const { media, drawing, foot } = blocks[i];
+      el.style.setProperty("--media-pad", px((steps(media) - drawing) / 2));
+      el.style.setProperty("--foot-min", px(Math.ceil(foot / pitch) * pitch));
+    });
+    // and last each card's top on a row, in order: where the cards run
+    // one under another (one column), each stands where those above it
+    // have left it
+    cards.forEach(({ slot }) => {
+      const top = slot.getBoundingClientRect().top + window.scrollY;
+      slot.style.setProperty("--snap-top", px(between(top, row) - top));
+    });
+
+    const now = cards.map(({ slot, el }) => [...SNAP.map((p) => slot.style.getPropertyValue(p)), ...SIZE.map((p) => el.style.getPropertyValue(p))].join()).join(";");
+    if (now !== placed) gsap.delayedCall(0, () => ScrollTrigger.refresh());
+    placed = now;
+  }
+  const unplaceCards = () => {
+    placed = "";
+    cards.forEach(({ slot, el }) => {
+      SNAP.forEach((p) => slot.style.removeProperty(p));
+      SIZE.forEach((p) => el.style.removeProperty(p));
+    });
+  };
+
+  // A dot of the field to light, as the top-left of its square in the
+  // field's own coordinates: on the screen, away from its edges, never on
+  // the rail's column or under a card.
+  const pickFieldDot = () => {
+    const box = field.getBoundingClientRect();
+    const { pitch } = FIELD;
+    const wrap = (n) => ((n % pitch) + pitch) % pitch;
+    const lo = Math.max(0, window.innerHeight * 0.1 - box.top);
+    const hi = Math.min(box.height, window.innerHeight * 0.9 - box.top);
+    const first = lo + wrap(fieldY + FIELD.dot - lo);
+    const rows = Math.floor((hi - first) / pitch) + 1;
+    // the rail's column (or the middle one), and the columns either side of
+    // it that fit the field
+    const column = fieldX === null ? box.width / 2 - 1 : fieldX + FIELD.dot;
+    const left = Math.floor((column - pitch / 2) / pitch);
+    const right = Math.floor((box.width - column - pitch / 2) / pitch);
+    if (rows < 1 || left + right < 1) return null;
+    const covers = cards.map((card) => card.el.getBoundingClientRect());
+    for (let tries = 0; tries < 8; tries++) {
+      const k = gsap.utils.random(-left, right, 1);
+      if (k === 0) continue;
+      const x = column + k * pitch;
+      const y = first + gsap.utils.random(0, rows - 1, 1) * pitch;
+      const sx = box.left + x;
+      const sy = box.top + y;
+      if (covers.some((r) => sx > r.left - 8 && sx < r.right + 8 && sy > r.top - 8 && sy < r.bottom + 8)) continue;
+      return { x, y };
+    }
+    return null;
+  };
 
   const cards = [...root.querySelectorAll("[data-approach-stack-slot]")].map((slot) => {
     const el = slot.querySelector("[data-step-card]");
@@ -70,6 +213,14 @@ export function mountApproachStack(root, { lenis } = {}) {
     (context) => {
       const { phone, reduce, led } = context.conditions;
       const cleanups = [];
+
+      // No rail to set the field by (a phone, or reduced motion): the
+      // field's defaults, and the cards set on them, on every refresh.
+      if (phone || reduce) {
+        const fit = ScrollTrigger.create({ trigger: root, start: "top bottom", end: "bottom top", onRefresh: () => placeField(null) });
+        placeField(null);
+        cleanups.push(() => fit.kill());
+      }
 
       if (reduce) {
         cards.forEach((card) => card.schematic?.rest());
@@ -102,6 +253,12 @@ export function mountApproachStack(root, { lenis } = {}) {
         });
 
         if (!phone) cleanups.push(setUpRail(led && lead ? lead : null));
+
+        // the odd dot of the field lighting red (dot-field.js)
+        if (field) {
+          const flicker = mountDotFlicker(field, { pick: pickFieldDot });
+          cleanups.push(() => flicker.destroy());
+        }
       }
 
       return () => {
@@ -152,6 +309,7 @@ export function mountApproachStack(root, { lenis } = {}) {
         geo.morph = window.innerHeight * SNAKE.scroll;
         snake.draw(geo);
       }
+      placeField(lead ? snake.origin : geo.top);
       return geo;
     };
     measure();
@@ -314,6 +472,7 @@ export function mountApproachStack(root, { lenis } = {}) {
   return {
     destroy() {
       mm.revert();
+      unplaceCards();
       cards.forEach((card) => card.schematic?.destroy());
     },
   };
@@ -368,7 +527,7 @@ function makeSnake(rail) {
   el.innerHTML =
     `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="200000">` +
     `<path fill="none" stroke="#fff" stroke-width="8"/></mask></defs>` +
-    `<path fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="2 10" mask="url(#${id})"/>`;
+    `<path fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="2 16" mask="url(#${id})"/>`;
   const reach = el.querySelector("mask path");
   const dots = el.querySelector(":scope > path");
   rail.prepend(el);
@@ -380,6 +539,9 @@ function makeSnake(rail) {
     dots,
     origin: 0,
     draw(geo) {
+      // nothing to draw from until the page has a layout (a zero-sized
+      // or hidden viewport reads the line's height as "auto")
+      if (![geo.lineX, geo.release, geo.lineTop, geo.lineHeight, geo.morph].every(Number.isFinite)) return;
       const x0 = geo.lineX;
       const top = geo.release + geo.lineTop - geo.top;
       const bottom = top + geo.lineHeight;
@@ -460,66 +622,77 @@ function mountSchematic(svg) {
 const paint = (el, prop) => getComputedStyle(el)[prop];
 
 const SCHEMATICS = {
-  // Understand — four nodes: work, tools, information, decisions. They
-  // appear and the route draws in between them; then a red signal runs the
-  // zig-zag, each node catching it as it passes, while the dashed line
-  // straight across shows the way it was meant to go.
+  // Understand — four floor plates: work, tools, information, decisions.
+  // The setting-out and the plates come in from the ground up, then the
+  // route draws in across and down them and the cubes where it meets each
+  // plate appear; then a red signal runs the route, each cube's edges
+  // catching it as it passes, while the dashed line straight down the
+  // middle shows the way it was meant to go.
   map(parts, colors) {
+    const [ground] = parts("ground");
+    const plates = parts("plate");
     const [intended] = parts("intended");
     const [route] = parts("route");
     const [pulse] = parts("pulse");
     const nodes = parts("node");
-    const fill = paint(nodes[0], "fill");
     const stroke = paint(nodes[0], "stroke");
 
-    gsap.set([intended, ...nodes], { opacity: 0 });
+    gsap.set([ground, intended, ...nodes], { opacity: 0 });
+    gsap.set(plates, { opacity: 0, y: 6 });
     gsap.set(nodes, { scale: 0.6, transformOrigin: "50% 50%" });
     gsap.set(route, { strokeDasharray: "1 1", strokeDashoffset: 1 });
 
     const tl = gsap.timeline({ paused: true });
-    tl.to(nodes, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out", stagger: 0.1 }, 0.15)
-      .to(route, { strokeDashoffset: 0, duration: 1.2, ease: "power1.inOut" }, 0.5)
-      .to(intended, { opacity: 1, duration: 0.5, ease: "none" }, 1.3);
-    tl.add("rest", 1.8);
+    tl.to(ground, { opacity: 1, duration: 0.5, ease: "none" }, 0.1)
+      .to(plates, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.1 }, 0.15)
+      .to(route, { strokeDashoffset: 0, duration: 1.2, ease: "power1.inOut" }, 0.6)
+      .to(nodes, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.7)
+      .to(intended, { opacity: 1, duration: 0.5, ease: "none" }, 1.5);
+    tl.add("rest", 2);
 
     // The pulse's head runs 0 → 1.08 of the route as its offset runs from
-    // the dash's length to -1, so a node at share s of the route is reached
+    // the dash's length to -1, so a cube at share s of the route is reached
     // at s / 1.08 of the run.
     const travel = 3.2;
     const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.4 });
     loop.fromTo(pulse, { strokeDashoffset: 0.08 }, { strokeDashoffset: -1, duration: travel, ease: "none", immediateRender: false }, 0);
     nodes.forEach((node) => {
       const at = (parseFloat(node.dataset.at) / 1.08) * travel;
-      loop.to(node, { fill: colors.red, stroke: colors.red, duration: 0.12, ease: "none" }, at)
-        .to(node, { fill, stroke, duration: 0.9, ease: "power1.in" }, at + 0.3);
+      loop.to(node, { stroke: colors.red, duration: 0.12, ease: "none" }, at)
+        .to(node, { stroke, duration: 0.9, ease: "power1.in" }, at + 0.3);
     });
     tl.add(loop, "rest");
     return tl;
   },
 
-  // Diagnose — the practice as a stack of layers. A scan runs down through
-  // them one by one until it reaches the layer the trouble starts in, which
-  // holds in red with a marker on it while the layers above draw back to
-  // open it up; then it all settles for the next pass.
+  // Diagnose — the practice as a stack of slabs. A scan runs down through
+  // them one by one until it reaches the slab the trouble starts in, whose
+  // edges turn red, while the slabs above lift off it and four red
+  // chevrons close in on its corners; then it all settles for the next pass.
   trace(parts, colors, svg) {
     const cause = Number(svg.dataset.cause);
-    const layers = parts("layer");
+    const [ground] = parts("ground");
+    // listed in the markup bottom first, so each hides what is under it
+    const layers = parts("layer").sort((a, b) => a.dataset.i - b.dataset.i);
     const [marker] = parts("marker");
     const [ping] = parts("ping");
     const above = layers.slice(0, cause);
     const line = paint(layers[0], "stroke");
     const bright = "rgba(255, 255, 255, 0.95)";
 
+    gsap.set(ground, { opacity: 0 });
     gsap.set(layers, { opacity: 0, y: 8 });
-    gsap.set(marker, { opacity: 0, scale: 0, transformOrigin: "50% 50%" });
+    gsap.set(marker, { opacity: 0, scale: 1.25, transformOrigin: "50% 50%" });
     gsap.set(ping, { opacity: 0, transformOrigin: "50% 50%" });
 
     const tl = gsap.timeline({ paused: true });
-    tl.to(layers, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.08 }, 0.1);
+    // the setting-out, then the stack built from the ground up
+    tl.to(ground, { opacity: 1, duration: 0.5, ease: "none" }, 0.05)
+      .to(layers, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: { each: 0.08, from: "end" } }, 0.1);
     const introEnd = 0.9;
 
     const loop = gsap.timeline({ repeat: -1 });
-    // the scan, top down: each layer it passes brightens and lets go, until
+    // the scan, top down: each slab it passes brightens and lets go, until
     // the cause, which turns red and holds
     for (let i = 0; i < cause; i++) {
       loop.to(layers[i], { stroke: bright, duration: 0.12, ease: "none" }, i * 0.22)
@@ -527,58 +700,82 @@ const SCHEMATICS = {
     }
     const found = cause * 0.22;
     loop.to(layers[cause], { stroke: colors.red, duration: 0.15, ease: "none" }, found);
-    // the layers above draw back, opening a gap over it
+    // the slabs above lift off it, opening it up
     const open = found + 0.3;
-    loop.to(above, { y: -10, duration: 0.8, ease: "power3.inOut", stagger: 0.05 }, open);
+    loop.to(above, { y: -12, duration: 0.8, ease: "power3.inOut", stagger: 0.05 }, open);
     const shown = open + 0.4;
-    loop.to(marker, { opacity: 1, scale: 1, duration: 0.4, ease: "back.out(2.5)" }, shown)
-      .fromTo(ping, { scale: 1, opacity: 0.9 }, { scale: 2.8, opacity: 0, duration: 1, ease: "power2.out", immediateRender: false }, shown + 0.15);
+    loop.to(marker, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, shown)
+      .fromTo(ping, { scale: 1, opacity: 0.9 }, { scale: 1.3, opacity: 0, duration: 1.1, ease: "power2.out", immediateRender: false }, shown + 0.15);
     // a beat to read it, then everything settles back
     const close = shown + 1.8;
-    loop.to(marker, { opacity: 0, scale: 0.6, duration: 0.35, ease: "power1.in" }, close)
+    loop.to(marker, { opacity: 0, scale: 1.15, duration: 0.35, ease: "power1.in" }, close)
       .to(above, { y: 0, duration: 0.8, ease: "power3.inOut", stagger: { each: 0.05, from: "end" } }, close + 0.15)
       .to(layers[cause], { stroke: line, duration: 0.6, ease: "none" }, close + 0.6);
     loop.set({}, {}, close + 2);
 
     tl.add(loop, introEnd);
-    // found and opened, the marker on it
+    // found and opened, the chevrons on it
     tl.add("rest", introEnd + shown + 0.5);
     return tl;
   },
 
-  // Prioritise — four findings as bars of impact on one baseline. They rise
-  // into a ranking and the tallest, what should change first, turns red;
-  // then the figures move, the bars find their new heights and the red
-  // passes to whichever now leads.
+  // Prioritise — the findings as a massing model, nine blocks on a three
+  // by three grid. They rise into a ranking and the tallest, what should
+  // change first, is drawn in red; then the figures move, the blocks find
+  // their new heights and the red passes to whichever now leads, the last
+  // set coming back to the first, which mirrors about the card's middle.
+  // Each block is redrawn from its height on every frame of a change, from
+  // the projection the page drew it with (src/scripts/iso.js).
   rank(parts, colors, svg) {
     const [base] = parts("base");
-    const bars = parts("bar");
-    const floor = Number(svg.dataset.base);
+    const [ox, oy] = svg.dataset.origin.split(",").map(Number);
+    const P = projector(ox, oy);
+    const size = Number(svg.dataset.size);
+    // the towers stand on the plinth, their floor lines every so far up
+    const plinth = Number(svg.dataset.plinth) || 0;
+    const floor = Number(svg.dataset.floor) || 12;
+    // in the markup back to front; here by their place on the grid, which
+    // the figures below are listed in (row by row)
+    const bars = parts("bar").sort((a, b) => a.dataset.k - b.dataset.k);
     // the stylesheet marks the resting leader; from here the script does
     bars.forEach((bar) => bar.classList.remove("is--first"));
-    const fill = paint(bars[0], "fill");
     const stroke = paint(bars[0], "stroke");
-    // impact per finding, figure set by figure set; the loop runs back round
-    // to the first, so it never jumps
+    const blocks = bars.map((bar) => ({
+      bar,
+      x0: Number(bar.dataset.x0),
+      y0: Number(bar.dataset.y0),
+      h: 0,
+      faces: Object.fromEntries([...bar.querySelectorAll("[data-face]")].map((face) => [face.dataset.face, face])),
+    }));
+    const draw = (block) => {
+      const f = boxFaces(P, block.x0, block.y0, plinth, size, size, block.h);
+      block.faces.floors.setAttribute("d", floorLines(P, block.x0, block.y0, plinth, size, size, block.h, floor));
+      block.faces.top.setAttribute("d", f.top);
+      block.faces.left.setAttribute("d", f.left);
+      block.faces.right.setAttribute("d", f.right);
+    };
+    const grow = (block, h, vars) => ({ h, onUpdate: () => draw(block), ...vars });
+    // heights by row then column; the first mirrors about the card's
+    // middle with the tallest in the centre, and the loop comes back to it
     const sets = [
-      [96, 152, 64, 120],
-      [136, 76, 108, 52],
-      [72, 112, 160, 88],
-      [104, 60, 84, 144],
+      [36, 52, 28, 52, 84, 44, 28, 44, 20],
+      [60, 30, 44, 38, 48, 72, 24, 56, 32],
+      [30, 64, 40, 80, 42, 36, 50, 28, 54],
+      [44, 38, 68, 34, 58, 40, 76, 30, 26],
     ];
     const lead = (values) => values.indexOf(Math.max(...values));
-    const height = (h) => ({ attr: { y: floor - h, height: h } });
 
     gsap.set(base, { opacity: 0 });
-    gsap.set(bars, { opacity: 0, ...height(0) });
+    gsap.set(bars, { opacity: 0, stroke });
+    blocks.forEach(draw);
 
     const tl = gsap.timeline({ paused: true });
     tl.to(base, { opacity: 1, duration: 0.5, ease: "none" }, 0.1)
-      .to(bars, { opacity: 1, duration: 0.2, ease: "none", stagger: 0.08 }, 0.35);
-    bars.forEach((bar, i) => {
-      tl.to(bar, { ...height(sets[0][i]), duration: 0.9, ease: "power3.out" }, 0.4 + i * 0.1);
+      .to(bars, { opacity: 1, duration: 0.2, ease: "none", stagger: 0.04 }, 0.35);
+    blocks.forEach((block, i) => {
+      tl.to(block, grow(block, sets[0][i], { duration: 0.9, ease: "power3.out" }), 0.4 + i * 0.05);
     });
-    tl.to(bars[lead(sets[0])], { fill: colors.red, stroke: colors.red, duration: 0.3, ease: "none" }, 1.5);
+    tl.to(blocks[lead(sets[0])].bar, { stroke: colors.red, duration: 0.3, ease: "none" }, 1.5);
     tl.add("rest", 1.9);
 
     const cycle = 3.6;
@@ -586,11 +783,11 @@ const SCHEMATICS = {
     sets.forEach((values, k) => {
       const next = sets[(k + 1) % sets.length];
       const t = k * cycle;
-      loop.to(bars[lead(values)], { fill, stroke, duration: 0.4, ease: "none" }, t + 2);
-      bars.forEach((bar, i) => {
-        loop.to(bar, { ...height(next[i]), duration: 1, ease: "power3.inOut" }, t + 2);
+      loop.to(blocks[lead(values)].bar, { stroke, duration: 0.4, ease: "none" }, t + 2);
+      blocks.forEach((block, i) => {
+        loop.to(block, grow(block, next[i], { duration: 1, ease: "power3.inOut" }), t + 2);
       });
-      loop.to(bars[lead(next)], { fill: colors.red, stroke: colors.red, duration: 0.3, ease: "none" }, t + 3);
+      loop.to(blocks[lead(next)].bar, { stroke: colors.red, duration: 0.3, ease: "none" }, t + 3);
     });
     loop.set({}, {}, sets.length * cycle);
     tl.add(loop, "rest");

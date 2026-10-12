@@ -22,8 +22,10 @@
   --contact-button-block-width: 0.5625rem;
   --contact-button-ease: cubic-bezier(0.32, 0.72, 0, 1);
 
-  grid-column-gap: 0.25rem;
-  grid-row-gap: 0.25rem;
+  /* the seams between the blocks: kept fine, so the bars read as one
+     tight run */
+  grid-column-gap: 0.125rem;
+  grid-row-gap: 0.125rem;
   color: var(--nav-cta-fg);
   -webkit-user-select: none;
   user-select: none;

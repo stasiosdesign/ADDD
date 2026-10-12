@@ -15,17 +15,19 @@
   Without the script the schematics show their static drawing.
 
   The steps are data, so the copy, the layout and the script all read the
-  same list. Each step's schematic is a small flat drawing in a 400 × 256
-  viewBox, a few plain shapes and one red signal:
+  same list. Each step's schematic is an isometric line drawing in a
+  400 × 256 viewBox (src/scripts/iso.js): hairlines, dashed setting-out
+  and solid forms, with one red element:
 
-    - map    Understand: four nodes, the signal zig-zagging between them
-             against the straight dashed line it is meant to take;
-    - trace  Diagnose: the practice as a stack of layers, scanned down
+    - map    Understand: four floor plates, the signal zig-zagging across
+             and down them against the straight line it is meant to take;
+    - trace  Diagnose: the practice as a stack of slabs, scanned down
              through until the one the trouble starts in is found;
-    - rank   Prioritise: findings as bars of impact, the tallest in red,
+    - rank   Prioritise: findings as blocks of impact, the tallest in red,
              re-ranking as the picture changes.
 */
 import ArrowIcon from "./ArrowIcon.astro";
+import { boxFaces, floorLines, path, plane, projector } from "../scripts/iso.js";
 
 interface Props {
   /** The three steps' words, from the Home page's Approach section (src/pages/index.astro): title and text, in order. */
@@ -43,57 +45,146 @@ const steps = SCHEMATICS.map((schematic, i) => ({
   schematic,
 }));
 
-// The schematics are flat hairline drawings: a few plain shapes on the
-// card's ground and one red signal, nothing labelled. Coordinates are in
-// the 400 × 256 viewBox.
+// The schematics are exploded isometric drawings, one family: forms
+// built of layers, stood apart one over the next with fine dashed guides
+// at their corners, each form filled with the card's own ground so it
+// reads as solid and hides what is behind it, edged in hairlines of two
+// weights; under each, the same dashed cross of setting-out lines with a
+// ring at each end; all centred on the card and symmetric about its
+// middle. The site's red only ever draws a line. Coordinates are in the
+// 400 × 256 viewBox, projected by src/scripts/iso.js, which the script
+// shares.
+type Projector = (x: number, y: number, z?: number) => number[];
+const ring = (P: Projector, x: number, y: number, z = 0) => {
+  const [cx, cy] = P(x, y, z);
+  return { cx: +cx.toFixed(1), cy: +cy.toFixed(1) };
+};
+// the setting-out: the dashed cross through the origin, ringed at its ends
+const cross = (P: Projector, reach: number) => ({
+  lines: [path([P(-reach, 0), P(reach, 0)], false), path([P(0, -reach), P(0, reach)], false)],
+  rings: [ring(P, -reach, 0), ring(P, reach, 0), ring(P, 0, -reach), ring(P, 0, reach)],
+});
+// a square slab centred on the vertical axis
+const slab = (P: Projector, half: number, z: number, t: number) => boxFaces(P, -half, -half, z, 2 * half, 2 * half, t);
+// the guides of an exploded stack: dashed verticals up its left and right
+// corners, from one height to another
+const guides = (P: Projector, half: number, from: number, to: number) =>
+  [[-half, half], [half, -half]].map(([x, y]) => path([P(x, y, from), P(x, y, to)], false));
 
-// Understand: four nodes — work, tools, information, decisions. The route
-// work actually takes zig-zags between them; the one it is meant to take is
-// the dashed line straight from work to decisions. "at" is how far along
-// the route each node sits (its share of the route's length), so the
-// signal can light it as it passes.
-const mapRoute = [[60, 128], [60, 64], [200, 64], [200, 192], [300, 192], [300, 128], [340, 128]];
-const mapNodes = [[60, 128], [130, 64], [250, 192], [340, 128]];
-const mapLengths = mapRoute.slice(1).map(([x, y], i) => Math.abs(x - mapRoute[i][0]) + Math.abs(y - mapRoute[i][1]));
-const mapTotal = mapLengths.reduce((a, b) => a + b, 0);
-// the distance along the route to a point on it
-function mapAt([px, py]) {
-  let run = 0;
-  for (let i = 1; i < mapRoute.length; i++) {
-    const [ax, ay] = mapRoute[i - 1];
-    const [bx, by] = mapRoute[i];
-    const on = (ax === bx && px === ax && py >= Math.min(ay, by) && py <= Math.max(ay, by))
-      || (ay === by && py === ay && px >= Math.min(ax, bx) && px <= Math.max(ax, bx));
-    if (on) return (run + Math.abs(px - ax) + Math.abs(py - ay)) / mapTotal;
-    run += mapLengths[i - 1];
-  }
-  return 0;
-}
-const map = {
-  route: "M" + mapRoute.map((p) => p.join(" ")).join("L"),
-  intended: `M${mapRoute[0].join(" ")}L${mapRoute[mapRoute.length - 1].join(" ")}`,
-  nodes: mapNodes.map(([x, y]) => ({ x, y, at: +mapAt([x, y]).toFixed(3) })),
+// Understand: the practice as four floor slabs, stood apart like the
+// floors of an exploded building — work, tools, information, decisions,
+// top to bottom. The route work actually takes runs along each floor's
+// front edges and drops down a corner to the next, turning back on
+// itself floor by floor; a small cube on each floor's front corner
+// catches the signal as it passes. The dashed line straight down the
+// front corner is the way it was meant to go. "at" is how far along the
+// route each cube sits (its share of the route's drawn length).
+const uP = projector(200, 183);
+const U_HALF = 48;
+const U_T = 6;
+// the floors' feet, top floor first
+const U_FLOORS = [108, 72, 36, 0];
+const uTop = (k: number) => U_FLOORS[k] + U_T;
+const U_L = [-U_HALF, U_HALF];
+const U_F = [U_HALF, U_HALF];
+const U_R = [U_HALF, -U_HALF];
+const uRoute = U_FLOORS.flatMap((_, k) => {
+  const [a, b] = k % 2 ? [U_R, U_L] : [U_L, U_R];
+  return [[...a, uTop(k)], [...U_F, uTop(k)], [...b, uTop(k)]];
+});
+// a cube by each floor's front corner
+const uNodes = U_FLOORS.map((_, k) => 3 * k + 1);
+const uScreen = uRoute.map(([x, y, z]) => uP(x, y, z));
+const uLengths = uScreen.slice(1).map(([x, y], i) => Math.hypot(x - uScreen[i][0], y - uScreen[i][1]));
+const uTotal = uLengths.reduce((a, b) => a + b, 0);
+const uAt = (k: number) => uLengths.slice(0, k).reduce((a, b) => a + b, 0) / uTotal;
+const understand = {
+  cross: cross(uP, 104),
+  guides: guides(uP, U_HALF, U_T, uTop(0)),
+  // bottom floor first, so each hides what is under it
+  floors: U_FLOORS.map((z, k) => ({ k, ...slab(uP, U_HALF, z, U_T) })).reverse(),
+  route: path(uScreen, false),
+  intended: path([uScreen[1], uScreen[uScreen.length - 2]], false),
+  nodes: uNodes.map((n, k) => ({ at: +uAt(n).toFixed(3), ...boxFaces(uP, U_HALF - 17, U_HALF - 17, uTop(k), 10, 10, 10) })),
 };
 
-// Diagnose: the practice as a stack of layers — workflows, BIM, software,
-// data and the rest. A scan runs down through them, finds the one the
-// trouble starts in, and the layers above it draw back to open it up.
+// Diagnose: the practice as six thin slabs, stood apart — workflows, BIM,
+// software, infrastructure, data, AI. A scan runs down through them,
+// finds the one the trouble starts in, and the slabs above lift off it
+// while four red chevrons close in on its corners. Listed top first;
+// drawn bottom first, so each slab hides what is under it.
+const dP = projector(200, 188);
 const TRACE_CAUSE = 3;
-const trace = {
-  rows: [47, 81, 115, 149, 183],
-  marker: { x: 104, y: 152, size: 12 },
+const D_HALF = 46;
+const D_T = 5;
+const D_GAP = 23;
+const D_LAYERS = 6;
+const dFoot = (i: number) => (D_LAYERS - 1 - i) * D_GAP;
+const dCause = dFoot(TRACE_CAUSE);
+// the chevrons: one at each corner of a square a little outside the
+// cause's footprint, halfway up the slab, each two short arms along its
+// sides
+const dReach = D_HALF + 12;
+const dZ = dCause + D_T / 2;
+const D_ARM = 14;
+const diagnose = {
+  cross: cross(dP, 100),
+  guides: guides(dP, D_HALF, D_T, dFoot(0) + D_T),
+  slabs: Array.from({ length: D_LAYERS }, (_, i) => ({ i, ...slab(dP, D_HALF, dFoot(i), D_T) })).reverse(),
+  frame: [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
+    const x = sx * dReach, y = sy * dReach;
+    return path([dP(x - sx * D_ARM, y, dZ), dP(x, y, dZ), dP(x, y - sy * D_ARM, dZ)], false);
+  }).join(""),
+  ping: plane(dP, -D_HALF - 4, -D_HALF - 4, 2 * D_HALF + 8, 2 * D_HALF + 8, dZ),
 };
 
-// Prioritise: four findings as bars on one baseline, their heights the
-// impact each would have; the tallest, what should change first, in red.
-// The heights here are the ranked picture the card shows without its
-// script; the script runs its own figures.
-const RANK_BASE = 216;
-const rankX = [84, 148, 212, 276];
-const rankRest = [96, 152, 64, 120];
-const rankFirst = rankRest.indexOf(Math.max(...rankRest));
+// Prioritise: the findings as a massing model, nine towers on a three by
+// three grid standing on a plinth over the setting-out, their heights the
+// impact each would have, floor lines on their sides; the tallest, what
+// should change first, drawn in red. At rest the heights mirror about the
+// card's middle, the tallest in the centre; the script runs its own
+// figures, coming back to these, and redraws the towers from the same
+// projection (src/scripts/iso.js). Drawn back to front, so each tower
+// hides what is behind it.
+const R_ORIGIN = [200, 152];
+const rP = projector(R_ORIGIN[0], R_ORIGIN[1]);
+const R_SIZE = 30;
+const R_PITCH = 44;
+const R_PLINTH = 6;
+const R_FLOOR = 12;
+// heights by row (x) then column (y)
+const rRest = [36, 52, 28, 52, 84, 44, 28, 44, 20];
+const rFirst = rRest.indexOf(Math.max(...rRest));
+const rCells = rRest.map((h, k) => {
+  const x0 = (Math.floor(k / 3) - 1) * R_PITCH - R_SIZE / 2;
+  const y0 = ((k % 3) - 1) * R_PITCH - R_SIZE / 2;
+  return {
+    k, x0, y0,
+    ...boxFaces(rP, x0, y0, R_PLINTH, R_SIZE, R_SIZE, h),
+    floors: floorLines(rP, x0, y0, R_PLINTH, R_SIZE, R_SIZE, h, R_FLOOR),
+  };
+});
+const prioritise = {
+  cross: cross(rP, 100),
+  plinth: slab(rP, 76, 0, R_PLINTH),
+  bars: [...rCells].sort((a, b) => a.x0 + a.y0 - (b.x0 + b.y0)),
+};
+
+// Each step's parallax, [start, end] in percent of its card's height: the
+// middle step (Diagnose) the still anchor, the outer two drifting at
+// different rates, so the zig-zag keeps its order. Each drift is even
+// about its rest, which it passes through as the card stands at the
+// middle of the screen: there the card is set on the band's field of
+// dots, as the still one always is (approach-stack.js, placeCards).
+const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
 ---
 <section class="approach-stack" aria-label="The ADDD approach" data-approach-stack>
+  <!-- the band's grid of dots (approach-stack.css), one of its columns
+       the rail's own line, and the odd one lighting red
+       (approach-stack.js, dot-field.js) -->
+  <div class="approach-stack__field" data-approach-stack-field aria-hidden="true">
+    <span class="approach-stack__field-dots"></span>
+  </div>
   <div class="approach-stack__grid">
     <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
       <div class="approach-stack__window" data-approach-stack-window>
@@ -106,7 +197,12 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
 
     <ol class="approach-stack__list" role="list" style={`--steps:${steps.length}`}>
       {steps.map((step, i) => (
-        <li class={`approach-stack__slot ${i % 2 ? "is--right" : "is--left"}`} style={`--step:${i + 1}`} data-approach-stack-slot>
+        <li class={`approach-stack__slot ${i % 2 ? "is--right" : "is--left"}`} style={`--step:${i + 1}`} data-approach-stack-slot
+          data-parallax="trigger" data-parallax-disable="tablet" data-parallax-scrub="1.2"
+          data-parallax-start={PARALLAX[i][0]} data-parallax-end={PARALLAX[i][1]}>
+          <!-- the card's wrapper takes the parallax (initGlobalParallax,
+               site.js), so the card's own entrance stays its own -->
+          <div class="approach-stack__drift" data-parallax="target">
           <article class="step-card" data-step-card>
             <header class="step-card__head">
               <span class="step-card__badge">{step.n}</span>
@@ -117,30 +213,70 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
               <div class="step-card__media">
                 {step.schematic === "map" && (
                   <svg class="schematic" data-schematic="map" viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
-                    <path class="schematic__route is--intended" data-s="intended" d={map.intended} />
-                    <path class="schematic__route" data-s="route" d={map.route} pathLength="1" />
-                    <path class="schematic__pulse" data-s="pulse" d={map.route} pathLength="1" />
-                    {map.nodes.map((node) => (
-                      <rect class="schematic__shape" data-s="node" data-at={node.at} x={node.x - 10} y={node.y - 10} width="20" height="20" rx="1" />
+                    <g data-s="ground">
+                      {understand.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
+                      {understand.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+                      {understand.guides.map((d) => <path class="schematic__line is--dash" d={d} />)}
+                    </g>
+                    {understand.floors.map((f) => (
+                      <g class:list={["schematic__solid", { "is--soft": f.k > 0 }]} data-s="plate">
+                        <path class="schematic__face" d={f.left} /><path class="schematic__face" d={f.right} /><path class="schematic__face" d={f.top} />
+                      </g>
+                    ))}
+                    <path class="schematic__route is--intended" data-s="intended" d={understand.intended} />
+                    <path class="schematic__route" data-s="route" d={understand.route} pathLength="1" />
+                    <path class="schematic__pulse" data-s="pulse" d={understand.route} pathLength="1" />
+                    {understand.nodes.map((node) => (
+                      <g class="schematic__solid" data-s="node" data-at={node.at}>
+                        <path class="schematic__face" d={node.left} /><path class="schematic__face" d={node.right} /><path class="schematic__face" d={node.top} />
+                      </g>
                     ))}
                   </svg>
                 )}
 
                 {step.schematic === "trace" && (
                   <svg class="schematic" data-schematic="trace" data-cause={TRACE_CAUSE} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
-                    {trace.rows.map((y) => (
-                      <rect class="schematic__shape" data-s="layer" x="90" y={y} width="220" height="18" rx="1" />
+                    <g data-s="ground">
+                      {diagnose.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
+                      {diagnose.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+                      {diagnose.guides.map((d) => <path class="schematic__line is--dash" d={d} />)}
+                    </g>
+                    <!-- bottom first, the chevrons and their ping just over the
+                         cause, so the slabs above it hide what is behind them -->
+                    {diagnose.slabs.map((slab) => (
+                      <Fragment>
+                        <g class:list={["schematic__solid", { "is--soft": slab.i > 0 }]} data-s="layer" data-i={slab.i}>
+                          <path class="schematic__face" d={slab.left} />
+                          <path class="schematic__face" d={slab.right} />
+                          <path class="schematic__face" d={slab.top} />
+                        </g>
+                        {slab.i === TRACE_CAUSE && (
+                          <Fragment>
+                            <path class="schematic__ping" data-s="ping" d={diagnose.ping} />
+                            <path class="schematic__frame" data-s="marker" d={diagnose.frame} />
+                          </Fragment>
+                        )}
+                      </Fragment>
                     ))}
-                    <rect class="schematic__ping" data-s="ping" x={trace.marker.x} y={trace.marker.y} width={trace.marker.size} height={trace.marker.size} />
-                    <rect class="schematic__marker" data-s="marker" x={trace.marker.x} y={trace.marker.y} width={trace.marker.size} height={trace.marker.size} />
                   </svg>
                 )}
 
                 {step.schematic === "rank" && (
-                  <svg class="schematic" data-schematic="rank" data-base={RANK_BASE} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
-                    <path class="schematic__base" data-s="base" d={`M60 ${RANK_BASE}H340`} />
-                    {rankX.map((x, k) => (
-                      <rect class:list={["schematic__shape", { "is--first": k === rankFirst }]} data-s="bar" x={x} y={RANK_BASE - rankRest[k]} width="40" height={rankRest[k]} rx="1" />
+                  <svg class="schematic" data-schematic="rank" data-origin={R_ORIGIN.join(",")} data-size={R_SIZE} data-plinth={R_PLINTH} data-floor={R_FLOOR} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                    <g data-s="base">
+                      {prioritise.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
+                      {prioritise.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
+                      <g class="schematic__solid is--soft">
+                        <path class="schematic__face" d={prioritise.plinth.left} /><path class="schematic__face" d={prioritise.plinth.right} /><path class="schematic__face" d={prioritise.plinth.top} />
+                      </g>
+                    </g>
+                    {prioritise.bars.map((bar) => (
+                      <g class:list={["schematic__solid", { "is--first": bar.k === rFirst }]} data-s="bar" data-k={bar.k} data-x0={bar.x0} data-y0={bar.y0}>
+                        <path class="schematic__face" data-face="left" d={bar.left} />
+                        <path class="schematic__face" data-face="right" d={bar.right} />
+                        <path class="schematic__face" data-face="top" d={bar.top} />
+                        <path class="schematic__floors" data-face="floors" d={bar.floors} />
+                      </g>
                     ))}
                   </svg>
                 )}
@@ -151,6 +287,7 @@ const rankFirst = rankRest.indexOf(Math.max(...rankRest));
               <p class="step-card__p" data-page-field={`approach.steps.${i}.text`}>{step.text}</p>
             </div>
           </article>
+          </div>
         </li>
       ))}
     </ol>

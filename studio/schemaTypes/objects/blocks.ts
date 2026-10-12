@@ -91,6 +91,7 @@ export const priceCard = defineType({
   components: {item: BlockItem},
   fields: [
     defineField({name: 'title', title: 'Title', type: 'string'}),
+    defineField({name: 'audience', title: 'Best suited to', type: 'text', rows: 2, description: 'Who the offer is for, where the design shows it. Leave empty for none.'}),
     defineField({name: 'subtitle', title: 'Line under the title', type: 'text', rows: 2}),
     defineField({name: 'pricePrefix', title: 'Before the price', type: 'string', description: 'E.g. “From”. Leave empty for none.'}),
     defineField({name: 'price', title: 'Price', type: 'string', description: 'As shown, e.g. “£1,995”.'}),
@@ -98,6 +99,7 @@ export const priceCard = defineType({
     defineField({name: 'note', title: 'Note under the price', type: 'string', description: 'E.g. “From January 2027”. Leave empty for none.'}),
     defineField({name: 'includesLabel', title: 'List label', type: 'string', description: 'The small line above the list, e.g. “Includes”.'}),
     linesField('includes', 'What it includes', 'One line per item.'),
+    defineField({name: 'conditions', title: 'Conditions', type: 'text', rows: 2, description: 'Eligibility or other conditions under the list, where the design shows them. Leave empty for none.'}),
     buttonField('Where the button leads stays in the site’s code.'),
   ],
   preview: {select: {title: 'title', subtitle: 'price'}},

@@ -75,7 +75,7 @@ const staging = __DEPLOYMENT__ !== "production";
 const draftMode = staging && Astro.locals.draftMode;
 ---
 <!DOCTYPE html>
-<html lang="en-GB">
+<html lang="en-GB" data-draft={draftMode ? "" : undefined}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -112,6 +112,9 @@ const draftMode = staging && Astro.locals.draftMode;
       seen = seen || new URL(document.referrer).origin === location.origin;
     } catch (err) {}
     document.documentElement.dataset.arrival = home && (requested || reload || !seen) ? "intro" : "reveal";
+    // The line reveal (initLineReveal in site.js) takes the marked headings
+    // in hand: hidden until it does, so none is seen whole first.
+    document.documentElement.setAttribute("data-line-reveal", "");
   })();
 </script>
 <noscript><style>.morph-loader { display: none; }</style></noscript>

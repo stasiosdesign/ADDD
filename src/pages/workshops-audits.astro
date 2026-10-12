@@ -36,7 +36,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
           <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h1" data-page-field="hero.heading">{t("hero.heading")}</h1>
+          <h1 class="h1" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
         </div>
         <div class="pg-hero__col">
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
@@ -55,7 +55,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
       <div class="section-title">
         <p class="text-md" data-page-field="symptoms.lede">{t("symptoms.lede")}</p>
         <div class="section-title__body">
-          <h2 class="h2" data-page-field="symptoms.heading">{t("symptoms.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="symptoms.heading">{t("symptoms.heading")}</h2>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
-          <h2 class="h2" data-page-field="method.heading">{t("method.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="method.heading">{t("method.heading")}</h2>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         <p class="text-md" data-page-field="journey.lede">{t("journey.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="journey.tagline">{t("journey.tagline")}</p>
-          <h2 class="h2" data-page-field="journey.heading">{t("journey.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="journey.heading">{t("journey.heading")}</h2>
         </div>
       </div>
 
@@ -125,7 +125,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
       <div class="section-title">
         <div class="section-title__body">
           <p class="tagline" data-page-field="story.tagline">{t("story.tagline")}</p>
-          <h2 class="h2" data-page-field="story.heading">{t("story.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="story.heading">{t("story.heading")}</h2>
         </div>
       </div>
       <div class="case__panel">
@@ -151,7 +151,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
-          <h2 class="h2" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
         </div>
       </div>
 
@@ -206,7 +206,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
 
   <section class="section section--light">
     <div class="container">
-      <h2 class="h2" data-page-field="faq.heading">{t("faq.heading")}</h2>
+      <h2 class="h2" data-split="heading" data-page-field="faq.heading">{t("faq.heading")}</h2>
       <Accordion id="faq" items={faq} field="faq.questions" />
     </div>
   </section>

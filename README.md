@@ -393,7 +393,11 @@ navigation onto that page.
   (Lenis's velocity), behind it either way. Every card is open, its step drawn
   as a live schematic — the route work actually takes against the intended
   one, symptoms traced back into a shared cause, findings re-ranking by impact
-  with their owners. Each card rises into place as it comes up the screen, and
+  with their owners. The cards are set on the band's field of dots: their
+  edges, and the lines between their blocks, run midway between its lines
+  of dots, moved there from the grid by half a step at most
+  (`placeCards` in `approach-stack.js`); the field itself, whose column is
+  the rail's, never moves. Each card rises into place as it comes up the screen, and
   its schematic draws in the first time the card is in view, then loops while
   it is on screen. From 768 to 991px the cards are one column (6rem apart)
   with the rail down Grid Column 1; below 768px they are one column (3.5rem
@@ -401,6 +405,18 @@ navigation onto that page.
   nothing moves on scroll. The previous approach cards — pinned, tipping
   slides closed over by the shutter — now live on the Tech Firms page,
   unchanged.
+- **Testimonials** — the homepage's quotes (`TestimonialSlider.astro`,
+  `testimonial-slider.js`), after the Outsource Consultants slider: every
+  quote mounted and stacked in one place, split into masked lines that
+  rise in one after another and run back out last line first (its
+  timings: 0.3s a line, 0.05s apart), with the count, the attribution and
+  the logo fading with them. On the 12-Column Grid: the dotted rule upright
+  on the left edge of Grid Column 3, the logo and the two round controls
+  on it, the quote on Grid Columns 5–11; below 992px the rule lies across
+  the grid between the quote and a row of the logo and the controls. The
+  words and logos come from the Home page's Testimonials section; the
+  logos, white marks, are set in ink. Under reduced motion, and in the
+  Studio's preview, a change is a fade.
 - **Smooth scroll** — [Lenis](https://github.com/darkroomengineering/lenis) 1.2.3,
   driven by the GSAP ticker rather than `autoRaf`, so the transition can stop and
   restart it around a navigation.
@@ -425,10 +441,14 @@ navigation onto that page.
   Resources columns are thirds of the grid stepping from the nav's ground to
   the group's grey to the feature block's, with the latest report as a block
   of the ground on its grey. Stacked in the drawer, the cards sit a gutter
-  apart and the columns become bands of their tone. Scrolling down, the nav
-  slides up out of view, and comes back the moment the page moves up; it
-  stays while a menu is open or focus is inside it, and every page opens with
-  it in place (`initNavReveal` in `site.js`). It goes up by its height
+  apart and the columns become bands of their tone. The nav stays in place
+  over the main content whichever way the page scrolls, and leaves only
+  where a section holds it out (`initNavReveal` in `site.js`): on the
+  homepage it goes up with the hero, at the hero's own parallax pace, stays
+  out while the statement plays out (`data-nav-hold`) and comes back as the
+  approach takes over; on every page it eases out once the closing CTA
+  reaches it and stays out over the footer, and back in on the way up. It
+  stays while a menu is open or keyboard focus is inside it. It goes up by its height
   rounded up to whole device pixels: the bar's height is fluid, so moved by
   exactly that it would leave its last, partly covered row of pixels on the
   top edge of the screen.
@@ -438,9 +458,11 @@ navigation onto that page.
   Without an `href` it renders a `<button>`, for form submits. A pair sits a
   gutter apart (`.actions--pair`) — the hero and the closing CTA lead with
   Free Tech Stacks (primary) and Work With Us (secondary). On a dark ground
-  (the CTA band, a dark page, section, hero or price card) the pair inverts,
-  as the nav's Contact does on a dark page: the primary white, the secondary
-  a quiet lift off the ground. Only the primary takes the red sweep on hover.
+  (a dark page, section, hero or price card, or the service stack's cards)
+  the pair inverts, as the nav's Contact does on a dark page: the primary
+  white, the secondary a quiet lift off the ground. The closing CTA is on
+  the off-white everywhere, a dark page included, so its pair never
+  inverts. Only the primary takes the red sweep on hover.
   `.btn` remains only for the chevron text links (`.btn--link`).
 - **Links** — the nav's items (For Tech Firms, the two toggles, AEC Jobs,
   About, Sign in) and the footer's link lists are one sliding-box link

@@ -102,15 +102,19 @@ export function mountStickyTitle(wrap) {
         });
       }
       // A marked phrase (StickyTitle.astro): its chip and its red ground
-      // uncovered left to right with its own letters, from the moment the
-      // first of them starts in to the moment the last is in, so the
-      // ground never stands empty ahead of its words.
+      // uncovered left to right with the reveal's leading edge, from the
+      // moment its first letter starts in to the moment the letter after
+      // its last does, its own letters fading in on it like the rest.
+      // (Timed to its last letter being fully in, it ran CHAR_IN behind
+      // that edge: the words after it were already showing while the end
+      // of the phrase was still clipped, a gap in the middle of the line.)
       heading.querySelectorAll("[data-sticky-title-mark]").forEach((mark) => {
-        const at = (i) => (REVEAL * i) / Math.max(1, split.chars.length - 1);
+        const step = REVEAL / Math.max(1, split.chars.length - 1);
+        const at = (i) => step * i;
         const own = split.chars.filter((char) => mark.contains(char));
         if (!own.length) return;
         const start = at(split.chars.indexOf(own[0]));
-        const end = at(split.chars.indexOf(own[own.length - 1])) + CHAR_IN;
+        const end = at(split.chars.indexOf(own[own.length - 1])) + step;
         headingTl.fromTo(mark, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: end - start, ease: "none" }, start);
       });
       masterTl.add(headingTl, index === 0 ? 0 : `-=${OVERLAP}`);

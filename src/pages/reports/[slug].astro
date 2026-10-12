@@ -85,7 +85,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
         </div>
         <div class="pg-hero__col">
           <p class="tagline">Report</p>
-          <h1 class="h2" data-page-field="title">{item.title}</h1>
+          <h1 class="h2" data-split="heading" data-page-field="title">{item.title}</h1>
           <p class="text-md" data-page-field="standfirst">{item.standfirst}</p>
           <form class="newsletter-form" onsubmit="return false">
             <input type="email" placeholder="Work email" aria-label="Work email">
@@ -103,7 +103,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
         <p class="text-md" data-page-field="coversLede">{coversLede}</p>
         <div class="section-title__body">
           <p class="tagline">Inside</p>
-          <h2 class="h2">What this report covers</h2>
+          <h2 class="h2" data-split="heading">What this report covers</h2>
         </div>
       </div>
 
@@ -143,7 +143,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
       <div class="research__controls" style="margin-top:0">
         <div class="stack stack--16">
           <p class="tagline">Resources</p>
-          <h2 class="h2">Related reports</h2>
+          <h2 class="h2" data-split="heading">Related reports</h2>
           <p>Explore more insight-led content to guide your practice forward</p>
         </div>
         <ActionButton href="/reports.html" variant="secondary">View all</ActionButton>

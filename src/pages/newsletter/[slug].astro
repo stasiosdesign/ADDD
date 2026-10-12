@@ -70,7 +70,7 @@ const related = others.length ? others.slice(0, 7).map((other) => fromHere(cardO
     <div class="container">
       <div class="pg-hero__grid">
         <div class="pg-hero__col">
-          <h1 class="h1" data-page-field="title">{item.title}</h1>
+          <h1 class="h1" data-split="heading" data-page-field="title">{item.title}</h1>
           <div class="actions" style="gap:0.5rem" data-page-field="tags">
             {tags.map((tag) => (
             <span class="tag">{tag}</span>
@@ -166,7 +166,7 @@ const related = others.length ? others.slice(0, 7).map((other) => fromHere(cardO
       <div class="research__controls" style="margin-top:0">
         <div class="stack stack--16">
           <p class="tagline">Reading</p>
-          <h2 class="h2">More from the ADDDitive</h2>
+          <h2 class="h2" data-split="heading">More from the ADDDitive</h2>
           <p>Continue exploring architecture technology and practice strategy</p>
         </div>
         <ActionButton href="/newsletter.html" variant="secondary">View all</ActionButton>

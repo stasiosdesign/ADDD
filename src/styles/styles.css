@@ -7,6 +7,12 @@
   --c-white: #ffffff;
   --c-dark-bg: #1a1a1a;
   --c-dark-fg: #0a0a0a;
+  /* The site's off-white: the ground of the page and of every light
+     section, the one white the site stands on (the routes' warm white).
+     A card, tile or field on it is white, so it still stands off it. */
+  --c-light-bg: #f5f5f3;
+  /* a light grey a step under the off-white: the hero's pattern band,
+     the testimonial's quote panel, and the fills inside white surfaces */
   --c-light-fg: #f2f2f2;
   --c-border: rgba(10, 10, 10, 0.15);
   --c-border-dark: rgba(255, 255, 255, 0.2);
@@ -76,8 +82,8 @@
 
   /* layout */
   --page-pad: 4rem;
-  /* the fixed nav bar: 4.3em tall, with no rule along its bottom */
-  --nav-h: 4.3rem;
+  /* the fixed nav bar: 3.9em tall, with no rule along its bottom */
+  --nav-h: 3.9rem;
   --container: 80rem;
   --sec-lg: 7rem;
   --sec-md: 5rem;
@@ -119,7 +125,7 @@ html.lenis.lenis-stopped { overflow-y: scroll; }
 
 body {
   margin: 0;
-  background: var(--c-white);
+  background: var(--c-light-bg);
   color: var(--c-text);
   font-family: var(--font-body);
   font-weight: var(--fw-body);
@@ -148,8 +154,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   margin: 0;
 }
 .h1, .h2 { font-weight: var(--fw-heading-bold); }
-.h1 { font-size: var(--t-h1); line-height: 1.2; letter-spacing: calc(var(--primary-tracking) - 0.03em); }
-.h2 { font-size: var(--t-h2); line-height: 1.2; letter-spacing: calc(var(--primary-tracking) - 0.04em); }
+/* The display sizes take the display headings' leading, 1.05 (the hero's,
+   and every section heading's from 992px), at every width, so a heading
+   that wraps on a phone sits as close as one on a desktop. The smaller
+   steps keep a little more. */
+.h1 { font-size: var(--t-h1); line-height: 1.05; letter-spacing: calc(var(--primary-tracking) - 0.03em); }
+.h2 { font-size: var(--t-h2); line-height: 1.05; letter-spacing: calc(var(--primary-tracking) - 0.04em); }
 .h3 { font-size: var(--t-h3); line-height: 1.2; letter-spacing: calc(var(--primary-tracking) - 0.02em); }
 .h4 { font-size: var(--t-h4); line-height: 1.3; letter-spacing: calc(var(--primary-tracking) - 0.02em); }
 
@@ -199,7 +209,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   max-width: var(--container);
   margin: 0 auto;
 }
-.section--light { background: var(--c-light-fg); }
+.section--light { background: var(--c-light-bg); }
 .section--dark { background: var(--c-dark-bg); color: var(--c-white); }
 
 /* The standard section intro — the same composition the hero, the
@@ -808,7 +818,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    3 — problems
    ============================================================ */
 .card {
-  background: var(--c-light-fg);
+  /* white on the off-white page */
+  background: var(--c-white);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -1051,7 +1062,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .shutter-scroll-transition {
   z-index: 10;
   pointer-events: none;
-  color: var(--c-white);
+  /* the page's own ground, which it hands the last step back to */
+  color: var(--c-light-bg);
   position: absolute;
   inset: auto 0% 0%;
 }
@@ -1228,13 +1240,15 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    ============================================================ */
 /* A touch more room above the eyebrow than the section default, which
    is the separation from the white section before it. */
-/* The row runs the width of the screen, so the section drops its own
-   side padding and the header keeps its container. */
+/* The service stack sets its own margin, the grid's, so the section
+   drops its own side padding and the header keeps its container. */
 .routes {
   padding-top: 7.375rem;
   padding-left: 0;
   padding-right: 0;
-  background: var(--c-dark-fg);
+  /* the site's off-white, for the charcoal cards */
+  background: var(--c-light-bg);
+  color: var(--c-text);
 }
 .routes > .container { padding: 0 var(--page-pad); }
 
@@ -1262,13 +1276,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    lede — the hero's interval between its own two columns. */
 
 /* ------------------------------------------------------------
-   routes cards
+   route cards (ServiceCard.astro: the nav's Services cards; the
+   homepage's routes are the service stack, "service stack" below)
    ------------------------------------------------------------
-   Four cards on the ink section, two to a row, the right column set
-   lower. Each is a single link, a tab with its label above it: a band
-   of grid cells with a box set into it, the step's number in a red
-   square and the name; under it the step's diagram on a block of red;
-   and under that the description on light grey.
+   Each is a single link: a band of grid cells with a box set into it,
+   the service's number in a red square and the name; under it the
+   service's diagram on its field; and under that the description.
 
    Every part is sized to the card's own width (cqw), to the reference
    the layout was drawn from, so the card keeps one set of proportions
@@ -1278,27 +1291,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    least 22.4%, its words 2.9% (never under 1rem, for the nav's
    narrower cards).
    ------------------------------------------------------------ */
-/* One gutter value everywhere: the same 20px between the cards and
-   from the outer cards to the viewport edges. */
-/* Two to a row inside the page's container, a wide gutter apart, each
-   card standing on its own (the band and panel keep to the card: no gap
-   for them to span), and the right-hand column set lower than the left,
-   so the two columns step past each other. */
-.routes__grid {
-  --cards-gap: 0px;
-  --cards-cols: 2;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4rem 2.625rem;
-  align-items: start;
-  max-width: var(--container);
-  /* Clear of the intro rather than tucked under it. */
-  margin: 4.5rem auto 0;
-  padding: 0 var(--page-pad);
-}
-@media screen and (min-width: 768px) {
-  .routes__grid > .route-card:nth-child(even) { margin-top: 10rem; }
-}
 .insight-card {
   display: flex;
   flex-direction: column;
@@ -1391,13 +1383,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   line-height: 1.2;
   letter-spacing: 0.02em;
 }
-/* On the homepage the cards are drawn by a hairline all round, and the
-   diagram's field is a block of the red, the number's square with it,
-   the diagram's own accent turned white so it still reads on it. */
-.routes__grid .route-card__head { border: 1px solid #d2d2d2; border-bottom: 0; }
-.routes__grid .route-card__panel { border: 1px solid #d2d2d2; }
-.routes__grid .route-card__media { --diagram-accent: var(--c-white); background: var(--c-red); }
-
 /* The panel: the diagram's field, then the description under a rule. */
 .route-card__panel {
   display: flex;
@@ -1455,7 +1440,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .insight-card:hover .insight-card__arrow { background: var(--c-red); }
 
 /* the service's diagram (ServiceDiagram.astro), centred in its field */
-.route-card__diagram { display: block; width: 40cqw; max-height: 28cqw; height: auto; }
+.route-card__diagram { display: block; width: 52cqw; max-height: 33cqw; height: auto; }
 
 .insight-card__body {
   display: flex;
@@ -1502,18 +1487,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .routes__head { flex-direction: column; gap: 3.5rem; }
   .routes__lede { flex: none; width: 100%; gap: 2rem; }
 }
-@media screen and (max-width: 767px) {
-  /* One column, held to a card's width rather than the screen's, so
-     the proportions do not make a card taller than the screen. */
-  .routes__grid { --cards-cols: 1; grid-template-columns: minmax(0, 26rem); justify-content: center; }
-}
 
 /* ============================================================
    6 — case study / testimonial
    ============================================================ */
 .case__panel {
   margin-top: 5rem;
-  background: var(--c-light-fg);
+  /* white on the off-white page */
+  background: var(--c-white);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -1544,170 +1525,263 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .avatar__name { font-weight: var(--fw-body); }
 
 /* ------------------------------------------------------------
-   testimonial carousel (see src/scripts/site.js — initLineRevealTestimonials)
+   Testimonial slider (TestimonialSlider.astro, testimonial-slider.js)
    ------------------------------------------------------------
-   The reference component's structure and behaviour are kept: the
-   items sit in one grid cell, only the active one is visible, and
-   its lines are split and masked so a change wipes one set of lines
-   out and the next set in.
-
-   The composition is the split band from the design: an ink panel
-   holding the quote mark, the firm's logo on a white tile and the
-   attribution, and an off-white panel holding the quote itself.
-   Each item paints both panels, so the split reads as one fixed
-   band while the content changes inside it.
+   After the Outsource Consultants slider: the quotes stacked in one
+   cell and changed line by line, on the 12-Column Grid. The site's
+   dotted rule stands upright on the left edge of Grid Column 3 for the
+   slider's full height, its spine: the practice's logo sits centred on
+   it, level with the quote, and the two round controls at its foot,
+   level with who said it, the rule opened round each by a patch of the
+   page's ground. The quote takes Grid Columns 5–11 in the display face
+   at its third step; a section step under it, on those columns' own
+   grid, the count on Grid Column 5 and the attribution from Grid
+   Column 6, in the label face. Every stack is as large as its largest
+   member, so nothing moves as the quotes change.
    ------------------------------------------------------------ */
-/* Set off from the routes section above it, and its title carried in
-   to sit on the same line as the quote beneath — the band splits at
-   40%, so that is where the text column starts. */
+/* Set off from the routes section above it by a section step and a
+   half, so it reads as its own chapter. */
 .testimonials {
   position: relative;
-  /* a full section step plus a half — the band reads as its own
-     chapter rather than the tail of the routes section */
   margin-top: calc(var(--sec-lg) + var(--sec-md));
 }
+/* centred over the slider, across the grid, at the routes heading's
+   size and leading */
 .testimonials__title {
-  margin: 0 0 2.5rem calc(40% + var(--page-pad));
-  /* The routes heading's size, so the two section heads carry the same
-     weight. Its leading comes with it: .h4's 1.3 is right at 36px and
-     far too airy at this scale. */
+  margin: 0 var(--page-pad);
+  text-align: center;
   font-size: 3.75rem;
   line-height: 1.05;
 }
-.testimonial-lines { position: relative; }
-.testimonial-lines__list {
+
+.testimonial-slider {
+  /* the room the rule runs through above the quote and under the
+     attribution; the controls' size; how far the ground opens the rule
+     round the logo and the controls */
+  --slider-pad: var(--sec-md);
+  --slider-control: 3.5rem;
+  --slider-clear: 1.25rem;
   display: grid;
-  width: 100%;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  margin-top: 3.5rem;
+  padding: 0 var(--page-pad);
 }
-.testimonial-lines__item {
+
+/* the quote, the count and the attribution: Grid Columns 5–11, laid
+   out on the grid's own tracks */
+.testimonial-slider__main {
+  grid-column: 5 / 12;
+  grid-row: 1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-content: start;
+  padding: var(--slider-pad) 0;
+}
+/* a stack: every member in the one cell, the cell the size of the
+   largest */
+.testimonial-slider__stack { display: grid; }
+.testimonial-slider__stack > * { grid-area: 1 / 1; }
+
+.testimonial-slider__quotes {
+  grid-column: 1 / -1;
+  display: grid;
+}
+.testimonial-slider__quote {
   grid-area: 1 / 1;
-  display: grid;
-  grid-template-columns: 40% 1fr;
-  width: 100%;
-  min-height: 38.75rem;
-  opacity: 0;
-  visibility: hidden;
-}
-.testimonial-lines__item.is--active { opacity: 1; visibility: visible; }
-
-.testimonial-lines__aside {
-  display: flex;
-  flex-direction: column;
-  padding: 3.5rem var(--page-pad);
-  background: var(--c-dark-fg);
-  color: var(--c-white);
-}
-.testimonial-lines__mark {
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 4rem;
-  line-height: .8;
-}
-/* Set in from the panel's edge, the way the reference sits its
-   portrait and attribution off the left. */
-.testimonial-lines__firm {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1.75rem;
-  margin: 2.5rem 0 0 22%;
-}
-.testimonial-lines__logo {
-  display: flex;
-  align-items: center;
-  height: 1.875rem;
-}
-/* contained, never stretched — logos are transparent-PNG wordmarks,
-   so no box or fill sits behind them */
-.testimonial-lines__logo img {
-  max-width: 10rem;
-  max-height: 100%;
-  width: auto;
-  height: 100%;
-  object-fit: contain;
-  object-position: left center;
-}
-.testimonial-lines__meta { display: flex; flex-direction: column; gap: 0.375rem; }
-.testimonial-lines__name { font-size: var(--t-rg); line-height: 1.3; }
-.testimonial-lines__role { color: rgba(255, 255, 255, .6); }
-
-.testimonial-lines__body {
-  display: flex;
-  align-items: flex-start;
-  padding: 3.5rem var(--page-pad);
-  background: var(--c-light-fg);
-  color: var(--c-text);
-}
-.testimonial-lines__quote {
   margin: 0;
-  max-width: 16em;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: 2.52rem;
-  line-height: 1.15;
+  font-size: var(--t-h3);
+  line-height: 1.05;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
 }
+/* only the one showing, until the script takes them over */
+.testimonial-slider__quote:not(.is--active) { visibility: hidden; }
 
-/* The controls live outside the item stack, so they hold still while
-   the slides change. Bottom left, over the ink panel. */
-/* Under the quote and on its left edge — the same 40% split plus the
-   page gutter the title above uses — with the section's own top
-   padding repeated beneath them, so the band sits level. They live
-   outside the slide stack, so they hold still as slides change. */
-.testimonial-lines__controls {
-  position: absolute;
-  left: calc(40% + var(--page-pad));
-  bottom: 3.5rem;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  color: var(--c-text);
+/* the count and who said it, a section step under the quote */
+.testimonial-slider__count,
+.testimonial-slider__credits {
+  grid-row: 2;
+  margin: var(--sec-lg) 0 0;
 }
-.testimonial-lines__count { color: #6b6b6b; }
-.testimonial-lines__buttons { display: flex; gap: 0.5rem; }
-.testimonial-lines__button {
+.testimonial-slider__count {
+  grid-column: 1;
+  display: flex;
+  gap: 0.35em;
+  white-space: nowrap;
+}
+.testimonial-slider__credits { grid-column: 2 / -1; }
+.testimonial-slider__credit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+}
+
+/* What swaps with the quote (the count's number, the attribution, the
+   logo): the one going fades as the quote's lines leave, the one
+   coming as the next quote's lines arrive. */
+.testimonial-slider__swap {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease-in-out, visibility 0s .3s;
+}
+.testimonial-slider__swap.is--active {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity .3s ease-in-out .3s, visibility 0s .3s;
+}
+
+/* The side: Grid Columns 3–4, the rule down its left edge, the left
+   edge of Grid Column 3, and on it the logo at the top and the controls
+   at the foot, each centred on the rule. */
+.testimonial-slider__side {
+  grid-column: 3 / 5;
+  grid-row: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--slider-pad) 0;
+}
+/* the site's dotted rule, stood upright on the line */
+.testimonial-slider__side::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -1px;
+  width: 2px;
+  background: var(--dotted-rule-vertical);
+}
+.testimonial-slider__logos,
+.testimonial-slider__controls {
+  position: relative;
+  z-index: 1;
+  transform: translateX(-50%);
+}
+/* the ground behind each, opening the rule a step above and below */
+.testimonial-slider__logos::before,
+.testimonial-slider__controls::before {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--slider-clear)) 0;
+  z-index: -1;
+  background: var(--c-light-bg);
+}
+
+.testimonial-slider__logos {
+  justify-items: center;
+  align-items: center;
+}
+/* Each balanced by its ink, as the logo strip's are (--logo-shape,
+   index.astro), and set in ink: the marks are white ones, made for the
+   strip's ink band. */
+.testimonial-slider__logo {
+  --logo-size: 4.75rem;
+  display: block;
+  width: calc(var(--logo-size) * var(--logo-shape, 2));
+  max-width: none;
+  height: auto;
+  filter: brightness(0);
+}
+
+.testimonial-slider__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+/* Round, on the page's ground, in an ink hairline: the arrow in ink,
+   and over it the fill and a white arrow the script runs in on hover
+   and keyboard focus. */
+.testimonial-slider__button {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: var(--slider-control);
+  height: var(--slider-control);
   padding: 0;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  background: transparent;
-  color: inherit;
+  overflow: hidden;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: var(--c-light-bg);
+  color: var(--c-text);
   cursor: pointer;
-  transition: background-color .25s ease, border-color .25s ease;
 }
-/* Hover only where there is a pointer to hover with: on a touch screen
-   the state would stick to the button after the tap that moved the
-   slide, and read as the button being switched on. */
-@media (hover: hover) {
-  .testimonial-lines__button:hover { background: var(--c-red); border-color: var(--c-red); color: var(--c-white); }
+.testimonial-slider__button:focus-visible { outline: 1px solid var(--c-text); outline-offset: 3px; }
+.testimonial-slider__button:disabled { opacity: 0.35; cursor: default; }
+.testimonial-slider__arrow { display: block; width: 1rem; height: 1rem; }
+/* along the rule: the previous points up, the next down */
+.testimonial-slider__button.is--prev .testimonial-slider__arrow { transform: rotate(-90deg); }
+.testimonial-slider__button.is--next .testimonial-slider__arrow { transform: rotate(90deg); }
+.testimonial-slider__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--c-red);
+  transform: scale(0);
 }
-.testimonial-lines__arrow { width: 1rem; height: 1rem; display: block; }
-.testimonial-lines__arrow.is--prev { transform: rotate(180deg); }
+.testimonial-slider__over {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--c-white);
+}
+/* the white arrow waits outside, on the side it comes in from */
+.testimonial-slider__button.is--prev .testimonial-slider__over { transform: translateY(100%); }
+.testimonial-slider__button.is--next .testimonial-slider__over { transform: translateY(-100%); }
 
+/* Below 992px the quote, the count and the attribution run the width,
+   and the rule lies down across the grid under them, dividing them from
+   a row of the logo at its start and the controls, side by side, at its
+   end, as standing it divides the two sides from 992px. */
 @media screen and (max-width: 991px) {
   .testimonials { margin-top: var(--sec-lg); }
-  .testimonials__title { margin-left: var(--page-pad); margin-bottom: 1.5rem; }
-  /* Stacked, every slide shares the height of the tallest quote. The
-     slack all goes to the quote panel, so the line between ink and
-     off-white stays put as the slides change, the way the split does
-     side by side. */
-  .testimonial-lines__item { grid-template-columns: 1fr; grid-template-rows: auto 1fr; min-height: 0; }
-  .testimonial-lines__aside { padding: 2.5rem var(--page-pad); }
-  .testimonial-lines__firm { margin-left: 0; gap: 1.5rem; }
-  .testimonial-lines__body { padding: 2.5rem var(--page-pad) 6.5rem; }
-  .testimonial-lines__controls { left: var(--page-pad); bottom: 2.5rem; }
+  .testimonial-slider { margin-top: 2.5rem; }
+  .testimonial-slider__main { grid-column: 1 / -1; padding-bottom: 0; }
+  .testimonial-slider__side {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    flex-direction: row;
+    align-items: center;
+    margin-top: 2.5rem;
+    padding: 2.5rem 0 var(--slider-pad);
+  }
+  /* the rule across the grid, from Grid Column 1 to the last */
+  .testimonial-slider__side::before {
+    bottom: auto;
+    left: calc(-1 * var(--dotted-rule-bleed));
+    right: calc(-1 * var(--dotted-rule-bleed));
+    width: auto;
+    height: 2px;
+    background: var(--dotted-rule);
+  }
+  /* nothing stands on it here, so nothing opens it */
+  .testimonial-slider__logos,
+  .testimonial-slider__controls { transform: none; }
+  .testimonial-slider__logos::before,
+  .testimonial-slider__controls::before { content: none; }
+  .testimonial-slider__logos { justify-items: start; }
+  .testimonial-slider__logo { --logo-size: 3.5rem; }
+  .testimonial-slider__controls { flex-direction: row; gap: 0.75rem; }
+  /* across the rule: the previous points left, the next right */
+  .testimonial-slider__button.is--prev .testimonial-slider__arrow { transform: rotate(180deg); }
+  .testimonial-slider__button.is--next .testimonial-slider__arrow { transform: none; }
+  .testimonial-slider__button.is--prev .testimonial-slider__over { transform: translateX(100%); }
+  .testimonial-slider__button.is--next .testimonial-slider__over { transform: translateX(-100%); }
 }
 
 /* ============================================================
    7 — credentials
    ============================================================ */
 .creds__title { display: flex; flex-direction: column; gap: 1rem; max-width: 35rem; }
-.creds__title .h2 { max-width: 24.5rem; line-height: 0.92; }
+.creds__title .h2 { max-width: 24.5rem; }
 .creds__grid { display: flex; gap: 4rem; align-items: flex-start; margin-top: 2.5rem; }
 .creds__media { flex: 0 0 43.5rem; display: flex; gap: 2rem; align-items: flex-start; }
 .creds__media .ph:first-child { margin-top: 6.5rem; height: 27.4375rem; }
@@ -1802,13 +1876,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    with .route-card above; only what the image and the metadata line
    need is declared here. */
 /* A contained card rather than a picture with copy loose underneath
-   it: a tint a step off the page white, and a hairline to close it.
-   Light enough that a row of them still reads as content on the page
-   and not as a row of grey panels. */
+   it: white on the off-white page, and a hairline to close it, so a
+   row of them still reads as content on the page and not as a row of
+   panels. */
 .insight-card {
   height: 100%;
   text-align: left;
-  background: #fafafa;
+  background: var(--c-white);
   border: 1px solid rgba(10, 10, 10, .08);
 }
 .insight-card:hover { border-color: rgba(10, 10, 10, .16); }
@@ -1903,6 +1977,107 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .insight-slider__item img { -webkit-user-drag: none; user-select: none; }
 .insight-slider.is--dragging .insight-card { pointer-events: none; }
 
+/* The homepage's research deck runs on to the screen's right edge
+   (wider than 992px, page-grid.css sets the same from Grid Column 2). */
+.research__head + .insight-slider .insight-slider__viewport {
+  width: auto;
+  margin-right: calc(-1 * var(--page-pad));
+}
+
+/* The research cards, the homepage's deck and the Reports and Newsletter
+   archives' grids alike, after the reference's single card: white on
+   the off-white page, enough to hold as a card without a frame; a
+   header row with the title and a square arrow at its end, the site's
+   dotted rule under it, then the category, the description and the
+   metadata, and the picture inset at the foot in a frame of the light
+   grey, as the reference sets its drawing in a frame of its own tone.
+   Laid out on the card's own grid from the card's existing parts
+   (InsightCard.astro). */
+:is(.research__head + .insight-slider, .insight-grid) .insight-card {
+  --card-pad: 1.5rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto auto 1fr auto;
+  border: 0;
+  border-radius: 0;
+  background: var(--c-white);
+  color: var(--c-text);
+}
+/* hovered, the ground steps a shade further from the page and the arrow
+   turns red, as the reference lifts its card and lights its arrow */
+:is(.research__head + .insight-slider, .insight-grid) .insight-card:hover { background: var(--c-light-fg); }
+/* the media and the body give their parts to the card's grid */
+:is(.research__head + .insight-slider, .insight-grid) :is(.insight-card__media, .insight-card__body) { display: contents; }
+
+/* the header row: the title and the arrow at its end, the dotted rule
+   under both (--dotted-rule, along the top of the category's box) */
+:is(.research__head + .insight-slider, .insight-grid) .insight-card__h {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: center;
+  margin: 0;
+  padding: var(--card-pad) 1rem var(--card-pad) var(--card-pad);
+  font-size: 1.25rem;
+  line-height: 1.25;
+}
+:is(.research__head + .insight-slider, .insight-grid) .insight-card__arrow {
+  grid-row: 1;
+  grid-column: 2;
+  position: static;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-self: center;
+  margin: 0 var(--card-pad) 0 0;
+  border-radius: 0;
+  background: var(--c-light-fg);
+  color: var(--c-text);
+  transition: background-color .25s ease, color .25s ease;
+}
+:is(.research__head + .insight-slider, .insight-grid) .insight-card:hover .insight-card__arrow {
+  background: var(--c-red);
+  color: var(--c-white);
+}
+:is(.research__head + .insight-slider, .insight-grid) .insight-card__label {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  position: static;
+  justify-self: stretch;
+  margin: 0 var(--card-pad);
+  padding: 1.75rem 0 0;
+  border-radius: 0;
+  background: var(--dotted-rule);
+  background-position: top;
+  background-repeat: round no-repeat;
+  color: #6b6b6b;
+}
+:is(.research__head + .insight-slider, .insight-grid) .insight-card__p {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  padding: 0.625rem var(--card-pad) 0;
+  color: #6b6b6b;
+  font-size: var(--t-md, 1.125rem);
+  line-height: 1.35;
+}
+:is(.research__head + .insight-slider, .insight-grid) .insight-card__meta {
+  grid-row: 4;
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.75rem var(--card-pad) 1.5rem;
+  color: #8a8a8a;
+}
+/* the picture, inset at the foot in its frame */
+:is(.research__head + .insight-slider, .insight-grid) .insight-card__img {
+  grid-row: 6;
+  grid-column: 1 / -1;
+  position: static;
+  width: calc(100% - 2 * var(--card-pad));
+  height: auto;
+  aspect-ratio: 4 / 3;
+  margin: 0 var(--card-pad) var(--card-pad);
+  background: var(--c-light-fg);
+  object-fit: cover;
+}
+
 /* Controls — the same dots and arrow buttons the page already uses,
    so every slider on the site is driven by the same pair. */
 .insight-slider__controls {
@@ -1940,24 +2115,26 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   width: 3rem; height: 3rem;
   border-radius: var(--radius);
   border: 0;
-  background: var(--c-light-fg);
+  /* white on the off-white page */
+  background: var(--c-white);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: background-color .2s ease;
 }
-/* Pointer hover only, as on the testimonial buttons — a tap would
-   otherwise leave the arrow shaded after the deck has moved. */
+/* Pointer hover only — a tap would otherwise leave the arrow shaded
+   after the deck has moved. */
 @media (hover: hover) {
   .arrows button:hover { background: #e6e6e6; }
-  .arrows button[disabled]:hover { background: var(--c-light-fg); }
+  .arrows button[disabled]:hover { background: var(--c-white); }
 }
 
 /* ============================================================
    10 — CTA
    ============================================================ */
+/* On the site's off-white, the page's own ground, in ink. */
 .cta {
-  background: var(--c-dark-bg);
-  color: var(--c-white);
+  background: var(--c-light-bg);
+  color: var(--c-text);
   padding: 11.625rem var(--page-pad);
 }
 /* The page's closing composition, set the way the hero and the routes
@@ -2018,36 +2195,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    edge, and start on its left edge. */
 .cta .actions { align-self: stretch; }
 
-/* The newsletter signup, closing the section under a hairline: what it
-   is on the left, the shared signup on the right, across the body's
-   width. */
-.cta__signup {
-  align-self: stretch;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-  gap: 1.5rem 3rem;
-  align-items: start;
-  margin-top: 1.5rem;
-  padding-top: 3rem;
-  border-top: 1px solid var(--c-border-dark);
-}
-.cta__signup-text { display: flex; flex-direction: column; gap: 0.75rem; }
-.cta__signup-title {
-  font-family: var(--font-display);
-  font-weight: var(--fw-body);
-  font-size: 1.75rem;
-  line-height: 1.15;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
-}
-.cta__signup-desc {
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.6);
-  max-width: 26em;
-}
-.cta__signup .newsletter-signup { max-width: none; }
-.cta__signup .newsletter-form { max-width: none; }
-
 /* ============================================================
    11 — footer
    ============================================================ */
@@ -2078,17 +2225,20 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ------------------------------------------------------------
-   A full-screen footer on the site's red, in white.
+   A full-screen footer on the site's red, in white, laid out on the
+   12-Column Grid: inside the grid's margin, on its columns and
+   gutters (column-grid.css), so every name, link and control starts
+   on the line of a Grid Column the overlay draws.
 
-   Top: the brand mark alone on the left half — the logo's four
-   forms, without the circle, set a little way down; the right half
-   holds the site's link groups four across, each under a quiet
-   name (the newsletter signup is in the closing call to action).
-   Then a line of copyright, legal links and social
-   marks, and across the foot of the panel, edge to edge, the logo
-   drawn in the hero's Slash Field — the field fills the logo's box
-   and the four forms mask it, so the pattern is the logo — its
-   lower half running off the panel's foot.
+   Top: the brand mark on Grid Column 1 — the logo's four forms,
+   without the circle — with the copyright under it; from Grid
+   Column 7, the page's heading line, the link groups three across,
+   two Grid Columns each, in two rows, each under a quiet name: the
+   social marks close Contact, and the newsletter signup takes the
+   rest of its row, Grid Columns 9–12. Across the foot of the panel,
+   edge to edge, the logo drawn in the hero's Slash Field — the
+   pattern itself builds the four forms — its lower half running
+   off the panel's foot.
 
    The panel stands a full viewport tall, so the space between the
    parts is part of the composition rather than something to fill.
@@ -2100,24 +2250,24 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   min-height: 100vh;
   background: var(--c-red);
   color: var(--c-white);
-  /* the fixed bar sits over the top of the panel when the page is
-     scrolled to its end, so the content starts clear of it; the logo
+  /* the content starts the bar's height down, as under the bar
+     everywhere else (out of view here, from the closing CTA on:
+     initNavReveal), so the panel keeps the page's top line; the logo
      runs down to the panel's foot */
-  padding: calc(var(--nav-h) + 1.75rem) var(--page-pad) 0;
+  padding: calc(var(--nav-h) + 1.75rem) var(--grid-margin) 0;
 }
 .site-footer__inner {
   display: flex;
   flex-direction: column;
   flex: 1;
   width: 100%;
-  gap: 3.5rem;
 }
-/* The two halves: the mark, and the link groups from a little past the
-   middle of the panel, as the reference sets them. */
+/* the grid itself: the overlay's tracks, a gutter apart */
 .site-footer__top {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
-  column-gap: 2rem;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  row-gap: 4rem;
   align-items: start;
 }
 
@@ -2129,25 +2279,42 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   color: rgba(255, 255, 255, 0.55);
 }
 
+/* the brand and the copyright, on Grid Column 1 */
+.site-footer__id {
+  grid-column: 1 / 7;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.875rem;
+}
 .site-footer__brand {
   display: block;
-  justify-self: start;
-  margin: 5.5rem 0 0 0.5rem;
+  /* level with the groups' names */
+  margin: 0.25rem 0 0;
   color: var(--c-white);
 }
 .site-footer__brand svg { display: block; width: 4rem; height: auto; }
+/* the copyright, quiet, under the mark */
+.site-footer__copy {
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+}
 
-/* link groups — three across, in two rows, a wide step between them */
+/* The groups on the grid's own tracks from Grid Column 7: each group two
+   Grid Columns, the signup four, a wide step between the rows. */
 .site-footer__groups {
+  grid-column: 7 / -1;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5.5rem 2rem;
+  grid-template-columns: subgrid;
+  row-gap: 4rem;
   align-items: start;
 }
 .site-footer__group {
+  grid-column: span 2;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.875rem;
   min-width: 0;
 }
 .site-footer__links {
@@ -2162,56 +2329,87 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   line-height: 1.45;
   white-space: nowrap;
 }
-/* the copyright, quiet, under the legal links */
-.site-footer__copy {
-  margin-top: 0.75rem;
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.55);
-}
 
-/* The logo across the foot, edge to edge, out past the panel's gutters:
-   a frame half the logo's height (its four forms span 64 by 16 units,
-   assets/logo.svg) at the very foot of the panel, cropping it, and in it
-   the logo's own box with the Slash Field (slash-field.js, mounted from
-   site.js), under a cover of the footer's red with the forms cut out of
-   it (Footer.astro), so the strokes show only inside them and the lower
-   half is cut off at the foot. In white on the red: the field's own tint
-   a firm white, stepping up to full white where the wave passes, and its
-   signal white too, as the red would vanish. */
+/* The social marks: a row of square blocks a step darker than the red,
+   across the group's two Grid Columns, each mark white on its block.
+   Pointed at or focused, a block turns white and its mark takes the
+   red, as a footer link's box does. */
+.site-footer__social {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.25rem;
+  margin-top: 0.875rem;
+}
+.site-footer__social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  background: rgba(0, 0, 0, 0.16);
+  color: var(--c-white);
+  transition: background-color .2s ease, color .2s ease;
+}
+.site-footer__social-link svg { display: block; width: 1.25rem; height: 1.25rem; }
+.site-footer__social-link:is(:hover, :focus-visible) { background: var(--c-white); color: var(--c-red); }
+.site-footer__social-link:focus-visible { outline: 1px solid var(--c-white); outline-offset: 2px; }
+
+/* The newsletter signup, the shared one (above), under its name and a
+   line saying what it is. On the red its submit is ink, as the primary
+   button is on a light ground, so it never sinks into the panel. */
+.site-footer__signup {
+  grid-column: span 4;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  min-width: 0;
+}
+.site-footer__title {
+  margin-bottom: 0.375rem;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.site-footer .newsletter-form__submit { background: var(--c-text); color: var(--c-white); }
+.site-footer .newsletter-form__submit:hover { box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.14); }
+.site-footer .newsletter-form__submit:focus-visible { outline-color: var(--c-white); }
+.site-footer .newsletter-audience input { accent-color: var(--c-text); }
+
+/* The logo across the foot, the viewport's full width, built from the
+   hero's Slash Field (Footer.astro): the field is the logo's own box,
+   64 × 16 (assets/logo.svg), kept to its proportions at any width, and
+   shows only the strokes inside the four forms, in white on the red. The
+   frame round it is half that height at the very foot of the panel, so
+   the logo's lower half is cut off there. Only the foot is cut: the top
+   row's strokes may stand a hair above the frame, so they are never
+   trimmed into a row of stubs along the forms' top edge. */
 .site-footer__mark {
-  position: relative;
   flex: none;
-  width: calc(100% + 2 * var(--page-pad));
   aspect-ratio: 64 / 8;
-  margin: 3rem calc(-1 * var(--page-pad)) 0;
-  overflow: hidden;
+  /* held to that ratio although the field in it is twice as tall */
+  min-height: 0;
+  height: auto;
+  margin: 4.5rem calc(-1 * var(--grid-margin)) 0;
+  clip-path: inset(-2rem 0 0 0);
 }
 .site-footer__mark-field {
-  --slash-cell-w: 7;
-  --slash-cell-h: 15;
-  --slash-base: rgba(255, 255, 255, 0.7);
-  --slash-hot: rgba(255, 255, 255, 0.88);
+  /* The hero's pattern, a little closer set and a little firmer than the
+     hero sets it (.hero__field), and in solid white: the field has no
+     words, so it never runs its wave, and every stroke rests at the
+     one white. */
+  --slash-cell-w: 6;
+  --slash-cell-h: 13;
+  --slash-stroke: 1.5;
+  --slash-blank: 0.03;
+  --slash-base: #fff;
+  --slash-hot: #fff;
   --slash-ink: #fff;
   --slash-signal: #fff;
   --slash-fade: 450;
   position: relative;
   width: 100%;
   aspect-ratio: 64 / 16;
-  overflow: hidden;
-}
-/* the cover: over the field's whole box (twice the frame's height), its
-   red running on past every edge of it so nothing at a boundary shows */
-.site-footer__mark-cover {
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 200%;
-  overflow: visible;
-  fill: var(--c-red);
-  pointer-events: none;
 }
 
 /* ============================================================
@@ -2225,14 +2423,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 @media (pointer: coarse) {
   .mega-nav__burger,
   .hero__arrow,
-  .testimonial-lines__button,
   .dots button,
   .filters button,
   .btn--link { position: relative; }
 
   .mega-nav__burger::after,
   .hero__arrow::after,
-  .testimonial-lines__button::after,
   .dots button::after,
   .filters button::after,
   .btn--link::after {
@@ -2275,7 +2471,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .problem-head__h,
   .routes__h,
   .testimonials__title { font-size: 2.1893rem; }
-  .testimonial-lines__quote { font-size: 1.625rem; }
   .cta__heading { font-size: 2.1371rem; }
   .approach__card-mark { width: 2.5rem; }
   .approach__card-p { font-size: 1rem; }
@@ -2334,13 +2529,19 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .creds__media .ph:last-child { height: 20rem; }
 
   /* The split composition is a desktop one. Below this the panel goes
-     back to ordinary flow: the mark, then the link groups two across,
-     then the logo. */
+     back to ordinary flow on the grid's six columns: the mark, then the
+     link groups two across, three Grid Columns each, then the signup
+     and the logo. The social marks keep a fingertip's size rather than
+     a share of the group. */
   .site-footer { min-height: 0; padding-top: 4rem; }
-  .site-footer__inner { gap: 4rem; }
-  .site-footer__top { grid-template-columns: 1fr; row-gap: 4rem; }
+  .site-footer__id,
+  .site-footer__groups { grid-column: 1 / -1; }
   .site-footer__brand { margin: 0; }
-  .site-footer__groups { grid-template-columns: 1fr 1fr; gap: 2.5rem 1.5rem; }
+  .site-footer__groups { row-gap: 2.5rem; }
+  .site-footer__group { grid-column: span 3; }
+  .site-footer__signup { grid-column: 1 / -1; }
+  .site-footer__social { grid-template-columns: repeat(5, max(2.75rem, 44px)); }
+  /* on tablets and phones the forms run edge to edge, to keep their scale */
   .site-footer__mark { margin-top: 2.5rem; }
 
   .logos { padding: 5rem 0; }
@@ -2352,7 +2553,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .cta__body { margin-right: 0; gap: 2.5rem; }
   .cta__mark { display: none; }
   .cta__heading { max-width: none; }
-  .cta__signup { grid-template-columns: 1fr; padding-top: 2.5rem; }
 
   .case__quote-wrap { padding: 3.5rem 2rem 2.5rem; min-height: 0; }
   .quote { font-size: 1.5rem; }
@@ -2373,9 +2573,359 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .compare__row { min-height: 0; padding: 1.25rem; font-size: var(--t-rg); }
   .compare__side { padding: 0.75rem; }
   .cta__body { gap: 2rem; }
-  .site-footer__groups { grid-template-columns: 1fr; }
+  /* one group across, on all four Grid Columns */
+  .site-footer__group { grid-column: 1 / -1; }
 }
 
 @media (max-width: 479px) {
   .approach__card-h { font-size: min(3rem, 15svh); }
+}
+
+/* ============================================================
+   Line reveal — the marked headings rising line by line
+   (data-split="heading", initLineReveal in src/scripts/site.js)
+   ------------------------------------------------------------
+   Hidden from the first paint once the <head> script has marked the
+   document (BaseLayout.astro), so none shows whole before its lines
+   are set to rise; the script shows each as it splits it. Should the
+   script never run, the headings show anyway after a moment. Never
+   hidden with reduced motion, nor in the Studio's preview (draft
+   mode), where the Visual editor writes into the headings' text. The
+   testimonial slider's showing quote is held the same way until its
+   lines are split (testimonial-slider.js).
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-line-reveal]:not([data-draft]) :is([data-split="heading"], [data-testimonial-quote].is--active) {
+    visibility: hidden;
+    animation: line-reveal-fallback 0s 3s forwards;
+  }
+}
+@keyframes line-reveal-fallback {
+  to { visibility: visible; }
+}
+/* A line's mask (SplitText's, for the headings and the testimonial
+   quotes) is one line box tall, and clips. The display face's glyphs
+   reach past a tight line
+   box: Parabolica's ascent and descent together are 1.37em (taken as
+   1.4em, a hair to spare), so at the headings' 1.05 leading they overhang
+   it by 0.16em above and below, and
+   a descender (the g of "solving") was cut off. Each mask is opened by
+   that overhang, worked out from the face and the mask's own leading
+   (none where the leading already holds the face), and drawn back by the
+   same margin, so the lines lay out exactly as before.
+
+   Between two lines that is two bleeds to draw back, one from each mask,
+   but the two masks' margins meet and collapse into one, which drew back
+   only a single bleed: every split heading stood a bleed looser per line
+   than its leading (a 60px heading at 1.05 set its lines 73px apart, not
+   63px). So the second of two lines draws back both itself, and the
+   collapsed margin between them is the whole overlap. */
+.line-mask {
+  --mask-bleed: max(0px, (1.4em - 1lh) / 2);
+  padding-block: var(--mask-bleed);
+  margin-block: calc(-1 * var(--mask-bleed));
+}
+.line-mask + .line-mask {
+  margin-top: calc(-2 * var(--mask-bleed));
+}
+
+/* ============================================================
+   Service stack — the homepage's four routes as a stack of files
+   (index.astro, initServiceStack in src/scripts/site.js)
+   ------------------------------------------------------------
+   Each route is a card across the 12-Column Grid, from Grid Column 1
+   to the end of Grid Column 12, with a folder tab. The cards are
+   sticky, all at the one height, so as each arrives it covers the
+   last, and its tab rises with it into one row: the four tabs each a
+   quarter of the stack's width, edge to edge, filling left to right
+   like the dividers of a drawer of files. As a card comes over the one
+   before, that one draws back: it darkens and its tab fades, so what
+   is behind reads as behind, without ever leaving its lines (the
+   script, scrubbed with the scroll). A card comes in as it is: nothing
+   flashes as it arrives. Once the last is in, the full row holds a
+   moment before the stack leaves together.
+
+   Inside a card the copy is set in from the card's top and its left
+   edge by the same step, and the diagram's darker field is the card's
+   right half, starting where the third tab does.
+
+   The stack sticks a nav's height under the top, so the
+   nav has its room whenever it comes back down over it. No ancestor
+   may clip (overflow: hidden), or the sticking stops.
+   ============================================================ */
+.service-stack {
+  /* The one gutter all round the held stack: the grid's margin, which
+     is also its room either side (Grid Columns 1–12), so it stands as
+     far below the nav's foot as it does in from the screen's sides and
+     up from its foot, at every width. */
+  --stack-gap: var(--grid-margin);
+  /* held that gutter under the nav, which is always in place over the
+     main content (initNavReveal, site.js) */
+  --stack-top: calc(var(--nav-h) + var(--stack-gap));
+  /* how much lower each card sticks than the last: none on a desktop,
+     where the tabs share a row; a tab's height on a phone */
+  --stack-step: 0px;
+  --stack-tab: 3.5rem;
+  --stack-tone: #222;
+  /* a tab's width: a quarter of the stack, the four meeting edge to edge */
+  --stack-quarter: 25%;
+  /* the card's body: the rest of the screen under the top, the tab, any
+     steps and the gutter at the foot, so a card at rest fills it */
+  --stack-body: calc(100vh - var(--stack-top) - var(--stack-gap) - var(--stack-tab) - (var(--stack-n) - 1) * var(--stack-step));
+  --stack-body: calc(100svh - var(--stack-top) - var(--stack-gap) - var(--stack-tab) - (var(--stack-n) - 1) * var(--stack-step));
+  /* Grid Columns 1–12: in from the screen by the grid's margin, at
+     every width (6 and 4 columns below 992 and 768px) */
+  margin: 4.5rem var(--stack-gap) 0;
+}
+.service-stack__item {
+  position: sticky;
+  top: calc(var(--stack-top) + var(--i) * var(--stack-step));
+  color: var(--c-white);
+  /* A card's box is the stack's full width, the empty three quarters of
+     the tab row beside its own tab included, and the newer card is on
+     top: left to take the pointer, that empty strip would catch the
+     clicks meant for the tabs of the cards behind. Only a card's tab
+     and its body take the pointer. */
+  pointer-events: none;
+}
+.service-stack__tab,
+.service-stack__card { pointer-events: auto; }
+
+/* the folder tab, on its quarter */
+.service-stack__tab {
+  display: flex;
+  align-items: center;
+  width: var(--stack-quarter);
+  height: var(--stack-tab);
+  margin-left: calc(var(--i) * var(--stack-quarter));
+  background: var(--stack-tone);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color .2s ease;
+}
+/* Pointed at or focused, a tab darkens a clear step, so it reads as
+   something to press; it never moves or changes size. Focused from the
+   keyboard it is ringed too. */
+.service-stack__tab:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--stack-tone), #000 45%); }
+.service-stack__tab:focus-visible { outline: 2px solid var(--c-red); outline-offset: -2px; }
+/* the number in a square the tab's height, a step darker */
+.service-stack__num {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--stack-tab);
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0;
+}
+.service-stack__name {
+  min-width: 0;
+  margin: 0;
+  padding: 0 1.25rem 0 1rem;
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* the card, in two halves under the four tabs: the copy under the first
+   two, the diagram's field under the last two, flush to the card's
+   edge; taller by any steps still to come, so every card's foot is
+   level */
+.service-stack__card {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: calc(var(--stack-body) + (var(--stack-n) - 1 - var(--i)) * var(--stack-step));
+  background: var(--stack-tone);
+}
+/* the shade that darkens a card as it draws back (the script) */
+.service-stack__shade {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+.service-stack__copy {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2rem;
+  /* In from the card's top and its left edge by the same step: a tab's
+     height, so the copy starts where the tab's number square ends. */
+  --stack-inset: var(--stack-tab);
+  padding: var(--stack-inset) 1.25rem var(--stack-inset) var(--stack-inset);
+}
+.service-stack__p {
+  max-width: 28rem;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.25;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  /* Optical top alignment, so the copy's first capitals stand as far
+     below the card's top as its first letter stands in from the left:
+     the line box opens above the capitals by half the leading and the
+     face's room over its caps (half a line less 0.29em, measured on
+     Parabolica), so that is taken off here rather than trusting the
+     box. */
+  margin-top: calc(0.29em - 0.5lh);
+}
+.service-stack__media {
+  /* the diagram draws in the field's ink: white here (set on the field
+     alone, so the card's button keeps its own dark label) */
+  --c-text: var(--c-white);
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  /* a step darker than the card; the diagram's faces take it too */
+  --diagram-ground: color-mix(in srgb, var(--stack-tone), #000 25%);
+  background: var(--diagram-ground);
+}
+
+/* The field's backdrop: a grid of small dots set out to fit the field
+   exactly, a dot in each corner and the same margin all round, and
+   still (dot-field.js draws it on a canvas that fills this layer).
+   Under the drawing, whose solid faces hide the dots behind them. */
+.service-stack__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.service-stack__pattern > canvas { display: block; }
+
+/* the drawing (ServiceDiagram.astro) carries its own margin in its
+   viewBox, so it can take most of the field */
+.service-stack__diagram {
+  position: relative;
+  display: block;
+  width: min(88%, 36rem);
+  height: auto;
+  max-height: 88%;
+}
+/* the spacer that holds the full stack before it leaves */
+.service-stack__hold { height: 35vh; height: 35svh; }
+
+/* A phone: the tabs are full-width strips, each card a whole tab lower
+   than the last, so the stack reads as a column of labelled strips over
+   the card on top; the copy over a shorter diagram. */
+@media (max-width: 767px) {
+  .service-stack {
+    --stack-tab: 3rem;
+    --stack-step: var(--stack-tab);
+    --stack-quarter: 100%;
+  }
+  .service-stack__tab { margin-left: 0; }
+  .service-stack__name { font-size: 1.0625rem; }
+  .service-stack__card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+  .service-stack__copy,
+  .service-stack__media { grid-column: 1; }
+  .service-stack__copy { gap: 1rem; --stack-inset: 2rem; }
+  .service-stack__p { font-size: 1.25rem; }
+  .service-stack__diagram { width: min(92%, 22rem); }
+}
+
+/* Without motion the cards simply follow one another, each with its
+   tab on its quarter. */
+@media (prefers-reduced-motion: reduce) {
+  .service-stack__item { position: static; }
+  .service-stack__item + .service-stack__item { margin-top: 1.5rem; }
+  .service-stack__card { height: auto; min-height: 28rem; }
+  .service-stack__hold { display: none; }
+}
+
+/* ============================================================
+   Service diagrams (ServiceDiagram.astro) — the four services drawn
+   as the approach schematics are: isometric wireframes in hairlines
+   of three weights over a dashed setting-out cross, the faces of a
+   solid in the ground of the field it is on, the red only ever a
+   line. The ink is the field's text colour and the ground its
+   --diagram-ground (the nav cards' light grey unless a field says
+   otherwise), so the one drawing serves the dark service stack and
+   the light nav cards alike; every line keeps one pixel's weight
+   however large or small the drawing is shown.
+   ============================================================ */
+.service-diagram {
+  --sd-ink: var(--c-text);
+  --sd-ground: var(--diagram-ground, var(--c-light-fg));
+  --sd-accent: var(--diagram-accent, var(--c-red));
+  overflow: visible;
+}
+.service-diagram :is(path, circle) {
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+.service-diagram__line {
+  fill: none;
+  stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent);
+  stroke-width: 1;
+}
+.service-diagram__line.is--soft { stroke: color-mix(in srgb, var(--sd-ink) 32%, transparent); }
+.service-diagram__line.is--dash { stroke-dasharray: 3 3; }
+.service-diagram__line.is--dash:not(.is--soft) { stroke: color-mix(in srgb, var(--sd-ink) 24%, transparent); }
+/* Solid lines are things; dotted ones are what moves or relates them:
+   a path work takes, a design carried across, a part mapped into a plan.
+   A path keeps its line's weight; only the setting-out is faint. */
+.service-diagram__line.is--path { stroke-dasharray: 3 3; }
+.service-diagram__ring {
+  fill: var(--sd-ground);
+  stroke: color-mix(in srgb, var(--sd-ink) 32%, transparent);
+  stroke-width: 1;
+}
+.service-diagram__ring.is--accent { stroke: var(--sd-accent); }
+.service-diagram__ring.is--session { stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent); }
+/* a solid: its faces the field's ground, its edges the group's stroke */
+.service-diagram__solid {
+  fill: var(--sd-ground);
+  stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent);
+  stroke-width: 1;
+}
+.service-diagram__solid.is--accent { stroke: var(--sd-accent); }
+/* the lower layers of an exploded stack, a weight quieter */
+.service-diagram__solid.is--soft { stroke: color-mix(in srgb, var(--sd-ink) 34%, transparent); }
+/* a block's floor lines, fainter than its edges, in their colour */
+.service-diagram__floors { fill: none; stroke-opacity: 0.45; }
+.service-diagram__accent {
+  fill: none;
+  stroke: var(--sd-accent);
+  stroke-width: 1.25;
+}
+.service-diagram__accent.is--dash { stroke-dasharray: 3 3; }
+/* the milestones on the roadmap: closed in the ground, so the roadmap
+   reads as passing through each */
+.service-diagram__accent.is--mark { fill: var(--sd-ground); }
+/* the R on the Before Revit block */
+.service-diagram__glyph {
+  fill: var(--sd-ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+}
+
+/* A dot of a grid lighting red (mountDotFlicker, dot-field.js): a square
+   the grid's dots' size, switched on and off by the script. */
+.dot-flicker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 2px;
+  background: var(--c-red);
+  opacity: 0;
+  pointer-events: none;
 }
