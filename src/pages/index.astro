@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import CoinStack from "../components/CoinStack.astro";
 import ServiceDiagram from "../components/ServiceDiagram.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
@@ -151,12 +152,15 @@ const costIcons = [
   <!-- After the approach: why technology decisions matter. -->
   <section class="section" id="cost">
     <div class="container">
+      <!-- The heading alone, centred over the cards, with the coins
+           building the logo as the page scrolls past set into it
+           (CoinStack.astro): the coins stand behind the words, the red
+           one among the first line's, and the stack comes to rest under
+           them. The cards under it take the whole grid, four Grid
+           Columns each. -->
       <div class="problem-head">
-        <div class="problem-head__lede">
-          <p class="text-md" data-page-field="cost.lede">{t("cost.lede")}</p>
-          <p class="tagline tagline--sm" data-page-field="cost.tagline">{t("cost.tagline")}</p>
-        </div>
         <h2 class="problem-head__h" data-split="heading" data-page-field="cost.heading">{t("cost.heading")}</h2>
+        <CoinStack />
       </div>
 
       <div data-problem-grid-init class="problem-grid">
@@ -199,20 +203,26 @@ const costIcons = [
          brings its card back to the top of the stack. -->
     <div class="service-stack" data-service-stack style={`--stack-n:${routeCards.length}`}>
       {routeCards.map((card, i) => (
-      <article class="service-stack__item" id={`service-${i + 1}`} style={`--i:${i}`} data-service-stack-item>
+      <article class:list={["service-stack__item", { "is--active": i === 0 }]} id={`service-${i + 1}`} style={`--i:${i}`} data-service-stack-item>
         <a class="service-stack__tab" href={`#service-${i + 1}`} data-service-stack-tab>
-          <span class="service-stack__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-          <h3 class="service-stack__name" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
+          <!-- the tab's face, which fades over the section's ground -->
+          <span class="service-stack__face">
+            <span class="service-stack__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+            <h3 class="service-stack__name" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
+          </span>
         </a>
         <div class="service-stack__card">
+          <span class="service-stack__blur" data-service-stack-blur aria-hidden="true"></span>
           <span class="service-stack__shade" data-service-stack-shade aria-hidden="true"></span>
           <div class="service-stack__copy">
             <p class="service-stack__p" data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
-            <ActionButton href={routeHrefs[i] ?? "contact.html"}>View the service</ActionButton>
+            <!-- the call names its service: "View" and the card's title -->
+            <ActionButton href={routeHrefs[i] ?? "contact.html"}>View {card.title || "the service"}</ActionButton>
           </div>
           <div class="service-stack__media">
-            <!-- the field's dots, set out to fit it (dot-field.js) -->
-            <div class="service-stack__pattern" data-dot-field aria-hidden="true"></div>
+            <!-- the drawing's ground, a dotted axonometric lattice, to the
+                 field's edges (dot-field.js) -->
+            <div class="service-stack__pattern" data-iso-field aria-hidden="true"></div>
             <ServiceDiagram index={i} class="service-stack__diagram" animate />
           </div>
         </div>

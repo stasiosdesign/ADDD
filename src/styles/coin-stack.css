@@ -1,0 +1,39 @@
+/* ============================================================
+   Coin stack — the coins building the logo as the page scrolls past
+   (src/components/CoinStack.astro, src/scripts/coin-stack.js)
+   ------------------------------------------------------------
+   Set into the "What actually costs you time" heading (styles.css,
+   "industry problems"), not a section of its own: it shares the
+   heading's cell, centred behind the words, and is sized from the
+   heading's own size (--head-size), so the two keep their proportion
+   at every width. The coins alone, nothing drawn round them, set
+   between the heading's two lines in depth (styles.css): the red coin,
+   the width of a couple of the letters, starts in front of the foot of
+   the first line and comes down behind the second, gathering the
+   greys, and the finished stack comes to rest under the words, clear
+   of the second line's descenders. It takes no room of its own beyond
+   what reaches past the words, and no pointer. The coins' faces are
+   greys a step under the ground, and the forms they carry the ink.
+   ============================================================ */
+.coin-stack {
+  --coin-size: var(--head-size, 5rem);
+  /* over the heading's first line, under its second */
+  position: relative;
+  z-index: 1;
+  align-self: start;
+  /* the top of the coins' column well down the first line's lower-case
+     letters, so the red coin starts at that line's foot, over only the
+     last quarter of their height (its face's top about 0.75em down the
+     heading, the first line's baseline at 0.88em) */
+  margin-top: calc(0.45 * var(--coin-size));
+  pointer-events: none;
+}
+.coin-stack__drawing {
+  display: block;
+  width: auto;
+  height: calc(2.55 * var(--coin-size));
+  overflow: visible;
+}
+
+/* the form a grey coin carries, in the ink */
+.coin-stack__form { fill: #262626; }

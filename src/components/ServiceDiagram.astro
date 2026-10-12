@@ -91,7 +91,8 @@ function ring3d(P: Projector, r: number, z: number) {
 }
 
 // 0 — Workflow Workshop: the floor and its loop; the report over it
-const wP = projector(200, 173);
+const W_ORIGIN = [200, 173];
+const wP = projector(W_ORIGIN[0], W_ORIGIN[1]);
 const W_HALF = 54;
 const W_T = 5;
 const W_LOOP = 24;
@@ -123,7 +124,8 @@ const workshop = {
 };
 
 // 1 — Before Revit: the loose sheets, the review, the model
-const rP = projector(200, 188);
+const R_ORIGIN = [200, 188];
+const rP = projector(R_ORIGIN[0], R_ORIGIN[1]);
 const R_SHEET = 38;
 // the three sheets, bottom first, each off true by a little, as early
 // work is; the animation brings them into register
@@ -158,12 +160,13 @@ const beforeRevit = {
 const offset = (dx: number, dy: number) => [fmt((dx - dy) * COS30), fmt((dx + dy) / 2)];
 
 // 2 — Technology Blueprint: the systems on the slab, the blueprint over them
-const bP = projector(200, 180);
+const B_ORIGIN = [200, 180];
+const bP = projector(B_ORIGIN[0], B_ORIGIN[1]);
 const B_BASE = 44;
 const B_T = 5;
-const B_AT = 26;
+const B_AT = 27;
 const B_PART = 18;
-const B_SHEET = 52;
+const B_SHEET = 54;
 const B_Z = 92;
 const bTop = B_Z + 3;
 // the four systems, back, left, right, front, each its own height; the
@@ -194,9 +197,10 @@ const blueprint = {
 };
 
 // 3 — Ongoing Advisory: three floors stood apart, a ring round each
-const aP = projector(200, 168);
+const A_ORIGIN = [200, 168];
+const aP = projector(A_ORIGIN[0], A_ORIGIN[1]);
 const A_FLOORS = [0, 40, 80];
-const A_R = 52;
+const A_R = 54;
 const A_ACTIVE = 1;
 const advisory = {
   cross: cross(aP, 86),
@@ -213,8 +217,11 @@ const advisory = {
   }),
 };
 const live = animate ? { "data-service-diagram": index } : {};
+// where the drawing's ground is, in its own units, for the field behind it
+// (data-ground: the lattice it stands on, mountIsoField in dot-field.js)
+const ground = [W_ORIGIN, R_ORIGIN, B_ORIGIN, A_ORIGIN][index]?.join(" ");
 ---
-<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" {...live}>
+<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-ground={ground} {...live}>
   {index === 0 && (
     <Fragment>
       {workshop.cross.lines.map((d) => <path class="service-diagram__line is--dash" d={d} />)}

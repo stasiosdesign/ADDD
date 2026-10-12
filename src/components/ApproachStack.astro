@@ -81,7 +81,8 @@ const guides = (P: Projector, half: number, from: number, to: number) =>
 // goes round by the other two, across the floor and back. "at" is how far
 // along the route each block stands (its share of the route's drawn
 // length).
-const uP = projector(200, 130);
+const U_ORIGIN = [200, 130];
+const uP = projector(U_ORIGIN[0], U_ORIGIN[1]);
 const U_HALF = 78;
 const U_T = 4;
 const U_ROOM = 31;
@@ -122,7 +123,8 @@ const understand = {
 // them, finds the one the trouble starts in, and the slabs above lift off
 // it while four red chevrons close in on its corners. Listed top first;
 // drawn bottom first, so each slab hides what is under it.
-const dP = projector(200, 184);
+const D_ORIGIN = [200, 184];
+const dP = projector(D_ORIGIN[0], D_ORIGIN[1]);
 const TRACE_CAUSE = 3;
 const D_HALF = 40;
 const D_T = 4;
@@ -220,8 +222,11 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
 
             <div class="step-card__panel">
               <div class="step-card__media">
+                <!-- the drawing's ground: a dotted axonometric lattice
+                     (dot-field.js), the panel's alone, not the band's -->
+                <div class="step-card__pattern" data-iso-field aria-hidden="true"></div>
                 {step.schematic === "map" && (
-                  <svg class="schematic" data-schematic="map" viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                  <svg class="schematic" data-schematic="map" data-ground={U_ORIGIN.join(" ")} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
                     <g data-s="ground">
                       {understand.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
                       {understand.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
@@ -246,7 +251,7 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
                 )}
 
                 {step.schematic === "trace" && (
-                  <svg class="schematic" data-schematic="trace" data-cause={TRACE_CAUSE} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                  <svg class="schematic" data-schematic="trace" data-cause={TRACE_CAUSE} data-ground={D_ORIGIN.join(" ")} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
                     <g data-s="ground">
                       {diagnose.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
                       {diagnose.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
@@ -273,7 +278,7 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
                 )}
 
                 {step.schematic === "rank" && (
-                  <svg class="schematic" data-schematic="rank" data-origin={R_ORIGIN.join(",")} data-size={R_SIZE} data-plinth={R_PLINTH} data-floor={R_FLOOR} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
+                  <svg class="schematic" data-schematic="rank" data-origin={R_ORIGIN.join(",")} data-ground={R_ORIGIN.join(" ")} data-size={R_SIZE} data-plinth={R_PLINTH} data-floor={R_FLOOR} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
                     <g data-s="base">
                       {prioritise.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
                       {prioritise.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}

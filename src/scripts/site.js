@@ -20,8 +20,9 @@ import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 import { mountStickyTitle } from "./sticky-title.js";
 import { mountWordCycle } from "./word-cycle.js";
-import { mountDotField } from "./dot-field.js";
+import { mountIsoField } from "./dot-field.js";
 import { mountServiceDiagram } from "./service-diagram.js";
+import { mountCoinStack } from "./coin-stack.js";
 import { mountTestimonialSlider } from "./testimonial-slider.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
@@ -422,6 +423,7 @@ const PAGE_COMPONENTS = [
   ["[data-approach-slides-init]", initApproachSlides],
   ["[data-sticky-title=\"wrap\"]", initStickyTitle],
   ["[data-approach-stack]", initApproachStack],
+  ["[data-coin-stack]", initCoinStack],
   ["[data-problem-grid-init]", initProblemGrid],
   ['[data-parallax="trigger"]', initGlobalParallax],
   ["[data-testimonial-slider]", initTestimonialSlider],
@@ -429,7 +431,7 @@ const PAGE_COMPONENTS = [
   ["[data-accordion-init]", initAccordions],
   ["[data-split=\"heading\"]", initLineReveal],
   ["[data-service-stack]", initServiceStack],
-  ["[data-dot-field]", initDotFields],
+  ["[data-iso-field]", initIsoFields],
   ["[data-service-diagram]", initServiceDiagrams],
   ["[data-enquiry-offer]", initEnquiryOffer],
   ["[data-slash-field]", initSlashField],
@@ -835,15 +837,15 @@ function initInsightSlider(container) {
    Lives outside the Barba container, so this runs once per document.
    ============================================================ */
 function initMegaNav() {
-  // On desktop both panels open block by block: no shared ground behind
-  // them and no container growing open. The open panel stands in the
-  // dropdown's flow, so the dropdown is its height without being measured
-  // or animated, and each block (Services' cards, Resources' columns)
-  // drops in from under the bar on its own, clipped by the dropdown's top
-  // edge, one after the next; closing, they lift back up under it, the
-  // last first. The dots round them (nav.css, "The dropdowns' frame")
-  // fade in and out with the dimmed page they lie on, and cross over when
-  // one panel hands over to the other. Only transforms and opacity move.
+  // On desktop both panels open item by item: the open panel stands in
+  // the dropdown's flow, so the dropdown is its height without being
+  // measured or animated, and each of its columns (Services' cards,
+  // Resources' blocks) drops in from under the bar on its own, clipped by
+  // the dropdown's top edge, one after the next, left to right, while the
+  // dimmed page comes up behind them; closing, they lift back up under
+  // it, the last first. Going from one panel to the other, the open
+  // panel's columns lift out while the other's drop in over them, the
+  // dimmed page staying as it is. Only transforms and opacity move.
   const DUR = {
     // the mobile drawer's panels, item by item
     stagger: 0.06,
@@ -875,6 +877,11 @@ function initMegaNav() {
 
   if (!menuWrap || !navList || !dropWrapper) return;
 
+  // The Services cards' grounds, the service stack's lattice under each
+  // diagram (ServiceCard.astro, dot-field.js): mounted once, as the nav
+  // outlives every page, and redrawn by their own observer as they resize.
+  menuWrap.querySelectorAll("[data-iso-field]").forEach((field) => mountIsoField(field));
+
   // State
   const state = {
     isOpen: false,
@@ -897,14 +904,12 @@ function initMegaNav() {
   const panelByName = new Map(panels.map((p) => [p.dataset.navContent, p]));
   const toggleByName = new Map(toggles.map((t) => [t.dataset.dropdownToggle, t]));
   const fadeByPanel = new Map(panels.map((p) => [p, p.querySelectorAll("[data-menu-fade]")]));
-  const dotsByPanel = new Map(panels.map((p) => [p, p.querySelector("[data-menu-dots]")]));
-  const allDots = [...dotsByPanel.values()].filter(Boolean);
   const navItems = navList.querySelectorAll("[data-nav-list-item]");
   const getPanel = (name) => panelByName.get(name);
   const getToggle = (name) => toggleByName.get(name);
   const getFade = (el) => fadeByPanel.get(el);
-  const getDots = (el) => dotsByPanel.get(el) ?? [];
-  const stagger = (n) => (n <= 1 ? 0 : { amount: DUR.stagger });
+  // the drawer's items one after the next, as the desktop's columns drop in
+  const stagger = (n) => (n <= 1 ? 0 : { each: DUR.stagger });
 
   function clearTimers() {
     clearTimeout(state.hoverTimer);
@@ -918,7 +923,7 @@ function initMegaNav() {
 
   function killDropdown() {
     killTl("tl");
-    gsap.killTweensOf([backdrop, ...allDots]);
+    gsap.killTweensOf(backdrop);
     panels.forEach((p) => { gsap.killTweensOf(p); gsap.killTweensOf(getFade(p)); });
   }
 
@@ -943,11 +948,10 @@ function initMegaNav() {
   function hidePanel(p) {
     gsap.set(p, { visibility: "hidden", opacity: 0, pointerEvents: "none", x: 0, y: 0, xPercent: 0, clearProps: "position,zIndex" });
     gsap.set(getFade(p), { autoAlpha: 0, x: 0, y: 0, xPercent: 0, yPercent: 0 });
-    gsap.set(getDots(p), { autoAlpha: 0 });
   }
 
   // The panel being opened: in the dropdown's flow, so the dropdown is its
-  // height, and over any panel still leaving.
+  // height, and over any panel still leaving; its blocks are the caller's.
   function showPanel(p) {
     gsap.set(p, { position: "relative", zIndex: 1, visibility: "visible", opacity: 1, pointerEvents: "auto" });
   }
@@ -968,8 +972,6 @@ function initMegaNav() {
       gsap.set(getFade(p), { xPercent: 20, yPercent: 0, autoAlpha: 0 });
     });
     gsap.set(navItems, { xPercent: 0, y: 0, autoAlpha: 1 });
-    // in the drawer the dots go with their panel
-    gsap.set(allDots, { autoAlpha: 1 });
     gsap.set(navList, { autoAlpha: 0, x: 0 });
     gsap.set(backBtn, { autoAlpha: 0 });
     gsap.set(logo, { autoAlpha: 1 });
@@ -1022,7 +1024,7 @@ function initMegaNav() {
     showPanel(el);
     const tl = gsap.timeline();
     state.tl = tl;
-    tl.to([backdrop, getDots(el)], { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0);
+    tl.to(backdrop, { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0);
     dropIn(tl, blocks);
   }
 
@@ -1049,11 +1051,10 @@ function initMegaNav() {
       liftOut(tl, getFade(el));
     }
     tl.to(backdrop, { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0.05);
-    if (el) tl.to(getDots(el), { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0.05);
   }
 
   // DESKTOP — switch panel: the open panel's blocks lift out while the
-  // other's drop in over them
+  // other's drop in over them, over the dimmed page, which stays as it is
   function switchPanel(fromName, toName) {
     const fromEl = getPanel(fromName), toEl = getPanel(toName);
     if (!fromEl || !toEl) return;
@@ -1076,9 +1077,6 @@ function initMegaNav() {
     const tl = gsap.timeline();
     state.tl = tl;
     liftOut(tl, fromBlocks);
-    // the dots cross over, the arriving panel's over the leaving one's
-    tl.to(getDots(fromEl), { autoAlpha: 0, duration: DUR.liftOut, ease: "power2.inOut" }, 0);
-    tl.fromTo(getDots(toEl), { autoAlpha: 0 }, { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0.05);
     tl.add(() => hidePanel(fromEl));
     dropIn(tl, toBlocks, 0.1);
   }
@@ -1437,7 +1435,6 @@ function initMegaNav() {
           gsap.set(p, { clearProps: "all" });
           gsap.set(getFade(p), { clearProps: "all" });
         });
-        gsap.set(allDots, { clearProps: "all" });
 
         burger.setAttribute("aria-expanded", "false");
         // also covers a close that was still animating when it was killed
@@ -2028,6 +2025,14 @@ function initNavLinks(root) {
    the Slash Field. Lenis is handed in for the rail's velocity
    trail, which reads its speed.
    ============================================================ */
+// The coins closing up into the logo after the approach (coin-stack.js).
+function initCoinStack(container) {
+  container.querySelectorAll("[data-coin-stack]").forEach((el) => {
+    const stack = mountCoinStack(el);
+    registerPageCleanup(() => stack.destroy());
+  });
+}
+
 function initApproachStack(container) {
   container.querySelectorAll("[data-approach-stack]").forEach((el) => {
     const stack = mountApproachStack(el, { lenis });
@@ -2394,23 +2399,38 @@ function initShutterScrollTransition(container) {
 /* ============================================================
    Problem grid — three columns released as the row arrives
    ============================================================
-   The columns are held down by CSS until the row is properly in
-   view; this only flips the status attribute that releases them,
-   once, and then stops observing. Scoped to the Barba container
-   and disconnected on leave.
+   The columns are held down by CSS until they are released; this
+   only flips the status attribute that releases them. Where the
+   section's heading carries the coin stack (CoinStack.astro), they
+   come in the moment its coins have all collapsed into the logo
+   ("coinstack:settle", coin-stack.js), and are held down again only
+   once the coins are wholly back at the start, the row below the
+   screen by then. Anywhere else, once the row is properly in view,
+   once. Scoped to the Barba container and undone on leave.
    ============================================================ */
 function initProblemGrid(container) {
   const grids = container.querySelectorAll("[data-problem-grid-init]");
+  const release = (grid, on) => {
+    if (on) grid.setAttribute("data-problem-grid-status", "in");
+    else grid.removeAttribute("data-problem-grid-status");
+  };
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
-      entry.target.setAttribute("data-problem-grid-status", "in");
+      release(entry.target, true);
       observer.unobserve(entry.target);
     });
   }, { threshold: 0.2 });
 
-  grids.forEach((grid) => observer.observe(grid));
+  grids.forEach((grid) => {
+    const coins = grid.closest("section")?.querySelector("[data-coin-stack]");
+    if (!coins) return observer.observe(grid);
+    const follow = () => release(grid, coins.hasAttribute("data-coin-stack-settled"));
+    coins.addEventListener("coinstack:settle", follow);
+    follow();
+    registerPageCleanup(() => coins.removeEventListener("coinstack:settle", follow));
+  });
   registerPageCleanup(() => observer.disconnect());
 }
 
@@ -2604,17 +2624,26 @@ function initLineReveal(container) {
    Service stack — the homepage's routes as a stack of files
    ============================================================
    The stacking itself is the stylesheet's (position: sticky,
-   styles.css "service stack"). Two things are added here:
+   styles.css "service stack"). Four things are added here:
 
      - depth: as each card rises over the one before, that one draws
-       back, darkening under its shade while its tab fades (never
-       shrinking, so every edge stays on the grid), scrubbed with the
-       scroll from the moment it settles to the moment the next settles
-       on it, so it runs back exactly on the way up. Opacity only: the
-       shade's own, and the tab's through --tab-back, so the
-       stylesheet can lift a drawn-back tab a little under the pointer.
-       Not with reduced motion, where the stylesheet lets the cards
-       simply follow one another;
+       back, darkening under its shade (never shrinking, so every edge
+       stays on the grid), scrubbed with the scroll from the moment it
+       settles to the moment the next settles on it, so it runs back
+       exactly on the way up. The shade's opacity only. It softens too,
+       a slight blur once the next card's top is 15% of the way up the
+       screen, growing until that card settles on it: a layer in the
+       card blurring what is behind it, so the blur keeps to its edges,
+       faded in at one radius. Not with reduced motion, where the
+       stylesheet lets the cards simply follow one another;
+     - seating: each card slows into its place over the last stretch
+       before it sticks, rather than stopping dead (below). Not with
+       reduced motion either;
+     - which card is in front (is--active on its item) and which are
+       behind it (is--behind), which the stylesheet shows by the tabs'
+       strength: those behind at one same fade, the one in front and
+       those still to come at full, on an ease. A card takes over once
+       it has come halfway onto the one before it;
      - bringing a card back: a card is on top of the stack at the
        scroll where it has just come to rest, its place in the page's
        flow less the height it sticks at. A tab goes there, on Lenis,
@@ -2623,23 +2652,26 @@ function initLineReveal(container) {
        plain link to its card.
 
    Nothing else: a card arriving on the stack, scrolled to or brought
-   back by its tab, comes in as it is, with no flash or flicker as it
-   seats.
+   back by its tab, comes in as it is, its tab already at full strength,
+   with no flash or flicker as it seats.
 
    The scroll positions are worked out from the stack, which does not
    stick, and the cards' own heights, rather than measured off the
    sticky cards, whose positions depend on the scroll they are read at.
    ============================================================ */
-// how dark a card behind goes; its tab fades to the stylesheet's --tab-depth
-const STACK_DEPTH = { shade: 0.6 };
+// how dark a card behind goes; how far it blurs (px), from when the next
+// card's top is this share of the way up the screen; over what share of
+// the screen's height of scroll a card slows into its place
+const STACK_DEPTH = { shade: 0.6, blur: 4, blurFrom: 0.15, settle: 0.25 };
 // the scroll back to a card: ease in and out (cubic)
 const STACK_EASE = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-// The dot fields behind the service stack's diagrams (dot-field.js),
-// mounted per page and torn down with it.
-function initDotFields(container) {
-  container.querySelectorAll("[data-dot-field]").forEach((el) => {
-    const field = mountDotField(el);
+// The grounds behind the drawings, the service stack's diagrams and the
+// approach cards' schematics: each a dotted axonometric lattice on the
+// drawing's own axes (dot-field.js), mounted per page and torn down with it.
+function initIsoFields(container) {
+  container.querySelectorAll("[data-iso-field]").forEach((el) => {
+    const field = mountIsoField(el);
     registerPageCleanup(() => field.destroy());
   });
 }
@@ -2681,9 +2713,127 @@ function initServiceStack(container) {
             invalidateOnRefresh: true,
           },
         })
-          .to(part(item, "shade"), { opacity: STACK_DEPTH.shade }, 0)
-          .to(part(item, "tab"), { "--tab-back": 1 }, 0);
+          .to(part(item, "shade"), { opacity: STACK_DEPTH.shade }, 0);
       });
+
+      // and softens a little, from the moment the next card's top has come
+      // its share of the way up the screen to the moment it comes to rest
+      // on it: a layer over it blurring what is behind it at one fixed
+      // radius, faded in. Only its opacity moves, which costs nothing to
+      // draw; a radius changed every frame made the browser rebuild the
+      // blur's surface as it grew, and frames dropped. The layer only
+      // blurs while it shows: not before the next card reaches its mark,
+      // nor once that card has covered it, so the cards behind never go
+      // on costing a blur no one can see.
+      const blurs = items.slice(0, -1).map((item, i) => {
+        const layer = part(item, "blur");
+        const set = (amount) => {
+          if (!layer) return;
+          const on = amount > 0.005 && amount < 1;
+          const filter = on ? `blur(${STACK_DEPTH.blur}px)` : "";
+          if (layer.style.backdropFilter !== filter) {
+            layer.style.backdropFilter = filter;
+            layer.style.webkitBackdropFilter = filter;
+          }
+          layer.style.opacity = on ? amount.toFixed(3) : "";
+        };
+        ScrollTrigger.create({
+          start: () => restingAt(i + 1) + stickAt(items[i + 1]) - window.innerHeight * (1 - STACK_DEPTH.blurFrom),
+          end: () => restingAt(i + 1),
+          onUpdate: (self) => set(self.progress),
+          onRefresh: (self) => set(self.progress),
+        });
+        return set;
+      });
+
+      // Each card comes to rest gently rather than stopping dead where it
+      // sticks. Over the last stretch of scroll before it sticks (a
+      // STACK_DEPTH.settle share of the screen's height, D), it is drawn
+      // on ahead of the scroll and slows to a standstill in its place: t =
+      // the scroll still to go over D, and it is lifted by D·t·(1 − t)²,
+      // nothing at either end of the stretch, so it leaves the scroll's
+      // pace without a jolt and seats at the very scroll it always did,
+      // at rest, never past its place (at most 15% of D ahead). The depth,
+      // the card in front and the tabs' targets are all as before. A
+      // transform alone, written only while a card is in that stretch;
+      // backwards it lifts off the same way.
+      let rests = [];
+      const lifted = items.map(() => 0);
+      const settle = (scroll) => {
+        const reach = window.innerHeight * STACK_DEPTH.settle;
+        items.forEach((item, i) => {
+          const t = (rests[i] - scroll) / reach;
+          const lift = t > 0 && t < 1 ? -reach * t * (1 - t) * (1 - t) : 0;
+          if (lift === lifted[i] || (lift !== 0 && Math.abs(lift - lifted[i]) < 0.05)) return;
+          lifted[i] = lift;
+          item.style.transform = lift ? `translate3d(0, ${lift.toFixed(2)}px, 0)` : "";
+        });
+      };
+      ScrollTrigger.create({
+        trigger: stack,
+        start: "top bottom",
+        end: "bottom top",
+        onRefresh(self) {
+          rests = items.map((_, i) => restingAt(i));
+          settle(self.scroll());
+        },
+        onUpdate: (self) => settle(self.scroll()),
+      });
+
+      // The first blur the browser draws costs it a few frames to set up
+      // (measured: one ~120ms frame the first time, none after), which
+      // would land on the first card's rise. So it is drawn once ahead of
+      // time, out of sight: a 2px layer in the corner of the screen,
+      // blurring at the same radius, all but transparent, for a moment
+      // shortly after the page is in place.
+      const warm = document.createElement("span");
+      warm.setAttribute("aria-hidden", "true");
+      Object.assign(warm.style, {
+        position: "fixed", left: "0", top: "0", width: "2px", height: "2px",
+        opacity: "0.01", pointerEvents: "none", zIndex: "-1",
+        backdropFilter: `blur(${STACK_DEPTH.blur}px)`,
+        webkitBackdropFilter: `blur(${STACK_DEPTH.blur}px)`,
+      });
+      const warmUp = gsap.delayedCall(1, () => {
+        document.body.appendChild(warm);
+        gsap.delayedCall(0.3, () => warm.remove());
+      });
+
+      return () => {
+        warmUp.kill();
+        warm.remove();
+        blurs.forEach((set) => set(0));
+        items.forEach((item) => { item.style.transform = ""; });
+      };
+    });
+
+    // Which card is in front, told by the tabs' strength (styles.css,
+    // "service stack"): a card takes over once it has come halfway onto
+    // the one before it, the same share of the way for every card, and
+    // the cards under it are behind (is--behind), their tabs faded; a
+    // card still to come is not, so its tab arrives at full strength. The
+    // marks are measured on each refresh, never per frame.
+    let marks = [];
+    let active = -1;
+    const setActive = (scroll) => {
+      const now = marks.filter((mark) => scroll >= mark).length;
+      if (now === active) return;
+      active = now;
+      items.forEach((item, i) => {
+        item.classList.toggle("is--active", i === now);
+        item.classList.toggle("is--behind", i < now);
+      });
+    };
+    ScrollTrigger.create({
+      trigger: stack,
+      start: "top bottom",
+      end: "bottom top",
+      onRefresh(self) {
+        marks = items.slice(1).map((_, i) => (restingAt(i) + restingAt(i + 1)) / 2);
+        active = -1;
+        setActive(self.scroll());
+      },
+      onUpdate: (self) => setActive(self.scroll()),
     });
 
     const onClick = (e) => {

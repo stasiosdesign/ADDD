@@ -91,14 +91,16 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   --nav-burger-bg: color-mix(in oklab, var(--c-light-fg), rgba(255, 255, 255, .12) var(--nav-dark));
   /* blocks: the feature block, a near-white grey a step darker than the
      group beside it, and the group — the links and Sign in set together
-     on one lighter ground. Dark, the group lifts one step off the bar
+     on one lighter ground, a light grey halfway between the page's and
+     the feature block's, so it still stands off the off-white page.
+     Dark, the group lifts one step off the bar
      (its 6% white comes to about #191919) and the feature block a
      step further still: a deep grey, between the group and the logo
      block, so it reads as a block of its own after the logo without
      competing with it. */
   --nav-feature-bg: color-mix(in oklab, #e5e5e5, #202020 var(--nav-dark));
   --nav-feature-fg: color-mix(in oklab, var(--c-text), var(--c-white) var(--nav-dark));
-  --nav-group-bg: color-mix(in oklab, var(--c-light-fg), rgba(255, 255, 255, .06) var(--nav-dark));
+  --nav-group-bg: color-mix(in oklab, #ececec, rgba(255, 255, 255, .06) var(--nav-dark));
   /* the drawer's dropdown panels: the page's off-white, which the white
      cards and blocks stand off, as they do on the page; dark, the bar's */
   --nav-panel-bg: color-mix(in oklab, var(--c-light-bg), var(--c-dark-fg) var(--nav-dark));
@@ -334,73 +336,32 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   overflow: hidden;
 }
 
-/* --- The dropdowns' frame -------------------------------------------
-   It is the bar continued downwards, and like the bar it is built from
-   blocks told apart by their tone rather than ruled off by lines, each
-   block standing on its own: the Services cards on Grid Columns 1–3,
-   4–6, 7–9 and 10–12, the Resources columns on 1–4, 5–8 and 9–12, a
-   gutter apart, the grid's margin in from the screen's sides and the
-   same two edges' step (the margin less any frame) under the bar and
-   under the blocks. The space round and between them is the site's dot
-   grid (.dot-grid, styles.css) on no ground of its own: a layer of dots
-   under the blocks, faded in and out with the dropdown (initMegaNav), so
-   there is no panel behind the blocks to flash or to grow open.
-
-   The dots are set out on the grid. From 992px their pitch fits a whole
-   number of steps (--nav-dots-steps) to a block and the gutter after it
-   (--nav-dots-span columns and their gutters), which comes to the
-   gutter's own width to within a few hundredths, so one column of dots
-   runs down the middle of every gutter and every block's sides run
-   midway between two. Below 992px the blocks stand one under another,
-   the full width of the grid, a step apart, and the pitch fits a whole
-   number of steps across them (--nav-dots-across), near the 18px the
-   site's dots are drawn on at each range's ideal width. Either way the
-   rows are set the same way from the blocks' top, and the counts hold at
-   every width in a range, as the grid scales with the page
-   (scaling.css). Over the dimmed page (desktop) the dots are the
-   dark-ground ones; in the drawer, on the nav's own ground, they are
-   mixed between the two by --nav-dark, as every nav colour is. */
+/* --- The dropdowns' columns -----------------------------------------
+   Each panel is its groups side by side, nothing behind or round them
+   but the dimmed page: from 992px each group an equal column of the
+   screen's width — the four Services cards a quarter each, the three
+   Resources blocks a third — from the bar's foot down the dropdown's
+   full height, the columns parted by a hairline of the dimmed page
+   between them. Every row inside a group is a whole number of one step
+   (--sc-step), and the groups of a panel share their rows, so each part
+   stands level across them. Below 992px, in the drawer, the groups
+   stand one under another, the grid's full width, a step apart. */
 .mega-nav__dropdown-container { container-type: inline-size; }
 .mega-nav__dropdown-inner {
-  --nav-frame-y: calc(2 * var(--grid-edge));
-  --nav-dots-across: 42;
-  --dot-pitch: calc((100cqw - 2 * var(--grid-margin)) / var(--nav-dots-across));
+  --sc-step: 1.125rem;
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
-  gap: var(--dot-pitch);
-  padding: var(--nav-frame-y) var(--grid-margin);
+  gap: var(--sc-step);
+  padding: calc(2 * var(--grid-edge)) var(--grid-margin);
 }
-@media (max-width: 767px) { .mega-nav__dropdown-inner { --nav-dots-across: 28; } }
-@media (max-width: 479px) { .mega-nav__dropdown-inner { --nav-dots-across: 19; } }
 @media (min-width: 992px) {
   .mega-nav__dropdown-inner {
-    --nav-dropdown-col: calc((100cqw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
-    --dot-pitch: calc(var(--nav-dots-span) * (var(--nav-dropdown-col) + var(--grid-gutter)) / var(--nav-dots-steps));
-    column-gap: var(--grid-gutter);
+    gap: 1px;
+    padding: 0;
   }
 }
-.mega-nav__dots {
-  position: absolute;
-  inset: 0;
-  /* a column and a row of dots half a step before the first block's
-     left side and its top, so both run midway */
-  --dot-x: calc(var(--grid-margin) - var(--dot-pitch) / 2);
-  --dot-y: calc(var(--nav-frame-y) - var(--dot-pitch) / 2);
-  --dot-grid-ink: color-mix(in oklab, var(--dot-grid-on-light), var(--dot-grid-on-dark) var(--nav-dark));
-}
-@media (min-width: 992px) {
-  .mega-nav__dots {
-    /* over the dimmed page, whichever state the bar is in */
-    --dot-grid-ink: var(--dot-grid-on-dark);
-    /* a column dead in the middle of every gutter, so a pitch a hair
-       longer than the gutter splits the difference either side of it */
-    --dot-x: calc(var(--grid-margin) - var(--grid-gutter) / 2);
-  }
-}
-/* each block over the dots */
-.mega-nav__dropdown-inner > :not(.mega-nav__dots) { position: relative; }
 
 /* --- Services cards (ServiceCard.astro) -----------------------------
    The homepage's service stack in the dropdown's own terms: each card a
@@ -409,20 +370,18 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
    and the name in the block beside it; under them the diagram, on a
    field a step off the card's ground; under that the description, hung
    from the name's line. A step more compact than the stack: the type a
-   size down, the header three of the dot grid's steps.
+   size down, the header three steps (--sc-step).
 
    Every card is on the one white ground, the number's square a light
    grey and the diagram's field a step off the white, so the four read
    as one set and the dropdown as one surface of blocks, the diagram's
-   red signal the only colour. The rows are whole steps of the dot grid (--dot-pitch,
-   above), so every line in a card runs midway between two rows of the
-   dots beside it, and from 992px the four share their rows (subgrid),
-   so each part stands level across the four whatever its words.
+   red signal the only colour. The rows are whole steps, and from 992px
+   the four share their rows (subgrid), so each part stands level across
+   the four whatever its words.
 
-   Their movement is the menu script's alone (they drop in on open,
-   initMegaNav). The hover is a shade laid over the card, an opacity
+   Their movement is the menu script's alone (on open they drop in from
+   under the bar one after the next, initMegaNav). The hover is a shade laid over the card, an opacity
    change only, so nothing is laid out again under the pointer. */
-.mega-nav__dropdown-inner.is--services { --nav-dots-span: 3; --nav-dots-steps: 19; }
 
 /* the cards' palette and steps, which the Resources blocks share */
 .service-card,
@@ -436,7 +395,6 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   /* the hover's shade, laid over the white */
   --sc-shade: #000;
   --sc-ring: var(--c-red);
-  --sc-step: var(--dot-pitch, 1.125rem);
   --sc-head: calc(3 * var(--sc-step));
   --sc-pad: var(--sc-step);
 }
@@ -491,25 +449,47 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-/* The diagram's field: the drawing in its middle, in the card's ink on
+/* The diagram's field: the drawing in its middle, in the field's ink on
    the field's ground (ServiceDiagram.astro), its lines drawn at a little
    over half the stack's weight, which reads as thin and exact at this
-   size rather than heavy. */
+   size rather than heavy. Behind it, the service stack's ground: the
+   dotted axonometric lattice on the drawing's own plan axes, at the
+   drawing's own scale, so its forms stand on it and their faces hide it
+   (dot-field.js). The field follows the nav's state, as every nav colour
+   does (--nav-dark): light, a grey a step off the card's white with the
+   lattice and the drawing in the ink; dark, the stack's own deep field
+   with both in white. The lattice is drawn once, in the ink, and turned
+   to white by the same amount. The card's white, its header and its
+   words stay as they are in either state. */
 .service-card__media {
+  --sc-field-now: color-mix(in oklab, var(--sc-field), #1a1a1a var(--nav-dark));
   grid-area: 2 / 1 / 3 / -1;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 0;
+  overflow: hidden;
   padding: calc(var(--sc-step) / 2) var(--sc-pad);
-  background: var(--sc-field);
-  --c-text: var(--sc-ink);
-  --diagram-ground: var(--sc-field);
+  background: var(--sc-field-now);
+  --c-text: color-mix(in oklab, var(--sc-ink), var(--c-white) var(--nav-dark));
+  --diagram-ground: var(--sc-field-now);
   --diagram-accent: var(--sc-accent);
+}
+.service-card__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --iso-line: rgba(0, 0, 0, 0.13);
+}
+.service-card__pattern > canvas {
+  display: block;
+  filter: invert(var(--nav-dark));
 }
 .service-card__diagram {
   --sd-stroke: .6;
   --sd-dash: 2 2.5;
+  position: relative;
   display: block;
   width: auto;
   height: 100%;
@@ -540,12 +520,10 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
    edge.
 
    The ground, the square and the field are the cards' own (--sc-*,
-   above), and the rows are whole steps of the dots: from 992px the three
-   share them, so each part stands level across the three and every edge
-   runs midway between two rows of dots. Nothing is outlined; the rows
+   above), and the rows are whole steps: from 992px the three share them,
+   so each part stands level across the three. Nothing is outlined; the rows
    are told apart by tone alone. A link row takes the cards' hover, a
    shade laid over it, and their focus ring. */
-.mega-nav__dropdown-inner.is--resources { --nav-dots-span: 4; --nav-dots-steps: 26; }
 
 .resource-block {
   position: relative;
@@ -742,19 +720,18 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
     justify-content: flex-end;
   }
 
-  /* The dropdowns on the grid (The dropdowns' frame, above): the four
-     Services cards a quarter of it each, Grid Columns 1–3, 4–6, 7–9 and
-     10–12, their rows shared; the Resources columns a third, Grid
-     Columns 1–4, 5–8 and 9–12. */
+  /* The dropdowns' columns (above): the four Services cards a quarter of
+     the screen each, the three Resources blocks a third, their rows
+     shared. */
   .mega-nav__dropdown-inner.is--services {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: calc(3 * var(--dot-pitch)) calc(9 * var(--dot-pitch)) minmax(calc(4 * var(--dot-pitch)), auto);
+    grid-template-rows: calc(3 * var(--sc-step)) calc(9 * var(--sc-step)) minmax(calc(4 * var(--sc-step)), auto);
     row-gap: 0;
   }
   .is--services > .service-card { grid-row: 1 / span 3; grid-template-rows: subgrid; }
   .mega-nav__dropdown-inner.is--resources {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: calc(3 * var(--dot-pitch)) minmax(calc(6 * var(--dot-pitch)), auto) minmax(calc(7 * var(--dot-pitch)), auto);
+    grid-template-rows: calc(3 * var(--sc-step)) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), auto);
     row-gap: 0;
   }
   .is--resources > .resource-block { grid-row: 1 / span 3; grid-template-rows: subgrid; }

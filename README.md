@@ -439,6 +439,77 @@ navigation onto that page.
   and the model is built; the roadmap is drawn milestone by milestone; a
   session runs round the ring. Only while on screen, never under reduced
   motion; the nav's Services cards show them at rest.
+  Behind each drawing on the service stack, behind each diagram in the
+  nav's Services cards, and behind each schematic in the approach cards'
+  panels (not the approach band, whose field of dots is its own), the
+  drawing's ground: a dotted axonometric lattice on its two
+  plan axes, a cell every 54 of its units, projected from its origin at
+  its scale (`data-ground` on the `<svg>`; `mountIsoField` in
+  `dot-field.js`), so it runs through the setting-out cross and the forms
+  stand on it. The Workflow Workshop's floor is two cells by two, the
+  Blueprint's sheet the same, and the Advisory's rings touch the lattice
+  at their sessions. It is faint, and runs out to every edge of its
+  field. In the Services cards it follows the nav's state with the field
+  under it: the ink on a light grey, or white on the stack's deep field
+  (`--iso-line` on the field, turned by `--nav-dark`).
+- **What actually costs you time** — the heading alone, centred and
+  larger than the hero's, its two lines set close, over three level
+  cards of one size, a gutter apart, with no line round or between them,
+  across the whole 12-Column Grid: Grid Columns 1–4, 5–8 and 9–12 (one
+  under another below 992px).
+- **Coin stack** — set into that heading (`CoinStack.astro`,
+  `coin-stack.css`, `coin-stack.js`): five coins at the site's isometric
+  angle, stood apart one under another with nothing drawn round them —
+  the logo's red disc on top, plain, then four greys, each carrying one
+  of the logo's four forms on its face. It shares the heading's cell,
+  centred on the words and sized from the heading's own size
+  (`--head-size`), and set between its two lines in depth: in front of
+  the first line and behind the second (the line reveal's `.line-mask`
+  elements each take a z-index about the coins; unsplit, the heading
+  stands in front whole). The red coin, the width of a couple of
+  letters, starts at the foot of the first line. Nothing holds or steers the scroll. As the
+  drawing passes up the screen, the red coin comes down and takes each
+  grey coin up as it reaches it, one after another, and each one's form
+  appears on the red face as it joins, so the logo is built a form at a
+  time; the stack comes to rest where the lowest coin stood, just under
+  the heading. It runs from the drawing's top 70% of the way down the
+  screen (the heading having risen in just before) to its middle a
+  little above the screen's, and the moment the stack is finished the
+  three cards under the heading rise in (`coinstack:settle`,
+  `initProblemGrid`), held down again only once the coins are wholly
+  back at the start. Under reduced motion it is the finished stack,
+  still.
+- **Service stack tabs** — every number on the stack's near-black
+  (`--stack-black`), every name in white;
+  no red. Which card is in front is told by the tabs' strength
+  (`is--active`, set by `initServiceStack` once a card is halfway onto
+  the one before it, and `is--behind` on the cards under it): the tab in
+  front, and any still to come, at full opacity on its card's own
+  charcoal, so an arriving tab is already its own colour; every tab
+  behind a shade deeper and at one same 60% (`--tab-strength`), eased
+  over 0.45s as the card in front changes. A
+  pointer or focus brings a tab behind up to 80%. A tab's ground runs a
+  pixel on under its card, so no hairline of the page shows between them
+  at any width. Every card has its copy on the left and its diagram on
+  the right; the copy is centred in its half both ways, its lines
+  centred, over a button naming its service ("View Workflow Workshop"…):
+  the site's button at its own size, as long as its label, in white, its
+  arrow block a light grey, the label sweeping to that grey on hover.
+  As a card rises over the one before, that one darkens under its shade
+  and, once the new card's top is 15% of the way up the screen, softens:
+  a layer in the card blurring what is behind it (`backdrop-filter`) at
+  a fixed 4px, faded in until the new card settles, scrubbed with the
+  scroll (`STACK_DEPTH` in `site.js`). The radius never changes, only
+  the layer's opacity (a radius moved every frame dropped frames on an
+  integrated GPU); a covered card's blur is switched off; the browser's
+  first blur is drawn once ahead of time, out of sight, as its setup
+  cost a ~120ms frame. Each card also slows into its place rather than
+  stopping dead where it sticks: over the last quarter of a screen of
+  scroll before it sticks it is drawn on ahead of the scroll by
+  D·t·(1 − t)² (t the scroll still to go over that stretch, D), so it
+  leaves the scroll's pace smoothly and seats at the same scroll as
+  before, at rest, never past its place; a transform only, written only
+  in that stretch. None of it under reduced motion.
 - **Testimonials** — the homepage's quotes (`TestimonialSlider.astro`,
   `testimonial-slider.js`), after the Outsource Consultants slider: every
   quote mounted and stacked in one place, split into masked lines that
@@ -468,25 +539,29 @@ navigation onto that page.
   the `--nav-text-*` tokens (the drawer redeclares only the size), and every
   colour is a `--nav-*` token in `src/styles/nav.css`, redeclared for the dark
   state. In the drawer, "For Tech Firms" leads the list. The dropdowns are the
-  bar continued downwards and, like it, built from blocks told apart by tone
-  rather than ruled off by lines, each standing on its own on the site's dot
-  grid (`.dot-grid`), which fills the space round and between them with no
-  ground of its own, fades in and out with the dimmed page, and is set out
-  on the 12-Column Grid so a column of dots runs down the middle of every
-  gutter. The four Services cards (`ServiceCard.astro`) take the homepage
+  bar continued downwards: each panel its groups side by side over the
+  dimmed page, with no ground or frame of their own, each group an equal
+  column of the screen's width and the dropdown's full height, parted
+  from the next by a hairline of the dimmed page. A panel opens column by
+  column (`initMegaNav`): each drops in from under the bar, clipped by
+  its edge, 0.07s after the one before, left to right, as the dimmed page
+  comes up; closing, they lift back under it, the last first; from one
+  panel to the other, the open one's columns lift out as the other's drop
+  in. In the drawer a panel's items slide in one after the next, 0.06s
+  apart. The four Services cards (`ServiceCard.astro`) take the homepage
   service stack's header — the number in a compact square, the name in the
   block beside it — over the service's diagram, drawn finer at this size,
-  and its description, all four on the one white ground, on Grid Columns
-  1–3, 4–6, 7–9 and 10–12, their rows in whole steps of the dots and
-  shared, so every part stands level across the four. The three Resources
-  blocks, thirds of the grid (Grid Columns 1–4, 5–8 and 9–12), are built
+  and its description, all four on the one white ground, a quarter of the
+  screen each, their rows in whole steps (`--sc-step`) and shared, so
+  every part stands level across the four. The three Resources blocks, a
+  third of the screen each, are built
   the same way round their own content: a header of the column's mark in a
   compact square and its name (Explore, Reports, Newsletter), its lead
   link, then a feature on the field's grey — the software database, the
   latest report with its cover, the signup — every row's words hanging
   from the name's line, the cards' palette and steps shared (`--sc-*`).
-  Stacked in the drawer, the cards and blocks sit a step apart on the dots,
-  over the page's off-white (dark, the bar's near-black), so the white
+  Stacked in the drawer, the cards and blocks sit a step apart, over the
+  page's off-white (dark, the bar's near-black), so the white
   stands off it as it does on the page. The nav stays in place
   over the main content whichever way the page scrolls, and leaves only
   where a section holds it out (`initNavReveal` in `site.js`): on the

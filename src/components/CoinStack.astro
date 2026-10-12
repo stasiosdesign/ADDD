@@ -1,0 +1,91 @@
+---
+/*
+  The homepage's coin stack, set into the "What actually costs you time"
+  heading after the approach (index.astro; coin-stack.css places it):
+  five coins, drawn at the site's isometric angle, stood apart one under
+  another, with nothing drawn round them. On top, the logo's red disc,
+  plain; under it four grey coins, each carrying one of the logo's four
+  forms on its face, in its place in the logo. As the page scrolls past,
+  the red coin comes down and takes each grey coin up as it reaches it,
+  one after another, and as each joins, its form appears on the red
+  face: the logo is built a form at a time, and the stack comes to rest
+  where the lowest coin stands, the logo on top. The page scrolls on as ever; the
+  drawing only follows it (coin-stack.js). Under reduced motion it is the
+  finished stack, still.
+
+  A horizontal circle in this projection is an upright ellipse its width
+  by 0.577 of it (src/scripts/iso.js), so every coin and the forms on it
+  are drawn to that. Each coin is drawn about its own
+  face's centre and placed by a translate, which the script moves.
+*/
+
+// the frame, in its own units
+const W = 260;
+const H = 600;
+const CX = W / 2;
+// the coins' radius across, and its depth on the screen: narrow enough
+// that, stood apart one under another, each coin's form shows clear of
+// the coin above it
+const R = 100;
+const RY = +(R * Math.tan(Math.PI / 6)).toFixed(2);
+// the column the coins stand down: its top and its floor, in the
+// drawing's units
+const TOP = 100;
+const FOOT = 520;
+
+// the logo's four forms, in its own 100 × 100 (assets/logo.svg), its disc
+// r 40.2 about 51, 50.3
+const FORMS = ["18.4,58.7 34.7,58.7 26.5,42.7", "34.7,42.7 49.7,50.7 34.7,58.7", "50.7,42.7 66.4,50.7 50.7,58.7", "66.8,42.7 82.4,50.7 66.8,58.7"];
+
+// the coins, top first: the red disc, then the four that each carry a
+// form, a grey a step deeper each, their edges a shade under their faces
+const COINS = [
+  { key: "logo", t: 14, face: "#C40000", edge: "#740000" },
+  { key: "form-1", t: 6, face: "#ececea", edge: "#b9b9b7", form: 0 },
+  { key: "form-2", t: 6, face: "#dcdcda", edge: "#aaaaa8", form: 1 },
+  { key: "form-3", t: 6, face: "#cbcbc9", edge: "#999997", form: 2 },
+  { key: "form-4", t: 6, face: "#babab8", edge: "#888886", form: 3 },
+];
+// apart, the faces evenly down the column, the lowest coin on its
+// floor; how far under the red face each coin's face sits once it has
+// joined (the coins above it, one on the next)
+const lowest = FOOT - COINS[COINS.length - 1].t;
+const first = TOP + 30;
+const step = (lowest - first) / (COINS.length - 1);
+let depth = 0;
+const coins = COINS.map((coin, k) => {
+  const placed = { ...coin, from: +(first + k * step).toFixed(2), under: depth };
+  depth += coin.t;
+  return placed;
+});
+// where the red face comes to rest, the whole stack on the floor
+const rest = +(FOOT - depth).toFixed(2);
+
+const f = (n: number) => +n.toFixed(2);
+// a coin about its face's centre: its edge — the front half of its rim
+// run down by its thickness — and its face
+const edge = (t: number) =>
+  `M${f(-R)} 0L${f(-R)} ${t}A${R} ${RY} 0 0 0 ${R} ${t}L${R} 0A${R} ${RY} 0 0 1 ${f(-R)} 0Z`;
+// the logo's own 100 × 100 laid on a face: its disc scaled to the coin
+// and pressed flat
+const flat = `scale(${f(R / 40.2)} ${f(RY / 40.2)}) translate(-51 -50.3)`;
+---
+<div class="coin-stack" data-coin-stack data-rest={rest} aria-hidden="true">
+  <svg class="coin-stack__drawing" viewBox={`0 0 ${W} ${H}`} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- the coins, the lowest first, so each hides what is under it -->
+    {[...coins].reverse().map((coin) => (
+      <g class="coin-stack__coin" data-coin={coin.key} data-from={coin.from} data-under={coin.under} transform={`translate(${CX} ${coin.from})`}>
+        <path d={edge(coin.t)} fill={coin.edge} />
+        <ellipse rx={R} ry={RY} fill={coin.face} />
+        {coin.form !== undefined && (
+          <polygon class="coin-stack__form" transform={flat} points={FORMS[coin.form]} />
+        )}
+        {coin.key === "logo" && (
+          <g transform={flat} fill="#fff">
+            {FORMS.map((points, k) => <polygon data-coin-form={k} points={points} />)}
+          </g>
+        )}
+      </g>
+    ))}
+  </svg>
+</div>

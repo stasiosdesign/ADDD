@@ -272,11 +272,25 @@
   background: var(--tone-media);
 }
 .step-card__media {
+  position: relative;
   display: flex;
   justify-content: center;
   /* the script makes the block a whole number of the field's steps */
   padding: var(--media-pad, 2rem) var(--card-pad);
 }
+
+/* Under the schematic, the drawing's own ground: a dotted axonometric
+   lattice on its two plan axes, centred on its setting-out cross
+   (dot-field.js draws it on a canvas that fills this layer), so the
+   forms stand on it and their faces hide it under them. The panel's
+   alone: the band's field of dots round the cards is its own. */
+.step-card__pattern {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.step-card__pattern > canvas { display: block; }
+.step-card__media > .schematic { position: relative; }
 
 /* the copy's block */
 .step-card__foot {

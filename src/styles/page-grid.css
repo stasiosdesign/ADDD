@@ -62,7 +62,7 @@
 
   /* Rows that compose across the grid. column-gap: normal hands them
      the grid's own gutter in place of the gap each sets as a flex row. */
-  .page--grid :is(.problem-head, .routes__head, .section-title, .creds__grid),
+  .page--grid :is(.routes__head, .section-title, .creds__grid),
   .page--grid .container > .pg-hero__grid {
     grid-column: 1 / -1;
     display: grid;
@@ -111,7 +111,7 @@
   }
 
   /* --- Intros: the lede in Grid Columns 2–4 -------------------- */
-  .page--grid :is(.problem-head__lede, .routes__lede, .section-title > .text-md) { grid-column: 2 / 5; }
+  .page--grid :is(.routes__lede, .section-title > .text-md) { grid-column: 2 / 5; }
 
   /* The intro headings start on Grid Column 7, as the hero's does, so
      the page has one heading line from top to bottom, and most keep
@@ -119,14 +119,24 @@
      longest, starts a column earlier, on Grid Column 6, which keeps it
      to the two lines it has always had, balanced. The approach
      stack's heading is the one that opens on the left, on Grid
-     Column 2 (approach-stack.css). */
-  .page--grid :is(.problem-head__h, .routes__h) { grid-column: 7 / 12; margin: 0; }
+     Column 2 (approach-stack.css), and the problems' title is centred
+     on the page's centre line, over its cards (styles.css). */
+  .page--grid .routes__h { grid-column: 7 / 12; margin: 0; }
   .page--grid .section-title__body { grid-column: 7 / 12; margin: 0; }
   .page--grid .compare .section-title__body { grid-column: 6 / 12; }
   .page--grid .compare .h2 { text-wrap: balance; }
 
-  /* --- Problems: the cards share Grid Columns 2–11 ------------- */
-  .page--grid .problem-grid { gap: var(--grid-gutter); }
+  /* --- Problems: the title on Grid Columns 2–11; the cards across the
+     whole grid, a row of its own twelve tracks (a subgrid), four Grid
+     Columns each: 1–4, 5–8 and 9–12, the grid's gutter between them */
+  .page--grid .problem-grid {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    column-gap: normal;
+  }
+  .page--grid .problem-card:nth-child(1) { grid-column: 1 / 5; }
+  .page--grid .problem-card:nth-child(2) { grid-column: 5 / 9; }
+  .page--grid .problem-card:nth-child(3) { grid-column: 9 / 13; }
 
   /* --- Credentials: the picture in Grid Columns 2–7, and the copy in
      Grid Columns 8–11, on the picture's foot ---------------------- */
@@ -146,28 +156,26 @@
   .page--grid .compare__side:last-child { grid-column: 7 / -1; }
 
   /* --- Research: the cards three Grid Columns wide and a gutter
-     apart, so at rest they stand on Grid Columns 2–4, 5–7 and 8–10.
-     The list takes the slider's width — Grid Columns 2–11 — so a card
-     can be sized from it; the cards run on past it into the clipped
-     overflow as before. */
+     apart. The list takes the slider's width, which is a whole number
+     of Grid Columns (--slider-cols: Grid Columns 2–11, ten, in a
+     contained section), so a card can be sized from it; the cards run
+     on past it into the clipped overflow as before. */
   /* The card is sized from the slider itself (its container, cqw), so it
      keeps its three columns however far the viewport runs past it. */
-  .page--grid .insight-slider { container-type: inline-size; }
+  .page--grid .insight-slider { container-type: inline-size; --slider-cols: 10; }
   .page--grid .insight-slider__list { width: 100%; }
   .page--grid .insight-slider__item {
-    width: calc((100cqw - 9 * var(--grid-gutter)) * 3 / 10 + 2 * var(--grid-gutter));
+    width: calc((100cqw - (var(--slider-cols) - 1) * var(--grid-gutter)) * 3 / var(--slider-cols) + 2 * var(--grid-gutter));
     max-width: none;
     margin-right: var(--grid-gutter);
   }
-  /* The homepage's research deck starts on Grid Column 2 and runs on
-     past Grid Column 11 to the screen's right edge: its viewport reaches
-     out over Grid Column 12, the gutter before it and the page margin
-     ((100% − 9 gutters) / 10 is one column of the slider's ten). Every
-     card is still reached by dragging, the arrows and the dots. */
-  .page--grid .research__head + .insight-slider .insight-slider__viewport {
-    width: auto;
-    margin-right: calc(-1 * ((100% - 9 * var(--grid-gutter)) / 10 + var(--grid-gutter) + var(--page-pad)));
-  }
+  /* The homepage's research deck takes the whole grid, from the start
+     of Grid Column 1, so at rest its cards stand on Grid Columns 1–3,
+     4–6, 7–9 and 10–12, and its viewport runs on past Grid Column 12
+     and the page margin to the screen's right edge (styles.css). Every
+     card is still reached by dragging, the arrows and the dots, which
+     run the grid's width under it. */
+  .page--grid .research__head + .insight-slider { grid-column: 1 / -1; --slider-cols: 12; }
 
   /* --- Closing CTA: the label in Grid Columns 2–4, the heading and
      buttons from Grid Column 5, the arrow at the end of Grid Column 11 */
@@ -252,9 +260,10 @@
 }
 
 /* Below 1200px three columns make a card too narrow for its copy, so
-   each takes four: Grid Columns 2–5 and 6–9 at rest. */
+   each takes four (on the homepage's deck, Grid Columns 1–4, 5–8 and
+   9–12 at rest). */
 @media screen and (min-width: 992px) and (max-width: 1199px) {
   .page--grid .insight-slider__item {
-    width: calc((100cqw - 9 * var(--grid-gutter)) * 4 / 10 + 3 * var(--grid-gutter));
+    width: calc((100cqw - (var(--slider-cols) - 1) * var(--grid-gutter)) * 4 / var(--slider-cols) + 3 * var(--grid-gutter));
   }
 }

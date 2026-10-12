@@ -1,21 +1,26 @@
 /* ============================================================
-   Dot fields — the homepage's grids of small dots
+   Fields — the grounds the homepage's drawings stand on, and the
+   grids of small dots
    ------------------------------------------------------------
    Two:
 
-   mountDotField: the backdrop of each service's diagram on the
-   service stack (index.astro, styles.css "service stack"). A square
-   grid set out on the field it fills rather than cut from a
-   wallpaper: a dot in each corner, the same margin on all four
-   sides, and the spacing worked out so the rows and columns divide
-   the field exactly, each axis as near the target pitch as a whole
-   number of steps allows. The corners carry small solid triangles,
-   after the logo's, each with its right angle on the corner and its
-   long side facing in, so the grid reads as drawn to its box. Drawn on one
-   canvas per field, at the screen's pixel density, when the field is
-   laid out and again whenever it changes size. It is still: a card
-   coming onto the stack shows its field as it is, with nothing
-   flickering in it.
+   mountIsoField: the field behind a drawing — each service's diagram
+   on the service stack (index.astro), and each step's schematic in
+   its card (ApproachStack.astro) — as the drawing's own ground plane:
+   an axonometric lattice of dotted lines on the drawing's two plan
+   axes, at 30° either way, a cell every MODULE of the drawing's units,
+   projected from the drawing's origin at the drawing's scale
+   (data-ground on its <svg>, src/scripts/iso.js), so the lattice runs
+   through the drawing's setting-out cross and the forms stand on it,
+   their faces hiding it under them. The dots along a line are a whole
+   number to a cell, so every crossing is a dot. Held back to a faint
+   white (or the field's own --iso-line: the nav's Services cards draw
+   it dark, nav.css), and run out to every edge of the field, which
+   simply crops it: no margin, no frame, nothing at its corners. Drawn
+   on one canvas per field, at the screen's pixel density, when the
+   field is laid out and again
+   whenever it or its drawing changes size. It is still: nothing in it
+   moves or flickers.
 
    mountDotFlicker: the flicker, over a grid drawn by CSS (the
    approach band's, approach-stack.css), its dots placed by the
@@ -26,15 +31,13 @@
    a moment, then a last blink out. Never more than a few at once, and
    only while the field is on the screen; with reduced motion, none.
    ============================================================ */
-// the target distance between dots, and the margin round the grid (CSS px)
-const PITCH = 18;
-const INSET = 18;
-const DOT = 2;
-// the corner marks: right-angled triangles, after the logo's, their legs
-// this long (CSS px)
-const CORNER = 7;
-const BASE = "rgba(255, 255, 255, 0.14)";
-const MARK = "rgba(255, 255, 255, 0.6)";
+// the ground's cell, in the drawing's own units, and its dotted lines:
+// about this far apart on the screen, this big, in this white
+const MODULE = 54;
+const LINE_STEP = 6;
+const LINE_DOT = 1.5;
+const LINE = "rgba(255, 255, 255, 0.11)";
+const ISO = Math.cos(Math.PI / 6);
 // how often a dot lights (s, at random within), and how many at once
 const FLICKER = { min: 0.4, max: 1, most: 3 };
 // the burst: on or off, and for how long (s), in turn
@@ -86,50 +89,59 @@ function scheduler(el, light, reducedMotion) {
   };
 }
 
-export function mountDotField(el) {
+export function mountIsoField(el) {
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
   el.appendChild(canvas);
   const ctx = canvas.getContext("2d");
+  // the drawing the field stands behind, which names its ground's origin
+  // in its own units (data-ground: "x y" in its viewBox)
+  const drawing = el.parentElement?.querySelector(":scope > svg[data-ground]");
 
-  let grid = null;
+  let field = null;
+  const snap = (v) => Math.round(v * field.dpr) / field.dpr;
 
-  // the dots' positions along one side: a whole number of equal steps
-  // from the margin at one end to the margin at the other
-  const axis = (length) => {
-    const span = length - 2 * INSET;
-    const count = Math.max(2, Math.floor(span / PITCH) + 1);
-    const step = span / (count - 1);
-    return Array.from({ length: count }, (_, k) => INSET + k * step);
-  };
-  const snap = (v) => Math.round(v * grid.dpr) / grid.dpr;
-  const isCorner = (i, j) => (i === 0 || i === grid.xs.length - 1) && (j === 0 || j === grid.ys.length - 1);
-
-  function dot(x, y, colour) {
-    ctx.fillStyle = colour;
-    ctx.fillRect(snap(x - DOT / 2), snap(y - DOT / 2), DOT, DOT);
-  }
-
-  // a corner's mark: a small solid triangle, its right angle on the grid's
-  // corner and its long side facing in, towards the middle of the field
-  // (sx, sy: which way is in, across and down)
-  function corner(x, y, sx, sy) {
-    ctx.fillStyle = MARK;
-    ctx.beginPath();
-    ctx.moveTo(snap(x), snap(y));
-    ctx.lineTo(snap(x + sx * CORNER), snap(y));
-    ctx.lineTo(snap(x), snap(y + sy * CORNER));
-    ctx.closePath();
-    ctx.fill();
-  }
-
+  // The drawing's ground plane: its lines x = k·MODULE and y = k·MODULE,
+  // projected as the drawing is (src/scripts/iso.js) from its own origin
+  // at its own scale, each a run of dots a whole number to a module, so
+  // where two lines cross there is always a dot. To every edge of the
+  // field, which crops it.
   function draw() {
-    ctx.clearRect(0, 0, grid.width, grid.height);
-    grid.ys.forEach((y, j) => grid.xs.forEach((x, i) => (isCorner(i, j) ? corner(x, y, i === 0 ? 1 : -1, j === 0 ? 1 : -1) : dot(x, y, BASE))));
+    const { width, height, ox, oy, scale } = field;
+    ctx.clearRect(0, 0, width, height);
+    const x0 = 0, x1 = width, y0 = 0, y1 = height;
+    // the field's corners on the ground, for the lines that cross it
+    const ground = [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(([X, Y]) => {
+      const u = (X - ox) / scale / ISO;
+      const v = (2 * (Y - oy)) / scale;
+      return [(u + v) / 2, (v - u) / 2];
+    });
+    const lo = (i) => Math.min(...ground.map((g) => g[i]));
+    const hi = (i) => Math.max(...ground.map((g) => g[i]));
+    // dots a little under LINE_STEP apart on the screen, a whole number to
+    // a module (one ground unit is one screen unit long along either axis)
+    const per = Math.max(2, Math.round((MODULE * scale) / LINE_STEP));
+    const step = MODULE / per;
+    const at = (x, y) => [ox + (x - y) * ISO * scale, oy + ((x + y) / 2) * scale];
+    ctx.fillStyle = getComputedStyle(el).getPropertyValue("--iso-line").trim() || LINE;
+    const run = (fixed, along, swap) => {
+      for (let k = Math.ceil(lo(fixed) / MODULE); k <= Math.floor(hi(fixed) / MODULE); k++) {
+        for (let m = Math.ceil(lo(along) / step); m <= Math.floor(hi(along) / step); m++) {
+          const [X, Y] = swap ? at(m * step, k * MODULE) : at(k * MODULE, m * step);
+          if (X < x0 - 0.5 || X > x1 + 0.5 || Y < y0 - 0.5 || Y > y1 + 0.5) continue;
+          ctx.fillRect(snap(X - LINE_DOT / 2), snap(Y - LINE_DOT / 2), LINE_DOT, LINE_DOT);
+        }
+      }
+    };
+    // the lines along y (x fixed), then along x (y fixed); where they
+    // cross the dot is drawn twice, which the second simply covers
+    run(0, 1, false);
+    run(1, 0, true);
   }
 
   function layout() {
-    const { width, height } = el.getBoundingClientRect();
+    const box = el.getBoundingClientRect();
+    const { width, height } = box;
     if (!width || !height) return;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(width * dpr);
@@ -137,18 +149,32 @@ export function mountDotField(el) {
     canvas.style.width = `${width}px`;
     canvas.style.height = `${height}px`;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    grid = { width, height, dpr, xs: axis(width), ys: axis(height) };
+    // the drawing's origin and scale in the field: its viewBox fitted into
+    // its box, centred (the default preserveAspectRatio); without a drawing,
+    // the field's middle at the screen's own scale
+    let ox = width / 2, oy = height / 2, scale = 1;
+    const view = drawing?.viewBox?.baseVal;
+    if (drawing && view?.width) {
+      const d = drawing.getBoundingClientRect();
+      scale = Math.min(d.width / view.width, d.height / view.height);
+      const [gx, gy] = drawing.dataset.ground.split(/[ ,]+/).map(Number);
+      ox = d.left - box.left + (d.width - view.width * scale) / 2 + (gx - view.x) * scale;
+      oy = d.top - box.top + (d.height - view.height * scale) / 2 + (gy - view.y) * scale;
+    }
+    field = { width, height, dpr, ox, oy, scale };
     draw();
   }
 
   layout();
 
+  // laid out again whenever the field or its drawing changes size
   let pending = 0;
   const resizer = new ResizeObserver(() => {
     cancelAnimationFrame(pending);
     pending = requestAnimationFrame(layout);
   });
   resizer.observe(el);
+  if (drawing) resizer.observe(drawing);
 
   return {
     destroy() {

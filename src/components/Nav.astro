@@ -141,12 +141,11 @@ const services: { href: string; name: string; desc: string }[] = [
   <div data-dropdown-wrapper class="mega-nav__dropdown-wrapper">
     <div data-dropdown-container class="mega-nav__dropdown-container">
 
-      <!-- Each panel's blocks stand on the site's dot grid, which fills the
-           space round and between them and has no ground of its own
-           (nav.css, "The dropdowns' frame"; initMegaNav fades it). -->
+      <!-- Each panel is its groups side by side, each an equal column the
+           dropdown's full height, with nothing behind them but the dimmed
+           page (nav.css, "The dropdowns' columns"). -->
       <div data-nav-content="services" id="mega-nav-services" role="region" aria-label="Services" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner is--services">
-          <span class="mega-nav__dots dot-grid" data-menu-dots aria-hidden="true"></span>
           {services.map((s, i) => (
             <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} text={s.desc} />
           ))}
@@ -155,7 +154,6 @@ const services: { href: string; name: string; desc: string }[] = [
 
       <div data-nav-content="resources" id="mega-nav-resources" role="region" aria-label="Resources" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner is--resources">
-          <span class="mega-nav__dots dot-grid" data-menu-dots aria-hidden="true"></span>
 
           <!-- The three Resources blocks, in the Services cards' language
                (nav.css, "Resources blocks"): a header of the column's

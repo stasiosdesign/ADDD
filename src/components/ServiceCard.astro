@@ -3,9 +3,10 @@
   One service as a card in the nav's Services dropdown (Nav.astro; nav.css,
   "Services cards"), in the homepage service stack's language: a header of
   two blocks, the number in a compact square and the name in the block
-  beside it, then the service's diagram on a field of its own, then the
-  description, hung from the name's line. Blocks told apart by tone, never
-  ruled off, on the one white ground every card shares.
+  beside it, then the service's diagram on a field of its own, standing on
+  the stack's dotted lattice, then the description, hung from the name's
+  line. Blocks told apart by tone, never ruled off, on the one white
+  ground every card shares.
 */
 import ServiceDiagram from "./ServiceDiagram.astro";
 
@@ -24,6 +25,10 @@ const { href, index, title, text, ...attrs } = Astro.props;
   <span class="service-card__num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
   <span class="service-card__title">{title}</span>
   <span class="service-card__media">
+    <!-- the drawing's ground, the service stack's dotted axonometric
+         lattice, to the field's edges (dot-field.js, mounted by
+         initMegaNav) -->
+    <span class="service-card__pattern" data-iso-field aria-hidden="true"></span>
     <ServiceDiagram index={index} class="service-card__diagram" />
   </span>
   <span class="service-card__body">
