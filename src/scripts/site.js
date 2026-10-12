@@ -21,6 +21,7 @@ import { mountApproachStack } from "./approach-stack.js";
 import { mountStickyTitle } from "./sticky-title.js";
 import { mountWordCycle } from "./word-cycle.js";
 import { mountDotField } from "./dot-field.js";
+import { mountServiceDiagram } from "./service-diagram.js";
 import { mountTestimonialSlider } from "./testimonial-slider.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
@@ -429,6 +430,7 @@ const PAGE_COMPONENTS = [
   ["[data-split=\"heading\"]", initLineReveal],
   ["[data-service-stack]", initServiceStack],
   ["[data-dot-field]", initDotFields],
+  ["[data-service-diagram]", initServiceDiagrams],
   ["[data-enquiry-offer]", initEnquiryOffer],
   ["[data-slash-field]", initSlashField],
   ["[data-word-cycle]", initWordCycle],
@@ -839,7 +841,9 @@ function initMegaNav() {
   // or animated, and each block (Services' cards, Resources' columns)
   // drops in from under the bar on its own, clipped by the dropdown's top
   // edge, one after the next; closing, they lift back up under it, the
-  // last first. Only transforms and opacity move.
+  // last first. The dots round them (nav.css, "The dropdowns' frame")
+  // fade in and out with the dimmed page they lie on, and cross over when
+  // one panel hands over to the other. Only transforms and opacity move.
   const DUR = {
     // the mobile drawer's panels, item by item
     stagger: 0.06,
@@ -893,10 +897,13 @@ function initMegaNav() {
   const panelByName = new Map(panels.map((p) => [p.dataset.navContent, p]));
   const toggleByName = new Map(toggles.map((t) => [t.dataset.dropdownToggle, t]));
   const fadeByPanel = new Map(panels.map((p) => [p, p.querySelectorAll("[data-menu-fade]")]));
+  const dotsByPanel = new Map(panels.map((p) => [p, p.querySelector("[data-menu-dots]")]));
+  const allDots = [...dotsByPanel.values()].filter(Boolean);
   const navItems = navList.querySelectorAll("[data-nav-list-item]");
   const getPanel = (name) => panelByName.get(name);
   const getToggle = (name) => toggleByName.get(name);
   const getFade = (el) => fadeByPanel.get(el);
+  const getDots = (el) => dotsByPanel.get(el) ?? [];
   const stagger = (n) => (n <= 1 ? 0 : { amount: DUR.stagger });
 
   function clearTimers() {
@@ -911,7 +918,7 @@ function initMegaNav() {
 
   function killDropdown() {
     killTl("tl");
-    gsap.killTweensOf(backdrop);
+    gsap.killTweensOf([backdrop, ...allDots]);
     panels.forEach((p) => { gsap.killTweensOf(p); gsap.killTweensOf(getFade(p)); });
   }
 
@@ -936,6 +943,7 @@ function initMegaNav() {
   function hidePanel(p) {
     gsap.set(p, { visibility: "hidden", opacity: 0, pointerEvents: "none", x: 0, y: 0, xPercent: 0, clearProps: "position,zIndex" });
     gsap.set(getFade(p), { autoAlpha: 0, x: 0, y: 0, xPercent: 0, yPercent: 0 });
+    gsap.set(getDots(p), { autoAlpha: 0 });
   }
 
   // The panel being opened: in the dropdown's flow, so the dropdown is its
@@ -960,6 +968,8 @@ function initMegaNav() {
       gsap.set(getFade(p), { xPercent: 20, yPercent: 0, autoAlpha: 0 });
     });
     gsap.set(navItems, { xPercent: 0, y: 0, autoAlpha: 1 });
+    // in the drawer the dots go with their panel
+    gsap.set(allDots, { autoAlpha: 1 });
     gsap.set(navList, { autoAlpha: 0, x: 0 });
     gsap.set(backBtn, { autoAlpha: 0 });
     gsap.set(logo, { autoAlpha: 1 });
@@ -1012,7 +1022,7 @@ function initMegaNav() {
     showPanel(el);
     const tl = gsap.timeline();
     state.tl = tl;
-    tl.to(backdrop, { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0);
+    tl.to([backdrop, getDots(el)], { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0);
     dropIn(tl, blocks);
   }
 
@@ -1039,6 +1049,7 @@ function initMegaNav() {
       liftOut(tl, getFade(el));
     }
     tl.to(backdrop, { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0.05);
+    if (el) tl.to(getDots(el), { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0.05);
   }
 
   // DESKTOP — switch panel: the open panel's blocks lift out while the
@@ -1065,6 +1076,9 @@ function initMegaNav() {
     const tl = gsap.timeline();
     state.tl = tl;
     liftOut(tl, fromBlocks);
+    // the dots cross over, the arriving panel's over the leaving one's
+    tl.to(getDots(fromEl), { autoAlpha: 0, duration: DUR.liftOut, ease: "power2.inOut" }, 0);
+    tl.fromTo(getDots(toEl), { autoAlpha: 0 }, { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0.05);
     tl.add(() => hidePanel(fromEl));
     dropIn(tl, toBlocks, 0.1);
   }
@@ -1423,6 +1437,7 @@ function initMegaNav() {
           gsap.set(p, { clearProps: "all" });
           gsap.set(getFade(p), { clearProps: "all" });
         });
+        gsap.set(allDots, { clearProps: "all" });
 
         burger.setAttribute("aria-expanded", "false");
         // also covers a close that was still animating when it was killed
@@ -2595,9 +2610,11 @@ function initLineReveal(container) {
        back, darkening under its shade while its tab fades (never
        shrinking, so every edge stays on the grid), scrubbed with the
        scroll from the moment it settles to the moment the next settles
-       on it, so it runs back exactly on the way up. Opacity only. Not
-       with reduced motion, where the stylesheet lets the cards simply
-       follow one another;
+       on it, so it runs back exactly on the way up. Opacity only: the
+       shade's own, and the tab's through --tab-back, so the
+       stylesheet can lift a drawn-back tab a little under the pointer.
+       Not with reduced motion, where the stylesheet lets the cards
+       simply follow one another;
      - bringing a card back: a card is on top of the stack at the
        scroll where it has just come to rest, its place in the page's
        flow less the height it sticks at. A tab goes there, on Lenis,
@@ -2613,7 +2630,8 @@ function initLineReveal(container) {
    stick, and the cards' own heights, rather than measured off the
    sticky cards, whose positions depend on the scroll they are read at.
    ============================================================ */
-const STACK_DEPTH = { shade: 0.6, tab: 0.45 };
+// how dark a card behind goes; its tab fades to the stylesheet's --tab-depth
+const STACK_DEPTH = { shade: 0.6 };
 // the scroll back to a card: ease in and out (cubic)
 const STACK_EASE = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
@@ -2623,6 +2641,15 @@ function initDotFields(container) {
   container.querySelectorAll("[data-dot-field]").forEach((el) => {
     const field = mountDotField(el);
     registerPageCleanup(() => field.destroy());
+  });
+}
+
+// The service stack's diagrams, each moving by its own idea
+// (service-diagram.js).
+function initServiceDiagrams(container) {
+  container.querySelectorAll("[data-service-diagram]").forEach((el) => {
+    const diagram = mountServiceDiagram(el);
+    registerPageCleanup(() => diagram.destroy());
   });
 }
 
@@ -2655,7 +2682,7 @@ function initServiceStack(container) {
           },
         })
           .to(part(item, "shade"), { opacity: STACK_DEPTH.shade }, 0)
-          .to(part(item, "tab"), { opacity: STACK_DEPTH.tab }, 0);
+          .to(part(item, "tab"), { "--tab-back": 1 }, 0);
       });
     });
 

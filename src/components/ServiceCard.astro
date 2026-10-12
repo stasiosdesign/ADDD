@@ -1,10 +1,11 @@
 ---
 /*
-  One service as a card (the "routes cards" block in src/styles/styles.css):
-  a band of grid cells with the service's number and name in a box set
-  into it, then its diagram, then the description. The homepage's route
-  cards and the nav's Services panel are both these, so the two never
-  drift apart.
+  One service as a card in the nav's Services dropdown (Nav.astro; nav.css,
+  "Services cards"), in the homepage service stack's language: a header of
+  two blocks, the number in a compact square and the name in the block
+  beside it, then the service's diagram on a field of its own, then the
+  description, hung from the name's line. Blocks told apart by tone, never
+  ruled off, on the one white ground every card shares.
 */
 import ServiceDiagram from "./ServiceDiagram.astro";
 
@@ -14,32 +15,18 @@ interface Props {
   index: number;
   title: string;
   text: string;
-  /** The Sanity field the card's words come from, e.g. "routes.cards.0",
-      for the Studio's Visual editor; none where the words are fixed. */
-  field?: string;
-  /** A label on a tab above the card (the homepage's taglines); none in the nav. */
-  label?: string;
   [attr: string]: unknown;
 }
 
-const { href, index, title, text, field, label, ...attrs } = Astro.props;
+const { href, index, title, text, ...attrs } = Astro.props;
 ---
-<!-- --i: the card's place in its row's grid, which lays its band and panel
-     out to the row's full share (the "routes cards" block, styles.css) -->
-<a class="route-card" href={href} style={`--i:${index}`} {...attrs}>
-  {label && <span class="route-card__tab" data-page-field={field && `${field}.tagline`}>{label}</span>}
-  <div class="route-card__head">
-    <div class="route-card__title">
-      <span class="route-card__num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-      <h3 class="route-card__h" data-page-field={field && `${field}.title`}>{title}</h3>
-    </div>
-  </div>
-  <div class="route-card__panel">
-    <div class="route-card__media">
-      <ServiceDiagram index={index} class="route-card__diagram" />
-    </div>
-    <div class="route-card__body">
-      <p class="route-card__p" data-page-field={field && `${field}.text`}>{text}</p>
-    </div>
-  </div>
+<a class="service-card" href={href} {...attrs}>
+  <span class="service-card__num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+  <span class="service-card__title">{title}</span>
+  <span class="service-card__media">
+    <ServiceDiagram index={index} class="service-card__diagram" />
+  </span>
+  <span class="service-card__body">
+    <span class="service-card__p">{text}</span>
+  </span>
 </a>

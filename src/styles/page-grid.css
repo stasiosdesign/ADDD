@@ -128,15 +128,10 @@
   /* --- Problems: the cards share Grid Columns 2–11 ------------- */
   .page--grid .problem-grid { gap: var(--grid-gutter); }
 
-  /* --- Credentials: the pictures in Grid Columns 2–7, three columns
-     each, and the copy in Grid Columns 8–11 ----------------------- */
-  .page--grid .creds__media {
-    grid-column: 2 / 8;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--grid-gutter);
-  }
-  .page--grid .creds__text { grid-column: 8 / 12; }
+  /* --- Credentials: the picture in Grid Columns 2–7, and the copy in
+     Grid Columns 8–11, on the picture's foot ---------------------- */
+  .page--grid .creds__media { grid-column: 2 / 8; }
+  .page--grid .creds__text { grid-column: 8 / 12; align-self: end; }
 
   /* --- Fit: the two sides split the grid, Grid Columns 1–6 and
      7–12, so they meet on the page's centre line, a gutter apart -- */

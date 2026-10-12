@@ -30,9 +30,9 @@
    set on the element each frame is an ordinary style change, which
    visited links follow like everything else.
 
-   The dropdown is the bar continued downwards: its surface is the bar's
-   own --nav-bg and its text --nav-fg, and the ink-filled chips are the
-   pair the other way round, so each of them inverts with the bar. */
+   The dropdown is the bar continued downwards: in the drawer its surface
+   is the bar's own --nav-bg, and its blocks — the Services cards and the
+   Resources blocks — keep their own grounds in either state. */
 .mega-nav {
   --nav-height: 3.9em;
 
@@ -49,11 +49,6 @@
   --nav-text-size: .9375em;
   --nav-text-weight: 400;
   --nav-text-leading: 1.5;
-  /* dropdown: the Services cards and the Resources panels float on the
-     nav's ground, this thin a margin round and between them, on the
-     site's own small radius */
-  --nav-card-gap: .375em;
-  --nav-card-radius: var(--radius);
 
   z-index: 100;
   position: fixed;
@@ -104,20 +99,9 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   --nav-feature-bg: color-mix(in oklab, #e5e5e5, #202020 var(--nav-dark));
   --nav-feature-fg: color-mix(in oklab, var(--c-text), var(--c-white) var(--nav-dark));
   --nav-group-bg: color-mix(in oklab, var(--c-light-fg), rgba(255, 255, 255, .06) var(--nav-dark));
-  /* dropdown: the Reports column, the service cards' wording and the
-     quiet chips (the newsletter column and the cards' bands take the
-     feature block's grey, --nav-feature-bg); dark, the one-step-off
-     fill the dark sections already use for tiles */
-  --nav-tint: color-mix(in oklab, var(--c-light-fg), rgba(255, 255, 255, .06) var(--nav-dark));
-  /* dropdown: a service card's graphic frame with nothing in it yet, a
-     step deeper than the card's grey in either state */
-  --nav-placeholder: color-mix(in oklab, #d4d4d4, #161616 var(--nav-dark));
-  /* dropdown: descriptions and small labels */
-  --nav-muted: color-mix(in oklab, #6b6b6b, rgba(255, 255, 255, .6) var(--nav-dark));
-  /* dropdown: the accent as text, the featured report's call to read;
-     the red is not legible as text on the near-black, so dark, it takes
-     the nav's own white */
-  --nav-accent-text: color-mix(in oklab, var(--c-red), var(--c-white) var(--nav-dark));
+  /* the drawer's dropdown panels: the page's off-white, which the white
+     cards and blocks stand off, as they do on the page; dark, the bar's */
+  --nav-panel-bg: color-mix(in oklab, var(--c-light-bg), var(--c-dark-fg) var(--nav-dark));
 }
 
 /* No rule along the bottom: the bar meets the page directly, with
@@ -350,238 +334,352 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   overflow: hidden;
 }
 
-/* It is the bar continued downwards, and like the bar it is built from
-   blocks told apart by their tone rather than ruled off by lines, set on
-   the 12-Column Grid. */
-.mega-nav__dropdown-inner { display: flex; align-items: stretch; }
+/* --- The dropdowns' frame -------------------------------------------
+   It is the bar continued downwards, and like the bar it is built from
+   blocks told apart by their tone rather than ruled off by lines, each
+   block standing on its own: the Services cards on Grid Columns 1–3,
+   4–6, 7–9 and 10–12, the Resources columns on 1–4, 5–8 and 9–12, a
+   gutter apart, the grid's margin in from the screen's sides and the
+   same two edges' step (the margin less any frame) under the bar and
+   under the blocks. The space round and between them is the site's dot
+   grid (.dot-grid, styles.css) on no ground of its own: a layer of dots
+   under the blocks, faded in and out with the dropdown (initMegaNav), so
+   there is no panel behind the blocks to flash or to grow open.
 
-.mega-nav__panel-col {
-  flex-flow: column;
-  flex: 1;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 1.5em;
-  min-width: 0;
-  padding: 2.5em 3em;
-  display: flex;
-}
-/* Reports, on the group's light grey; the newsletter, on the feature
-   block's grey a step darker. */
-.mega-nav__panel-col.is--tint { background-color: var(--nav-tint); }
-.mega-nav__panel-col.is--colored { background-color: var(--nav-feature-bg); }
-
-/* Resources, in the Services cards' language: the three columns are three
-   blocks of their own, a thin gap apart, each on its own grey with the
-   small radius, no ground behind them (on a phone, inside the drawer's
-   panel, a thin margin round them too). Inside, the featured report is a
-   card of the nav's white on that grey. */
-.mega-nav__dropdown-inner.is--resources {
-  gap: var(--nav-card-gap);
-  padding: var(--nav-card-gap);
-}
-.is--resources > .mega-nav__panel-col {
-  background-color: var(--nav-feature-bg);
-  border-radius: var(--nav-card-radius);
-  padding: 2em 2.25em;
-}
-
-.mega-nav__panel-label {
-  color: var(--nav-fg);
-  font-size: .8125em;
-  line-height: 1;
-}
-
-/* Rows held apart by space alone. */
-.mega-nav__panel-list {
-  flex-flow: column;
+   The dots are set out on the grid. From 992px their pitch fits a whole
+   number of steps (--nav-dots-steps) to a block and the gutter after it
+   (--nav-dots-span columns and their gutters), which comes to the
+   gutter's own width to within a few hundredths, so one column of dots
+   runs down the middle of every gutter and every block's sides run
+   midway between two. Below 992px the blocks stand one under another,
+   the full width of the grid, a step apart, and the pitch fits a whole
+   number of steps across them (--nav-dots-across), near the 18px the
+   site's dots are drawn on at each range's ideal width. Either way the
+   rows are set the same way from the blocks' top, and the counts hold at
+   every width in a range, as the grid scales with the page
+   (scaling.css). Over the dimmed page (desktop) the dots are the
+   dark-ground ones; in the drawer, on the nav's own ground, they are
+   mixed between the two by --nav-dark, as every nav colour is. */
+.mega-nav__dropdown-container { container-type: inline-size; }
+.mega-nav__dropdown-inner {
+  --nav-frame-y: calc(2 * var(--grid-edge));
+  --nav-dots-across: 42;
+  --dot-pitch: calc((100cqw - 2 * var(--grid-margin)) / var(--nav-dots-across));
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: stretch;
-  gap: 1.75em;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
+  gap: var(--dot-pitch);
+  padding: var(--nav-frame-y) var(--grid-margin);
 }
+@media (max-width: 767px) { .mega-nav__dropdown-inner { --nav-dots-across: 28; } }
+@media (max-width: 479px) { .mega-nav__dropdown-inner { --nav-dots-across: 19; } }
+@media (min-width: 992px) {
+  .mega-nav__dropdown-inner {
+    --nav-dropdown-col: calc((100cqw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+    --dot-pitch: calc(var(--nav-dots-span) * (var(--nav-dropdown-col) + var(--grid-gutter)) / var(--nav-dots-steps));
+    column-gap: var(--grid-gutter);
+  }
+}
+.mega-nav__dots {
+  position: absolute;
+  inset: 0;
+  /* a column and a row of dots half a step before the first block's
+     left side and its top, so both run midway */
+  --dot-x: calc(var(--grid-margin) - var(--dot-pitch) / 2);
+  --dot-y: calc(var(--nav-frame-y) - var(--dot-pitch) / 2);
+  --dot-grid-ink: color-mix(in oklab, var(--dot-grid-on-light), var(--dot-grid-on-dark) var(--nav-dark));
+}
+@media (min-width: 992px) {
+  .mega-nav__dots {
+    /* over the dimmed page, whichever state the bar is in */
+    --dot-grid-ink: var(--dot-grid-on-dark);
+    /* a column dead in the middle of every gutter, so a pitch a hair
+       longer than the gutter splits the difference either side of it */
+    --dot-x: calc(var(--grid-margin) - var(--grid-gutter) / 2);
+  }
+}
+/* each block over the dots */
+.mega-nav__dropdown-inner > :not(.mega-nav__dots) { position: relative; }
 
-/* Icon chip on the left, wording on the right, the two centred on each
-   other: the chip is tall enough to carry a title and its line of
-   description beside it. */
-.mega-nav__panel-link {
-  color: var(--nav-fg);
-  flex-flow: row;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 1.125em;
-  width: 100%;
-  padding: 0;
+/* --- Services cards (ServiceCard.astro) -----------------------------
+   The homepage's service stack in the dropdown's own terms: each card a
+   set of blocks fitted edge to edge and told apart by tone. Along the
+   top, the header the stack's tabs have, the number in a compact square
+   and the name in the block beside it; under them the diagram, on a
+   field a step off the card's ground; under that the description, hung
+   from the name's line. A step more compact than the stack: the type a
+   size down, the header three of the dot grid's steps.
+
+   Every card is on the one white ground, the number's square a light
+   grey and the diagram's field a step off the white, so the four read
+   as one set and the dropdown as one surface of blocks, the diagram's
+   red signal the only colour. The rows are whole steps of the dot grid (--dot-pitch,
+   above), so every line in a card runs midway between two rows of the
+   dots beside it, and from 992px the four share their rows (subgrid),
+   so each part stands level across the four whatever its words.
+
+   Their movement is the menu script's alone (they drop in on open,
+   initMegaNav). The hover is a shade laid over the card, an opacity
+   change only, so nothing is laid out again under the pointer. */
+.mega-nav__dropdown-inner.is--services { --nav-dots-span: 3; --nav-dots-steps: 19; }
+
+/* the cards' palette and steps, which the Resources blocks share */
+.service-card,
+.resource-block {
+  --sc-ground: var(--c-white);
+  --sc-ink: var(--c-text);
+  --sc-num: #e6e6e6;
+  --sc-field: var(--c-light-fg);
+  --sc-text: color-mix(in srgb, var(--sc-ink) 80%, transparent);
+  --sc-accent: var(--c-red);
+  /* the hover's shade, laid over the white */
+  --sc-shade: #000;
+  --sc-ring: var(--c-red);
+  --sc-step: var(--dot-pitch, 1.125rem);
+  --sc-head: calc(3 * var(--sc-step));
+  --sc-pad: var(--sc-step);
+}
+.service-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--sc-head) minmax(0, 1fr);
+  grid-template-rows: var(--sc-head) calc(var(--sc-media-steps, 9) * var(--sc-step)) minmax(calc(4 * var(--sc-step)), auto);
+  background: var(--sc-ground);
+  color: var(--sc-ink);
   text-decoration: none;
-  display: flex;
+  outline: none;
 }
-.mega-nav__panel-link-body {
-  flex-flow: column;
-  align-items: flex-start;
-  gap: .1875em;
-  min-width: 0;
-  display: flex;
+.service-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--sc-shade);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
 }
+.service-card:hover::after { opacity: .07; }
+.service-card:active::after { opacity: .14; }
+.service-card:focus-visible::after { opacity: .07; }
+/* the keyboard's ring, inside the card, in a colour that reads on its
+   ground */
+.service-card:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
 
-/* The dropdown's hovers are plain transitions of the colours they change.
-   Not a tween of a custom property that the colours are mixed by: while
-   a CSS animation moves a custom property, Chrome paints a visited link's
-   text in the page's ink (see the top of this file), and these rows are
-   links people come back to — a chip's icon went black for the length of
-   the hover. The theme never changes under an open dropdown (it holds
-   until the dropdown has closed, initNavTheme in site.js), so nothing
-   here is ever moving with the theme at the same time. */
-
-/* The chip: a 56px square on the site radius carrying the item's 24px
-   icon. Light-tinted as standard; the lead row of a column takes the
-   ink so it reads first. Every chip turns the accent on hover — the
-   same mark the arrow chips make elsewhere. */
-.mega-nav__panel-icon {
-  flex: none;
+.service-card__num {
+  grid-area: 1 / 1;
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 3.5em;
-  height: 3.5em;
-  border-radius: var(--radius);
-  background-color: var(--nav-tint);
-  color: var(--nav-fg);
+  background: var(--sc-num);
+  font-family: var(--font-mono);
+  font-size: .75rem;
+  line-height: 1;
+  letter-spacing: 0;
+}
+.service-card__title {
+  grid-area: 1 / 2;
   display: flex;
-  transition: background-color .25s ease, color .25s ease;
-}
-.mega-nav__panel-icon svg { width: 1.5em; height: 1.5em; }
-.mega-nav__panel-link.is--lead .mega-nav__panel-icon {
-  background-color: var(--nav-fg);
-  color: var(--nav-bg);
-}
-.mega-nav__panel-link:hover .mega-nav__panel-icon {
-  background-color: var(--c-red);
-  color: var(--c-white);
-}
-
-.mega-nav__panel-link:hover .mega-nav__panel-link-text { opacity: .6; }
-.mega-nav__panel-link-text { font-size: 1.125em; font-weight: 400; line-height: 1.3; transition: opacity .2s ease; }
-.mega-nav__panel-link-desc { color: var(--nav-muted); font-size: .9375em; font-weight: 400; line-height: 1.32; }
-
-/* Lead item in a column — the same row, one step up in size. */
-.mega-nav__panel-link.is--lead .mega-nav__panel-link-text { font-size: 1.25em; }
-
-/* Services panel — the four services as the homepage's route cards
-   (ServiceCard.astro; the "routes cards" block in styles.css, which sizes
-   every part to the card's own width), set here as one table: edge to
-   edge under the bar, no gaps, the cards divided by single hairlines,
-   the header strips one row closed by a hairline, and the panels open
-   below it rather than boxed. On the homepage the same cards stand apart
-   on the ink. */
-.mega-nav__panel-col.is--services {
-  flex: 1;
-  gap: 0;
-  padding: 0;
-  align-items: stretch;
-}
-
-.mega-nav__service-grid {
-  --cards-gap: 0px;
-  --cards-cols: 4;
-  grid-template-columns: repeat(4, 1fr);
-  width: 100%;
-  display: grid;
-}
-/* Each card carries its own rules on its own ground: the dropdown has no
-   ground of its own (initMegaNav), so each card is a block of the nav's
-   colour, its translucent top rule and the hairline between cards drawn
-   over that rather than over the dimmed page. */
-.mega-nav__service-grid .route-card {
-  border-top: 1px solid var(--nav-rule);
-  background: var(--nav-bg);
-}
-.mega-nav__service-grid .route-card + .route-card { border-left: 1px solid var(--nav-rule); }
-/* In the dropdown the cards' movement is the menu script's alone (they
-   drop in on open, initMegaNav): no CSS transition re-easing it frame by
-   frame, and no hover lift, which an inline transform overrides anyway. */
-.mega-nav__service-grid .route-card { transition: none; }
-.mega-nav__service-grid .route-card:hover { transform: none; }
-
-/* Featured report — the latest report as one focal card under the
-   Reports link, on the insight card's parts at thumbnail scale: the
-   real cover image bleeding to the card's left edge at a report cover's
-   proportion, and the label, title and a call to read it beside it. A
-   block of the nav's own ground on the Reports column's grey, so its
-   edge is the change of tone rather than a border. */
-.mega-nav__featured {
-  color: var(--nav-fg);
-  background-color: var(--nav-bg);
-  border-radius: var(--radius);
-  align-items: stretch;
-  width: 100%;
-  min-height: 6.75em;
-  text-decoration: none;
-  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 var(--sc-pad);
   overflow: hidden;
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
-.mega-nav__featured:hover .mega-nav__panel-link-text { opacity: .6; }
-.mega-nav__featured-media {
+/* The diagram's field: the drawing in its middle, in the card's ink on
+   the field's ground (ServiceDiagram.astro), its lines drawn at a little
+   over half the stack's weight, which reads as thin and exact at this
+   size rather than heavy. */
+.service-card__media {
+  grid-area: 2 / 1 / 3 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: calc(var(--sc-step) / 2) var(--sc-pad);
+  background: var(--sc-field);
+  --c-text: var(--sc-ink);
+  --diagram-ground: var(--sc-field);
+  --diagram-accent: var(--sc-accent);
+}
+.service-card__diagram {
+  --sd-stroke: .6;
+  --sd-dash: 2 2.5;
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+}
+/* the description, from the name's own line */
+.service-card__body {
+  grid-area: 3 / 2;
+  padding: calc(.75 * var(--sc-step)) var(--sc-pad) var(--sc-step);
+}
+.service-card__p {
+  display: block;
+  max-width: 17em;
+  font-size: .875rem;
+  line-height: 1.35;
+  color: var(--sc-text);
+  text-wrap: pretty;
+}
+
+/* --- Resources blocks (Nav.astro) ----------------------------------
+   The three Resources columns in the Services cards' language, set out
+   round their own content. Along the top, the header a card has: the
+   column's mark in the compact square where a card has its number, and
+   its name in the block beside it. Under it the column's lead link, and
+   under that its feature on the field's tone, where a card has its
+   diagram: the software database, the latest report, the signup. Every
+   row's words hang from the name's line, so each column reads down one
+   edge.
+
+   The ground, the square and the field are the cards' own (--sc-*,
+   above), and the rows are whole steps of the dots: from 992px the three
+   share them, so each part stands level across the three and every edge
+   runs midway between two rows of dots. Nothing is outlined; the rows
+   are told apart by tone alone. A link row takes the cards' hover, a
+   shade laid over it, and their focus ring. */
+.mega-nav__dropdown-inner.is--resources { --nav-dots-span: 4; --nav-dots-steps: 26; }
+
+.resource-block {
   position: relative;
-  flex: 0 0 5.5em;
-  background-color: var(--nav-tint);
-  overflow: hidden;
+  display: grid;
+  grid-template-columns: var(--sc-head) minmax(0, 1fr);
+  grid-template-rows: var(--sc-head) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), auto);
+  background: var(--sc-ground);
+  color: var(--sc-ink);
 }
-.mega-nav__featured-media img {
+.resource-block__mark {
+  grid-area: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sc-num);
+}
+.resource-block__mark svg { width: 1.25rem; height: 1.25rem; }
+.resource-block__title {
+  grid-area: 1 / 2;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0 var(--sc-pad);
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+/* A row across the block, its words from the name's line: the lead
+   link from a little under the header, as a card's description is; the
+   feature on the field, its words in the middle of it. */
+.resource-block__row {
+  grid-column: 1 / -1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1875rem;
+  min-width: 0;
+  padding: calc(.75 * var(--sc-step)) var(--sc-pad) var(--sc-step) calc(var(--sc-head) + var(--sc-pad));
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+.resource-block__lead { grid-row: 2; }
+.resource-block__field {
+  grid-row: 3;
+  justify-content: center;
+  padding-block: var(--sc-step);
+  background: var(--sc-field);
+}
+.resource-block__name {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  line-height: 1.3;
+}
+.resource-block__desc {
+  max-width: 21em;
+  font-size: .875rem;
+  line-height: 1.35;
+  color: var(--sc-text);
+  text-wrap: pretty;
+}
+a.resource-block__row::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--sc-shade);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+a.resource-block__row:is(:hover, :focus-visible)::after { opacity: .07; }
+a.resource-block__row:active::after { opacity: .14; }
+a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
+
+/* The latest report: its label, title and call to read it from the
+   name's line, and its cover at the far end, the field's full height and
+   five steps wide, near a report's own proportion. */
+.resource-block__report {
+  flex-direction: row;
+  align-items: stretch;
+  padding-block: 0;
+  padding-right: 0;
+}
+.resource-block__report-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: .25rem;
+  min-width: 0;
+  padding: var(--sc-step) var(--sc-pad) var(--sc-step) 0;
+}
+.resource-block__label { font-size: .6875rem; line-height: 1.2; }
+.resource-block__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .125rem;
+  margin-top: .25rem;
+  color: var(--c-red);
+  font-size: .875rem;
+  line-height: 1.2;
+}
+/* the logo's triangle, pointing on, at the text's size */
+.resource-block__cta-mark { width: 1em; height: 1em; flex: none; }
+.resource-block__cover {
+  position: relative;
+  flex: none;
+  width: calc(5 * var(--sc-step));
+  overflow: hidden;
+  background: var(--sc-num);
+}
+.resource-block__cover img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  transition: transform .6s cubic-bezier(0.625, 0.05, 0, 1);
+  transition: transform .6s var(--ease-osmo);
 }
-.mega-nav__featured:hover .mega-nav__featured-media img { transform: scale(1.05); }
-.mega-nav__featured-text {
-  flex: 1;
-  flex-flow: column;
-  justify-content: center;
-  align-items: flex-start;
-  gap: .375em;
-  min-width: 0;
-  padding: 1em 1.25em;
-  display: flex;
-}
-.mega-nav__featured-label { color: var(--nav-muted); font-size: .6875em; }
-.mega-nav__featured .mega-nav__panel-link-text { font-size: 1.0625em; line-height: 1.3; transition: opacity .2s ease; }
-.mega-nav__featured-cta {
-  color: var(--nav-accent-text);
-  font-size: .875em;
-  font-weight: 400;
-  line-height: 1.2;
-  margin-top: .25em;
-  display: inline-flex;
-  align-items: center;
-  gap: .125em;
-}
-/* the logo's triangle, pointing on, at the text's size */
-.mega-nav__featured-cta-mark { width: 1em; height: 1em; flex: none; }
+.resource-block__report:hover .resource-block__cover img { transform: scale(1.05); }
 
-/* Newsletter panel — the tinted column is the subscription panel
-   itself: the name and one line on what it is at the top, the signup
-   form and the link to the archive held to the foot, level with the
-   featured report beside it. The form is the shared .newsletter-form
-   from styles.css, the same one the footer uses. */
-/* The signup, sitting under the newsletter row as part of it rather
-   than as a block of its own: the site's own signup across the column,
-   at a height that matches the list's rhythm, so the column stays the
-   same weight as the two beside it. */
-.mega-nav__signup { --signup-h: 2.75em; margin-top: 1.25em; max-width: none; border-radius: var(--radius); overflow: hidden; }
-.mega-nav__panel-col .newsletter-signup { max-width: none; }
-.mega-nav__panel-col .newsletter-audience { font-size: .875em; }
-.mega-nav__signup input,
-.mega-nav__signup .newsletter-form__submit { font-size: .9375em; }
-.mega-nav__signup .newsletter-form__submit { padding: 0 1.25em; }
+/* The signup, the shared one (styles.css), across the field from the
+   name's line, at a height that keeps to the rows' rhythm. */
+.resource-block__signup { max-width: none; gap: .75rem; }
+.resource-block__signup .newsletter-form { --signup-h: 2.75rem; max-width: none; }
+.resource-block__signup :is(input[type="email"], .newsletter-form__submit) { font-size: .9375rem; }
+.resource-block__signup .newsletter-form__submit { padding: 0 1.25rem; }
+.resource-block__signup .newsletter-audience { font-size: .8125rem; }
 /* On touch the pair steps up to the body size — below 16px iOS zooms
    the page in when the field takes focus — and so to a 44px row. */
 @media (pointer: coarse) {
-  .mega-nav__signup input,
-  .mega-nav__signup .newsletter-form__submit { font-size: 1em; }
+  .resource-block__signup :is(input[type="email"], .newsletter-form__submit) { font-size: 1rem; }
 }
 
 /* Blocks — the bar from 992px up. Every functional area is a block of
@@ -644,22 +742,22 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
     justify-content: flex-end;
   }
 
-  /* The Resources columns: thirds of the 12-Column Grid, Grid Columns
-     1–4, 5–8 and 9–12, the outer two out to the edges and the two
-     changes of tone on the middle of a gutter. Reports takes what the
-     other two leave, which is its four columns and gutters. */
-  .mega-nav__dropdown-inner {
-    --nav-dropdown-col: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+  /* The dropdowns on the grid (The dropdowns' frame, above): the four
+     Services cards a quarter of it each, Grid Columns 1–3, 4–6, 7–9 and
+     10–12, their rows shared; the Resources columns a third, Grid
+     Columns 1–4, 5–8 and 9–12. */
+  .mega-nav__dropdown-inner.is--services {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: calc(3 * var(--dot-pitch)) calc(9 * var(--dot-pitch)) minmax(calc(4 * var(--dot-pitch)), auto);
+    row-gap: 0;
   }
-  /* The three columns are blocks of their own with no ground round them,
-     so they run to the screen's edges, as the Services cards do, a thin
-     gap of the dimmed page between them. */
-  .mega-nav__dropdown-inner.is--resources { padding: 0; }
-  /* less half the gap between panels, so each gap stays centred on its
-     gutter */
-  .mega-nav__panel-col:not(.is--services, .is--tint) {
-    flex: 0 0 calc(var(--grid-margin) + 4 * var(--nav-dropdown-col) + 3.5 * var(--grid-gutter) - 0.5 * var(--nav-card-gap));
+  .is--services > .service-card { grid-row: 1 / span 3; grid-template-rows: subgrid; }
+  .mega-nav__dropdown-inner.is--resources {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: calc(3 * var(--dot-pitch)) minmax(calc(6 * var(--dot-pitch)), auto) minmax(calc(7 * var(--dot-pitch)), auto);
+    row-gap: 0;
   }
+  .is--resources > .resource-block { grid-row: 1 / span 3; grid-template-rows: subgrid; }
 }
 
 @media screen and (max-width: 991px) {
@@ -808,25 +906,12 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
     position: fixed;
   }
   .mega-nav__dropdown-container { height: 100%; overflow: auto; }
-  .mega-nav__dropdown-panel { background-color: var(--nav-bg); bottom: 0; overflow: auto; overscroll-behavior: contain; }
-  .mega-nav__dropdown-inner { flex-flow: column; }
+  .mega-nav__dropdown-panel { background-color: var(--nav-panel-bg); bottom: 0; overflow: auto; overscroll-behavior: contain; }
 
-  /* Stacked, the columns are bands of their own tone, one under the
-     next. */
-  .mega-nav__panel-col {
-    gap: 1.25em;
-    padding: 1.75em 1.25em;
-  }
-  .mega-nav__panel-col.is--colored { flex: 1; }
-  .is--resources > .mega-nav__panel-col { padding: 1.5em 1.25em; }
-  /* A column's own label only. The service cards' chips and the
-     featured report's label share the class but sit inside a card, and
-     at full width the chip ran out past the card's right edge. */
-  .mega-nav__panel-col > .mega-nav__panel-label { width: 100%; }
-
-  /* Stacked, one card under the next, the table a single column. */
-  .mega-nav__service-grid { --cards-cols: 1; grid-template-columns: 1fr; }
-  .mega-nav__service-grid .route-card + .route-card { border-left: 0; border-top: 1px solid var(--nav-rule); }
+  /* Stacked, one card or block under the next, each the grid's full
+     width: a card's diagram field a little shorter, so more of the four
+     is in view. */
+  .service-card { --sc-media-steps: 7; }
 }
 
 @media screen and (max-width: 479px) {

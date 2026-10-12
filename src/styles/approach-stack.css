@@ -12,8 +12,8 @@
    Three layouts, on the scaling system's breakpoints:
 
      - from 992px, the zig-zag: the first and third steps on Grid
-       Columns 2–5, the second on Grid Columns 8–11, the rail on the
-       page's centre line between them;
+       Columns 2–5, the second on Grid Columns 8–11, the rail between
+       them, on the left edge of Grid Column 7;
      - 768–991px, one column: the steps on Grid Columns 2–6 of the
        six, the rail down the middle of Grid Column 1;
      - below 768px, one column and no rail.
@@ -42,18 +42,19 @@
 }
 
 /* --- The field -------------------------------------------------
-   A grid of small dots behind the stack, from the statement's end
-   down, the screen's full width: a column on the rail's line (--field-x,
-   set by the script; the page's centre line from 992px, so the grid
-   sits square in the band) and the rest every 18px out from it; its
-   rows every 18px from where the rail's dots are counted (--field-y,
-   set by the script). The rail's dots are 18px apart too, so they fall
-   on the column's own and the rail reads as a stretch of the grid lit
-   up. Faint, fading in after the statement and out at the band's
-   foot. The cards are set on it (approach-stack.js, placeCards): their
-   edges and the lines between their blocks run midway between its
-   lines of dots, so the field lays the cards out rather than sitting
-   behind them as a texture. */
+   A grid of small dots behind the stack (the site's .dot-grid,
+   styles.css), from the statement's end down, the screen's full width.
+   The 12-Column Grid lays the cards out and the field is set out from
+   them (approach-stack.js, placeField): its pitch is the one that fits
+   a whole number of steps across a card, nearest 1.125rem (18px at the
+   ideal width, scaled with the page as the grid is), and its columns
+   stand so that every card's sides run midway between two of them; the
+   rail stands on one (below). Its rows run from where the rail's dots
+   are counted, the rail's dots on the same pitch (--dot-pitch, on the
+   band, which the statement's dotted line takes too), so the rail's
+   dots are the field's own. The lines inside a card fall midway as
+   well, its blocks made whole steps (placeCards). Faint, fading in
+   after the statement and out at the band's foot. */
 .approach-stack__field {
   position: absolute;
   top: 0;
@@ -64,16 +65,12 @@
   -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40vh, #000 calc(100% - 30vh), transparent);
   mask-image: linear-gradient(to bottom, transparent, #000 40vh, #000 calc(100% - 30vh), transparent);
 }
+/* --dot-x and --dot-y are the script's (placeField); without it, a
+   column on the page's centre line */
 .approach-stack__field-dots {
-  --field-tile: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Crect x='8' y='8' width='2' height='2'/%3E%3C/svg%3E");
   position: absolute;
   inset: 0;
-  background: rgba(255, 255, 255, 0.13);
-  /* the script's offsets to the rail's line and its first dot; without
-     them, 50% across puts a column on the centre line (the tile's dot is
-     at its middle) */
-  -webkit-mask: var(--field-tile) var(--field-x, 50%) var(--field-y, 0px) / 18px 18px repeat;
-  mask: var(--field-tile) var(--field-x, 50%) var(--field-y, 0px) / 18px 18px repeat;
+  --dot-x: 50%;
 }
 
 /* --- The stack -------------------------------------------------- */
@@ -91,24 +88,33 @@
 }
 .approach-stack__slot {
   grid-row: var(--step) / span 2;
-  /* moved onto the field's lines, by half a step at most (the script) */
-  margin: var(--snap-top, 0px) var(--snap-right, 0px) 0 var(--snap-left, 0px);
+  /* Across, exactly where the grid puts it; down, its top moved midway
+     between two of the field's rows, by half a step at most (the
+     script). */
+  margin-top: var(--snap-top, 0px);
 }
 .approach-stack__slot.is--left { grid-column: 2 / 6; }
 .approach-stack__slot.is--right { grid-column: 8 / 12; }
 
 /* --- Rail ----------------------------------------------------
-   The page's centre line, the length of the stack. Only the window
-   shows: it rides at the middle of the viewport, and the script
-   moves the dots inside it against the scroll, so they are fixed to
-   the page and run past the cube. */
+   The left edge of Grid Column 7, the page's heading line, between the
+   two columns of cards, the length of the stack: a column of the field's
+   dots stands on it (the field fits a card's width in whole steps, and
+   from that edge to the right-hand cards is half a step more than a
+   whole number), so the mark on the rail stands on a line of dots. The
+   script moves it onto the nearest column to the fraction of a pixel
+   (--rail-snap, approach-stack.js). Only the window shows: it rides at
+   the middle of the viewport, and the script moves the dots inside it
+   against the scroll, so they are fixed to the page and run past the
+   cube. */
 .approach-stack__rail {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%;
+  left: calc(50% + var(--grid-gutter) / 2);
   width: 1rem;
   margin-left: -0.5rem;
+  translate: var(--rail-snap, 0px) 0;
   pointer-events: none;
 }
 /* Led in by the statement's dotted line (approach-stack.js, from 992px):
@@ -147,15 +153,19 @@
   mask-image: linear-gradient(to bottom, var(--rail-edge), #000 22%, #000 78%, var(--rail-edge));
 }
 
-/* Square dots, 2px every 18px, down the middle. */
+/* Square dots, 2px on the field's pitch, down the middle; --rail-y, where
+   one starts, is the script's, which keeps them fixed to the page. Each
+   dot placed on its own (a repeating stripe), so a fractional pitch never
+   drifts. */
 .approach-stack__dots {
+  --rail-y: 0px;
   position: absolute;
   top: 0;
   bottom: 0;
   left: 50%;
   width: 2px;
   margin-left: -1px;
-  background: linear-gradient(to bottom, var(--stack-dot) 2px, transparent 2px) 0 0 / 2px 18px repeat-y;
+  background: repeating-linear-gradient(to bottom, var(--stack-dot) var(--rail-y) calc(var(--rail-y) + 2px), transparent calc(var(--rail-y) + 2px) calc(var(--rail-y) + var(--dot-pitch, 18px)));
 }
 /* The mark on the rail: the logo's triangle (ArrowIcon.astro) in the
    site's red, the colour of its velocity trail, centred on the rail,
@@ -204,7 +214,9 @@
    step apart that is small but plain to see. */
 .step-card {
   --card-pad: 1.5rem;
-  --card-top: 5.5rem;
+  /* the top row: compact, four of the field's steps (the script makes
+     it whole steps), the number's square as wide as it is tall */
+  --card-top: 4.5rem;
   --tone-number: #272727;
   --tone-title: #202020;
   --tone-copy: #1a1a1a;
@@ -233,8 +245,8 @@
   background: var(--tone-number);
   font-family: var(--font-mono);
   color: var(--label-ink);
-  /* a step over the labels' usual size, so the number holds its square */
-  font-size: var(--t-rg);
+  /* a touch over the labels' usual size, so the number holds its square */
+  font-size: var(--t-sm);
   font-weight: var(--fw-label);
   letter-spacing: var(--label-tracking);
   line-height: 1;
@@ -247,7 +259,9 @@
   background: var(--tone-title);
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: var(--t-h4);
+  /* a step under the h4, so the row reads as the card's label rather than
+     a heading over it; it steps down with the h4 at each breakpoint */
+  font-size: calc(var(--t-h4) * 5 / 6);
   line-height: 1.1;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
@@ -327,8 +341,9 @@
 .schematic__face { fill: var(--tone-media); }
 /* the lower layers of an exploded stack, a weight quieter than the top */
 .schematic__solid.is--soft { stroke: rgba(255, 255, 255, 0.34); }
-/* a tower's floor lines, fainter than its edges, in their colour */
-.schematic__floors { fill: none; stroke-opacity: 0.45; }
+/* a tower's floor lines, well under its edges, in their colour, so the
+   towers read as massing first and storeys second */
+.schematic__floors { fill: none; stroke-opacity: 0.28; }
 /* the block that leads, before the script takes the ranking over */
 .schematic__solid.is--first { stroke: var(--c-red); }
 
@@ -393,7 +408,7 @@
   /* Single column: the blocks a step tighter, the schematic full width. */
   .step-card {
     --card-pad: 1.25rem;
-    --card-top: 4.25rem;
+    --card-top: 3.75rem;
   }
   .schematic { max-width: none; }
 }

@@ -213,7 +213,7 @@ const costIcons = [
           <div class="service-stack__media">
             <!-- the field's dots, set out to fit it (dot-field.js) -->
             <div class="service-stack__pattern" data-dot-field aria-hidden="true"></div>
-            <ServiceDiagram index={i} class="service-stack__diagram" />
+            <ServiceDiagram index={i} class="service-stack__diagram" animate />
           </div>
         </div>
       </article>
@@ -239,8 +239,8 @@ const costIcons = [
       </div>
 
       <div class="creds__grid">
+        <!-- one photograph, whole, at its own proportion -->
         <div class="creds__media">
-          <div class="ph"></div>
           <div class="ph"></div>
         </div>
         <div class="creds__text">
@@ -287,8 +287,11 @@ const costIcons = [
     </div>
   </section>
 
-  <!-- ========== 9. RESEARCH, INSIGHT & NEWSLETTER ========== -->
-  <section class="section">
+  <!-- ========== 9. RESEARCH & INSIGHT ==========
+       The newsletter signup that closed it is in the footer
+       (Footer.astro), so the closing call to action that follows
+       stands on its own. -->
+  <section class="section research">
     <div class="container">
       <div class="research__head section-title">
         <p class="text-md" data-page-field="research.lede">{t("research.lede")}</p>
@@ -298,26 +301,6 @@ const costIcons = [
       </div>
 
       <InsightSlider items={related} />
-
-      <!-- The ADDDitive signup, closing the research it comes from: the
-           shared signup (styles.css), with the audience question. -->
-      <div class="research__signup">
-        <div class="stack stack--16">
-          <p class="tagline tagline--sm" data-page-field="research.signupTagline">{t("research.signupTagline")}</p>
-          <h3 class="h4" data-page-field="research.signupHeading">{t("research.signupHeading")}</h3>
-        </div>
-        <form class="newsletter-signup" onsubmit="return false">
-          <div class="newsletter-form">
-            <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
-            <button class="newsletter-form__submit" type="submit">Subscribe</button>
-          </div>
-          <fieldset class="newsletter-audience">
-            <legend class="newsletter-audience__legend">Which describes you?</legend>
-            <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
-            <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
-          </fieldset>
-        </form>
-      </div>
     </div>
   </section>
 

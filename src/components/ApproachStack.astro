@@ -19,10 +19,12 @@
   400 × 256 viewBox (src/scripts/iso.js): hairlines, dashed setting-out
   and solid forms, with one red element:
 
-    - map    Understand: four floor plates, the signal zig-zagging across
-             and down them against the straight line it is meant to take;
-    - trace  Diagnose: the practice as a stack of slabs, scanned down
-             through until the one the trouble starts in is found;
+    - map    Understand: the practice in plan, a floor of four rooms, the
+             signal running the long way round them against the straight
+             line it is meant to take — a drawing that reads across;
+    - trace  Diagnose: the practice as a tall stack of slabs, scanned down
+             through until the one the trouble starts in is found — a
+             drawing that reads down;
     - rank   Prioritise: findings as blocks of impact, the tallest in red,
              re-ranking as the picture changes.
 */
@@ -71,54 +73,61 @@ const slab = (P: Projector, half: number, z: number, t: number) => boxFaces(P, -
 const guides = (P: Projector, half: number, from: number, to: number) =>
   [[-half, half], [half, -half]].map(([x, y]) => path([P(x, y, from), P(x, y, to)], false));
 
-// Understand: the practice as four floor slabs, stood apart like the
-// floors of an exploded building — work, tools, information, decisions,
-// top to bottom. The route work actually takes runs along each floor's
-// front edges and drops down a corner to the next, turning back on
-// itself floor by floor; a small cube on each floor's front corner
-// catches the signal as it passes. The dashed line straight down the
-// front corner is the way it was meant to go. "at" is how far along the
-// route each cube sits (its share of the route's drawn length).
-const uP = projector(200, 183);
-const U_HALF = 48;
-const U_T = 6;
-// the floors' feet, top floor first
-const U_FLOORS = [108, 72, 36, 0];
-const uTop = (k: number) => U_FLOORS[k] + U_T;
-const U_L = [-U_HALF, U_HALF];
-const U_F = [U_HALF, U_HALF];
-const U_R = [U_HALF, -U_HALF];
-const uRoute = U_FLOORS.flatMap((_, k) => {
-  const [a, b] = k % 2 ? [U_R, U_L] : [U_L, U_R];
-  return [[...a, uTop(k)], [...U_F, uTop(k)], [...b, uTop(k)]];
-});
-// a cube by each floor's front corner
-const uNodes = U_FLOORS.map((_, k) => 3 * k + 1);
-const uScreen = uRoute.map(([x, y, z]) => uP(x, y, z));
+// Understand: the practice laid out in plan, the one drawing of the three
+// that reads across rather than down — a floor in four rooms, one for each
+// of what moves through it: work, tools, information, decisions, a small
+// block standing in each. The dashed line straight from the first room to
+// the last is the way it is meant to go; the route work actually takes
+// goes round by the other two, across the floor and back. "at" is how far
+// along the route each block stands (its share of the route's drawn
+// length).
+const uP = projector(200, 130);
+const U_HALF = 78;
+const U_T = 4;
+const U_ROOM = 31;
+const U_AT = 39;
+const U_PAD = 3;
+const uFloor = U_T + U_PAD;
+const U_NODE = 12;
+// the rooms by their places: back, left, right, front
+const U_BACK = [-U_AT, -U_AT];
+const U_LEFT = [-U_AT, U_AT];
+const U_RIGHT = [U_AT, -U_AT];
+const U_FRONT = [U_AT, U_AT];
+const U_ROOMS = [U_BACK, U_LEFT, U_RIGHT, U_FRONT];
+// the way it actually goes: from the back over to the right, all the way
+// across to the left, then on to the front
+const U_ROUTE = [U_BACK, U_RIGHT, U_LEFT, U_FRONT];
+const uScreen = U_ROUTE.map(([x, y]) => uP(x, y, uFloor + 1));
 const uLengths = uScreen.slice(1).map(([x, y], i) => Math.hypot(x - uScreen[i][0], y - uScreen[i][1]));
 const uTotal = uLengths.reduce((a, b) => a + b, 0);
 const uAt = (k: number) => uLengths.slice(0, k).reduce((a, b) => a + b, 0) / uTotal;
 const understand = {
-  cross: cross(uP, 104),
-  guides: guides(uP, U_HALF, U_T, uTop(0)),
-  // bottom floor first, so each hides what is under it
-  floors: U_FLOORS.map((z, k) => ({ k, ...slab(uP, U_HALF, z, U_T) })).reverse(),
+  cross: cross(uP, 106),
+  floor: slab(uP, U_HALF, 0, U_T),
+  // the rooms, back to front, so each hides what is behind it
+  rooms: U_ROOMS.map(([x, y]) => boxFaces(uP, x - U_ROOM, y - U_ROOM, U_T, 2 * U_ROOM, 2 * U_ROOM, U_PAD)),
   route: path(uScreen, false),
-  intended: path([uScreen[1], uScreen[uScreen.length - 2]], false),
-  nodes: uNodes.map((n, k) => ({ at: +uAt(n).toFixed(3), ...boxFaces(uP, U_HALF - 17, U_HALF - 17, uTop(k), 10, 10, 10) })),
+  intended: path([uScreen[0], uScreen[uScreen.length - 1]], false),
+  // a block in each room, back to front, each with its place on the route
+  nodes: U_ROOMS.map((room) => ({
+    at: +uAt(U_ROUTE.indexOf(room)).toFixed(3),
+    ...boxFaces(uP, room[0] - U_NODE / 2, room[1] - U_NODE / 2, uFloor, U_NODE, U_NODE, U_NODE),
+  })),
 };
 
-// Diagnose: the practice as six thin slabs, stood apart — workflows, BIM,
-// software, infrastructure, data, AI. A scan runs down through them,
-// finds the one the trouble starts in, and the slabs above lift off it
-// while four red chevrons close in on its corners. Listed top first;
+// Diagnose: the practice taken down through its layers rather than across
+// its floor — five thin slabs stood apart, a tall, narrow stack: workflows,
+// software, information, infrastructure, people. A scan runs down through
+// them, finds the one the trouble starts in, and the slabs above lift off
+// it while four red chevrons close in on its corners. Listed top first;
 // drawn bottom first, so each slab hides what is under it.
-const dP = projector(200, 188);
+const dP = projector(200, 184);
 const TRACE_CAUSE = 3;
-const D_HALF = 46;
-const D_T = 5;
-const D_GAP = 23;
-const D_LAYERS = 6;
+const D_HALF = 40;
+const D_T = 4;
+const D_GAP = 25;
+const D_LAYERS = 5;
 const dFoot = (i: number) => (D_LAYERS - 1 - i) * D_GAP;
 const dCause = dFoot(TRACE_CAUSE);
 // the chevrons: one at each corner of a square a little outside the
@@ -128,7 +137,7 @@ const dReach = D_HALF + 12;
 const dZ = dCause + D_T / 2;
 const D_ARM = 14;
 const diagnose = {
-  cross: cross(dP, 100),
+  cross: cross(dP, 86),
   guides: guides(dP, D_HALF, D_T, dFoot(0) + D_T),
   slabs: Array.from({ length: D_LAYERS }, (_, i) => ({ i, ...slab(dP, D_HALF, dFoot(i), D_T) })).reverse(),
   frame: [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
@@ -179,11 +188,11 @@ const prioritise = {
 const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
 ---
 <section class="approach-stack" aria-label="The ADDD approach" data-approach-stack>
-  <!-- the band's grid of dots (approach-stack.css), one of its columns
-       the rail's own line, and the odd one lighting red
-       (approach-stack.js, dot-field.js) -->
+  <!-- the band's grid of dots (approach-stack.css), set out from the
+       cards and the rail on the 12-Column Grid, and the odd one lighting
+       red (approach-stack.js, dot-field.js) -->
   <div class="approach-stack__field" data-approach-stack-field aria-hidden="true">
-    <span class="approach-stack__field-dots"></span>
+    <span class="approach-stack__field-dots dot-grid is--on-dark" data-approach-stack-field-dots></span>
   </div>
   <div class="approach-stack__grid">
     <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
@@ -216,11 +225,13 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
                     <g data-s="ground">
                       {understand.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
                       {understand.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
-                      {understand.guides.map((d) => <path class="schematic__line is--dash" d={d} />)}
                     </g>
-                    {understand.floors.map((f) => (
-                      <g class:list={["schematic__solid", { "is--soft": f.k > 0 }]} data-s="plate">
-                        <path class="schematic__face" d={f.left} /><path class="schematic__face" d={f.right} /><path class="schematic__face" d={f.top} />
+                    <g class="schematic__solid" data-s="plate">
+                      <path class="schematic__face" d={understand.floor.left} /><path class="schematic__face" d={understand.floor.right} /><path class="schematic__face" d={understand.floor.top} />
+                    </g>
+                    {understand.rooms.map((room) => (
+                      <g class="schematic__solid is--soft" data-s="plate">
+                        <path class="schematic__face" d={room.left} /><path class="schematic__face" d={room.right} /><path class="schematic__face" d={room.top} />
                       </g>
                     ))}
                     <path class="schematic__route is--intended" data-s="intended" d={understand.intended} />

@@ -52,79 +52,141 @@ export function mountApproachStack(root, { lenis } = {}) {
   const leadFrame = lead?.closest(".sticky-title__container") ?? null;
   const leadTrack = lead?.closest('[data-sticky-title="track"]') ?? null;
 
-  // The band's field of dots (approach-stack.css): its columns and rows
-  // are set to run through the rail's dots, so the rail is a stretch of
-  // one of its columns. origin is the page position the rail's dots are
-  // counted from; the rail's line is the middle of its box; the field's
-  // tile has its dot 8px into it each way. Without a rail (a phone), the
-  // stylesheet's defaults: a column down the middle.
+  // The band's field of dots (approach-stack.css, the site's .dot-grid),
+  // set out from the 12-Column Grid rather than the cards from it: the
+  // grid places every card, and the field takes the pitch and the
+  // columns that put the cards' sides midway between its dots
+  // (fitColumns). The rail then stands on one of those columns, the one
+  // nearest the line the stylesheet gives it (snapRail), so the mark on
+  // it sits on a line of dots, never between two; its rows run from
+  // where the rail's dots are counted (origin, a page position), so the
+  // rail's dots are the field's own. The pitch goes on the band
+  // (--dot-pitch), for the rail's dots and the statement's dotted line
+  // before it. Without a rail (a phone, or reduced motion), the rows run
+  // from the field's top.
   const field = root.querySelector("[data-approach-stack-field]");
-  const FIELD = { pitch: 18, dot: 8 };
-  let fieldX = null;
-  let fieldY = 0;
-  // origin null: no rail (a phone, or reduced motion), the defaults
-  const placeField = (origin) => {
+  const fieldDots = root.querySelector("[data-approach-stack-field-dots]");
+  const band = root.closest(".ink-band") ?? root;
+  const DOT = 2;
+  // the field as set out: its pitch, and the middles of one of its
+  // columns (x) and one of its rows (y), in its own box
+  let grid = null;
+  const px = (v) => `${+v.toFixed(3)}px`;
+
+  // The pitch and the columns from the lines they have to clear: every
+  // card's sides where the grid puts them. The pitch fits a whole number
+  // of steps across the first card, near 1.125rem (the 18px the field was
+  // drawn on, at the ideal width, so it scales with the page as the grid
+  // does and the count holds at every width in a range); for each count
+  // either side of the nearest, one pitch and one offset are fitted to
+  // all the lines at once (least squares), and the count that leaves no
+  // line further off midway wins, the nearest on a tie. Every line then
+  // runs midway between two columns to a fraction of a pixel. Returns the
+  // pitch and one of those midway lines, in the field's own box.
+  function fitColumns() {
+    const box = field.getBoundingClientRect();
+    const lines = cards.flatMap(({ slot }) => {
+      const r = slot.getBoundingClientRect();
+      return [r.left - box.left, r.right - box.left];
+    });
+    const [a, b] = lines;
+    const target = 1.125 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const nearest = Math.max(1, Math.round((b - a) / target));
+    const fit = (count) => {
+      const rough = (b - a) / count;
+      const ks = lines.map((v) => Math.round((v - a) / rough));
+      const n = lines.length;
+      const sum = (f) => lines.reduce((s, v, i) => s + f(v, ks[i]), 0);
+      const sk = sum((_, k) => k);
+      const sv = sum((v) => v);
+      const skk = sum((_, k) => k * k);
+      const skv = sum((v, k) => k * v);
+      const pitch = (n * skv - sk * sv) / (n * skk - sk * sk) || rough;
+      const line = (sv - pitch * sk) / n;
+      const off = Math.max(...lines.map((v, i) => Math.abs(v - line - ks[i] * pitch)));
+      return { pitch, line, off };
+    };
+    return [nearest - 1, nearest + 1]
+      .filter((count) => count > 0)
+      .map(fit)
+      .reduce((best, next) => (next.off < best.off - 0.25 ? next : best), fit(nearest));
+  }
+
+  // origin null: no rail (a phone, or reduced motion); fit, the columns
+  // when the caller has them already
+  const placeField = (origin, fit) => {
     if (!field) return;
-    if (origin === null) {
-      fieldX = null;
-      fieldY = 0;
-      field.style.removeProperty("--field-x");
-      field.style.removeProperty("--field-y");
-    } else {
-      const box = field.getBoundingClientRect();
-      const line = rail.getBoundingClientRect();
-      fieldX = line.left + line.width / 2 - 1 - box.left - FIELD.dot;
-      fieldY = origin - (box.top + window.scrollY) - FIELD.dot;
-      field.style.setProperty("--field-x", `${fieldX}px`);
-      field.style.setProperty("--field-y", `${fieldY}px`);
-    }
+    const { pitch, line } = fit ?? fitColumns();
+    const top = field.getBoundingClientRect().top + window.scrollY;
+    grid = {
+      pitch,
+      x: line + pitch / 2,
+      y: origin === null ? pitch / 2 : origin + DOT / 2 - top,
+    };
+    band.style.setProperty("--dot-pitch", px(pitch));
+    fieldDots?.style.setProperty("--dot-x", px(grid.x));
+    fieldDots?.style.setProperty("--dot-y", px(grid.y));
     placeCards();
   };
+  const unplaceField = () => {
+    grid = null;
+    band.style.removeProperty("--dot-pitch");
+    fieldDots?.style.removeProperty("--dot-x");
+    fieldDots?.style.removeProperty("--dot-y");
+  };
 
-  // The cards set on the field, so its dots lay them out rather than
-  // lie behind them: every line of a card — its sides, its top and
-  // foot, where the number's square meets the name and where each
-  // block meets the next — runs midway between two lines of dots, and
-  // the dots stand the same step clear of all of them. So each card's
-  // edges are moved to the nearest such line (by half a step at most,
-  // from where the 12-Column Grid puts them), each block is made a
+  // The rail on the field: from the line the stylesheet gives it (the
+  // left edge of Grid Column 7 from 992px, where a column of dots already
+  // stands, or the middle of Grid Column 1 below), moved across onto the
+  // nearest column of dots (--rail-snap, half a step at most), so the mark
+  // on it stands on a line of dots rather than between two.
+  const snapRail = ({ pitch, line }) => {
+    rail.style.removeProperty("--rail-snap");
+    const box = field.getBoundingClientRect();
+    const r = rail.getBoundingClientRect();
+    const x = r.left + r.width / 2 - box.left;
+    const column = line + pitch / 2 + Math.round((x - line - pitch / 2) / pitch) * pitch;
+    rail.style.setProperty("--rail-snap", px(column - x));
+  };
+
+  // The lines inside each card on the field too, so its dots lay the card
+  // out rather than lie behind it: its sides already run midway between
+  // two columns (the field is set out from them), and here its top, its
+  // foot, where the number's square meets the name and where each block
+  // meets the next run midway between two lines of dots, the dots the
+  // same step clear of all of them. So each card's top is moved down to
+  // the nearest such line (by half a step at most), each block is made a
   // whole number of steps, and the padding a step and a half, which
-  // starts the name and the copy on a column of dots. The field never
-  // moves: its columns and rows are the rail's (placeField). Only the
-  // middle card is still; the outer two drift (initGlobalParallax),
-  // through their rest on the field as each stands at the middle of
-  // the screen (ApproachStack.astro, PARALLAX). Measured again on every
-  // refresh; a change that moves the page under it asks for one more,
-  // so the triggers below the stack measure the page as it now stands.
-  const SNAP = ["--snap-left", "--snap-right", "--snap-top"];
+  // starts the name and the copy on a column of dots. The cards never
+  // move across: the 12-Column Grid places them. Only the middle card is
+  // still; the outer two drift (initGlobalParallax), through their rest
+  // on the field as each stands at the middle of the screen
+  // (ApproachStack.astro, PARALLAX). Measured again on every refresh; a
+  // change that moves the page under it asks for one more, so the
+  // triggers below the stack measure the page as it now stands.
+  const SNAP = ["--snap-top"];
   const SIZE = ["--card-top", "--card-pad", "--media-pad", "--foot-min"];
   let placed = "";
   function placeCards() {
-    if (!field || !cards?.length) return;
-    const { pitch } = FIELD;
-    const box = field.getBoundingClientRect();
-    // the dots' middles: a column (in the screen) and a row (on the page)
-    const column = box.left + (fieldX === null ? box.width / 2 : fieldX + FIELD.dot + 1);
-    const row = box.top + window.scrollY + fieldY + FIELD.dot + 1;
+    if (!grid || !cards?.length) return;
+    const { pitch } = grid;
+    // a row's middle, on the page
+    const row = field.getBoundingClientRect().top + window.scrollY + grid.y;
     const between = (v, o) => o + pitch / 2 + Math.round((v - o - pitch / 2) / pitch) * pitch;
     const steps = (v) => Math.max(1, Math.round(v / pitch)) * pitch;
-    const px = (v) => `${+v.toFixed(2)}px`;
 
-    // where the grid puts each card and its blocks, without any of this
+    // each card and its blocks as the stylesheet sets them, without any of this
     cards.forEach(({ slot, el }) => {
       SNAP.forEach((p) => slot.style.removeProperty(p));
       SIZE.forEach((p) => el.style.removeProperty(p));
     });
-    const sides = cards.map(({ slot, el }) => {
-      const r = slot.getBoundingClientRect();
-      const pad = parseFloat(getComputedStyle(el.querySelector(".step-card__foot")).paddingLeft);
-      return { r, head: el.querySelector(".step-card__head").offsetHeight, pad };
-    });
-    // its sides, the number's square and the padding on the field
-    cards.forEach(({ slot, el }, i) => {
-      const { r, head, pad } = sides[i];
-      slot.style.setProperty("--snap-left", px(between(r.left, column) - r.left));
-      slot.style.setProperty("--snap-right", px(r.right - between(r.right, column)));
+    const sides = cards.map(({ el }) => ({
+      head: el.querySelector(".step-card__head").offsetHeight,
+      pad: parseFloat(getComputedStyle(el.querySelector(".step-card__foot")).paddingLeft),
+    }));
+    // the number's square and the padding on the field
+    cards.forEach(({ el }, i) => {
+      const { head, pad } = sides[i];
       el.style.setProperty("--card-top", px(steps(head)));
       el.style.setProperty("--card-pad", px((Math.max(1, Math.round(pad / pitch - 0.5)) + 0.5) * pitch));
     });
@@ -162,32 +224,34 @@ export function mountApproachStack(root, { lenis } = {}) {
   };
 
   // A dot of the field to light, as the top-left of its square in the
-  // field's own coordinates: on the screen, away from its edges, never on
-  // the rail's column or under a card.
+  // field's own coordinates: on the screen, away from its edges, never
+  // beside the rail or under a card. Set to the device pixel, as the
+  // field's own dots are.
   const pickFieldDot = () => {
+    if (!grid) return null;
     const box = field.getBoundingClientRect();
-    const { pitch } = FIELD;
+    const { pitch } = grid;
     const wrap = (n) => ((n % pitch) + pitch) % pitch;
     const lo = Math.max(0, window.innerHeight * 0.1 - box.top);
     const hi = Math.min(box.height, window.innerHeight * 0.9 - box.top);
-    const first = lo + wrap(fieldY + FIELD.dot - lo);
+    const first = lo + wrap(grid.y - lo);
     const rows = Math.floor((hi - first) / pitch) + 1;
-    // the rail's column (or the middle one), and the columns either side of
-    // it that fit the field
-    const column = fieldX === null ? box.width / 2 - 1 : fieldX + FIELD.dot;
-    const left = Math.floor((column - pitch / 2) / pitch);
-    const right = Math.floor((box.width - column - pitch / 2) / pitch);
-    if (rows < 1 || left + right < 1) return null;
+    const x0 = wrap(grid.x) + pitch;
+    const columns = Math.floor((box.width - x0 - pitch / 2) / pitch);
+    if (rows < 1 || columns < 1) return null;
+    const line = rail && rail.offsetParent ? rail.getBoundingClientRect() : null;
+    const railX = line ? line.left + line.width / 2 : null;
     const covers = cards.map((card) => card.el.getBoundingClientRect());
+    const dpr = window.devicePixelRatio || 1;
+    const snap = (v) => Math.round(v * dpr) / dpr;
     for (let tries = 0; tries < 8; tries++) {
-      const k = gsap.utils.random(-left, right, 1);
-      if (k === 0) continue;
-      const x = column + k * pitch;
+      const x = x0 + gsap.utils.random(0, columns - 1, 1) * pitch;
       const y = first + gsap.utils.random(0, rows - 1, 1) * pitch;
       const sx = box.left + x;
       const sy = box.top + y;
+      if (railX !== null && Math.abs(sx - railX) < pitch) continue;
       if (covers.some((r) => sx > r.left - 8 && sx < r.right + 8 && sy > r.top - 8 && sy < r.bottom + 8)) continue;
-      return { x, y };
+      return { x: snap(x - DOT / 2), y: snap(y - DOT / 2) };
     }
     return null;
   };
@@ -206,16 +270,17 @@ export function mountApproachStack(root, { lenis } = {}) {
       rail: "(min-width: 768px)",
       phone: "(max-width: 767px)",
       reduce: "(prefers-reduced-motion: reduce)",
-      // the rail on the page's centre line, where it can grow out of the
-      // statement's dotted line before it
+      // the rail between the two columns of cards, where it can grow out
+      // of the statement's dotted line before it
       led: "(min-width: 992px)",
     },
     (context) => {
       const { phone, reduce, led } = context.conditions;
       const cleanups = [];
 
-      // No rail to set the field by (a phone, or reduced motion): the
-      // field's defaults, and the cards set on them, on every refresh.
+      // No rail to set the field by (a phone, or reduced motion): the field
+      // set out from the cards alone, its rows from its top, and the cards
+      // set on it, on every refresh.
       if (phone || reduce) {
         const fit = ScrollTrigger.create({ trigger: root, start: "top bottom", end: "bottom top", onRefresh: () => placeField(null) });
         placeField(null);
@@ -289,12 +354,18 @@ export function mountApproachStack(root, { lenis } = {}) {
     // path from it to the rail.
     let geo = null;
     const measure = () => {
+      // the field's pitch first: the rail's dots, the snake's and the
+      // statement's line all take it, and the rail stands on one of its
+      // columns
+      const fit = field ? fitColumns() : null;
+      if (fit) snapRail(fit);
       const box = rail.getBoundingClientRect();
       geo = {
         top: box.top + window.scrollY,
         height: box.height,
         sticky: parseFloat(getComputedStyle(win).top) || 0,
         win: win.offsetHeight,
+        pitch: fit?.pitch ?? 18,
       };
       if (lead) {
         // The line's box, to the sub-pixel, in its held frame. It draws in
@@ -309,7 +380,7 @@ export function mountApproachStack(root, { lenis } = {}) {
         geo.morph = window.innerHeight * SNAKE.scroll;
         snake.draw(geo);
       }
-      placeField(lead ? snake.origin : geo.top);
+      placeField(lead ? snake.origin : geo.top, fit);
       return geo;
     };
     measure();
@@ -323,7 +394,7 @@ export function mountApproachStack(root, { lenis } = {}) {
       if (!geo) return;
       const winTop = Math.min(Math.max(geo.sticky, geo.top - scroll), geo.top + geo.height - geo.win - scroll);
       const origin = lead ? snake.origin : geo.top;
-      dots.style.backgroundPositionY = `${origin - scroll - winTop}px`;
+      dots.style.setProperty("--rail-y", `${(origin - scroll - winTop).toFixed(3)}px`);
     };
     ScrollTrigger.create({
       trigger: rail,
@@ -457,7 +528,8 @@ export function mountApproachStack(root, { lenis } = {}) {
         gsap.killTweensOf(mark);
         gsap.set(mark, { clearProps: "transform" });
       }
-      dots.style.backgroundPositionY = "";
+      dots.style.removeProperty("--rail-y");
+      rail.style.removeProperty("--rail-snap");
       if (lead) {
         morph.scrollTrigger?.kill();
         morph.kill();
@@ -473,6 +545,7 @@ export function mountApproachStack(root, { lenis } = {}) {
     destroy() {
       mm.revert();
       unplaceCards();
+      unplaceField();
       cards.forEach((card) => card.schematic?.destroy());
     },
   };
@@ -567,6 +640,8 @@ function makeSnake(rail) {
       const d = "M" + points.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join("L");
       dots.setAttribute("d", d);
       reach.setAttribute("d", d);
+      // 2px dots on the field's pitch, as the rail's
+      dots.setAttribute("stroke-dasharray", `2 ${(geo.pitch - 2).toFixed(3)}`);
       snake.origin = geo.top + land - into;
     },
     // the snake's place q px of scroll after the release
@@ -622,12 +697,13 @@ function mountSchematic(svg) {
 const paint = (el, prop) => getComputedStyle(el)[prop];
 
 const SCHEMATICS = {
-  // Understand — four floor plates: work, tools, information, decisions.
-  // The setting-out and the plates come in from the ground up, then the
-  // route draws in across and down them and the cubes where it meets each
-  // plate appear; then a red signal runs the route, each cube's edges
-  // catching it as it passes, while the dashed line straight down the
-  // middle shows the way it was meant to go.
+  // Understand — the practice in plan, four rooms: work, tools,
+  // information, decisions. The setting-out, the floor and its rooms come
+  // in, then the route work actually takes draws in, the long way round
+  // the rooms, and the block in each appears; then a red signal runs the
+  // route, each block's edges catching it as it passes, while the dashed
+  // line straight from the first room to the last shows the way it was
+  // meant to go.
   map(parts, colors) {
     const [ground] = parts("ground");
     const plates = parts("plate");
@@ -640,12 +716,15 @@ const SCHEMATICS = {
     gsap.set([ground, intended, ...nodes], { opacity: 0 });
     gsap.set(plates, { opacity: 0, y: 6 });
     gsap.set(nodes, { scale: 0.6, transformOrigin: "50% 50%" });
-    gsap.set(route, { strokeDasharray: "1 1", strokeDashoffset: 1 });
+    // unrounded (autoRound: false): the route and the pulse are measured in
+    // shares of their own length (pathLength="1"), which whole pixels would
+    // only ever jump from end to end
+    gsap.set(route, { strokeDasharray: "1 1", strokeDashoffset: 1, autoRound: false });
 
     const tl = gsap.timeline({ paused: true });
     tl.to(ground, { opacity: 1, duration: 0.5, ease: "none" }, 0.1)
       .to(plates, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.1 }, 0.15)
-      .to(route, { strokeDashoffset: 0, duration: 1.2, ease: "power1.inOut" }, 0.6)
+      .to(route, { strokeDashoffset: 0, duration: 1.2, ease: "power1.inOut", autoRound: false }, 0.6)
       .to(nodes, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.7)
       .to(intended, { opacity: 1, duration: 0.5, ease: "none" }, 1.5);
     tl.add("rest", 2);
@@ -655,7 +734,7 @@ const SCHEMATICS = {
     // at s / 1.08 of the run.
     const travel = 3.2;
     const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.4 });
-    loop.fromTo(pulse, { strokeDashoffset: 0.08 }, { strokeDashoffset: -1, duration: travel, ease: "none", immediateRender: false }, 0);
+    loop.fromTo(pulse, { strokeDashoffset: 0.08 }, { strokeDashoffset: -1, duration: travel, ease: "none", immediateRender: false, autoRound: false }, 0);
     nodes.forEach((node) => {
       const at = (parseFloat(node.dataset.at) / 1.08) * travel;
       loop.to(node, { stroke: colors.red, duration: 0.12, ease: "none" }, at)

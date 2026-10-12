@@ -74,7 +74,8 @@
 
 /* The dotted line beside the statement, as the hero's beside its
    heading (page-grid.css): a gutter and two of --dotted-rule-bleed out
-   from the text, and running a little past it at either end. Its dots are the approach stack's, 2px every 18px from the
+   from the text, and running a little past it at either end. Its dots are the approach stack's, 2px on the band's pitch
+   (--dot-pitch, set by approach-stack.js; 18px without it) from the
    top, in the hero rule's tone, so the rail's window can take its place
    dot for dot and grow out of it (approach-stack.js); the script draws
    it down as the statement comes in. */
@@ -84,7 +85,7 @@
   bottom: -0.75rem;
   left: calc(-1 * (var(--grid-gutter) + 2 * var(--dotted-rule-bleed) + 2px));
   width: 2px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 2px, transparent 2px) 0 0 / 2px 18px repeat-y;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0 2px, transparent 2px var(--dot-pitch, 18px));
   transform-origin: 50% 0;
   pointer-events: none;
 }

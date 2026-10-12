@@ -186,30 +186,45 @@
 /* The AEC Tech Firms accent */
 :is(.hero--blue, .cta--blue) .action-button { --action-button-accent: var(--c-blue); }
 
-/* On a dark ground — a dark page, section, hero or price card, or the
-   service stack's cards — the pair inverts, as the nav's Contact button
-   does on a dark page, so the lead stays the strongest thing on its
+/* On a dark ground — a dark page, section, hero or price card — the pair
+   inverts, as the nav's Contact button does on a dark page, so the lead
+   stays the strongest thing on its
    ground: the primary's label block turns white with ink text (white text
    on its accent sweep), the secondary a quiet lift off the ground with a
    hairline round it. The closing CTA is always on the off-white, a dark
    page's included, so its pair never inverts (:where keeps the
    exception from outweighing the hover below). */
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark, .service-stack) .action-button:where(:not(.cta *)) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)) {
   --action-button-color-focus: var(--c-white);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark, .service-stack) .action-button:where(:not(.cta *)):not(.is--secondary) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)):not(.is--secondary) {
   /* black would vanish into a dark ground, so the arrow block keeps the red */
   --action-button-accent: var(--c-red);
   --action-button-color: var(--c-text);
   --action-button-color-background: var(--c-white);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark, .service-stack) .action-button:where(:not(.cta *)).is--secondary {
+:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)).is--secondary {
   --action-button-color: var(--c-white);
   --action-button-color-background: rgba(255, 255, 255, 0.1);
   --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark, .service-stack) .action-button:where(:not(.cta *)).is--secondary .action-button__bg {
+:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)).is--secondary .action-button__bg {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+/* The homepage's service stack keeps the primary as the hero sets it,
+   rather than inverting it: a charcoal label block in white capitals and
+   a near-black square with the two triangles, the label sweeping to the
+   near-black on hover, so nothing on the cards is red. The card is
+   itself a charcoal, so the label block is a step lighter than it, the
+   one change the dark ground asks for, and the button a little taller
+   than the hero's, to stand with the card's larger copy. */
+.service-stack .action-button {
+  --action-button-height: 2.75rem;
+  --action-button-color-background: #383838;
+  --action-button-accent: #0a0a0a;
+  --action-button-color-focus: var(--c-white);
+  font-size: 0.75rem;
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {

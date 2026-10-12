@@ -180,7 +180,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .transition__label,
 .field > label,
 .tile__num,
-.mega-nav__panel-label,
+.resource-block__label,
 .insight-card__meta,
 .filters button {
   font-family: var(--font-mono);
@@ -309,6 +309,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   background: var(--c-white);
   border: 1px solid var(--c-text);
 }
+/* On a block of colour of its own — the footer's red, the field of the
+   Resources dropdown's newsletter block — the ground already frames the
+   control, and the field and the submit stand off it by their own tones,
+   so it goes without the outline. */
+.newsletter-form.is--plain { border: 0; }
 .newsletter-form:has(input:focus-visible) { outline: 1px solid currentColor; outline-offset: 2px; }
 .newsletter-form input {
   flex: 999 1 10rem;
@@ -372,28 +377,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   cursor: pointer;
 }
 .newsletter-audience input { margin: 0; accent-color: var(--c-red); }
-/* The homepage's signup, under the research: a rule, the name on the
-   left and the signup on the right, stacking where the row runs out. */
-.research__signup {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 2rem;
-  margin-top: 4rem;
-  padding-top: 2rem;
-  position: relative;
-}
-/* its rule, the site's dotted one */
-.research__signup::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: calc(-1 * var(--dotted-rule-bleed));
-  right: calc(-1 * var(--dotted-rule-bleed));
-  height: 2px;
-  background: var(--dotted-rule);
-}
 .newsletter-audience__legend {
   position: absolute;
   width: 1px;
@@ -762,14 +745,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    2px dots on a 12px pitch, each centred in its tile. The rule stands
    out past the margin by the 5px a dot sits in from its tile, and round
    fits a whole number of tiles, so the first dot starts on Grid Column 1
-   and the last ends on Grid Column 12. It takes the title's step under it
-   in two halves, one either side, so the marks stay where they were. */
+   and the last ends on Grid Column 12. Half the title's step stands over
+   it and a fifth under it: the marks sit in the middle of their tall
+   tiles, so the tiles' own room above them already parts them from the
+   rule, and a full half there left the marks floating well clear of the
+   line they belong to. */
 .dotted-rule {
   height: 2px;
   background: var(--dotted-rule);
 }
 .logos__rule {
-  margin: 0 calc(var(--grid-margin) - var(--dotted-rule-bleed)) calc(var(--sec-md) / 2);
+  margin: 0 calc(var(--grid-margin) - var(--dotted-rule-bleed)) calc(var(--sec-md) / 5);
 }
 
 /* No box: each mark stands on the band on its own. The tile keeps its
@@ -1276,20 +1262,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    lede — the hero's interval between its own two columns. */
 
 /* ------------------------------------------------------------
-   route cards (ServiceCard.astro: the nav's Services cards; the
-   homepage's routes are the service stack, "service stack" below)
-   ------------------------------------------------------------
-   Each is a single link: a band of grid cells with a box set into it,
-   the service's number in a red square and the name; under it the
-   service's diagram on its field; and under that the description.
-
-   Every part is sized to the card's own width (cqw), to the reference
-   the layout was drawn from, so the card keeps one set of proportions
-   at any width: a grid cell 4.6% of the width, the band four cells
-   high, the box in it a cell in from either side and from the top and
-   two cells high; the diagram's part 35.4%, the description's at
-   least 22.4%, its words 2.9% (never under 1rem, for the nav's
-   narrower cards).
+   insight cards (InsightCard.astro): the research cards; the rest of
+   their setting under "9 — insight cards" below
    ------------------------------------------------------------ */
 .insight-card {
   display: flex;
@@ -1302,95 +1276,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   text-decoration: none;
   transition: transform .3s ease;
 }
-.route-card {
-  container-type: inline-size;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  color: var(--c-text);
-  text-decoration: none;
-  transition: transform .3s ease;
-}
-.route-card:hover,
 .insight-card:hover { transform: translateY(-4px); }
-
-/* The header bar and the panel under it are the row's full share each —
-   a quarter of it four across, half two across — so the cards meet edge
-   to edge although the grid stands them a gap apart: each part is
-   widened by its share of the row's gaps and drawn back by the gaps
-   before it in the row. --cards-gap and --cards-cols are the grid's
-   own; --i is the card's place in it (ServiceCard.astro), its column
-   mod(--i, --cards-cols). */
-.route-card {
-  --col: mod(var(--i, 0), var(--cards-cols, 1));
-  /* one cell of the band's grid */
-  --route-cell: 4.6cqw;
-}
-.route-card__head,
-.route-card__panel {
-  width: calc(100% + var(--cards-gap, 0px) * (var(--cards-cols, 1) - 1) / var(--cards-cols, 1));
-  margin-left: calc(var(--cards-gap, 0px) * var(--col) / var(--cards-cols, 1) * -1);
-  box-sizing: border-box;
-}
-/* The band: grey cells ruled a shade darker, four cells high. Edge to
-   edge, the four bands read as one strip of grid along the row. */
-.route-card__head {
-  height: calc(var(--route-cell) * 4);
-  padding: var(--route-cell);
-  background-color: #e6e6e6;
-  background-image:
-    linear-gradient(to right, #d2d2d2 1px, transparent 1px),
-    linear-gradient(to bottom, #d2d2d2 1px, transparent 1px);
-  background-size: var(--route-cell) var(--route-cell);
-}
-/* The box set into the band: a cell in from either side and from the
-   top, two cells high, the number's square at its start. */
-.route-card__title {
-  display: flex;
-  align-items: center;
-  gap: 3cqw;
-  height: calc(var(--route-cell) * 2);
-  box-sizing: border-box;
-  border: 1px solid #d2d2d2;
-  background: #f6f6f6;
-}
-/* The number's square, the box's full height, at its very start. */
-.route-card__num {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-  aspect-ratio: 1;
-  background: var(--c-red);
-  color: var(--c-white);
-  font-family: var(--font-mono);
-  font-size: 3.8cqw;
-  letter-spacing: 0;
-}
-
-/* The tab above a card: its label in the accent face, on white, drawn
-   by a hairline and standing on the card's top edge. */
-.route-card__tab {
-  align-self: flex-start;
-  padding: 0.375rem 0.625rem;
-  border: 1px solid #d2d2d2;
-  border-bottom: 0;
-  background: var(--c-white);
-  color: var(--c-text);
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  line-height: 1.2;
-  letter-spacing: 0.02em;
-}
-/* The panel: the diagram's field, then the description under a rule. */
-.route-card__panel {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-top: 1px solid #d2d2d2;
-  background: var(--c-white);
-}
 
 .insight-card__media {
   position: relative;
@@ -1400,14 +1286,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* square rather than portrait — the panel only has to frame the
      icon, and the taller crop was making the row overshoot */
   aspect-ratio: 1 / 1;
-  background: var(--c-light-fg);
-}
-/* The diagram's field: the panel's grey, the diagram in its middle. */
-.route-card__media {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 35.4cqw;
   background: var(--c-light-fg);
 }
 /* The step's label, sitting on the panel as a chip. */
@@ -1439,25 +1317,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .insight-card__arrow svg { width: 1.125rem; height: 1.125rem; }
 .insight-card:hover .insight-card__arrow { background: var(--c-red); }
 
-/* the service's diagram (ServiceDiagram.astro), centred in its field */
-.route-card__diagram { display: block; width: 52cqw; max-height: 33cqw; height: auto; }
-
 .insight-card__body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.5rem;
 }
-/* The description at the top of the white under the diagram. */
-.route-card__body {
-  flex: none;
-  min-height: 22.4cqw;
-  padding: 4cqw var(--route-cell);
-  box-sizing: border-box;
-  border-top: 1px solid #d2d2d2;
-  background: #f6f6f6;
-}
-.route-card__h,
 .insight-card__h {
   margin: 0;
   font-family: var(--font-display);
@@ -1466,19 +1331,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   line-height: 1.2;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
-.route-card__h { min-width: 0; font-size: 5.3cqw; line-height: 1.1; }
 .insight-card__p {
   margin: 0;
   font-size: var(--t-sm);
   line-height: 1.35;
   color: #6b6b6b;
-}
-.route-card__p {
-  margin: 0;
-  font-size: max(2.9cqw, 1rem);
-  line-height: 1.3;
-  text-wrap: pretty;
-  color: var(--c-text);
 }
 
 @media screen and (max-width: 991px) {
@@ -1693,9 +1550,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   flex-direction: column;
   gap: 1.25rem;
 }
-/* Round, on the page's ground, in an ink hairline: the arrow in ink,
-   and over it the fill and a white arrow the script runs in on hover
-   and keyboard focus. */
+/* Square, as the research slider's arrows are (.arrows): a white block
+   on the off-white with the site's small radius and no outline, the
+   arrow in ink, and over it the fill and a white arrow the script runs
+   in on hover and keyboard focus. */
 .testimonial-slider__button {
   position: relative;
   display: flex;
@@ -1705,9 +1563,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   height: var(--slider-control);
   padding: 0;
   overflow: hidden;
-  border: 1px solid currentColor;
-  border-radius: 50%;
-  background: var(--c-light-bg);
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--c-white);
   color: var(--c-text);
   cursor: pointer;
 }
@@ -1720,7 +1578,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .testimonial-slider__fill {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
   background: var(--c-red);
   transform: scale(0);
 }
@@ -1782,15 +1639,15 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    ============================================================ */
 .creds__title { display: flex; flex-direction: column; gap: 1rem; max-width: 35rem; }
 .creds__title .h2 { max-width: 24.5rem; }
-.creds__grid { display: flex; gap: 4rem; align-items: flex-start; margin-top: 2.5rem; }
-.creds__media { flex: 0 0 43.5rem; display: flex; gap: 2rem; align-items: flex-start; }
-.creds__media .ph:first-child { margin-top: 6.5rem; height: 27.4375rem; }
-.creds__media .ph:last-child { height: 27.25rem; }
-.creds__media > * { flex: 1 0 0; min-width: 0; }
+/* One photograph, shown whole at its own proportion (5:3), and the copy
+   beside it standing on the picture's foot, its button level with the
+   picture's lower edge. */
+.creds__grid { display: flex; gap: 4rem; align-items: flex-end; margin-top: 2.5rem; }
+.creds__media { flex: 0 0 43.5rem; }
+.creds__media .ph { aspect-ratio: 5 / 3; }
 .creds__text {
   flex: 1 0 0;
   min-width: 0;
-  padding-top: 19.0625rem;
   display: flex;
   flex-direction: column;
   gap: 2rem;
@@ -1869,12 +1726,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* ============================================================
    9 — insight cards + the insight slider
    ============================================================ */
-/* The report / newsletter card is the routes card with a featured
-   image where the routes card carries its icon: same white panel,
-   same square media area, same label chip top-left and arrow chip
-   top-right, same body proportions. Everything structural is shared
-   with .route-card above; only what the image and the metadata line
-   need is declared here. */
+/* The report / newsletter card: a white panel with its featured image,
+   a label chip top-left and an arrow chip top-right. Its structure is
+   set under "insight cards" above; only what the image and the metadata
+   line need is declared here. */
 /* A contained card rather than a picture with copy loose underneath
    it: white on the off-white page, and a hairline to close it, so a
    row of them still reads as content on the page and not as a row of
@@ -2133,10 +1988,16 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    ============================================================ */
 /* On the site's off-white, the page's own ground, in ink. */
 .cta {
+  --cta-pad: 11.625rem;
   background: var(--c-light-bg);
   color: var(--c-text);
-  padding: 11.625rem var(--page-pad);
+  padding: var(--cta-pad) var(--page-pad);
 }
+/* After the homepage's research, on the same ground, the space over the
+   call is the research's foot and the call's own top together, so the
+   call gives back the research's share: its words stand as far under the
+   research as the footer stands under its buttons. */
+.research + .cta { padding-top: calc(var(--cta-pad) - var(--sec-lg)); }
 /* The page's closing composition, set the way the hero and the routes
    intro are rather than as a centred stack: a label holding the left
    edge, the heading and its buttons set in from it, and the mark out on
@@ -2230,15 +2091,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    gutters (column-grid.css), so every name, link and control starts
    on the line of a Grid Column the overlay draws.
 
-   Top: the brand mark on Grid Column 1 — the logo's four forms,
-   without the circle — with the copyright under it; from Grid
-   Column 7, the page's heading line, the link groups three across,
-   two Grid Columns each, in two rows, each under a quiet name: the
-   social marks close Contact, and the newsletter signup takes the
-   rest of its row, Grid Columns 9–12. Across the foot of the panel,
-   edge to edge, the logo drawn in the hero's Slash Field — the
-   pattern itself builds the four forms — its lower half running
-   off the panel's foot.
+   Top: one row across the whole grid, each part under a quiet name,
+   the names on one line: the four link groups two Grid Columns each,
+   on 1–2, 3–4, 5–6 and 7–8, the social marks closing Contact, and the
+   newsletter signup on the last third, Grid Columns 9–12. Across the
+   foot of the panel, edge to edge, the logo drawn in the hero's Slash
+   Field — the pattern itself builds the four forms — its lower half
+   running off the panel's foot. That logo is the footer's mark, so
+   there is no second, small one.
 
    The panel stands a full viewport tall, so the space between the
    parts is part of the composition rather than something to fill.
@@ -2279,37 +2139,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* the brand and the copyright, on Grid Column 1 */
-.site-footer__id {
-  grid-column: 1 / 7;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.875rem;
-}
-.site-footer__brand {
-  display: block;
-  /* level with the groups' names */
-  margin: 0.25rem 0 0;
-  color: var(--c-white);
-}
-.site-footer__brand svg { display: block; width: 4rem; height: auto; }
-/* the copyright, quiet, under the mark */
-.site-footer__copy {
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-/* The groups on the grid's own tracks from Grid Column 7: each group two
-   Grid Columns, the signup four, a wide step between the rows. */
-.site-footer__groups {
-  grid-column: 7 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
-  row-gap: 4rem;
-  align-items: start;
-}
+/* Each group two Grid Columns, its name and its links on the first's
+   left edge. */
 .site-footer__group {
   grid-column: span 2;
   display: flex;
@@ -2330,13 +2161,16 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   white-space: nowrap;
 }
 
-/* The social marks: a row of square blocks a step darker than the red,
-   across the group's two Grid Columns, each mark white on its block.
-   Pointed at or focused, a block turns white and its mark takes the
-   red, as a footer link's box does. */
+/* The social marks, the platforms' own marks without their names (each
+   link named for a screen reader): a row of square blocks a step darker
+   than the red, from the group's left edge, each mark white on its
+   block. Each is a square of its own size rather than a share of the
+   group, so the row stops short of the signup beside it. Pointed at or
+   focused, a block turns white and its mark takes the red, as a footer
+   link's box does. */
 .site-footer__social {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.25rem;
   margin-top: 0.875rem;
 }
@@ -2344,6 +2178,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   display: flex;
   align-items: center;
   justify-content: center;
+  width: max(2.25rem, 36px);
   aspect-ratio: 1;
   background: rgba(0, 0, 0, 0.16);
   color: var(--c-white);
@@ -2354,8 +2189,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .site-footer__social-link:focus-visible { outline: 1px solid var(--c-white); outline-offset: 2px; }
 
 /* The newsletter signup, the shared one (above), under its name and a
-   line saying what it is. On the red its submit is ink, as the primary
-   button is on a light ground, so it never sinks into the panel. */
+   line saying what it is, on Grid Columns 9–12, the control their full
+   width. On the red its submit is ink, as the primary button is on a
+   light ground, so it never sinks into the panel. */
 .site-footer__signup {
   grid-column: span 4;
   display: flex;
@@ -2394,18 +2230,20 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   clip-path: inset(-2rem 0 0 0);
 }
 .site-footer__mark-field {
-  /* The hero's pattern, a little closer set and a little firmer than the
-     hero sets it (.hero__field), and in solid white: the field has no
-     words, so it never runs its wave, and every stroke rests at the
-     one white. */
-  --slash-cell-w: 6;
-  --slash-cell-h: 13;
-  --slash-stroke: 1.5;
+  /* The hero's pattern, set finer and closer than the hero sets it
+     (.hero__field), so the forms read as fine detail, and in a white
+     held well back into the red, so the logo sits behind the footer's
+     words as a ground rather than competing with them. The field has
+     no words, so it never runs its wave, and every stroke rests at the
+     one tint. */
+  --slash-cell-w: 5;
+  --slash-cell-h: 11;
+  --slash-stroke: 1.25;
   --slash-blank: 0.03;
-  --slash-base: #fff;
-  --slash-hot: #fff;
-  --slash-ink: #fff;
-  --slash-signal: #fff;
+  --slash-base: rgba(255, 255, 255, 0.34);
+  --slash-hot: rgba(255, 255, 255, 0.34);
+  --slash-ink: rgba(255, 255, 255, 0.34);
+  --slash-signal: rgba(255, 255, 255, 0.34);
   --slash-fade: 450;
   position: relative;
   width: 100%;
@@ -2523,29 +2361,23 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 
   .compare__grid, .creds__grid { flex-direction: column; }
   .compare__title { font-size: 2.1893rem; padding-bottom: 4rem; }
+  .creds__grid { align-items: stretch; }
   .creds__media { flex: none; width: 100%; }
-  .creds__text { padding-top: 0; }
-  .creds__media .ph:first-child { margin-top: 0; height: 20rem; }
-  .creds__media .ph:last-child { height: 20rem; }
 
-  /* The split composition is a desktop one. Below this the panel goes
-     back to ordinary flow on the grid's six columns: the mark, then the
-     link groups two across, three Grid Columns each, then the signup
-     and the logo. The social marks keep a fingertip's size rather than
-     a share of the group. */
+  /* The one row is a desktop composition. Below this the panel goes
+     back to ordinary flow on the grid's six columns: the link groups two
+     across, three Grid Columns each, then the signup across the grid,
+     then the logo. The social marks take a fingertip's size. */
   .site-footer { min-height: 0; padding-top: 4rem; }
-  .site-footer__id,
-  .site-footer__groups { grid-column: 1 / -1; }
-  .site-footer__brand { margin: 0; }
-  .site-footer__groups { row-gap: 2.5rem; }
+  .site-footer__top { row-gap: 2.5rem; }
   .site-footer__group { grid-column: span 3; }
   .site-footer__signup { grid-column: 1 / -1; }
-  .site-footer__social { grid-template-columns: repeat(5, max(2.75rem, 44px)); }
+  .site-footer__social-link { width: max(2.75rem, 44px); }
   /* on tablets and phones the forms run edge to edge, to keep their scale */
   .site-footer__mark { margin-top: 2.5rem; }
 
   .logos { padding: 5rem 0; }
-  .cta { padding: 7.5rem var(--page-pad); }
+  .cta { --cta-pad: 7.5rem; }
   /* The split is a desktop composition, as it is in the hero: stacked,
      the label leads and the mark has no gutter left to sit in. */
   .cta__grid { flex-direction: column; gap: 2rem; }
@@ -2691,8 +2523,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .service-stack__tab,
 .service-stack__card { pointer-events: auto; }
 
-/* the folder tab, on its quarter */
+/* The folder tab, on its quarter. Drawn back, it fades to --tab-depth as
+   its card goes behind the next (--tab-back, 0 in front to 1 behind, the
+   script's, scrubbed with the scroll). */
 .service-stack__tab {
+  --tab-back: 0;
+  --tab-depth: 0.45;
   display: flex;
   align-items: center;
   width: var(--stack-quarter);
@@ -2701,12 +2537,19 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   background: var(--stack-tone);
   color: inherit;
   text-decoration: none;
+  opacity: calc(1 - var(--tab-back) * (1 - var(--tab-depth)));
   transition: background-color .2s ease;
 }
-/* Pointed at or focused, a tab darkens a clear step, so it reads as
-   something to press; it never moves or changes size. Focused from the
-   keyboard it is ringed too. */
-.service-stack__tab:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--stack-tone), #000 45%); }
+/* Pointed at or focused, a tab darkens a little, so it reads as
+   something to press, in front or drawn back: its ground a step deeper,
+   and a drawn-back tab a step less faded. It never moves or changes
+   size. Pressed, it goes a step deeper again; focused from the keyboard
+   it is ringed too. */
+.service-stack__tab:is(:hover, :focus-visible) {
+  --tab-depth: 0.54;
+  background: color-mix(in srgb, var(--stack-tone), #000 28%);
+}
+.service-stack__tab:active { background: color-mix(in srgb, var(--stack-tone), #000 45%); }
 .service-stack__tab:focus-visible { outline: 2px solid var(--c-red); outline-offset: -2px; }
 /* the number in a square the tab's height, a step darker */
 .service-stack__num {
@@ -2760,11 +2603,19 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   flex-direction: column;
   align-items: flex-start;
   gap: 2rem;
-  /* In from the card's top and its left edge by the same step: a tab's
-     height, so the copy starts where the tab's number square ends. */
+  /* In from the card's top and both its sides by the same step: a tab's
+     height, so the copy starts where the tab's number square ends, and
+     the call to the service under it runs the copy's full width, as far
+     in from the diagram's field as it starts in from the card's edge. */
   --stack-inset: var(--stack-tab);
-  padding: var(--stack-inset) 1.25rem var(--stack-inset) var(--stack-inset);
+  padding: var(--stack-inset);
 }
+/* The call to the service: the site's button, as one bar across the
+   copy's block, its label at the start and its arrow block at the far
+   end. The whole bar is the link. Pressed, it goes a step deeper. */
+.service-stack__copy > .action-button { align-self: stretch; }
+.service-stack__copy > .action-button .action-button__inner { justify-content: flex-start; }
+.service-stack__copy > .action-button:active :is(.action-button__body, .action-button__arrow-block) { filter: brightness(0.86); }
 .service-stack__p {
   max-width: 28rem;
   font-family: var(--font-display);
@@ -2807,13 +2658,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .service-stack__pattern > canvas { display: block; }
 
 /* the drawing (ServiceDiagram.astro) carries its own margin in its
-   viewBox, so it can take most of the field */
+   viewBox, so it can take nearly all of the field and still stand well
+   clear of its dots */
 .service-stack__diagram {
   position: relative;
   display: block;
-  width: min(88%, 36rem);
+  width: min(94%, 41rem);
   height: auto;
-  max-height: 88%;
+  max-height: 94%;
 }
 /* the spacer that holds the full stack before it leaves */
 .service-stack__hold { height: 35vh; height: 35svh; }
@@ -2837,7 +2689,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .service-stack__media { grid-column: 1; }
   .service-stack__copy { gap: 1rem; --stack-inset: 2rem; }
   .service-stack__p { font-size: 1.25rem; }
-  .service-stack__diagram { width: min(92%, 22rem); }
+  .service-stack__diagram { width: min(96%, 25rem); }
 }
 
 /* Without motion the cards simply follow one another, each with its
@@ -2864,6 +2716,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   --sd-ink: var(--c-text);
   --sd-ground: var(--diagram-ground, var(--c-light-fg));
   --sd-accent: var(--diagram-accent, var(--c-red));
+  /* the lines' weight in screen pixels, and the dashes' rhythm: a field
+     that shows the drawing small draws it finer (the nav's Services
+     cards) */
+  --sd-stroke: 1;
+  --sd-dash: 3 3;
   overflow: visible;
 }
 .service-diagram :is(path, circle) {
@@ -2873,19 +2730,19 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .service-diagram__line {
   fill: none;
   stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent);
-  stroke-width: 1;
+  stroke-width: var(--sd-stroke);
 }
 .service-diagram__line.is--soft { stroke: color-mix(in srgb, var(--sd-ink) 32%, transparent); }
-.service-diagram__line.is--dash { stroke-dasharray: 3 3; }
+.service-diagram__line.is--dash { stroke-dasharray: var(--sd-dash); }
 .service-diagram__line.is--dash:not(.is--soft) { stroke: color-mix(in srgb, var(--sd-ink) 24%, transparent); }
 /* Solid lines are things; dotted ones are what moves or relates them:
    a path work takes, a design carried across, a part mapped into a plan.
    A path keeps its line's weight; only the setting-out is faint. */
-.service-diagram__line.is--path { stroke-dasharray: 3 3; }
+.service-diagram__line.is--path { stroke-dasharray: var(--sd-dash); }
 .service-diagram__ring {
   fill: var(--sd-ground);
   stroke: color-mix(in srgb, var(--sd-ink) 32%, transparent);
-  stroke-width: 1;
+  stroke-width: var(--sd-stroke);
 }
 .service-diagram__ring.is--accent { stroke: var(--sd-accent); }
 .service-diagram__ring.is--session { stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent); }
@@ -2893,22 +2750,41 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .service-diagram__solid {
   fill: var(--sd-ground);
   stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent);
-  stroke-width: 1;
+  stroke-width: var(--sd-stroke);
 }
 .service-diagram__solid.is--accent { stroke: var(--sd-accent); }
 /* the lower layers of an exploded stack, a weight quieter */
 .service-diagram__solid.is--soft { stroke: color-mix(in srgb, var(--sd-ink) 34%, transparent); }
-/* a block's floor lines, fainter than its edges, in their colour */
-.service-diagram__floors { fill: none; stroke-opacity: 0.45; }
 .service-diagram__accent {
   fill: none;
   stroke: var(--sd-accent);
-  stroke-width: 1.25;
+  stroke-width: calc(1.25 * var(--sd-stroke));
 }
-.service-diagram__accent.is--dash { stroke-dasharray: 3 3; }
+.service-diagram__accent.is--dash { stroke-dasharray: var(--sd-dash); }
 /* the milestones on the roadmap: closed in the ground, so the roadmap
    reads as passing through each */
 .service-diagram__accent.is--mark { fill: var(--sd-ground); }
+/* The parts the homepage's stack moves (service-diagram.js) change colour
+   by a class, eased here, lit quickly and let go slowly: a system the
+   roadmap reaches in the full ink, a session the run passes in the red,
+   the sticking point found in the red (its own is--accent). */
+.service-diagram :is(.service-diagram__solid, .service-diagram__ring) { transition: stroke .9s ease-in; }
+.service-diagram :is(.service-diagram__solid, .service-diagram__ring):is(.is--lit, .is--accent) { transition: stroke .2s ease-out; }
+.service-diagram__solid.is--lit { stroke: var(--sd-ink); }
+.service-diagram__ring.is--session.is--lit { stroke: var(--sd-accent); }
+/* A signal run along a line (service-diagram.js): a short red dash
+   moved down the path's own length (pathLength="1"), so it is drawn in
+   the drawing's units rather than the screen's. Out of sight at rest. */
+.service-diagram .service-diagram__pulse {
+  vector-effect: none;
+  fill: none;
+  stroke: var(--sd-accent);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 0.06 1;
+  stroke-dashoffset: 0.06;
+  opacity: 0;
+}
 /* the R on the Before Revit block */
 .service-diagram__glyph {
   fill: var(--sd-ink);
@@ -2916,6 +2792,49 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   font-weight: 700;
   font-size: 19px;
 }
+
+/* ============================================================
+   Dot grid — the site's field of small square dots, as a layer
+   ------------------------------------------------------------
+   2px squares on a square pitch, drawn as the intersection of two
+   repeating stripes (a mask over the layer's own colour), so the pitch
+   can be any length, a fraction of a pixel included, and the dots keep
+   their 2px however it is set: each dot is placed on its own, never a
+   tile repeated and rounded, so a grid a few thousand pixels across
+   ends exactly where it was set out to.
+
+   Set out by three lengths: --dot-pitch, and --dot-x and --dot-y, the
+   middle of one column of dots and of one row, in the layer's own box
+   (any one: the stripes run on both ways). A layer that has to fit
+   something works them out from it: the approach band's from its cards
+   and rail (approach-stack.js), the nav's dropdowns from the
+   12-Column Grid (nav.css). Without them, an 18px grid from the
+   layer's top-left corner.
+
+   Two variants, the one pattern in two inks: .is--on-dark, white dots
+   for a black or dark-grey ground, and .is--on-light, ink dots for a
+   white or light-grey one. A layer over something that changes
+   (the nav, light or dark) sets --dot-grid-ink itself.
+   ============================================================ */
+:root {
+  --dot-grid-on-dark: rgba(255, 255, 255, 0.13);
+  --dot-grid-on-light: rgba(10, 10, 10, 0.16);
+}
+.dot-grid {
+  --dot-size: 2px;
+  --dot-grid-x0: calc(var(--dot-x, 1px) - var(--dot-size) / 2);
+  --dot-grid-y0: calc(var(--dot-y, 1px) - var(--dot-size) / 2);
+  --dot-grid-cols: repeating-linear-gradient(to right, #000 var(--dot-grid-x0) calc(var(--dot-grid-x0) + var(--dot-size)), transparent calc(var(--dot-grid-x0) + var(--dot-size)) calc(var(--dot-grid-x0) + var(--dot-pitch, 18px)));
+  --dot-grid-rows: repeating-linear-gradient(to bottom, #000 var(--dot-grid-y0) calc(var(--dot-grid-y0) + var(--dot-size)), transparent calc(var(--dot-grid-y0) + var(--dot-size)) calc(var(--dot-grid-y0) + var(--dot-pitch, 18px)));
+  background-color: var(--dot-grid-ink, var(--dot-grid-on-dark));
+  -webkit-mask-image: var(--dot-grid-cols), var(--dot-grid-rows);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--dot-grid-cols), var(--dot-grid-rows);
+  mask-composite: intersect;
+  pointer-events: none;
+}
+.dot-grid.is--on-dark { --dot-grid-ink: var(--dot-grid-on-dark); }
+.dot-grid.is--on-light { --dot-grid-ink: var(--dot-grid-on-light); }
 
 /* A dot of a grid lighting red (mountDotFlicker, dot-field.js): a square
    the grid's dots' size, switched on and off by the script. */

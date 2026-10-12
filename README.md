@@ -303,7 +303,13 @@ navigation onto that page.
   downloads) is the one `.newsletter-form` in `styles.css`: a white field and
   a red submit block (`.newsletter-form__submit`) inside one ink border, square.
   The submit drops under the field, full width, where the row is too narrow.
-  The dropdown and the footer only set its height and width.
+  On a block of colour of its own — the footer's red, the Resources
+  dropdown's field — it goes without the border (`.is--plain`): the ground
+  frames it. The dropdown and the footer only set its height and width; on
+  the footer's red the submit is ink. The homepage keeps one signup, the
+  footer's: the research section no longer closes on one, so the closing
+  call to action stands on its own (the Home page's Research fields
+  "Signup tagline" and "Signup heading" are no longer shown).
 - **Logos** — client logos live in `public/assets/logos/`, with `Black/`,
   `White/` and `SVGs/` variants of each practice mark. The ADDD brand mark is
   `public/assets/logo.svg`. The homepage strip under the hero runs on Osmo's
@@ -391,13 +397,28 @@ navigation onto that page.
   cube in it; the dots are moved against the scroll, so they run past the
   cube, and a solid trail grows out of the cube with the scroll's speed
   (Lenis's velocity), behind it either way. Every card is open, its step drawn
-  as a live schematic — the route work actually takes against the intended
-  one, symptoms traced back into a shared cause, findings re-ranking by impact
-  with their owners. The cards are set on the band's field of dots: their
-  edges, and the lines between their blocks, run midway between its lines
-  of dots, moved there from the grid by half a step at most
-  (`placeCards` in `approach-stack.js`); the field itself, whose column is
-  the rail's, never moves. Each card rises into place as it comes up the screen, and
+  as a live schematic, each with its own outline: Understand, the practice
+  in plan, four rooms and the route work actually takes the long way round
+  them against the intended line (a drawing that reads across); Diagnose, a
+  tall stack of five slabs scanned down to the one the trouble starts in
+  (one that reads down); Prioritise, findings as massing, re-ranking by
+  impact. The dashes that travel are measured in shares of their own
+  path (`pathLength="1"`), so their tweens are unrounded (`autoRound:
+  false`). The 12-Column Grid places the cards and the band's
+  field of dots is set out from them (`placeField` in
+  `approach-stack.js`): its pitch fits a whole number of steps across a
+  card, near 1.125rem (18px at the ideal width, scaled with the page as
+  the grid is), and its columns stand so that every card's sides run
+  midway between two of them, to a fraction of a pixel at every width.
+  The rail stands on one of those columns, so the mark on it sits on a
+  line of dots: from 992px on the left edge of Grid Column 7, where a
+  column of dots falls (a card is 25 steps across, and from that edge to
+  the right-hand cards is six and a half), set onto it to the fraction of
+  a pixel (`snapRail`); its rows run from the rail's dots, which take the same
+  pitch (`--dot-pitch` on the band, which the statement's dotted line and
+  the snake take too). Inside each card the blocks are whole steps and
+  the card's top is moved down onto a row by half a step at most
+  (`placeCards`), so the lines between its blocks run midway too. Each card rises into place as it comes up the screen, and
   its schematic draws in the first time the card is in view, then loops while
   it is on screen. From 768 to 991px the cards are one column (6rem apart)
   with the rail down Grid Column 1; below 768px they are one column (3.5rem
@@ -405,14 +426,27 @@ navigation onto that page.
   nothing moves on scroll. The previous approach cards — pinned, tipping
   slides closed over by the shutter — now live on the Tech Firms page,
   unchanged.
+- **Service diagrams** — `ServiceDiagram.astro`, one drawing per service, in
+  the approach schematics' language and a 400 × 256 viewBox, each composed
+  square or a little taller than wide and each with its own outline: the
+  Workflow Workshop's floor and loop under a small report; Before Revit's
+  loose sheets, their register in red and the model over them; the
+  Technology Blueprint held over the practice's four systems, its roadmap
+  stepping through a milestone over each; Ongoing Advisory's floors in
+  their rings. On the homepage's service stack they move
+  (`service-diagram.js`, `animate` on the component): the work runs its loop
+  and sticks and the report takes it down; the sheets come into register
+  and the model is built; the roadmap is drawn milestone by milestone; a
+  session runs round the ring. Only while on screen, never under reduced
+  motion; the nav's Services cards show them at rest.
 - **Testimonials** — the homepage's quotes (`TestimonialSlider.astro`,
   `testimonial-slider.js`), after the Outsource Consultants slider: every
   quote mounted and stacked in one place, split into masked lines that
   rise in one after another and run back out last line first (its
   timings: 0.3s a line, 0.05s apart), with the count, the attribution and
   the logo fading with them. On the 12-Column Grid: the dotted rule upright
-  on the left edge of Grid Column 3, the logo and the two round controls
-  on it, the quote on Grid Columns 5–11; below 992px the rule lies across
+  on the left edge of Grid Column 3, the logo and the two square controls
+  on it (white blocks, as the research slider's arrows are), the quote on Grid Columns 5–11; below 992px the rule lies across
   the grid between the quote and a row of the logo and the controls. The
   words and logos come from the Home page's Testimonials section; the
   logos, white marks, are set in ink. Under reduced motion, and in the
@@ -435,13 +469,25 @@ navigation onto that page.
   colour is a `--nav-*` token in `src/styles/nav.css`, redeclared for the dark
   state. In the drawer, "For Tech Firms" leads the list. The dropdowns are the
   bar continued downwards and, like it, built from blocks told apart by tone
-  rather than ruled off by lines: the four Services cards are two-tone blocks
-  (the feature block's grey for the band, the group's lighter grey for the
-  wording) on Grid Columns 1–3, 4–6, 7–9 and 10–12, a gutter apart; the three
-  Resources columns are thirds of the grid stepping from the nav's ground to
-  the group's grey to the feature block's, with the latest report as a block
-  of the ground on its grey. Stacked in the drawer, the cards sit a gutter
-  apart and the columns become bands of their tone. The nav stays in place
+  rather than ruled off by lines, each standing on its own on the site's dot
+  grid (`.dot-grid`), which fills the space round and between them with no
+  ground of its own, fades in and out with the dimmed page, and is set out
+  on the 12-Column Grid so a column of dots runs down the middle of every
+  gutter. The four Services cards (`ServiceCard.astro`) take the homepage
+  service stack's header — the number in a compact square, the name in the
+  block beside it — over the service's diagram, drawn finer at this size,
+  and its description, all four on the one white ground, on Grid Columns
+  1–3, 4–6, 7–9 and 10–12, their rows in whole steps of the dots and
+  shared, so every part stands level across the four. The three Resources
+  blocks, thirds of the grid (Grid Columns 1–4, 5–8 and 9–12), are built
+  the same way round their own content: a header of the column's mark in a
+  compact square and its name (Explore, Reports, Newsletter), its lead
+  link, then a feature on the field's grey — the software database, the
+  latest report with its cover, the signup — every row's words hanging
+  from the name's line, the cards' palette and steps shared (`--sc-*`).
+  Stacked in the drawer, the cards and blocks sit a step apart on the dots,
+  over the page's off-white (dark, the bar's near-black), so the white
+  stands off it as it does on the page. The nav stays in place
   over the main content whichever way the page scrolls, and leaves only
   where a section holds it out (`initNavReveal` in `site.js`): on the
   homepage it goes up with the hero, at the hero's own parallax pace, stays
@@ -458,11 +504,16 @@ navigation onto that page.
   Without an `href` it renders a `<button>`, for form submits. A pair sits a
   gutter apart (`.actions--pair`) — the hero and the closing CTA lead with
   Free Tech Stacks (primary) and Work With Us (secondary). On a dark ground
-  (a dark page, section, hero or price card, or the service stack's cards)
-  the pair inverts, as the nav's Contact does on a dark page: the primary
+  (a dark page, section, hero or price card) the pair inverts, as the nav's Contact does on a dark page: the primary
   white, the secondary a quiet lift off the ground. The closing CTA is on
   the off-white everywhere, a dark page included, so its pair never
-  inverts. Only the primary takes the red sweep on hover.
+  inverts. Only the primary takes the red sweep on hover. In the homepage's
+  service stack the primary keeps the hero's colours rather than inverting
+  — a charcoal label block a step lighter than the card, the near-black
+  square with the two triangles, white capitals, a near-black sweep on
+  hover, nothing red — a little taller (2.75rem), and runs the copy's full
+  width, its label at the start and its arrow block at the far end, set in
+  from the card as far as the copy is.
   `.btn` remains only for the chevron text links (`.btn--link`).
 - **Links** — the nav's items (For Tech Firms, the two toggles, AEC Jobs,
   About, Sign in) and the footer's link lists are one sliding-box link
@@ -478,6 +529,16 @@ navigation onto that page.
   the link to the page being viewed rests like the others — and focus adds a
   ring.
   Buttons, cards, the logo and the social marks keep their own hovers.
+- **Footer** — `Footer.astro`, on the site's red, revealed with a parallax.
+  One row across the 12-Column Grid: the four link groups on Grid Columns
+  1–2, 3–4, 5–6 and 7–8, each under a quiet name, the social marks (the
+  platforms' own marks, square, named for screen readers) closing Contact,
+  and the newsletter signup on Grid Columns 9–12. No copyright or legal
+  line for now. Across the foot, the logo drawn by the hero's Slash Field
+  in a white held well back into the red, on finer cells than the hero's,
+  each form filling its three Grid Columns where the panel crops it (the
+  upward triangle opened to about 85° to do so). Below 992px the groups
+  run two across, then the signup; on a phone, one across.
 - **12-Column Grid** — the layout reference. Shift + G toggles the overlay
   (`src/components/ColumnGrid.astro`); it always starts hidden and never
   affects the layout. The columns are **Grid Column 1** to **Grid Column 12**
