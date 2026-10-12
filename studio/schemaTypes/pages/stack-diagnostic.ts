@@ -36,7 +36,7 @@ export const stackDiagnosticPage = defineType({
     pageSection('next', 'Where it leads', 'The heading row and the three cards on what practices do next. Where each card’s link leads stays in the site’s code.', [
       leadField(),
       headingField(),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title, a line of text and the text link. They link to the Workflow Workshop, the Technology Blueprint and ADDDvisory.'),
+      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title, a line of text and the text link. They link to the Workflow Workshop, the Technology Blueprint and Ongoing Advisory.'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Stack Diagnostic page'})},

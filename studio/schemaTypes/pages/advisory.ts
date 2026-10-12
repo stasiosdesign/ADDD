@@ -2,7 +2,7 @@ import {defineType} from 'sanity'
 import {UsersIcon} from '@sanity/icons/Users'
 import {headingField, heroSection, imageField, itemsField, leadField, pageSection, quoteSection, sectionHead} from '../shared/fields'
 
-/* The ADDDvisory page, one section per part of the page, in the order the
+/* The Ongoing Advisory page, one section per part of the page, in the order the
    page shows them (src/pages/advisory.astro; the page's own words in
    src/sanity/defaults/advisory.ts). The navigation, the footer, the
    comparison table's column headings and where every button leads stay in
@@ -14,7 +14,7 @@ const FIXED = {disableActions: ['add', 'addBefore', 'addAfter', 'remove', 'dupli
 
 export const advisoryPage = defineType({
   name: 'advisoryPage',
-  title: 'ADDDvisory page',
+  title: 'Ongoing Advisory page',
   type: 'document',
   icon: UsersIcon,
   fields: [
@@ -36,9 +36,9 @@ export const advisoryPage = defineType({
       ...sectionHead(),
       itemsField('tiles', 'Cards', 'tile', 'The four cards, left to right: the number, the small label, the title and the line of text.'),
     ]),
-    pageSection('difference', 'Difference', 'The heading row and the comparison table. The table’s column headings (ADDDvisory, Other) stay in the site’s code.', [
+    pageSection('difference', 'Difference', 'The heading row and the comparison table. The table’s column headings (Ongoing Advisory, Other) stay in the site’s code.', [
       ...sectionHead(),
-      itemsField('rows', 'Rows', 'compareRow', 'One row per line of the table: what is compared, then the ADDDvisory column and the Other column.'),
+      itemsField('rows', 'Rows', 'compareRow', 'One row per line of the table: what is compared, then the Ongoing Advisory column and the Other column.'),
     ]),
     pageSection('pricing', 'Pricing', 'The heading row and the two price cards. Where each card’s button leads stays in the site’s code.', [
       ...sectionHead(),
@@ -50,7 +50,7 @@ export const advisoryPage = defineType({
       itemsField('questions', 'Questions', 'faqItem', 'The questions, in order; the first starts open.'),
     ]),
   ],
-  preview: {prepare: () => ({title: 'ADDDvisory page'})},
+  preview: {prepare: () => ({title: 'Ongoing Advisory page'})},
 })
 
 // The price cards keep their length: the page draws exactly two

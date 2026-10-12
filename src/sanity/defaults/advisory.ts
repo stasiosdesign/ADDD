@@ -1,14 +1,14 @@
 import { keyed } from './types';
 
-/* The ADDDvisory page's own words (src/pages/advisory.astro), section by
-   section, as the ADDDvisory page document is shaped
+/* The Ongoing Advisory page's own words (src/pages/advisory.astro), section by
+   section, as the Ongoing Advisory page document is shaped
    (studio/schemaTypes/pages/advisory.ts). The four picture slots under
    Themes Covered are empty until pictures are set in the Studio. */
 export const advisoryPage = {
   hero: {
-    tagline: 'ADDDvisory',
+    tagline: 'Ongoing Advisory',
     heading: 'Ongoing strategic guidance for architecture practices',
-    lede: 'After or alongside the main strategic work, ADDDvisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities—before isolated decisions create more complexity.',
+    lede: 'After or alongside the main strategic work, Ongoing Advisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities—before isolated decisions create more complexity.',
     primaryButton: 'Enquire',
     secondaryButton: 'Membership Pricing',
   },
@@ -45,7 +45,7 @@ export const advisoryPage = {
   difference: {
     lede: 'Most advisory stops at recommendations. We stay for the decisions.',
     tagline: 'Difference',
-    heading: 'Why ADDDvisory stands apart',
+    heading: 'Why Ongoing Advisory stands apart',
     rows: keyed('row', [
       { label: 'Diagnoses root causes, not symptoms', ours: 'Ongoing', others: 'One-off' },
       { label: 'Understands your entire practice context', ours: 'Yes', others: 'Partial' },
@@ -60,7 +60,7 @@ export const advisoryPage = {
     heading: 'Membership pricing',
     cards: keyed('card', [
       {
-        title: 'ADDDvisory membership',
+        title: 'Ongoing Advisory membership',
         subtitle: 'Full access, month to month',
         price: '£1,250',
         priceSuffix: '/mo',
@@ -72,11 +72,11 @@ export const advisoryPage = {
           'Limited questions between sessions',
           'Team access included',
         ],
-        button: 'Enquire about ADDDvisory',
+        button: 'Enquire about Ongoing Advisory',
       },
       {
         title: 'Technology Blueprint',
-        subtitle: 'The practice-wide strategy ADDDvisory follows or runs alongside',
+        subtitle: 'The practice-wide strategy Ongoing Advisory follows or runs alongside',
         pricePrefix: 'From',
         price: '£18,000',
         includes: [
@@ -100,8 +100,8 @@ export const advisoryPage = {
     questions: keyed('question', [
       { question: 'Who should join?', answer: 'Practice leaders who carry technology decisions — directors, partners, operations leads and digital or BIM leads.' },
       { question: 'What counts as a question between sessions?', answer: 'Short, decision-shaped questions related to the themes covered. Anything needing dedicated analysis becomes a separate engagement.' },
-      { question: 'Does this include implementation support?', answer: 'No. ADDDvisory shapes decisions. Delivery sits with your team, and practice-wide strategy with a Technology Blueprint engagement.' },
-      { question: 'What if we already have a BIM or digital lead?', answer: 'They benefit most. ADDDvisory gives them an external reference point and a framework to bring back to leadership.' },
+      { question: 'Does this include implementation support?', answer: 'No. Ongoing Advisory shapes decisions. Delivery sits with your team, and practice-wide strategy with a Technology Blueprint engagement.' },
+      { question: 'What if we already have a BIM or digital lead?', answer: 'They benefit most. Ongoing Advisory gives them an external reference point and a framework to bring back to leadership.' },
       { question: 'When should we choose a Technology Blueprint instead?', answer: 'When you need one evidence-based view of the whole practice before deciding anything, rather than monthly guidance.' },
     ]),
   },

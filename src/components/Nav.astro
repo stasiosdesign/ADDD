@@ -20,45 +20,35 @@
 */
 import ArrowIcon from "./ArrowIcon.astro";
 import NavLinkLabel from "./NavLinkLabel.astro";
-import ServiceIcon from "./ServiceIcon.astro";
+import ServiceCard from "./ServiceCard.astro";
 import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 
 // The forms as the morph draws them at rest, so the mark is the logo before
 // any script has run, and the morph starts from exactly what is on screen.
 const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 
-// The Services cards. Each leads with its graphic in a fixed frame, so a
-// custom graphic can take its place later without touching the card.
-// ADDDvisory has a photograph, greyscaled; Before Revit and Technology
-// Blueprint a drawn icon (ServiceIcon.astro) on the frame's grey; the
-// frame of a card with neither is left as a plain grey placeholder.
-// The photograph is from Unsplash (Unsplash License), served from its image
-// CDN at the frame's size. Not lazy: the nav outlives every page change, so
-// it loads once, at low priority, and is there when the nav opens.
-const unsplash = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=720&h=450&q=70`;
-const services: { href: string; name: string; desc: string; icon?: "link" | "blueprint"; image?: string }[] = [
+// The Services cards: the homepage's route cards (ServiceCard.astro), four
+// across.
+const services: { href: string; name: string; desc: string }[] = [
   {
     href: "/workshops-audits.html",
     name: "Workflow Workshop",
-    desc: "Half-day diagnostic using a live project",
+    desc: "A focused review of your tools and workflows",
   },
   {
     href: "/before-revit.html",
     name: "Before Revit",
-    desc: "Early design workflow, before Revit or Archicad",
-    icon: "link",
+    desc: "Early-stage design workflows before BIM",
   },
   {
     href: "/technology-blueprint.html",
     name: "Technology Blueprint",
     desc: "Practice-wide technology strategy and priorities",
-    icon: "blueprint",
   },
   {
     href: "/advisory.html",
-    name: "ADDDvisory",
-    desc: "Ongoing strategic guidance for your practice",
-    image: unsplash("1770921178335-ef2cd8b00dea"), // a white interior's lines
+    name: "Ongoing Advisory",
+    desc: "Ongoing technology guidance for your practice",
   },
 ];
 ---
@@ -81,7 +71,7 @@ const services: { href: string; name: string; desc: string; icon?: "link" | "blu
         </a>
         <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
           <a data-nav-list-item href="/tech-firms.html" class="mega-nav__feature nav-link">
-            <NavLinkLabel class="mega-nav__bar-link-label">For AEC Tech Firms</NavLinkLabel>
+            <NavLinkLabel class="mega-nav__bar-link-label">AEC Tech Partners</NavLinkLabel>
           </a>
           <ul class="mega-nav__bar-list">
             <li data-nav-list-item>
@@ -123,10 +113,18 @@ const services: { href: string; name: string; desc: string; icon?: "link" | "blu
           </ul>
         </div>
         <div class="mega-nav__bar-end">
+          <!-- Below 992px the bar carries Contact itself, beside the menu. -->
+          <a href="/contact.html" class="mega-nav__bar-end-cta">Contact</a>
+          <!-- The menu's mark: four of the logo's triangles round a square,
+               each pointing on to the next — right, down, left, up — and
+               turned to point at the middle while the menu is open
+               (animateBurger, site.js). -->
           <button type="button" data-burger-toggle aria-label="Menu" aria-expanded="false" aria-controls="mega-nav-menu" class="mega-nav__burger">
-            <span data-burger-line="top" class="mega-nav__burger-line"></span>
-            <span data-burger-line="mid" class="mega-nav__burger-line"></span>
-            <span data-burger-line="bot" class="mega-nav__burger-line"></span>
+            {[0, 90, 270, 180].map((turn) => (
+              <svg data-burger-mark={turn} style={`transform:rotate(${turn}deg)`} class="mega-nav__burger-mark" viewBox="0 0 10 10" aria-hidden="true">
+                <polygon points="1.5,1 9,5 1.5,9" fill="currentColor" />
+              </svg>
+            ))}
           </button>
         </div>
         <div data-mobile-back class="mega-nav__back">
@@ -147,16 +145,8 @@ const services: { href: string; name: string; desc: string; icon?: "link" | "blu
         <div class="mega-nav__dropdown-inner">
           <div class="mega-nav__panel-col is--services">
             <div class="mega-nav__service-grid">
-              {services.map((s) => (
-                <a data-menu-fade href={s.href} class="mega-nav__service-card">
-                  <span class="mega-nav__service-card-graphic" aria-hidden="true">
-                    {s.image && <img src={s.image} alt="" fetchpriority="low" decoding="async" />}
-                    {s.icon && <ServiceIcon name={s.icon} />}
-                  </span>
-                  <span class="mega-nav__panel-link-text">{s.name}</span>
-                  <span class="mega-nav__panel-link-desc">{s.desc}</span>
-                  <span class="mega-nav__service-card-rule" aria-hidden="true"></span>
-                </a>
+              {services.map((s, i) => (
+                <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} text={s.desc} />
               ))}
             </div>
           </div>

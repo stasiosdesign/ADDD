@@ -2,14 +2,14 @@ import {defineType} from 'sanity'
 import {RocketIcon} from '@sanity/icons/Rocket'
 import {buttonField, headingField, heroSection, itemsField, pageSection, taglineField} from '../shared/fields'
 
-/* The For AEC Tech Firms page, one section per part of the page, in the
+/* The AEC Tech Partners page, one section per part of the page, in the
    order the page shows them (src/pages/tech-firms.astro; the page's own
    words in src/sanity/defaults/tech-firms.ts). The hero's pattern, the
    cards' colours and crops, and where every button leads stay in the site's
    code. A singleton with the fixed ID "techFirmsPage". */
 export const techFirmsPage = defineType({
   name: 'techFirmsPage',
-  title: 'For AEC Tech Firms page',
+  title: 'AEC Tech Partners page',
   type: 'document',
   icon: RocketIcon,
   fields: [
@@ -24,5 +24,5 @@ export const techFirmsPage = defineType({
       buttonField('Opens an email asking for the fee sheet.', 'secondaryButton', 'Second button label'),
     ]),
   ],
-  preview: {prepare: () => ({title: 'For AEC Tech Firms page'})},
+  preview: {prepare: () => ({title: 'AEC Tech Partners page'})},
 })

@@ -14,7 +14,9 @@
    script fades each in and back out, handing over to the next. So the
    carousel comes up the page, stops at the top of the screen over the
    statements, and leaves with them. The stage is set on the 12-Column
-   Grid, centred across Grid Columns 2–11 (the whole grid below 992px).
+   Grid: the statements a block in the middle of it, ranged left, with a
+   dotted line beside the block, as the hero has beside its heading, that
+   the approach stack's rail grows out of (no line below 992px).
    Every statement at the one size, the h2's, stepping down at each
    breakpoint with it.
 
@@ -58,14 +60,33 @@
   padding: 0 var(--grid-margin);
 }
 
+/* A block in the middle of the grid, as wide as the statements' measure,
+   ranged left inside it. */
 .sticky-title__inner {
-  grid-column: 2 / 12;
+  grid-column: 1 / -1;
+  justify-self: center;
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  text-align: center;
+}
+
+/* The dotted line beside the statement, as the hero's beside its
+   heading (page-grid.css): a gutter and two of --dotted-rule-bleed out
+   from the text, and running a little past it at either end. Its dots are the approach stack's, 2px every 12px from the
+   top, in the hero rule's tone, so the rail's window can take its place
+   dot for dot and grow out of it (approach-stack.js); the script draws
+   it down as the statement comes in. */
+.sticky-title__rule {
+  position: absolute;
+  top: -0.75rem;
+  bottom: -0.75rem;
+  left: calc(-1 * (var(--grid-gutter) + 2 * var(--dotted-rule-bleed) + 2px));
+  width: 2px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 2px, transparent 2px) 0 0 / 2px 12px repeat-y;
+  transform-origin: 50% 0;
+  pointer-events: none;
 }
 
 .sticky-title__el {
@@ -75,8 +96,51 @@
   font-size: var(--t-h2);
   line-height: 1.15;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
-  text-wrap: balance;
+  /* the measure, in the statement's own ems so it holds as the scaling
+     system sizes it, that sets this one on four lines, each ending on a
+     pause in the sense */
+  max-width: 17.75em;
+  text-wrap: pretty;
 }
+/* A marked phrase (StickyTitle.astro): a white chip with the lens in red,
+   then the words on the red, the ground running the line's full height.
+   Kept to one line, so it reads as one block and its reveal runs along
+   it left to right (on a narrow screen, where it cannot fit, it breaks
+   and the ground carries on to the next line). The words keep the
+   statement's own white. */
+.sticky-title__mark { white-space: nowrap; }
+/* The chip and the words' ground are each exactly one line high (the
+   statement's own leading), the chip square, the two set edge to edge,
+   their tops on the line's top. */
+.sticky-title__mark-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: top;
+  background: var(--c-white);
+  color: var(--c-red);
+}
+.sticky-title__mark-chip svg { display: block; width: 0.62em; height: 0.62em; }
+.sticky-title__mark-text {
+  display: inline-block;
+  height: 1.15em;
+  line-height: 1.15;
+  padding: 0 0.14em;
+  background: var(--c-red);
+}
+@media (max-width: 767px) {
+  /* Where the phrase cannot fit a line it breaks, its ground carried on
+     to the next line. */
+  .sticky-title__mark { white-space: normal; }
+  .sticky-title__mark-text {
+    display: inline;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+}
+
 /* The statements after the first sit over it, hidden until the script
    takes them in hand. */
 .sticky-title__el.is--stacked {
@@ -87,7 +151,8 @@
 }
 
 @media screen and (max-width: 991px) {
-  .sticky-title__inner { grid-column: 1 / -1; }
+  /* no line, as the hero's heading has none here */
+  .sticky-title__rule { display: none; }
 }
 
 /* Without motion the strip and the statements simply follow one another. */

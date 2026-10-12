@@ -1,12 +1,12 @@
 import { keyed } from './types';
 
-/* The For AEC Tech Firms page's own words and pictures
+/* The AEC Tech Partners page's own words and pictures
    (src/pages/tech-firms.astro), section by section, as the page's document is
    shaped (studio/schemaTypes/pages/tech-firms.ts). The cards' tone and crop
    stay in the page, by position; so does where every button leads. */
 export const techFirmsPage = {
   hero: {
-    tagline: 'For AEC tech firms',
+    tagline: 'AEC Tech Partners',
     heading: 'Reach architecture practices through ADDD',
     lede: 'Sponsorship and partnerships that give technology companies access to ADDD’s architecture audience, through its content, the ADDDitive newsletter, research and events.',
     primaryButton: 'Partnership Enquiry',

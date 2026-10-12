@@ -1,0 +1,218 @@
+---
+/*
+  A service's diagram: a small isometric drawing on the card's field of
+  dots (ServiceCard.astro), one per service, in the services' order:
+
+    0  Workflow Workshop     two units on a loop, the step in red on it
+    1  Before Revit          an open idea, a red threshold, then the
+                             block marked R
+    2  Technology Blueprint  the practice as a plan, two parts on it, and
+                             the red brackets of what to focus on
+    3  Ongoing Advisory      three linked units, one face in red
+    4  (Technology Blueprint page, "What we look at") the practice's
+                             layers as slabs on one line, two in red
+
+  Drawn in a world of x, y and z (z up) and projected isometrically:
+  x runs down to the right, y down to the left. A box shows its top, its
+  +x face and its +y face; each is a polygon, drawn back to front in the
+  order given. The viewBox is fitted to what is drawn, so the drawing
+  centres itself in the field. Ink lines, light greys for the faces, the
+  site's red for the one thing that matters in each.
+*/
+interface Props {
+  index: number;
+  class?: string;
+}
+const { index, class: className } = Astro.props;
+
+type P3 = [number, number, number];
+type Shape =
+  | { kind: "poly"; pts: P3[]; fill?: string; stroke?: string; width?: number; dash?: string; closed?: boolean }
+  | { kind: "screen"; d: string; stroke: string; width: number }
+  | { kind: "text"; text: string; origin: P3; size: number; fill: string };
+
+const COS = Math.cos(Math.PI / 6);
+const UNIT = 20;
+const project = ([x, y, z]: P3): [number, number] => [(x - y) * COS * UNIT, ((x + y) * 0.5 - z) * UNIT];
+
+const INK = "var(--c-text)";
+// The accent: the site's red, unless the field the diagram sits on sets
+// --diagram-accent (a red field draws its accent in white).
+const RED = "var(--diagram-accent, var(--c-red))";
+const TOP = "#f2f2f2";
+const SIDE_X = "#dcdcdc";
+const SIDE_Y = "#c9c9c9";
+const PAPER = "var(--c-white)";
+
+// A box from its corner (x, y, z) and its size along each axis: its
+// three visible faces, the +y face, the +x face, then the top.
+function box(
+  [x, y, z]: P3,
+  [w, d, h]: P3,
+  fills: { top?: string; sx?: string; sy?: string } = {},
+  line: { stroke?: string; dash?: string } = {},
+): Shape[] {
+  const stroke = line.stroke ?? INK;
+  return [
+    { kind: "poly", pts: [[x, y + d, z], [x + w, y + d, z], [x + w, y + d, z + h], [x, y + d, z + h]], fill: fills.sy ?? SIDE_Y, stroke },
+    { kind: "poly", pts: [[x + w, y, z], [x + w, y + d, z], [x + w, y + d, z + h], [x + w, y, z + h]], fill: fills.sx ?? SIDE_X, stroke },
+    { kind: "poly", pts: [[x, y, z + h], [x + w, y, z + h], [x + w, y + d, z + h], [x, y + d, z + h]], fill: fills.top ?? TOP, stroke },
+  ];
+}
+
+// An open box: every edge drawn, the three hidden ones dashed.
+function wire([x, y, z]: P3, [w, d, h]: P3): Shape[] {
+  const c = (i: number, j: number, k: number): P3 => [x + i * w, y + j * d, z + k * h];
+  const line = (a: P3, b: P3, dash?: string): Shape => ({ kind: "poly", pts: [a, b], stroke: INK, dash, closed: false });
+  const hidden = "3 3";
+  return [
+    line(c(0, 0, 0), c(1, 0, 0), hidden),
+    line(c(0, 0, 0), c(0, 1, 0), hidden),
+    line(c(0, 0, 0), c(0, 0, 1), hidden),
+    line(c(1, 0, 0), c(1, 1, 0)), line(c(0, 1, 0), c(1, 1, 0)),
+    line(c(1, 0, 0), c(1, 0, 1)), line(c(0, 1, 0), c(0, 1, 1)), line(c(1, 1, 0), c(1, 1, 1)),
+    line(c(0, 0, 1), c(1, 0, 1)), line(c(0, 0, 1), c(0, 1, 1)),
+    line(c(1, 0, 1), c(1, 1, 1)), line(c(0, 1, 1), c(1, 1, 1)),
+  ];
+}
+
+const path = (pts: P3[], stroke = RED, width = 2): Shape => ({ kind: "poly", pts, stroke, width, closed: false });
+
+const DIAGRAMS: Shape[][] = [
+  // 0 — Workflow Workshop: a loop on the ground, a tall unit at its left
+  // corner and one on its far edge, the red step on its near edge
+  [
+    { kind: "poly", pts: [[0, 0, 0], [6, 0, 0], [6, 4, 0], [0, 4, 0]], stroke: RED, width: 2 },
+    ...box([1.6, -0.35, 0], [0.7, 1.1, 2.2]),
+    { kind: "poly", pts: [[2.3, 0.15, 1.05], [2.3, 0.45, 1.05], [2.3, 0.45, 1.45], [2.3, 0.15, 1.45]], fill: PAPER, stroke: INK },
+    ...box([5.45, 2.1, 0], [1.1, 1.1, 0.3], { top: RED }),
+    ...box([-0.35, 3.3, 0], [0.7, 1.1, 2.2]),
+    { kind: "poly", pts: [[0.35, 3.65, 1.05], [0.35, 3.95, 1.05], [0.35, 3.95, 1.45], [0.35, 3.65, 1.45]], fill: PAPER, stroke: INK },
+  ],
+  // 1 — Before Revit: the open cube, a red line through a red upright
+  // plane to the block marked R
+  [
+    ...wire([0, 0, 0], [2, 2, 2]),
+    path([[2, 1, 0.6], [6.2, 1, 0.6]]),
+    { kind: "poly", pts: [[4, 0.1, -0.2], [4, 1.9, -0.2], [4, 1.9, 1.6], [4, 0.1, 1.6]], fill: RED },
+    ...box([6.2, 0.8, -0.4], [2, 0.45, 2.2], { sx: "#3a3a3a", sy: "#4a4a4a", top: "#5a5a5a" }),
+    { kind: "text", text: "R", origin: [7.2, 1.25, 0.7], size: 1.3, fill: PAPER },
+  ],
+  // 2 — Technology Blueprint: a plan on the ground, two parts on it joined
+  // by a line, and the red brackets on the point between them
+  [
+    { kind: "poly", pts: [[0, 0, 0], [8, 0, 0], [8, 6, 0], [0, 6, 0]], stroke: INK },
+    path([[2.6, 1.6, 0.25], [5.6, 4.1, 0.25]], "#9a9a9a", 2.5),
+    ...box([1.2, 1, 0], [1.6, 1.2, 0.7], { top: "#d0d0d0", sx: "#bdbdbd", sy: "#a9a9a9" }),
+    ...box([5.3, 3.8, 0], [1.6, 1.2, 0.7], { top: PAPER, sx: PAPER, sy: PAPER }),
+    { kind: "screen", d: "BRACKETS", stroke: RED, width: 2.5 },
+  ],
+  // 3 — Ongoing Advisory: three units, an open one up and to the right of
+  // the first, the third level with it further right; the red links run
+  // centre to centre under them, so each unit covers its own end
+  [
+    path([[1, 1, 1], [0.74, -2.84, 3]]),
+    path([[1, 1, 1], [4.7, -1.7, 1]]),
+    ...box([-0.26, -3.84, 2], [2, 2, 2], { top: PAPER, sx: PAPER, sy: PAPER }),
+    ...box([0, 0, 0], [2, 2, 2]),
+    ...box([3.7, -2.7, 0], [2, 2, 2], { sx: RED }),
+  ],
+  // 4 — the Technology Blueprint's "What we look at": the practice's
+  // layers as a run of slabs threaded on one line, each its own height,
+  // two of them in red, the line running on out of either end. Drawn
+  // from the far end so the nearer slabs cover the ones behind.
+  [
+    path([[1.3, 3, 1.1], [1.3, -13, 1.1]], INK, 1),
+    ...[
+      { y: -10.4, h: 1.6, z: 0.3, tone: "pale" },
+      { y: -9.6, h: 2.2, z: 0, tone: "ink" },
+      { y: -8.8, h: 1.9, z: 0.15, tone: "mid" },
+      { y: -8.0, h: 2.6, z: -0.2, tone: "red" },
+      { y: -7.2, h: 2.0, z: 0.1, tone: "ink" },
+      { y: -6.4, h: 2.4, z: -0.1, tone: "pale" },
+      { y: -5.6, h: 1.8, z: 0.2, tone: "mid" },
+      { y: -4.8, h: 2.8, z: -0.3, tone: "ink" },
+      { y: -4.0, h: 2.1, z: 0, tone: "pale" },
+      { y: -3.2, h: 2.5, z: -0.15, tone: "red" },
+      { y: -2.4, h: 1.9, z: 0.1, tone: "ink" },
+      { y: -1.6, h: 2.3, z: -0.05, tone: "mid" },
+      { y: -0.8, h: 3, z: -0.4, tone: "pale" },
+    ].flatMap(({ y, h, z, tone }) =>
+      box(
+        [0, y, z],
+        [2.6, 0.22, h],
+        tone === "ink"
+          ? { sy: "#1a1a1a", sx: "#2a2a2a", top: "#3a3a3a" }
+          : tone === "red"
+            ? { sy: RED, sx: "#9e0000", top: "#e04a4a" }
+            : tone === "mid"
+              ? { sy: "#9a9a9a", sx: "#b5b5b5", top: "#cfcfcf" }
+              : { sy: PAPER, sx: "#e6e6e6", top: PAPER },
+      ),
+    ),
+  ],
+];
+
+const shapes = DIAGRAMS[index] ?? [];
+
+// Fit the viewBox to every point drawn, with room for the line widths.
+const points = shapes.flatMap((s) => (s.kind === "poly" ? s.pts.map(project) : s.kind === "text" ? [project(s.origin)] : []));
+const xs = points.map((p) => p[0]);
+const ys = points.map((p) => p[1]);
+const PAD = 6;
+const minX = Math.min(...xs) - PAD;
+const minY = Math.min(...ys) - PAD;
+const vbW = Math.max(...xs) + PAD - minX;
+const vbH = Math.max(...ys) + PAD - minY;
+
+const fmt = (n: number) => +n.toFixed(2);
+const toPoints = (pts: P3[]) => pts.map((p) => project(p).map(fmt).join(",")).join(" ");
+
+// The focus brackets: four screen-square corners round the middle of the
+// plan's line, as a camera frames a subject (drawn flat, not in the plan).
+function brackets(): string {
+  const [cx, cy] = project([4.1, 2.85, 0.25]);
+  const r = 13;
+  const a = 6;
+  const corner = (sx: number, sy: number) =>
+    `M${fmt(cx + sx * r)} ${fmt(cy + sy * (r - a))}V${fmt(cy + sy * r)}H${fmt(cx + sx * (r - a))}`;
+  return [corner(-1, -1), corner(1, -1), corner(-1, 1), corner(1, 1)].join("");
+}
+
+// The R on the block's +y face: x runs along the face, z up it, so the
+// letter is set on the face's own slant.
+function faceTransform([x, y, z]: P3): string {
+  const [ox, oy] = project([x, y, z]);
+  return `matrix(${fmt(COS)} 0.5 0 1 ${fmt(ox)} ${fmt(oy)})`;
+}
+---
+<svg
+  class={className}
+  viewBox={`${fmt(minX)} ${fmt(minY)} ${fmt(vbW)} ${fmt(vbH)}`}
+  xmlns="http://www.w3.org/2000/svg"
+  aria-hidden="true"
+  fill="none"
+  stroke-linejoin="round"
+>
+  {shapes.map((s) =>
+    s.kind === "poly" ? (
+      s.closed === false ? (
+        <polyline points={toPoints(s.pts)} stroke={s.stroke} stroke-width={s.width ?? 1} stroke-dasharray={s.dash} stroke-linecap="square" />
+      ) : (
+        <polygon points={toPoints(s.pts)} fill={s.fill ?? "none"} stroke={s.stroke ?? "none"} stroke-width={s.width ?? 1} />
+      )
+    ) : s.kind === "screen" ? (
+      <path d={brackets()} stroke={s.stroke} stroke-width={s.width} stroke-linecap="square" />
+    ) : (
+      <text
+        transform={faceTransform(s.origin)}
+        font-family="var(--font-display)"
+        font-weight="700"
+        font-size={fmt(s.size * UNIT)}
+        fill={s.fill}
+        text-anchor="middle"
+        dominant-baseline="central"
+      >{s.text}</text>
+    ),
+  )}
+</svg>

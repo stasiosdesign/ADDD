@@ -43,6 +43,12 @@ export function mountApproachStack(root, { lenis } = {}) {
     bottom: root.querySelector('[data-approach-stack-trail="bottom"]'),
   };
 
+  // The dotted line beside the statement before the stack (StickyTitle.astro),
+  // which the rail's window grows out of, and the statement's held frame.
+  const lead = root.parentElement?.querySelector("[data-rail-lead]") ?? null;
+  const leadFrame = lead?.closest(".sticky-title__container") ?? null;
+  const leadTrack = lead?.closest('[data-sticky-title="track"]') ?? null;
+
   const cards = [...root.querySelectorAll("[data-approach-stack-slot]")].map((slot) => {
     const el = slot.querySelector("[data-step-card]");
     return { slot, el, schematic: mountSchematic(el.querySelector("[data-schematic]")), started: false };
@@ -57,9 +63,12 @@ export function mountApproachStack(root, { lenis } = {}) {
       rail: "(min-width: 768px)",
       phone: "(max-width: 767px)",
       reduce: "(prefers-reduced-motion: reduce)",
+      // the rail on the page's centre line, where it can grow out of the
+      // statement's dotted line before it
+      led: "(min-width: 992px)",
     },
     (context) => {
-      const { phone, reduce } = context.conditions;
+      const { phone, reduce, led } = context.conditions;
       const cleanups = [];
 
       if (reduce) {
@@ -92,7 +101,7 @@ export function mountApproachStack(root, { lenis } = {}) {
           });
         });
 
-        if (!phone) cleanups.push(setUpRail());
+        if (!phone) cleanups.push(setUpRail(led && lead ? lead : null));
       }
 
       return () => {
@@ -106,42 +115,118 @@ export function mountApproachStack(root, { lenis } = {}) {
   );
 
   // The rail: the dots moved against the scroll inside the window, and the
-  // velocity trail out of the cube. Returns its teardown.
-  function setUpRail() {
+  // velocity trail out of the cube; led in, the rail first comes out of
+  // the statement's dotted line as a snake (below). Returns its teardown.
+  function setUpRail(lead) {
     if (!rail || !win) return () => {};
+    const cube = win.querySelector(".approach-stack__cube");
+    const snake = lead ? makeSnake(rail) : null;
+    if (lead) root.classList.add("is--led");
 
-    // Where the window sits down the rail, worked out from the scroll rather
-    // than read off the layout: the rail's top on the page, the window's
-    // sticky top in the viewport and the room it has to travel, measured on
-    // each refresh. Reading the two boxes every frame forced a layout each
-    // time, straight after the trail had resized.
+    // The geometry, measured on each refresh rather than read every frame
+    // (reading the boxes each frame forced a layout, straight after the
+    // trail had resized): the rail's top and height on the page, the
+    // window's sticky top and height, and, led in, the scroll at which the
+    // statement's frame lets go (release), the line's box in the screen
+    // then, how far it stands from the rail's centre line, and the snake's
+    // path from it to the rail.
     let geo = null;
-    const syncDots = (self) => {
+    const measure = () => {
+      const box = rail.getBoundingClientRect();
+      geo = {
+        top: box.top + window.scrollY,
+        height: box.height,
+        sticky: parseFloat(getComputedStyle(win).top) || 0,
+        win: win.offsetHeight,
+      };
+      if (lead) {
+        // The line's box, to the sub-pixel, in its held frame. It draws in
+        // scaled down from its top, which leaves its top and its middle
+        // across where they are, so only its height is read off the layout.
+        const line = lead.getBoundingClientRect();
+        const frame = leadFrame.getBoundingClientRect();
+        geo.release = leadTrack.getBoundingClientRect().bottom + window.scrollY - leadFrame.offsetHeight;
+        geo.lineTop = line.top - frame.top;
+        geo.lineHeight = parseFloat(getComputedStyle(lead).height);
+        geo.lineX = line.left + line.width / 2 - (box.left + box.width / 2);
+        geo.morph = window.innerHeight * SNAKE.scroll;
+        snake.draw(geo);
+      }
+      return geo;
+    };
+    measure();
+
+    // Where the dots stand in the window: fixed to the page, so they run
+    // past the cube as the page scrolls; the window's top in the screen
+    // follows from the scroll, as it is sticky. Led in, they carry on the
+    // snake's dots, which are fixed to its path, so the hand-over is dot
+    // for dot (snake.origin).
+    const syncDots = (scroll) => {
       if (!geo) return;
-      const offset = gsap.utils.clamp(0, geo.room, geo.sticky - (geo.top - self.scroll()));
-      dots.style.backgroundPositionY = `${-offset}px`;
+      const winTop = Math.min(Math.max(geo.sticky, geo.top - scroll), geo.top + geo.height - geo.win - scroll);
+      const origin = lead ? snake.origin : geo.top;
+      dots.style.backgroundPositionY = `${origin - scroll - winTop}px`;
     };
     ScrollTrigger.create({
       trigger: rail,
       start: "top bottom",
       end: "bottom top",
-      onUpdate: syncDots,
+      onUpdate: (self) => syncDots(self.scroll()),
       onRefresh(self) {
-        const box = rail.getBoundingClientRect();
-        geo = {
-          top: box.top + window.scrollY,
-          sticky: parseFloat(getComputedStyle(win).top) || 0,
-          room: Math.max(0, box.height - win.getBoundingClientRect().height),
-        };
-        syncDots(self);
+        measure();
+        syncDots(self.scroll());
       },
     });
 
-    gsap.fromTo(rail, { opacity: 0 }, {
-      opacity: 1,
-      ease: "none",
-      scrollTrigger: { trigger: rail, start: "top 80%", end: "top 50%", scrub: true },
-    });
+    let morph = null;
+    if (lead) {
+      // Which of the three shows: the statement's line up to the release,
+      // then the snake, then, once it has run into the rail, the rail's own
+      // dots. The window (held at the middle of the screen under all of it)
+      // shows from the release, for its cube and faded ends to come in.
+      const state = { released: false, landed: false };
+      const show = () => {
+        lead.style.visibility = state.released ? "hidden" : "";
+        win.style.visibility = state.released ? "" : "hidden";
+        snake.el.style.visibility = state.released && !state.landed ? "visible" : "";
+        dots.style.visibility = state.landed ? "" : "hidden";
+      };
+      show();
+      ScrollTrigger.create({
+        start: () => geo.release,
+        end: "max",
+        onToggle: (self) => { state.released = self.isActive; show(); },
+      });
+      ScrollTrigger.create({
+        start: () => geo.release + geo.morph,
+        end: "max",
+        onToggle: (self) => { state.landed = self.isActive; show(); },
+      });
+
+      // Over the morph's scroll the snake runs along its path, its dots
+      // brighten to the rail's, the window's ends fade into the band and
+      // the cube comes up.
+      morph = gsap.timeline({
+        scrollTrigger: {
+          start: () => geo.release,
+          end: () => geo.release + geo.morph,
+          scrub: true,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => snake.at(self.scroll() - geo.release, geo),
+          onRefresh: (self) => snake.at(self.scroll() - geo.release, geo),
+        },
+      });
+      morph
+        .fromTo(snake.dots, { attr: { "stroke-opacity": 0.3 } }, { attr: { "stroke-opacity": 0.55 }, duration: 0.7, ease: "none" }, 0.15)
+        .fromTo(win, { "--rail-ends": 0 }, { "--rail-ends": 1, duration: 0.2, ease: "none" }, 0.8)
+        .fromTo(cube, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, 0.7);
+    } else {
+      gsap.fromTo(rail, { opacity: 0 }, {
+        opacity: 1,
+        ease: "none",
+        scrollTrigger: { trigger: rail, start: "top 80%", end: "top 50%", scrub: true },
+      });
+    }
 
     const trail = { top: 0, bottom: 0 };
     // Scaled rather than resized (approach-stack.css), so the trail never
@@ -173,10 +258,11 @@ export function mountApproachStack(root, { lenis } = {}) {
     // From the moment the window settles at the middle of the viewport to
     // the moment it leaves the bottom of the rail. Measured off the rail:
     // the window is sticky, so where it sits depends on the scroll.
+    // Led in, from the end of the morph, once the cube is up.
     const half = () => win.offsetHeight / 2;
     ScrollTrigger.create({
       trigger: rail,
-      start: () => `top center-=${half()}`,
+      start: () => (lead ? geo.release + geo.morph : `top center-=${half()}`),
       end: () => `bottom center+=${half()}`,
       invalidateOnRefresh: true,
       onUpdate(self) {
@@ -214,6 +300,14 @@ export function mountApproachStack(root, { lenis } = {}) {
         gsap.set(mark, { clearProps: "transform" });
       }
       dots.style.backgroundPositionY = "";
+      if (lead) {
+        morph.scrollTrigger?.kill();
+        morph.kill();
+        gsap.set([dots, win, cube], { clearProps: "all" });
+        snake.el.remove();
+        lead.style.visibility = "";
+        root.classList.remove("is--led");
+      }
     };
   }
 
@@ -239,6 +333,94 @@ export function mountApproachStack(root, { lenis } = {}) {
    drawing to blank. The loops are slow and few: one signal at a
    time, in the site's red, on hairlines that otherwise hold still.
    ============================================================ */
+/* The snake: the statement's dotted line running into the rail.
+
+   A path fixed to the page, in the rail's own coordinates (from its top,
+   about its centre line): down the statement's line, then over to the
+   rail in steps, square ones only, down and across and down again, then
+   on down the rail. Its dots are drawn along the whole path and fixed to
+   it, and only a stretch of it shows, through a mask: the snake, which
+   slides along the path as the page scrolls, its body following its head
+   round each corner, and closes in from the line's length to the
+   window's on the way.
+
+   How far along it is (at) is worked out so it joins on at both ends: it
+   leaves as the line stood, still on the screen while the statement
+   scrolls away (moving down its path as fast as the page goes up), and
+   it arrives as the window stands, held at the middle of the screen with
+   its dots running with the page, so the rail takes over dot for dot
+   (origin, the page position the rail's dots are counted from). In
+   between it runs the extra length of the way, on an S-curve. */
+const SNAKE = {
+  // the scroll it runs over, in screens
+  scroll: 1,
+  // how many steps across it takes to the rail, each the same width, the
+  // drop between them the same height
+  steps: 1,
+};
+
+function makeSnake(rail) {
+  const NS = "http://www.w3.org/2000/svg";
+  const id = `approach-snake-${Math.random().toString(36).slice(2, 8)}`;
+  const el = document.createElementNS(NS, "svg");
+  el.setAttribute("class", "approach-stack__snake");
+  el.setAttribute("aria-hidden", "true");
+  el.innerHTML =
+    `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="-10000" y="-10000" width="20000" height="200000">` +
+    `<path fill="none" stroke="#fff" stroke-width="8"/></mask></defs>` +
+    `<path fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="2 10" mask="url(#${id})"/>`;
+  const reach = el.querySelector("mask path");
+  const dots = el.querySelector(":scope > path");
+  rail.prepend(el);
+
+  // the length of the path from the line's top to where it meets the rail
+  let into = 0;
+  const snake = {
+    el,
+    dots,
+    origin: 0,
+    draw(geo) {
+      const x0 = geo.lineX;
+      const top = geo.release + geo.lineTop - geo.top;
+      const bottom = top + geo.lineHeight;
+      // where the window's top stands on the page once the snake is in
+      const land = geo.release + geo.morph + geo.sticky - geo.top;
+      const drop = Math.max(1, land - bottom);
+
+      // Square steps: an even drop, then an even run across, and so on,
+      // the last drop landing on the rail where the window stands.
+      const rise = drop / (SNAKE.steps + 1);
+      const points = [[x0, top], [x0, bottom]];
+      let y = bottom;
+      for (let i = 1; i <= SNAKE.steps; i++) {
+        y += rise;
+        points.push([x0 * (1 - (i - 1) / SNAKE.steps), y], [x0 * (1 - i / SNAKE.steps), y]);
+      }
+      points.push([0, land]);
+      into = 0;
+      for (let i = 1; i < points.length; i++) {
+        into += Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]);
+      }
+      points.push([0, land + geo.win * 2]);
+      const d = "M" + points.map(([x, y]) => `${x.toFixed(2)} ${y.toFixed(2)}`).join("L");
+      dots.setAttribute("d", d);
+      reach.setAttribute("d", d);
+      snake.origin = geo.top + land - into;
+    },
+    // the snake's place q px of scroll after the release
+    at(q, geo) {
+      const run = geo.morph;
+      const k = gsap.utils.clamp(0, 1, q / run);
+      const s = k * k * (3 - 2 * k);
+      const start = k * run + (into - run) * s;
+      const length = geo.lineHeight + (geo.win - geo.lineHeight) * s;
+      reach.style.strokeDasharray = `${length} 1000000`;
+      reach.style.strokeDashoffset = `${-start}`;
+    },
+  };
+  return snake;
+}
+
 function mountSchematic(svg) {
   const build = svg && SCHEMATICS[svg.dataset.schematic];
   if (!build) return null;

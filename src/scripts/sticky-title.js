@@ -101,12 +101,29 @@ export function mountStickyTitle(wrap) {
           duration: FADE_OUT,
         });
       }
+      // A marked phrase (StickyTitle.astro): its chip and its red ground
+      // uncovered left to right with its own letters, from the moment the
+      // first of them starts in to the moment the last is in, so the
+      // ground never stands empty ahead of its words.
+      heading.querySelectorAll("[data-sticky-title-mark]").forEach((mark) => {
+        const at = (i) => (REVEAL * i) / Math.max(1, split.chars.length - 1);
+        const own = split.chars.filter((char) => mark.contains(char));
+        if (!own.length) return;
+        const start = at(split.chars.indexOf(own[0]));
+        const end = at(split.chars.indexOf(own[own.length - 1])) + CHAR_IN;
+        headingTl.fromTo(mark, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: end - start, ease: "none" }, start);
+      });
       masterTl.add(headingTl, index === 0 ? 0 : `-=${OVERLAP}`);
       return split;
     });
     // a run of statements holds the last a moment to be read; a single one
     // lets go as soon as it has come in, with no scroll left empty after it
     if (headings.length > 1) masterTl.to({}, { duration: HOLD });
+
+    // The dotted line beside the statement draws down as the first comes
+    // in, ahead of it, so it stands whole before the frame lets go.
+    const rule = wrap.querySelector("[data-rail-lead]");
+    if (rule) masterTl.fromTo(rule, { scaleY: 0 }, { scaleY: 1, duration: REVEAL, ease: "none" }, 0);
 
     // Run the timeline through once now, while the page is still covered.
     // A tween reads its start values off the element's computed style the
@@ -121,6 +138,8 @@ export function mountStickyTitle(wrap) {
       masterTl.scrollTrigger?.kill();
       masterTl.kill();
       splits.forEach((split) => split.revert());
+      gsap.set(wrap.querySelectorAll("[data-sticky-title-mark]"), { clearProps: "clipPath" });
+      if (rule) gsap.set(rule, { clearProps: "transform" });
       headings.forEach((heading) => {
         heading.removeAttribute("aria-label");
         gsap.set(heading, { clearProps: "visibility" });

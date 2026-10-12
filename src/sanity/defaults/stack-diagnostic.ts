@@ -44,7 +44,7 @@ export const stackDiagnosticPage = {
     tiles: keyed('tile', [
       { title: 'Workflow Workshop', text: 'Find where the time goes, using a live project as the test case.', linkLabel: 'Explore' },
       { title: 'Technology Blueprint', text: 'Take the findings into a sequenced roadmap across the whole practice.', linkLabel: 'Explore' },
-      { title: 'ADDDvisory', text: 'Keep an external reference point as the decisions arrive month to month.', linkLabel: 'Explore' },
+      { title: 'Ongoing Advisory', text: 'Keep an external reference point as the decisions arrive month to month.', linkLabel: 'Explore' },
     ]),
   },
 };

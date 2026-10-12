@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import ServiceDiagram from "../components/ServiceDiagram.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { blueprintPage as D } from "../sanity/defaults/blueprint";
 
@@ -75,7 +76,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         </div>
       </div>
 
-      <div class="filters">
+      <div class="filters filters--tabs">
         <button type="button" data-filter-status="active">Workflows</button>
         <button type="button">Software</button>
         <button type="button">Infrastructure</button>
@@ -85,15 +86,17 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         <button type="button">Governance</button>
       </div>
 
-      <div class="card" style="margin-top:3rem">
-        <div class="card__body card__body--lg">
-          <div class="card__text">
-            <p class="tagline tagline--sm" data-page-field="examine.cardTagline">{t("examine.cardTagline")}</p>
-            <h3 class="h3" data-page-field="examine.cardHeading">{t("examine.cardHeading")}</h3>
-            <p data-page-field="examine.cardText">{t("examine.cardText")}</p>
+      <div class="examine-panel">
+        <div class="examine-panel__text">
+          <h3 class="examine-panel__h" data-page-field="examine.cardHeading">{t("examine.cardHeading")}</h3>
+          <div class="examine-panel__row">
+            <p class="examine-panel__label"><span class="examine-panel__mark" aria-hidden="true"></span><span data-page-field="examine.cardTagline">{t("examine.cardTagline")}</span></p>
+            <p class="examine-panel__p" data-page-field="examine.cardText">{t("examine.cardText")}</p>
           </div>
         </div>
-        <div class="card__media"></div>
+        <div class="examine-panel__media">
+          <ServiceDiagram index={4} class="examine-panel__diagram" />
+        </div>
       </div>
     </div>
   </section>

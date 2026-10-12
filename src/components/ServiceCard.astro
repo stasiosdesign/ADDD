@@ -1,0 +1,45 @@
+---
+/*
+  One service as a card (the "routes cards" block in src/styles/styles.css):
+  a band of grid cells with the service's number and name in a box set
+  into it, then its diagram, then the description. The homepage's route
+  cards and the nav's Services panel are both these, so the two never
+  drift apart.
+*/
+import ServiceDiagram from "./ServiceDiagram.astro";
+
+interface Props {
+  href: string;
+  /** The service's place, from 0: its number (01…) and its diagram. */
+  index: number;
+  title: string;
+  text: string;
+  /** The Sanity field the card's words come from, e.g. "routes.cards.0",
+      for the Studio's Visual editor; none where the words are fixed. */
+  field?: string;
+  /** A label on a tab above the card (the homepage's taglines); none in the nav. */
+  label?: string;
+  [attr: string]: unknown;
+}
+
+const { href, index, title, text, field, label, ...attrs } = Astro.props;
+---
+<!-- --i: the card's place in its row's grid, which lays its band and panel
+     out to the row's full share (the "routes cards" block, styles.css) -->
+<a class="route-card" href={href} style={`--i:${index}`} {...attrs}>
+  {label && <span class="route-card__tab" data-page-field={field && `${field}.tagline`}>{label}</span>}
+  <div class="route-card__head">
+    <div class="route-card__title">
+      <span class="route-card__num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+      <h3 class="route-card__h" data-page-field={field && `${field}.title`}>{title}</h3>
+    </div>
+  </div>
+  <div class="route-card__panel">
+    <div class="route-card__media">
+      <ServiceDiagram index={index} class="route-card__diagram" />
+    </div>
+    <div class="route-card__body">
+      <p class="route-card__p" data-page-field={field && `${field}.text`}>{text}</p>
+    </div>
+  </div>
+</a>

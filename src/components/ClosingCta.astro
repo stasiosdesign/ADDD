@@ -2,7 +2,8 @@
 /*
   The closing call to action every content page ends on, set the way the
   hero and the routes intro are: a label holding the left edge, the heading
-  and its buttons set in from it, and the arrow out on the right gutter.
+  and its buttons set in from it, the newsletter signup under them, and
+  the arrow out on the right gutter.
 
   The words are the Closing call to action section of the Home page document
   in Sanity (src/sanity/defaults/home.ts while nothing is published), so one
@@ -45,6 +46,26 @@ const scope = { "data-page-doc": doc.id, "data-page-type": doc.id };
       <div class="actions actions--pair">
         <ActionButton {...primary}><span data-page-field={`${field}.primaryButton`}>{t(`${field}.primaryButton`)}</span></ActionButton>
         <ActionButton {...secondary} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{t(`${field}.secondaryButton`)}</span></ActionButton>
+      </div>
+      <!-- The newsletter signup, under a rule: what it is on the left, the
+           shared signup on the right. -->
+      <div class="cta__signup">
+        <div class="cta__signup-text">
+          <p class="tagline tagline--sm">ADDDitive newsletter</p>
+          <p class="cta__signup-title">Get ADDDitive in your inbox</p>
+          <p class="cta__signup-desc">The Process of Architecture: how technology actually gets used to make architecture.</p>
+        </div>
+        <form class="newsletter-signup" onsubmit="return false">
+          <div class="newsletter-form">
+            <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
+            <button class="newsletter-form__submit" type="submit">Subscribe</button>
+          </div>
+          <fieldset class="newsletter-audience">
+            <legend class="newsletter-audience__legend">Which describes you?</legend>
+            <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+            <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+          </fieldset>
+        </form>
       </div>
     </div>
     <span class="cta__mark" aria-hidden="true"><ArrowIcon /></span>

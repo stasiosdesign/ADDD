@@ -36,7 +36,7 @@ export const aboutPage = {
       {
         title: 'The gap between what leadership believes and what actually happens',
         text: 'Partners assume BIM is embedded. Project directors know it is partial. Teams use workarounds leadership has never seen. Investment in training does not translate to adoption. What gets reported upwards and what happens on projects are often two different stories. Closing that gap is where real change begins.',
-        linkLabel: 'ADDDvisory',
+        linkLabel: 'Ongoing Advisory',
       },
     ]),
   },

@@ -6,7 +6,7 @@ import Hero from "../components/Hero.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 
-// Every section's words and pictures come from the For AEC Tech Firms page
+// Every section's words and pictures come from the AEC Tech Partners page
 // document in Sanity (studio/schemaTypes/pages/tech-firms.ts), each element
 // falling back to its own (src/sanity/defaults/tech-firms.ts): see
 // src/sanity/content.ts. The hero's pattern, the cards' tones and crops and
@@ -26,9 +26,9 @@ const crops = ["is--crop-left", "is--crop-centre", "is--crop-centre", "is--crop-
 const fees = { href: "mailto:allister@addd.io?subject=Partnership%20fee%20sheet" };
 ---
 <BaseLayout
-  title="For AEC Tech Firms — ADDD"
+  title="AEC Tech Partners — ADDD"
   description="Sponsorship and partnerships that give technology companies access to ADDD’s architecture audience: workflow and episode content, ADDDitive newsletter placement, research and events."
-  pageName="Tech Firms"
+  pageName="AEC Tech Partners"
   doc={{ id: "techFirmsPage" }}
 >
 <main class="page--grid">

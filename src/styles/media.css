@@ -49,7 +49,7 @@
    area's square; --logo-shape (set per mark by index.astro) is the square
    root of its aspect ratio. Auto height keeps proportions. */
 .logos .logo-tile {
-  --logo-size: 3.25rem;
+  --logo-size: 3.5rem;
 }
 .logos .logo-tile img {
   width: calc(var(--logo-size) * var(--logo-shape, 2));

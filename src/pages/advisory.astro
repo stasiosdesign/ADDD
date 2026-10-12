@@ -6,7 +6,7 @@ import ClosingCta from "../components/ClosingCta.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { advisoryPage as D } from "../sanity/defaults/advisory";
 
-// Every section's words come from the ADDDvisory page document in Sanity
+// Every section's words come from the Ongoing Advisory page document in Sanity
 // (studio/schemaTypes/pages/advisory.ts), each element falling back to its
 // own (src/sanity/defaults/advisory.ts): see src/sanity/content.ts. The
 // navigation, the footer, the comparison table's column headings and where
@@ -41,9 +41,9 @@ const membership = card(0);
 const blueprint = card(1);
 ---
 <BaseLayout
-  title="ADDDvisory — ADDD"
-  description="ADDDvisory is ongoing strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities."
-  pageName="ADDDvisory"
+  title="Ongoing Advisory — ADDD"
+  description="Ongoing Advisory is strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities."
+  pageName="Ongoing Advisory"
   doc={{ id: "advisoryPage" }}
 >
 <main class="page--dark page--grid">
@@ -146,7 +146,7 @@ const blueprint = card(1);
 
       <table class="table">
         <thead>
-          <tr><th></th><th>ADDDvisory</th><th>Other</th></tr>
+          <tr><th></th><th>Ongoing Advisory</th><th>Other</th></tr>
         </thead>
         <tbody data-page-list="difference.rows">
           {rows.map((row) => (

@@ -70,6 +70,27 @@
   margin-left: -0.5rem;
   pointer-events: none;
 }
+/* Led in by the statement's dotted line (approach-stack.js, from 992px):
+   the rail reaches up under the statement's held frame, to its top at
+   the moment the frame lets go, so the window is already held at the
+   middle of the screen then and can take the line's place. */
+.approach-stack.is--led .approach-stack__rail {
+  top: calc(-100vh - var(--sec-lg));
+  top: calc(-100svh - var(--sec-lg));
+}
+/* The snake from the statement's line into the rail (approach-stack.js):
+   drawn in the rail's own coordinates, from its top and its centre line,
+   and shown only while it runs. */
+.approach-stack__snake {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  visibility: hidden;
+  pointer-events: none;
+}
 .approach-stack__window {
   position: sticky;
   top: calc(50vh - 9.5rem);
@@ -85,6 +106,8 @@
   right: 0;
   z-index: 3;
   height: 22%;
+  /* set by the script while the window grows out of the statement's line */
+  opacity: var(--rail-ends, 1);
   pointer-events: none;
 }
 .approach-stack__window::before { top: 0; background: linear-gradient(to bottom, var(--c-dark-fg), rgba(10, 10, 10, 0)); }
@@ -138,47 +161,42 @@
 .approach-stack__trail.is--bottom { top: 50%; transform-origin: 50% 0; }
 
 /* --- Card ----------------------------------------------------
-   Three parts on a ground just off the band — a step lighter than
-   the ink, darker than the site's dark grey (--c-dark-bg), so the
-   cards sit in the band rather than on it: the head (number and
-   step name), the panel between them (the schematic), and the
-   foot (the copy). A connector runs from the number down
-   through the panel into the copy, and each divider it crosses is
-   broken around it. */
+   Four blocks, set edge to edge, each its own dark tone, so the
+   card is drawn by the changes of tone rather than by lines: along
+   the top, the number in a square of its own and the step's name
+   beside it; under them the schematic; under that the copy. The
+   tones step evenly down from the number, the lightest, to the
+   schematic's ground, the deepest, just off the band's ink, each a
+   step apart that is small but plain to see. */
 .step-card {
   --card-pad: 1.5rem;
-  --card-badge: 2.75rem;
-  --card-gap: 1.25rem;
-  /* where everything after the number starts, and the connector's line */
-  --card-indent: calc(var(--card-pad) + var(--card-badge) + var(--card-gap));
-  --card-x: calc(var(--card-pad) + var(--card-badge) / 2);
-  /* the divider, broken either side of the connector */
-  --card-rule: linear-gradient(to right,
-    var(--stack-line) calc(var(--card-x) - 0.75rem),
-    transparent calc(var(--card-x) - 0.75rem) calc(var(--card-x) + 0.75rem),
-    var(--stack-line) calc(var(--card-x) + 0.75rem));
+  --card-top: 5.5rem;
+  --tone-number: #272727;
+  --tone-title: #202020;
+  --tone-copy: #1a1a1a;
+  --tone-media: #141414;
 
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  grid-template-columns: var(--card-top) minmax(0, 1fr);
   border-radius: var(--radius);
-  background: #131313;
+  overflow: hidden;
 }
 
+/* the top row: the number's square and the name's block; the head
+   itself draws nothing, so its two children stand as two blocks */
 .step-card__head {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--card-gap);
-  padding: var(--card-pad);
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  min-height: var(--card-top);
 }
 .step-card__badge {
-  flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--card-badge);
-  height: var(--card-badge);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  aspect-ratio: 1;
+  background: var(--tone-number);
   font-family: var(--font-mono);
   color: var(--label-ink);
   font-size: var(--t-sm);
@@ -187,7 +205,11 @@
   line-height: 1;
 }
 .step-card__title {
+  display: flex;
+  align-items: center;
   margin: 0;
+  padding: 0 var(--card-pad);
+  background: var(--tone-title);
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
   font-size: var(--t-h4);
@@ -195,75 +217,22 @@
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 
-/* the connector, from under the number to the head's foot */
-.step-card__head::before {
-  content: "";
-  position: absolute;
-  top: calc(var(--card-pad) + var(--card-badge));
-  bottom: 0;
-  left: var(--card-x);
-  width: 1px;
-  background: var(--stack-line);
-}
-/* the divider under the head */
-.step-card__head::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--card-rule);
-}
-
-.step-card__panel { position: relative; }
-/* the connector, on down past the schematic */
-.step-card__panel::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: var(--card-x);
-  width: 1px;
-  background: var(--stack-line);
+/* the schematic's block */
+.step-card__panel {
+  grid-column: 1 / -1;
+  background: var(--tone-media);
 }
 .step-card__media {
-  padding: 1.25rem var(--card-pad) 1.25rem var(--card-indent);
+  display: flex;
+  justify-content: center;
+  padding: 2rem var(--card-pad);
 }
 
+/* the copy's block */
 .step-card__foot {
-  position: relative;
-  padding: var(--card-pad) var(--card-pad) var(--card-pad) var(--card-indent);
-}
-/* the divider over the foot */
-.step-card__foot::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 1px;
-  background: var(--card-rule);
-}
-/* the connector's last leg: down into the foot and across to the copy's
-   first line, ending on a node */
-.step-card__elbow {
-  position: absolute;
-  top: 0;
-  left: var(--card-x);
-  width: calc(var(--card-indent) - var(--card-x) - 0.625rem);
-  height: calc(var(--card-pad) + 0.75em);
-  border-left: 1px solid var(--stack-line);
-  border-bottom: 1px solid var(--stack-line);
-}
-.step-card__elbow::after {
-  content: "";
-  position: absolute;
-  right: -3px;
-  bottom: -3px;
-  width: 5px;
-  height: 5px;
-  background: rgba(255, 255, 255, 0.5);
+  grid-column: 1 / -1;
+  padding: var(--card-pad);
+  background: var(--tone-copy);
 }
 .step-card__p {
   max-width: 28rem;
@@ -344,18 +313,10 @@
   .approach-stack__slot.is--right { grid-column: 1 / -1; }
   .approach-stack__rail { display: none; }
 
-  /* No connector without the column it runs in: the copy and the
-     schematic take the card's width, and the dividers run whole. */
+  /* Single column: the blocks a step tighter, the schematic full width. */
   .step-card {
     --card-pad: 1.25rem;
-    --card-badge: 2.5rem;
-    --card-gap: 1rem;
-    --card-indent: var(--card-pad);
-    --card-rule: var(--stack-line);
+    --card-top: 4.25rem;
   }
-  .step-card__head::before,
-  .step-card__panel::before,
-  .step-card__elbow { display: none; }
-  /* full width */
   .schematic { max-width: none; }
 }

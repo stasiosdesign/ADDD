@@ -45,7 +45,7 @@ export const licensingAuditPage = {
     tiles: keyed('tile', [
       { title: 'Technology Blueprint', text: 'Take software cost into the full practice-wide technology strategy.', linkLabel: 'Explore' },
       { title: 'Workflow Workshop', text: 'Find where the time goes, using a real project as the test case.', linkLabel: 'Explore' },
-      { title: 'ADDDvisory', text: 'Bring vendor and licensing decisions into a standing monthly conversation.', linkLabel: 'Explore' },
+      { title: 'Ongoing Advisory', text: 'Bring vendor and licensing decisions into a standing monthly conversation.', linkLabel: 'Explore' },
     ]),
   },
 };

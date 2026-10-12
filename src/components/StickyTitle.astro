@@ -28,9 +28,21 @@ interface Props {
   navHold?: boolean;
   /** The Sanity field the statements come from (data-page-field, for the Studio's Visual editor), where a page reads them from its document. */
   field?: string;
+  /** A dotted line beside the statements, as the hero's beside its heading; the approach stack's rail grows out of it (data-rail-lead, approach-stack.js). */
+  rule?: boolean;
+  /** A phrase in a statement to pick out: set on the red with a chip before
+      it, revealed with its letters (sticky-title.js). Where the statement no
+      longer has it, the statement is set plain. */
+  mark?: string;
 }
 
-const { headings, id, class: className, "aria-label": label, navHold = false, field } = Astro.props;
+const { headings, id, class: className, "aria-label": label, navHold = false, field, rule = false, mark } = Astro.props;
+
+// A statement around its marked phrase, where it has it.
+const parts = (text: string) => {
+  const at = mark ? text.indexOf(mark) : -1;
+  return at < 0 ? null : { before: text.slice(0, at), mark: mark!, after: text.slice(at + mark!.length) };
+};
 ---
 <section data-sticky-title="wrap" class:list={["sticky-title", className]} id={id} aria-label={label} data-nav-hold={navHold ? "" : undefined} style={`--headings:${headings.length}`}>
   <slot name="before" />
@@ -39,9 +51,15 @@ const { headings, id, class: className, "aria-label": label, navHold = false, fi
       <slot name="top" />
       <div class="sticky-title__stage">
         <div class="sticky-title__inner">
-          {headings.map((text, i) => (
-            <h2 data-sticky-title="heading" class:list={["sticky-title__el", { "is--stacked": i > 0 }]} data-page-field={field && headings.length === 1 ? field : undefined}>{text}</h2>
-          ))}
+          {rule && <span class="sticky-title__rule" aria-hidden="true" data-rail-lead></span>}
+          {headings.map((text, i) => {
+            const p = parts(text);
+            return (
+              <h2 data-sticky-title="heading" class:list={["sticky-title__el", { "is--stacked": i > 0 }]} data-page-field={field && headings.length === 1 ? field : undefined}>{p ? (
+                <>{p.before}<span class="sticky-title__mark" data-sticky-title-mark><span class="sticky-title__mark-chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" stroke-linecap="square" /></svg></span><span class="sticky-title__mark-text">{p.mark}</span></span>{p.after}</>
+              ) : text}</h2>
+            );
+          })}
         </div>
       </div>
     </div>

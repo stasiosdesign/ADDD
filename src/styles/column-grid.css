@@ -30,7 +30,12 @@
 :root {
   --grid-columns: 12;
   --grid-edge: 1rem;
-  --grid-margin: calc(2 * var(--grid-edge));
+  /* The room either side of the grid when a page holds its layout to a
+     frame narrower than the screen (the homepage, page-grid.css): the
+     margin and the edge both stand in from the frame rather than the
+     screen. None by default. */
+  --grid-frame: 0px;
+  --grid-margin: calc(2 * var(--grid-edge) + var(--grid-frame));
   --grid-gutter: 1.125rem;
 }
 @media (max-width: 991px) {
@@ -76,8 +81,8 @@
   width: 1px;
   background: #8c8c8c;
 }
-.column-grid__edge.is--left { left: var(--grid-edge); }
-.column-grid__edge.is--right { right: var(--grid-edge); }
+.column-grid__edge.is--left { left: calc(var(--grid-frame) + var(--grid-edge)); }
+.column-grid__edge.is--right { right: calc(var(--grid-frame) + var(--grid-edge)); }
 /* Mid-grey, so it reads on the light pages and the dark ones alike. */
 .column-grid__label {
   display: block;

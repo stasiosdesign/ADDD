@@ -19,6 +19,7 @@ import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 import { mountStickyTitle } from "./sticky-title.js";
+import { mountWordCycle } from "./word-cycle.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
 
@@ -404,10 +405,12 @@ const PAGE_COMPONENTS = [
   ["[data-sticky-title=\"wrap\"]", initStickyTitle],
   ["[data-approach-stack]", initApproachStack],
   ["[data-problem-grid-init]", initProblemGrid],
+  ["[data-routes-reveal]", initRoutesReveal],
   ["[data-testimonial-wrap]", initLineRevealTestimonials],
   ["[data-shutter-scroll-transition]", initShutterScrollTransition],
   ["[data-accordion-init]", initAccordions],
   ["[data-slash-field]", initSlashField],
+  ["[data-word-cycle]", initWordCycle],
   ["[data-filter-group]", initFilterGroups],
   ["[data-hero-parallax]", initHeroParallax],
   ["[data-footer-parallax]", initFooterParallax],
@@ -837,9 +840,9 @@ function initMegaNav() {
   const burger = document.querySelector("[data-burger-toggle]");
   const backBtn = document.querySelector("[data-mobile-back]");
   const logo = document.querySelector("[data-menu-logo]");
-  const [lineTop, lineMid, lineBot] = ["top", "mid", "bot"].map(
-    (id) => document.querySelector(`[data-burger-line='${id}']`)
-  );
+  // The menu's four triangles, each with the turn it rests at (Nav.astro)
+  const burgerMarks = [...document.querySelectorAll("[data-burger-mark]")];
+  const markTurn = (_, el) => Number(el.dataset.burgerMark);
 
   if (!menuWrap || !navList || !dropWrapper) return;
 
@@ -889,7 +892,7 @@ function initMegaNav() {
 
   function killMobile() {
     killTl("mobileTl");
-    gsap.killTweensOf([navList, lineTop, lineMid, lineBot]);
+    gsap.killTweensOf([navList, ...burgerMarks]);
   }
 
   function killMobilePanel() {
@@ -1153,22 +1156,12 @@ function initMegaNav() {
     }
   }
 
-  // MOBILE — burger animation
+  // MOBILE — burger animation: open, each triangle turns an eighth on, so
+  // the four that chase each other round the square all point at its
+  // middle (the close); shut, they turn back to chasing.
   function animateBurger(toX) {
     const tl = gsap.timeline({ defaults: { ease: "power2.inOut" } });
-    if (toX) {
-      tl.to(lineTop, { y: "0.3125em", duration: 0.15 }, 0);
-      tl.to(lineBot, { y: "-0.3125em", duration: 0.15 }, 0);
-      tl.to(lineMid, { autoAlpha: 0, duration: 0.1 }, 0.1);
-      tl.to(lineTop, { rotation: 45, duration: 0.2 }, 0.15);
-      tl.to(lineBot, { rotation: -45, duration: 0.2 }, 0.15);
-    } else {
-      tl.to(lineTop, { rotation: 0, duration: 0.2 }, 0);
-      tl.to(lineBot, { rotation: 0, duration: 0.2 }, 0);
-      tl.to(lineTop, { y: 0, duration: 0.15 }, 0.15);
-      tl.to(lineBot, { y: 0, duration: 0.15 }, 0.15);
-      tl.to(lineMid, { autoAlpha: 1, duration: 0.1 }, 0.15);
-    }
+    tl.to(burgerMarks, { rotation: (i, el) => markTurn(i, el) + (toX ? 45 : 0), duration: 0.3 }, 0);
     return tl;
   }
 
@@ -1339,7 +1332,7 @@ function initMegaNav() {
       if (state.mobileMenuOpen) {
         killMobile();
         killMobilePanel();
-        gsap.set([lineTop, lineMid, lineBot], { rotation: 0, y: 0, autoAlpha: 1 });
+        gsap.set(burgerMarks, { rotation: markTurn });
         burger.setAttribute("aria-expanded", "false");
         menuWrap.setAttribute("data-menu-open", "false");
         state.mobileMenuOpen = false;
@@ -1375,7 +1368,7 @@ function initMegaNav() {
         gsap.set(navItems, { clearProps: "all" });
         gsap.set(backBtn, { autoAlpha: 0 });
         gsap.set(logo, { clearProps: "all" });
-        gsap.set([lineTop, lineMid, lineBot], { rotation: 0, y: 0, autoAlpha: 1 });
+        gsap.set(burgerMarks, { rotation: markTurn });
 
         panels.forEach((p) => {
           gsap.set(p, { clearProps: "all" });
@@ -1931,6 +1924,18 @@ function initApproachStack(container) {
   container.querySelectorAll("[data-approach-stack]").forEach((el) => {
     const stack = mountApproachStack(el, { lenis });
     registerPageCleanup(() => stack.destroy());
+  });
+}
+
+/* ============================================================
+   Word cycle — the homepage hero's cycling word (word-cycle.js)
+   ============================================================
+   Mounted per page from the registry and torn down with it.
+   ============================================================ */
+function initWordCycle(container) {
+  container.querySelectorAll("[data-word-cycle]").forEach((el) => {
+    const cycle = mountWordCycle(el);
+    registerPageCleanup(() => cycle.destroy());
   });
 }
 
@@ -2572,6 +2577,40 @@ function initProblemGrid(container) {
 
   grids.forEach((grid) => observer.observe(grid));
   registerPageCleanup(() => observer.disconnect());
+}
+
+/* ============================================================
+   Routes cards — the four services staggered in as the row arrives
+   ============================================================
+   Held down and hidden from the start, then raised one after the
+   other, left to right, once the row is well into view, and only
+   once. A tween rather than a CSS transition with per-card delays:
+   the delays would stay on the cards' own hover lift afterwards,
+   and the props are cleared when it ends so the hover is the
+   card's own again. Nothing under reduced motion.
+   ============================================================ */
+function initRoutesReveal(container) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  container.querySelectorAll("[data-routes-reveal]").forEach((grid) => {
+    const cards = grid.querySelectorAll(".route-card");
+    if (!cards.length) return;
+
+    gsap.set(cards, { autoAlpha: 0, y: 48 });
+    const tween = gsap.to(cards, {
+      autoAlpha: 1,
+      y: 0,
+      duration: 0.9,
+      ease: "power3.out",
+      stagger: 0.12,
+      clearProps: "opacity,visibility,transform",
+      scrollTrigger: { trigger: grid, start: "top 80%", once: true },
+    });
+    registerPageCleanup(() => {
+      tween.scrollTrigger?.kill();
+      tween.kill();
+    });
+  });
 }
 
 /* ============================================================

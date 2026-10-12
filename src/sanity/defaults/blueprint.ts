@@ -60,7 +60,7 @@ export const blueprintPage = {
       { question: 'Who should be involved from our side?', answer: 'A sponsor at partner or director level, plus whoever owns BIM, IT and operations. Project leads join for the interview stage.' },
       { question: 'How much time does it take from our team?', answer: 'Roughly six to ten hours per participant across the eight weeks, mostly in the discovery stage.' },
       { question: 'What do we actually receive?', answer: 'A written blueprint with findings, a cost picture, prioritised recommendations and a sequenced two to three-year roadmap.' },
-      { question: 'Do you implement the roadmap?', answer: 'The blueprint is strategy, not delivery. Ongoing strategic guidance continues through ADDDvisory.' },
+      { question: 'Do you implement the roadmap?', answer: 'The blueprint is strategy, not delivery. Ongoing strategic guidance continues through Ongoing Advisory.' },
       { question: 'Should we start with a workshop instead?', answer: 'If the problem is isolated to one workflow or project, start with a workshop. If it spans the practice, start here.' },
     ]),
   },

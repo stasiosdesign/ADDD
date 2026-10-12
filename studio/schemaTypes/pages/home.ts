@@ -65,7 +65,7 @@ export const homePage = defineType({
       taglineField('The small line above the signup’s heading.', 'signupTagline', 'Signup tagline'),
       headingField('The signup’s heading.', 'signupHeading', 'Signup heading'),
     ]),
-    pageSection('closingCta', 'Closing call to action', 'The block that ends this page and most others: a change here shows on all of them. For AEC Tech Firms has its own.', [
+    pageSection('closingCta', 'Closing call to action', 'The block that ends this page and most others: a change here shows on all of them. AEC Tech Partners has its own.', [
       taglineField('The small label on the left.', 'label', 'Label'),
       headingField(),
       buttonField('Links to Free Tech Stacks.', 'primaryButton', 'First button label'),

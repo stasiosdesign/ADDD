@@ -32,6 +32,9 @@ interface Props {
   tagline: string;
   lede: string;
   heading: string;
+  /** Words the heading cycles through, the first being the one it is written
+      with: each turns into the next with a scramble (src/scripts/word-cycle.js). */
+  headingWords?: string[];
   /** The two buttons: where each leads, and its label from the same section. */
   primaryCta: { href: string; label: string };
   secondaryCta: { href: string; label: string };
@@ -47,10 +50,19 @@ const {
   tagline,
   lede,
   heading,
+  headingWords = [],
   primaryCta,
   secondaryCta,
   field = "hero",
 } = Astro.props;
+
+// The heading around its cycling word, when it has one and is written with it.
+const cycleAt = headingWords.length > 1 ? heading.indexOf(headingWords[0]) : -1;
+const cycle = cycleAt < 0 ? null : {
+  before: heading.slice(0, cycleAt),
+  word: headingWords[0],
+  after: heading.slice(cycleAt + headingWords[0].length),
+};
 
 // The Slash Field's vocabulary: BIM, Software, Infrastructure and AI, and
 // the practice's other subjects — two from the hero's own copy, four from
@@ -110,7 +122,9 @@ const screenWords = [
         <p class="tagline tagline--sm" data-page-field={`${field}.tagline`}>{tagline}</p>
       </div>
       <div class="hero__col hero__col--heading">
-        <h1 class="h1 hero__heading" data-page-field={`${field}.heading`}>{heading}</h1>
+        <h1 class="h1 hero__heading" data-page-field={`${field}.heading`}>{cycle ? (
+          <>{cycle.before}<span class="hero__cycle" data-word-cycle={headingWords.join("|")}>{cycle.word}</span>{cycle.after}</>
+        ) : heading}</h1>
 
         <div class="hero__cta-row">
           <div class="actions actions--pair">

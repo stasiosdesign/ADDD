@@ -36,7 +36,7 @@ export const licensingAuditPage = defineType({
     pageSection('next', 'Where it leads', 'The heading row and the three cards on the routes practices take next. Where each card’s link leads stays in the site’s code.', [
       leadField(),
       headingField(),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title, a line of text and the text link. They link to the Technology Blueprint, the Workflow Workshop and ADDDvisory.'),
+      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title, a line of text and the text link. They link to the Technology Blueprint, the Workflow Workshop and Ongoing Advisory.'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Software & Licensing Audit page'})},

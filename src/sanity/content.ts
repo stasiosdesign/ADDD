@@ -20,8 +20,18 @@ export type Doc = Record<string, unknown>;
 /** A picture the page shipped with: its file under public/ (as the page references it) and its alt text */
 export type ImageDefault = { path: string; alt?: string };
 
+/**
+ * Detached (2026-10-10): while the copy is still being written, every page
+ * shows its own words from src/sanity/defaults/, edited there, and not its
+ * document in Sanity. Set to false to read the Studio's documents again
+ * (bring the defaults' wording into the Studio first, or it shows the old).
+ * The collections (clients, reports, newsletter issues) still come from Sanity.
+ */
+const DETACHED = true;
+
 /** A page document from the request's client (published content, or drafts in draft mode) */
-export const pageDocument = (sanity: SanityClient, id: string): Promise<Doc | null> => sanity.fetch<Doc | null>(PAGE_QUERY, { id });
+export const pageDocument = (sanity: SanityClient, id: string): Promise<Doc | null> =>
+  DETACHED ? Promise.resolve(null) : sanity.fetch<Doc | null>(PAGE_QUERY, { id });
 
 export const valueAt = (doc: unknown, path: string): unknown =>
   path.split('.').reduce<unknown>((at, key) => (at && typeof at === 'object' ? (at as Record<string, unknown>)[key] : undefined), doc);

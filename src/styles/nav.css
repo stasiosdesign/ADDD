@@ -276,30 +276,24 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   white-space: nowrap;
 }
 
+/* The menu button: four of the logo's triangles on a 2 × 2 grid, each
+   pointing on to the next round the square (Nav.astro). */
 .mega-nav__burger {
-  grid-row-gap: .2em;
-  background-color: var(--nav-burger-bg);
-  border: 0;
-  border-radius: var(--radius);
-  flex-flow: column;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: repeat(2, .5em);
+  grid-template-rows: repeat(2, .5em);
+  gap: .3em;
+  place-content: center;
   width: 2.5em;
   height: 2.5em;
   padding: 0;
-  cursor: pointer;
-  display: flex;
-}
-.mega-nav__burger-line {
-  z-index: 1;
-  background-color: var(--nav-fg);
+  border: 0;
   border-radius: var(--radius);
-  flex: none;
-  width: 1.25em;
-  height: .125em;
-  display: block;
-  position: relative;
+  background-color: var(--nav-burger-bg);
+  color: var(--nav-fg);
+  cursor: pointer;
 }
+.mega-nav__burger-mark { display: block; width: .5em; height: .5em; }
 
 /* Stands in for the logo block while a drawer panel is open, inset by
    the bar's gutter. */
@@ -481,120 +475,29 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
 /* Lead item in a column — the same row, one step up in size. */
 .mega-nav__panel-link.is--lead .mega-nav__panel-link-text { font-size: 1.25em; }
 
-/* Services panel — the four pathways as four cards floating on the nav's
-   white, a thin margin round and between them (--nav-card-gap), on the
-   feature block's grey with the small radius: equal quarters of the
-   viewport.
-
-   Each card leads with its graphic, inset in the card by the same thin
-   margin, in one fixed frame (16:9) across all four, so a custom graphic
-   can fill an empty frame or replace the photograph later without
-   touching the rest. Under it, clear of the picture, the name, set as
-   the homepage's headings are, one line of description in the muted
-   tone, and the site's dotted rule right under it, closing the card.
-   On hover the card steps a shade darker, the picture eases in a touch
-   and a drawn icon comes up to full strength. */
+/* Services panel — the four services as the homepage's route cards
+   (ServiceCard.astro; the "routes cards" block in styles.css, which sizes
+   every part to the card's own width), set here as one table: edge to
+   edge under the bar, no gaps, the cards divided by single hairlines,
+   the header strips one row closed by a hairline, and the panels open
+   below it rather than boxed. On the homepage the same cards stand apart
+   on the ink. */
 .mega-nav__panel-col.is--services {
   flex: 1;
   gap: 0;
-  padding: var(--nav-card-gap);
+  padding: 0;
   align-items: stretch;
 }
 
-/* One set of rows shared by the four cards (each a subgrid of it), so the
-   names, the descriptions and the rules each stand on one line across the
-   panel however their wording wraps: the graphic, the name, the
-   description, the rule. */
 .mega-nav__service-grid {
+  --cards-gap: 0px;
+  --cards-cols: 4;
   grid-template-columns: repeat(4, 1fr);
-  grid-template-rows: auto auto auto auto;
-  column-gap: var(--nav-card-gap);
-  row-gap: 0;
+  border-top: 1px solid var(--nav-rule);
   width: 100%;
   display: grid;
 }
-
-.mega-nav__service-card {
-  --card-inset: var(--nav-card-gap);
-  --card-pad: 1.375rem; /* rem: it pads text set at several sizes */
-  grid-row: span 4;
-  grid-template-rows: subgrid;
-  background-color: var(--nav-feature-bg);
-  border-radius: var(--nav-card-radius);
-  color: var(--nav-fg);
-  min-width: 0;
-  padding: var(--card-inset);
-  text-decoration: none;
-  display: grid;
-  transition: background-color .3s ease;
-}
-/* a shade darker hovered: 5% of the ink into the grey */
-.mega-nav__service-card:hover { background-color: color-mix(in srgb, var(--nav-fg) 5%, var(--nav-feature-bg)); }
-/* No lift on hover: the panel animates these very elements in, so GSAP
-   owns their transform and a CSS one would never apply. */
-
-/* The graphic's frame. Anything set in it — a photograph now, a drawn
-   graphic later — fills it edge to edge; empty, it is a plain darker
-   grey of the same size, so the four cards keep one structure. */
-.mega-nav__service-card-graphic {
-  position: relative;
-  aspect-ratio: 16 / 9;
-  border-radius: var(--nav-card-radius);
-  background-color: var(--nav-placeholder);
-  overflow: hidden;
-  display: block;
-}
-.mega-nav__service-card-graphic > * {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-/* The placeholder photographs, greyscaled and lifted a little, so four
-   different pictures read as one quiet set on the grey. */
-.mega-nav__service-card-graphic img {
-  filter: grayscale(1) contrast(.92) brightness(1.04);
-  transition: transform .6s cubic-bezier(0.625, 0.05, 0, 1);
-}
-.mega-nav__service-card:hover .mega-nav__service-card-graphic img { transform: scale(1.04); }
-/* A drawn icon: the nav's ink on the frame's grey, held back a step, and
-   coming up to full strength with the card's hover. */
-.mega-nav__service-card-graphic .service-icon {
-  color: var(--nav-fg);
-  opacity: .7;
-  transition: opacity .3s ease;
-}
-.mega-nav__service-card:hover .service-icon { opacity: 1; }
-
-.mega-nav__service-card .mega-nav__panel-link-text {
-  padding: 1.375rem var(--card-pad) 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 1.5em;
-  line-height: 1.05;
-  letter-spacing: calc(var(--primary-tracking) - 0.03em);
-  text-wrap: balance;
-}
-.mega-nav__service-card .mega-nav__panel-link-desc {
-  padding: .75rem var(--card-pad) 0;
-  max-width: 20em;
-  font-size: .9375em;
-  line-height: 1.4;
-  text-wrap: pretty;
-}
-
-/* The site's dotted rule (--dotted-rule, styles.css) right under the
-   description, closing the card: standing out past the text's edges by
-   the bleed a dot sits in from its tile, and the card's own padding
-   under it. */
-.mega-nav__service-card-rule {
-  grid-row: 4;
-  height: 2px;
-  margin: 1.25rem calc(var(--card-pad) - var(--dotted-rule-bleed)) calc(var(--card-pad) - var(--card-inset));
-  background: var(--dotted-rule);
-}
+.mega-nav__service-grid .route-card + .route-card { border-left: 1px solid var(--nav-rule); }
 
 /* Featured report — the latest report as one focal card under the
    Reports link, on the insight card's parts at thumbnail scale: the
@@ -810,7 +713,44 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
     border-radius: var(--radius);
   }
 
-  .mega-nav__bar-end { display: flex; padding-right: 1.25em; }
+  /* The bar as one dark block inset from the screen's edges, the page
+     showing round it: the logo's triangles in white at its start, and
+     at its end Contact in the red and the menu's square, each inset
+     from the block's top and foot by the same step. */
+  .mega-nav__bar { background-color: transparent; }
+  .mega-nav__container { padding: .5em; box-sizing: border-box; }
+  .mega-nav__bar-start { background-color: #0a0a0a; border-radius: var(--radius); }
+  .mega-nav__bar-logo { width: auto; padding: 0 1.25em; background-color: transparent; color: var(--c-white); }
+  .mega-nav__bar-logo-mark { width: 3em; }
+  .mega-nav__back .mega-nav__bar-link { color: var(--c-white); }
+
+  .mega-nav__bar-end {
+    display: flex;
+    align-self: stretch;
+    align-items: stretch;
+    gap: .375em;
+    padding: .375em;
+  }
+  .mega-nav__bar-end-cta {
+    display: flex;
+    align-items: center;
+    padding: 0 1.125em;
+    border-radius: var(--radius);
+    background-color: var(--c-red);
+    color: var(--c-white);
+    font-family: var(--font-body);
+    font-size: .9375rem;
+    line-height: 1;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .mega-nav__burger {
+    width: auto;
+    height: auto;
+    aspect-ratio: 1;
+    background-color: #262626;
+    color: var(--c-white);
+  }
   .mega-nav__bar-action { flex: 1; }
   .mega-nav__bar-cta {
     background-color: var(--nav-alt-bg);
@@ -877,22 +817,9 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
      at full width the chip ran out past the card's right edge. */
   .mega-nav__panel-col > .mega-nav__panel-label { width: 100%; }
 
-  /* Stacked, the same thin margin apart, each card turns on its side so a
-     column of four still fits the slide-over panel: the graphic as a
-     square at the left, the name, the line and the foot beside it. */
-  .mega-nav__service-grid { grid-template-columns: 1fr; grid-template-rows: none; row-gap: var(--nav-card-gap); }
-  .mega-nav__service-card {
-    --card-pad: .875rem;
-    grid-row: auto;
-    grid-template-columns: 6.5em 1fr;
-    grid-template-rows: auto auto auto;
-    column-gap: 0;
-  }
-  .mega-nav__service-card > :not(.mega-nav__service-card-graphic) { grid-column: 2; }
-  .mega-nav__service-card-graphic { grid-row: 1 / -1; grid-column: 1; aspect-ratio: 1; align-self: start; }
-  .mega-nav__service-card .mega-nav__panel-link-text { grid-row: 1; padding-top: .625rem; font-size: 1.25em; }
-  .mega-nav__service-card .mega-nav__panel-link-desc { grid-row: 2; padding-top: .375rem; }
-  .mega-nav__service-card-rule { grid-row: 3; margin-top: 1rem; margin-bottom: .25rem; }
+  /* Stacked, one card under the next, the table a single column. */
+  .mega-nav__service-grid { --cards-cols: 1; grid-template-columns: 1fr; }
+  .mega-nav__service-grid .route-card + .route-card { border-left: 0; border-top: 1px solid var(--nav-rule); }
 }
 
 @media screen and (max-width: 479px) {

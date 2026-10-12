@@ -4,6 +4,7 @@ import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import ServiceCard from "../components/ServiceCard.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
@@ -58,21 +59,16 @@ const quoteLogo = (quote: (typeof quotes)[number]) => {
   return { src: own?.logo.path ?? "", width: undefined, height: undefined, alt: own?.name ?? "" };
 };
 
-// The route cards' destinations and icons stay here, by position
+// The route cards' destinations stay here, by position (their icons are
+// the services' own: ServiceCard.astro)
 const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];
 const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
 
-// The cost cards' and route cards' icons, by position
+// The cost cards' icons, by position
 const costIcons = [
   `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg>`,
   `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg>`,
   `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg>`,
-];
-const routeIcons = [
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 6V21" stroke="currentColor"></path><path d="M9 3H2V18H9L12 21L15 18H22V3H15L12 6L9 3Z" stroke="currentColor"></path></svg>`,
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg>`,
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg>`,
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg>`,
 ];
 ---
 <BaseLayout
@@ -95,6 +91,7 @@ const routeIcons = [
         tagline={t("hero.tagline")}
         lede={t("hero.lede")}
         heading={t("hero.heading")}
+        headingWords={lines("hero.headingWords")}
         primaryCta={{ href: "stack-diagnostic.html", label: t("hero.primaryButton") }}
         secondaryCta={{ href: "contact.html", label: t("hero.secondaryButton") }}
       />
@@ -112,7 +109,7 @@ const routeIcons = [
        they always have; its carousel is the top of the statement's held
        frame — it comes up the page, stays at the top of the screen over
        the statements while they are held, and leaves with them. -->
-  <StickyTitle id="approach" class="logos" navHold headings={[t("approach.statement")]} field="approach.statement">
+  <StickyTitle id="approach" class="logos" navHold rule headings={[t("approach.statement")]} field="approach.statement" mark="work better">
     <Fragment slot="before">
       <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
       <div class="dotted-rule logos__rule" aria-hidden="true"></div>
@@ -181,19 +178,9 @@ const routeIcons = [
       </div>
     </div>
 
-    <div class="routes__grid">
+    <div class="routes__grid" data-routes-reveal>
         {routeCards.map((card, i) => (
-        <a class="route-card" href={routeHrefs[i] ?? "contact.html"}>
-          <div class="route-card__media">
-            <span class="tagline tagline--sm route-card__label" data-page-field={`routes.cards.${i}.tagline`}>{card.tagline}</span>
-            <span class="route-card__arrow" aria-hidden="true"><ArrowIcon /></span>
-            <span class="route-card__icon" aria-hidden="true" set:html={routeIcons[i] ?? ""}></span>
-          </div>
-          <div class="route-card__body">
-            <h3 class="route-card__h" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
-            <p class="route-card__p" data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
-          </div>
-        </a>
+        <ServiceCard href={routeHrefs[i] ?? "contact.html"} index={i} title={card.title ?? ""} text={card.text ?? ""} label={card.tagline} field={`routes.cards.${i}`} />
         ))}
     </div>
   </section>

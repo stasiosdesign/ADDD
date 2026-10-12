@@ -26,12 +26,21 @@
    ============================================================ */
 .page--grid { --page-pad: var(--grid-margin); }
 
-/* The routes cards: full-bleed, a row of four from edge to edge a gutter
-   apart (two across below 1200px, then one), so the row runs out past
-   the text either side of it. */
-.page--grid .routes__grid {
-  gap: var(--grid-gutter);
-  padding: 0 var(--grid-edge);
+/* The homepage's frame: on a screen wider than 1600px its layout stops
+   growing and stands in the middle, so lines stay a comfortable length
+   and the columns don't drift apart under type that has stopped
+   growing. The scaling system's top width comes down to the frame's
+   (scaling.css), so the type stops with it, and the room past it either
+   side goes into the grid's margins (--grid-frame, column-grid.css), so
+   every column, the nav's blocks included, keeps its place in the frame
+   while the bands' grounds still run the width of the screen. Above
+   1600px the page is the 1600px page, centred. The homepage only, for
+   now. */
+@media screen and (min-width: 992px) {
+  :root:has([data-barba="container"][data-page-name="Home"]) {
+    --size-container-max: 1600px;
+    --grid-frame: max(0px, (100vw - var(--size-container-max)) / 2);
+  }
 }
 
 @media screen and (min-width: 992px) {
@@ -67,6 +76,11 @@
      Grid Columns 7–12, with the buttons on its left edge and the
      arrow at the end of Grid Column 12. */
   .page--grid .hero__col--lede { grid-column: 1 / 4; }
+  /* The lede on a measure of its own, in its own ems, a little narrower
+     than the three columns: as they widen past the type on a large
+     screen the last word was left on a line alone; here it keeps four
+     lines, each ending on a phrase. */
+  .page--grid .hero:not(.hero--split) .hero__col--lede .text-md { max-width: 18em; }
   .page--grid .hero__col--heading { grid-column: 7 / -1; margin-left: 0; }
   /* the pair of blocks from Grid Column 7, kept within Grid Column 11,
      so the arrow has Grid Column 12 to itself */
