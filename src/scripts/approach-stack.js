@@ -30,7 +30,6 @@
    ============================================================ */
 
 import { boxFaces, floorLines, projector } from "./iso.js";
-import { mountDotFlicker } from "./dot-field.js";
 
 // The velocity trail, as the spec sets it: lengths are shares (%) of the
 // window's half, and the line fades out over the last 15% of the rail.
@@ -75,9 +74,10 @@ export function mountApproachStack(root, { lenis } = {}) {
 
   // The pitch and the columns from the lines they have to clear: every
   // card's sides where the grid puts them. The pitch fits a whole number
-  // of steps across the first card, near 1.125rem (the 18px the field was
-  // drawn on, at the ideal width, so it scales with the page as the grid
-  // does and the count holds at every width in a range); for each count
+  // of steps across the first card, near 0.875rem (14px at the ideal
+  // width, so it scales with the page as the grid does and the count
+  // holds at every width in a range: the band's one dot field, between
+  // the approach's old 18px and the logos' old 12px); for each count
   // either side of the nearest, one pitch and one offset are fitted to
   // all the lines at once (least squares), and the count that leaves no
   // line further off midway wins, the nearest on a tie. Every line then
@@ -90,7 +90,7 @@ export function mountApproachStack(root, { lenis } = {}) {
       return [r.left - box.left, r.right - box.left];
     });
     const [a, b] = lines;
-    const target = 1.125 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const target = 0.875 * parseFloat(getComputedStyle(document.documentElement).fontSize);
     const nearest = Math.max(1, Math.round((b - a) / target));
     const fit = (count) => {
       const rough = (b - a) / count;
@@ -124,15 +124,48 @@ export function mountApproachStack(root, { lenis } = {}) {
       y: origin === null ? pitch / 2 : origin + DOT / 2 - top,
     };
     band.style.setProperty("--dot-pitch", px(pitch));
+    // the band's other fields (the logos', the steps' pieces) on the same
+    // pitch, set on each, so each is drawn again (dot-field.js redraws a
+    // field when its own style changes, not an ancestor's)
+    band.querySelectorAll(".band-field").forEach((el) => {
+      if (el !== fieldDots) el.style.setProperty("--dot-pitch", px(pitch));
+    });
     fieldDots?.style.setProperty("--dot-x", px(grid.x));
     fieldDots?.style.setProperty("--dot-y", px(grid.y));
+    // One lattice for the band: where a column of dots falls from the
+    // band's (the page's) left edge, --dot-phase, and where a row falls
+    // from its top, --dot-row (the steps' pieces), or from a field's own
+    // top, --dot-y (the logos' and the statement's), on the band's other
+    // fields and the logo wall, each set on its own so each is drawn
+    // again. So the dots run on unbroken from the band's top edge into
+    // the approach's.
+    const mod = (v) => ((v % pitch) + pitch) % pitch;
+    const fieldLeft = field.getBoundingClientRect().left;
+    const phase = mod(grid.x + fieldLeft - band.getBoundingClientRect().left);
+    const row = top + grid.y;
+    const bandRow = mod(row - (band.getBoundingClientRect().top + window.scrollY));
+    [band, ...band.querySelectorAll(".band-field, .logo-wall")].forEach((el) => {
+      el.style.setProperty("--dot-phase", px(phase));
+      el.style.setProperty("--dot-row", px(bandRow));
+    });
+    band.querySelectorAll(".band-field:not(.band-steps__dots)").forEach((el) => {
+      if (el !== fieldDots) el.style.setProperty("--dot-y", px(mod(row - (el.getBoundingClientRect().top + window.scrollY))));
+    });
     placeCards();
   };
   const unplaceField = () => {
     grid = null;
     band.style.removeProperty("--dot-pitch");
+    band.querySelectorAll(".band-field").forEach((el) => el.style.removeProperty("--dot-pitch"));
     fieldDots?.style.removeProperty("--dot-x");
     fieldDots?.style.removeProperty("--dot-y");
+    [band, ...band.querySelectorAll(".band-field, .logo-wall")].forEach((el) => {
+      el.style.removeProperty("--dot-phase");
+      el.style.removeProperty("--dot-row");
+    });
+    band.querySelectorAll(".band-field:not(.band-steps__dots)").forEach((el) => {
+      if (el !== fieldDots) el.style.removeProperty("--dot-y");
+    });
   };
 
   // The rail on the field: from the line the stylesheet gives it (the
@@ -147,6 +180,17 @@ export function mountApproachStack(root, { lenis } = {}) {
     const x = r.left + r.width / 2 - box.left;
     const column = line + pitch / 2 + Math.round((x - line - pitch / 2) / pitch) * pitch;
     rail.style.setProperty("--rail-snap", px(column - x));
+  };
+  // The statement's line onto the nearest column of dots too (--lead-snap),
+  // so it stands on the field and the snake runs a whole number of steps
+  // across from it to the rail.
+  const snapLead = ({ pitch, line }) => {
+    lead.style.removeProperty("--lead-snap");
+    const box = field.getBoundingClientRect();
+    const r = lead.getBoundingClientRect();
+    const x = r.left + r.width / 2 - box.left;
+    const column = line + pitch / 2 + Math.round((x - line - pitch / 2) / pitch) * pitch;
+    lead.style.setProperty("--lead-snap", px(column - x));
   };
 
   // The lines inside each card on the field too, so its dots lay the card
@@ -223,39 +267,6 @@ export function mountApproachStack(root, { lenis } = {}) {
     });
   };
 
-  // A dot of the field to light, as the top-left of its square in the
-  // field's own coordinates: on the screen, away from its edges, never
-  // beside the rail or under a card. Set to the device pixel, as the
-  // field's own dots are.
-  const pickFieldDot = () => {
-    if (!grid) return null;
-    const box = field.getBoundingClientRect();
-    const { pitch } = grid;
-    const wrap = (n) => ((n % pitch) + pitch) % pitch;
-    const lo = Math.max(0, window.innerHeight * 0.1 - box.top);
-    const hi = Math.min(box.height, window.innerHeight * 0.9 - box.top);
-    const first = lo + wrap(grid.y - lo);
-    const rows = Math.floor((hi - first) / pitch) + 1;
-    const x0 = wrap(grid.x) + pitch;
-    const columns = Math.floor((box.width - x0 - pitch / 2) / pitch);
-    if (rows < 1 || columns < 1) return null;
-    const line = rail && rail.offsetParent ? rail.getBoundingClientRect() : null;
-    const railX = line ? line.left + line.width / 2 : null;
-    const covers = cards.map((card) => card.el.getBoundingClientRect());
-    const dpr = window.devicePixelRatio || 1;
-    const snap = (v) => Math.round(v * dpr) / dpr;
-    for (let tries = 0; tries < 8; tries++) {
-      const x = x0 + gsap.utils.random(0, columns - 1, 1) * pitch;
-      const y = first + gsap.utils.random(0, rows - 1, 1) * pitch;
-      const sx = box.left + x;
-      const sy = box.top + y;
-      if (railX !== null && Math.abs(sx - railX) < pitch) continue;
-      if (covers.some((r) => sx > r.left - 8 && sx < r.right + 8 && sy > r.top - 8 && sy < r.bottom + 8)) continue;
-      return { x: snap(x - DOT / 2), y: snap(y - DOT / 2) };
-    }
-    return null;
-  };
-
   const cards = [...root.querySelectorAll("[data-approach-stack-slot]")].map((slot) => {
     const el = slot.querySelector("[data-step-card]");
     return { slot, el, schematic: mountSchematic(el.querySelector("[data-schematic]")), started: false };
@@ -318,12 +329,6 @@ export function mountApproachStack(root, { lenis } = {}) {
         });
 
         if (!phone) cleanups.push(setUpRail(led && lead ? lead : null));
-
-        // the odd dot of the field lighting red (dot-field.js)
-        if (field) {
-          const flicker = mountDotFlicker(field, { pick: pickFieldDot });
-          cleanups.push(() => flicker.destroy());
-        }
       }
 
       return () => {
@@ -359,6 +364,7 @@ export function mountApproachStack(root, { lenis } = {}) {
       // columns
       const fit = field ? fitColumns() : null;
       if (fit) snapRail(fit);
+      if (fit && lead) snapLead(fit);
       const box = rail.getBoundingClientRect();
       geo = {
         top: box.top + window.scrollY,
@@ -373,16 +379,111 @@ export function mountApproachStack(root, { lenis } = {}) {
         // across where they are, so only its height is read off the layout.
         const line = lead.getBoundingClientRect();
         const frame = leadFrame.getBoundingClientRect();
-        geo.release = leadTrack.getBoundingClientRect().bottom + window.scrollY - leadFrame.offsetHeight;
-        geo.lineTop = line.top - frame.top;
+        // where the frame is held (its sticky top): it takes hold as the
+        // track's top reaches that, and lets go as the track's foot
+        // reaches the frame's foot as held
+        const held = parseFloat(getComputedStyle(leadFrame).top) || 0;
+        geo.release = leadTrack.getBoundingClientRect().bottom + window.scrollY - leadFrame.offsetHeight - held;
+        geo.hold = leadTrack.getBoundingClientRect().top + window.scrollY - held;
+        // the line's top in the screen while held
+        geo.lineTop = line.top - frame.top + held;
         geo.lineHeight = parseFloat(getComputedStyle(lead).height);
         geo.lineX = line.left + line.width / 2 - (box.left + box.width / 2);
         geo.morph = window.innerHeight * SNAKE.scroll;
         snake.draw(geo);
       }
       placeField(lead ? snake.origin : geo.top, fit);
+      // the top edge of a row of the field's dots, on the page
+      if (grid && field) geo.rowEdge = field.getBoundingClientRect().top + window.scrollY + grid.y - DOT / 2;
+      // after the whole refresh, once the wall over the statement has been
+      // set on the rows as they now stand (dot-snap.js, on the refresh event)
+      if (lead) { gapCheck?.kill(); gapCheck = gsap.delayedCall(0, matchGap); }
       return geo;
     };
+
+    // The room under the statement as it lets go, down to the first card,
+    // made the room over it as it takes hold, up to what the section marks
+    // as above it (data-statement-above, the logo wall), and --gap-more
+    // besides (approach-stack.css, a section's step), so the statement
+    // reads as closing what is above it and the steps start afresh.
+    // The wall and the cards stand on the field's rows, so the two rooms
+    // move in whole steps with the stack; within a step it is where the
+    // statement's line starts over its text (--lead-nudge) that sets them:
+    // the field's rows are counted from the line, so raising it moves the
+    // rows, and with them the wall over the statement and the cards under
+    // it, a pixel for a pixel, opening the room over it and closing the
+    // room under it. So: the stack drawn up (--stack-pull) while they are
+    // more than a step apart, then the line raised by half the difference
+    // until they are equal (a row passing over the wall or a card jumps
+    // them by a step, so the nearest it came is kept). Each change asks
+    // for one more refresh, as the page under it has moved; sixteen at most
+    // for a width (tries).
+    let tries = { width: 0, count: 0, best: null };
+    // --gap-more in pixels, whatever it is written in (a calc, rem), off a
+    // hidden box as tall as it; read on refresh only
+    const gapMore = () => {
+      const probe = document.createElement("span");
+      probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;width:0;height:var(--gap-more, 0px)";
+      root.append(probe);
+      const h = probe.getBoundingClientRect().height;
+      probe.remove();
+      return h;
+    };
+    let gapCheck = null;
+    function matchGap() {
+      const above = leadTrack.closest('[data-sticky-title="wrap"]')?.querySelector("[data-statement-above]");
+      const heading = leadFrame.querySelector('[data-sticky-title="heading"]');
+      const first = cards?.[0]?.slot;
+      if (!above || !heading || !first) return;
+      const page = (r) => r + window.scrollY;
+      const frame = leadFrame.getBoundingClientRect();
+      const text = heading.getBoundingClientRect();
+      const held = parseFloat(getComputedStyle(leadFrame).top) || 0;
+      // the frame stands at the track's top until it is held
+      const over = page(leadTrack.getBoundingClientRect().top) + (text.top - frame.top) - page(above.getBoundingClientRect().bottom);
+      const under = page(first.getBoundingClientRect().top) - (geo.release + held + (text.bottom - frame.top));
+      geo.gaps = { over, under };
+      const off = under - (over + gapMore());
+      const pull = parseFloat(root.style.getPropertyValue("--stack-pull")) || 0;
+      const nudge = parseFloat(lead.style.getPropertyValue("--lead-nudge")) || 0;
+      const step = geo.pitch;
+      if (tries.width !== window.innerWidth) tries = { width: window.innerWidth, count: 0, best: null, seen: [] };
+      if (!tries.best || Math.abs(off) < Math.abs(tries.best.off)) tries.best = { off, pull, nudge };
+      if (Math.abs(off) < 0.25) return;
+      const set = (p, n) => {
+        root.style.setProperty("--stack-pull", px(p));
+        lead.style.setProperty("--lead-nudge", px(n));
+        gsap.delayedCall(0, () => ScrollTrigger.refresh());
+      };
+      // out of tries, the nearest it came
+      if (++tries.count > 16) {
+        const { best } = tries;
+        if (best.pull !== pull || best.nudge !== nudge) set(best.pull, best.nudge);
+        return;
+      }
+      // more than a step out: the stack drawn up by the difference (and
+      // the line's tries start again)
+      if (Math.abs(off) > step && !tries.seen.length) return set(pull + off, nudge);
+      // within it: the line tried at eight places across a step (a step
+      // more is the same rows again), then, between two that the rooms
+      // cross between (the room under it larger at one, smaller at the
+      // next, by less than a step: no row jumped between them), the place
+      // they would cross, and again from there
+      tries.seen.push({ n: nudge, off });
+      if (tries.seen.length < 8) return set(pull, (tries.seen.length * step) / 8);
+      const seen = [...tries.seen].sort((a, b) => a.n - b.n);
+      let pair = null;
+      seen.forEach((a, i) => {
+        const b = seen[(i + 1) % seen.length];
+        const span = i + 1 < seen.length ? b.n - a.n : b.n + step - a.n;
+        if (a.off > 0 && b.off < 0 && a.off - b.off < step && span > 0) {
+          const near = Math.min(Math.abs(a.off), Math.abs(b.off));
+          if (!pair || near < pair.near) pair = { a, span, near, k: a.off / (a.off - b.off) };
+        }
+      });
+      if (!pair) return set(tries.best.pull, tries.best.nudge);
+      set(pull, gsap.utils.wrap(0, step, pair.a.n + pair.k * pair.span));
+    }
     measure();
 
     // Where the dots stand in the window: fixed to the page, so they run
@@ -396,6 +497,29 @@ export function mountApproachStack(root, { lenis } = {}) {
       const origin = lead ? snake.origin : geo.top;
       dots.style.setProperty("--rail-y", `${(origin - scroll - winTop).toFixed(3)}px`);
     };
+    // The statement's line's dots on the field's rows: the frame is held
+    // while the page runs on under it, so its dots run with the page (a
+    // transform of the line's dots, -pitch to 0), from where the frame is
+    // held to the release; before it the frame moves with the page.
+    const leadDots = lead?.querySelector(".sticky-title__rule-dots") ?? null;
+    const syncLead = (scroll) => {
+      if (!geo || !leadDots || !grid) return;
+      const at = Math.min(Math.max(scroll, geo.hold), geo.release) + geo.lineTop;
+      const shift = (((geo.rowEdge - at) % grid.pitch) + grid.pitch) % grid.pitch - grid.pitch;
+      leadDots.style.transform = `translate3d(0, ${shift.toFixed(3)}px, 0)`;
+      // the statement's progress lights the line's dots (sticky-title.js)
+      lead.leadShift = shift;
+      lead.leadLight?.();
+    };
+    if (lead) {
+      ScrollTrigger.create({
+        trigger: leadTrack,
+        start: "top bottom",
+        end: () => geo.release,
+        onUpdate: (self) => syncLead(self.scroll()),
+        onRefresh: (self) => syncLead(self.scroll()),
+      });
+    }
     ScrollTrigger.create({
       trigger: rail,
       start: "top bottom",
@@ -446,7 +570,8 @@ export function mountApproachStack(root, { lenis } = {}) {
         },
       });
       morph
-        .fromTo(snake.dots, { attr: { "stroke-opacity": 0.3 } }, { attr: { "stroke-opacity": 0.55 }, duration: 0.7, ease: "none" }, 0.15)
+        // the statement's line, all lit, in the rail's white already
+        .fromTo(snake.dots, { attr: { "stroke-opacity": 0.55 } }, { attr: { "stroke-opacity": 0.55 }, duration: 0.7, ease: "none" }, 0.15)
         .fromTo(win, { "--rail-ends": 0 }, { "--rail-ends": 1, duration: 0.2, ease: "none" }, 0.8)
         .fromTo(cube, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, 0.7);
     } else {
@@ -481,11 +606,15 @@ export function mountApproachStack(root, { lenis } = {}) {
     };
     if (mark) gsap.set(mark, { rotation: 90 });
 
+    // The trail drawn back in once the scroll rests, by the same two eased
+    // tweens that draw it out, retargeted to nothing. (It used to kill every
+    // tween on the trail and start one of its own, which killed those two
+    // as well: the trail worked until the first rest, then never again.)
     let idle = 0;
-    const resetTrail = (smooth) => {
+    const resetTrail = () => {
       clearTimeout(idle);
-      gsap.killTweensOf(trail);
-      gsap.to(trail, { top: 0, bottom: 0, duration: smooth ? 0.6 : 0, ease: "none", onUpdate: apply });
+      easeTop(0);
+      easeBottom(0);
     };
 
     // From the moment the window settles at the middle of the viewport to
@@ -511,15 +640,16 @@ export function mountApproachStack(root, { lenis } = {}) {
         easeTop(velocity > 0 ? length : 0);
         easeBottom(velocity > 0 ? 0 : length);
         clearTimeout(idle);
-        idle = setTimeout(() => resetTrail(true), TRAIL.idle);
+        idle = setTimeout(() => resetTrail(), TRAIL.idle);
       },
       onToggle(self) {
-        if (!self.isActive) resetTrail(true);
+        if (!self.isActive) resetTrail();
       },
     });
 
     return () => {
       clearTimeout(idle);
+      gapCheck?.kill();
       gsap.killTweensOf(trail);
       trailEls.top.style.transform = trailEls.bottom.style.transform = "";
       if (mark) {
@@ -528,12 +658,17 @@ export function mountApproachStack(root, { lenis } = {}) {
       }
       dots.style.removeProperty("--rail-y");
       rail.style.removeProperty("--rail-snap");
+      root.style.removeProperty("--stack-pull");
       if (lead) {
         morph.scrollTrigger?.kill();
         morph.kill();
         gsap.set([dots, win, cube], { clearProps: "all" });
         snake.el.remove();
         lead.style.visibility = "";
+        lead.style.removeProperty("--lead-snap");
+        lead.style.removeProperty("--lead-nudge");
+        if (leadDots) leadDots.style.transform = "";
+        delete lead.leadShift;
         root.classList.remove("is--led");
       }
     };
@@ -584,9 +719,13 @@ export function mountApproachStack(root, { lenis } = {}) {
 const SNAKE = {
   // the scroll it runs over, in screens
   scroll: 1,
-  // how many steps across it takes to the rail, each the same width, the
-  // drop between them the same height
+  // how many steps across it takes to the rail, each the same width
   steps: 1,
+  // how far under the statement's line it turns across, in the field's
+  // steps: straight away, in the room over the first card, so it never
+  // runs behind it; the rest of the way it drops down the rail's line,
+  // between the cards
+  turn: 2,
 };
 
 function makeSnake(rail) {
@@ -620,13 +759,20 @@ function makeSnake(rail) {
       const land = geo.release + geo.morph + geo.sticky - geo.top;
       const drop = Math.max(1, land - bottom);
 
-      // Square steps: an even drop, then an even run across, and so on,
-      // the last drop landing on the rail where the window stands.
-      const rise = drop / (SNAKE.steps + 1);
+      // Square steps: the first run across just under the line (SNAKE.turn),
+      // any after it evenly down what is left, and the last drop landing
+      // on the rail where the window stands.
+      const first = Math.min(SNAKE.turn * geo.pitch, drop / 2);
+      const rise = SNAKE.steps > 1 ? (drop - first) / SNAKE.steps : 0;
       const points = [[x0, top], [x0, bottom]];
-      let y = bottom;
       for (let i = 1; i <= SNAKE.steps; i++) {
-        y += rise;
+        // each run across on a row of the field's dots: a whole number of
+        // steps down the path from the line's top (whose dots are the
+        // field's), so its dots fall on the field's columns; half a dot
+        // down, as the stroke is centred on the path and a row is counted
+        // from its dots' top edge
+        const want = bottom + first + (i - 1) * rise;
+        const y = top + Math.round((want - top) / geo.pitch) * geo.pitch + 1;
         points.push([x0 * (1 - (i - 1) / SNAKE.steps), y], [x0 * (1 - i / SNAKE.steps), y]);
       }
       points.push([0, land]);

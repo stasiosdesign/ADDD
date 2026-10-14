@@ -78,12 +78,6 @@ const testimonials = await Promise.all(
 // are the services' own: ServiceDiagram.astro)
 const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
 
-// The cost cards' icons, by position
-const costIcons = [
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M20.5 19.5H1.5V4H7L9.5 6.5H20.5V10" stroke="currentColor" stroke-miterlimit="10"></path><path d="M1.5 19.5L4 10H23L20.5 19.5H20" stroke="currentColor" stroke-miterlimit="10"></path></svg>`,
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M7.5 16.5L8 13.5L18.5 3H19.5L21 4.5V5.5L10.5 16L7.5 16.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 4.5L19.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M16.5 15.5V21.5H2.5V7.5H8.5" stroke="currentColor"></path></svg>`,
-  `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M5.5 2.5H14L18.5 7V21.5H5.5V2.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14 2.5V7H18.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M8.5 12.5H15.5" stroke="currentColor"></path><path d="M8.5 16.5H15.5" stroke="currentColor"></path></svg>`,
-];
 ---
 <BaseLayout
   title="ADDD — Technology strategy for architecture practices"
@@ -116,29 +110,31 @@ const costIcons = [
   <!-- The logo strip and the approach are one ink band, on one ground
        (.ink-band, styles.css), so where the two sections meet the page's
        white can never show between them. -->
-  <div class="ink-band">
+  <div class="ink-band band-steps-host">
+    <!-- the band's top edge in pieces, two Grid Columns each, rising as
+         the scroll starts and settling flush as the band reaches the top
+         (initBandSteps, parallax.js; styles.css "band steps") -->
+    <div class="band-steps" data-band-steps aria-hidden="true">
+      {Array.from({ length: 6 }, (_, i) => <span class="band-steps__seg" style={`--i:${i}`}><span class="band-steps__dots dot-grid band-field"></span></span>)}
+    </div>
 
-  <!-- ========== 2–3. LOGO STRIP AND APPROACH STATEMENT ==========
-       One section (StickyTitle): the strip's title and rule scroll by as
-       they always have; its carousel is the top of the statement's held
-       frame — it comes up the page, stays at the top of the screen over
-       the statements while they are held, and leaves with them. -->
-  <StickyTitle id="approach" class="logos" navHold rule headings={[t("approach.statement")]} field="approach.statement" mark="understanding">
-    <Fragment slot="before">
+  <!-- ========== 2–3. LOGOS AND APPROACH STATEMENT ==========
+       One section (StickyTitle): the title and the wall of logos scroll by
+       ahead of the statement's held frame. Every client at once, each on a
+       card of its own, in one even grid. The marks are the clients in the Studio (Home
+       page → Logo strip), in their order. -->
+  <StickyTitle id="approach" class="logos" navHold rule headings={[t("approach.statement")]} field="approach.statement" dots wide>
+    <div class="logos__field" slot="before">
       <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
-      <div class="dotted-rule logos__rule" aria-hidden="true"></div>
-    </Fragment>
-    <div data-wavy-marquee-init class="wavy-marquee" slot="top">
-      <div class="wavy-marquee__collection">
-        <!-- Wide single-line wordmarks alternate with compact, stacked
-             marks, five of each, so no two of a kind meet — across the
-             loop's seam either. The marks are the clients in the Studio
-             (Home page → Logo strip), in their order. -->
-        <div data-wavy-marquee-list class="wavy-marquee__list">
+      <div class="logo-wall-wrap">
+        <!-- Osmo's Logo Wall Cycle (logo-wall-cycle.js): the first cards
+             show, and one at a time a card's logo slides out for one of
+             the rest. How many show is CSS (styles.css, "Logo Wall Cycle"). -->
+        <ul class="logo-wall" role="list" data-logo-wall-cycle-init data-logo-wall-shuffle="false" data-logo-wall-list data-dot-snap=".sticky-title__dots" data-statement-above>
           {logos.map((logo) => (
-          <div data-wavy-marquee-item class="wavy-marquee__item"><div class="logo-tile"><img src={logo.src} width={logo.width} height={logo.height} alt={logo.name} style={logo.style} draggable="false"></div></div>
+          <li class="logo-wall__card" data-logo-wall-item><div class="logo-wall__logo" data-logo-wall-target-parent><div class="logo-wall__logo-target" data-logo-wall-target><img src={logo.src} width={logo.width} height={logo.height} alt={logo.name} style={logo.style} loading="lazy" draggable="false"></div></div></li>
           ))}
-        </div>
+        </ul>
       </div>
     </div>
   </StickyTitle>
@@ -150,7 +146,7 @@ const costIcons = [
 
   <!-- ========== 4. THE COST OF STANDING STILL ========== -->
   <!-- After the approach: why technology decisions matter. -->
-  <section class="section" id="cost">
+  <section class="section cost" id="cost">
     <div class="container">
       <!-- The heading alone, centred over the cards and still (no line
            reveal), with the coins building the logo as the page scrolls
@@ -158,7 +154,7 @@ const costIcons = [
            lines, the red one among the first line's, and the stack comes
            to rest under them. The cards under it take the whole grid,
            four Grid Columns each, set out by the scroll (data-problem-
-           parallax: initProblemParallax, site.js). -->
+           parallax: initProblemParallax, parallax.js). -->
       <div class="problem-head">
         <h2 class="problem-head__h" data-page-field="cost.heading">{t("cost.heading")}</h2>
         <CoinStack />
@@ -174,29 +170,15 @@ const costIcons = [
             <span class="problem-card__dots dot-grid" aria-hidden="true"></span>
             <div class="problem-card__frame">
               <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt={picture.alt} class="problem-card__image" data-page-field={`cost.cards.${i}.image`} data-page-width="1200">
-              <span class="problem-card__icon" aria-hidden="true" set:html={costIcons[i] ?? ""}></span>
             </div>
           </div>
           <div class="problem-card__body">
-            <span class="label problem-card__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
             <h3 class="problem-card__h" data-page-field={`cost.cards.${i}.title`}>{card.title}</h3>
             <p class="problem-card__p" data-page-field={`cost.cards.${i}.text`}>{card.text}</p>
           </div>
         </article>
           );
         })}
-      </div>
-    </div>
-  </section>
-
-  <!-- ========== 5. ROUTES ========== -->
-  <section class="section routes">
-    <div class="container">
-      <div class="routes__head">
-        <div class="routes__lede">
-          <p class="text-md" style="max-width:21.875rem" data-page-field="routes.lede">{t("routes.lede")}</p>
-        </div>
-        <h2 class="routes__h" data-split="heading" data-page-field="routes.heading">{t("routes.heading")}</h2>
       </div>
     </div>
   </section>
@@ -210,12 +192,19 @@ const costIcons = [
   </section>
 
   <!-- ========== 6. TESTIMONIALS ========== -->
-  <!-- The title centred over the slider (TestimonialSlider.astro): the
-       quotes stacked in one place, changed line by line -->
-  <section class="testimonials">
-    <h2 class="h4 testimonials__title" data-page-field="testimonials.heading">{t("testimonials.heading")}</h2>
-    <TestimonialSlider items={testimonials} field="testimonials.items" />
-  </section>
+  <!-- The slider alone (TestimonialSlider.astro): the quotes stacked in
+       one place, changed line by line, its dotted rule the section's
+       full height -->
+  <!-- revealed from under the band above, as the footer is from under
+       the page: in a clipping wrap, the section settling out of a
+       higher offset and a shadow as the wrap comes up the screen
+       (initRevealParallax, parallax.js) -->
+  <div data-reveal-parallax class="reveal-wrap">
+    <section class="testimonials" aria-label="Testimonials" data-reveal-parallax-inner>
+      <TestimonialSlider items={testimonials} field="testimonials.items" />
+    </section>
+    <div data-reveal-parallax-dark class="reveal-wrap__dark"></div>
+  </div>
 
   <!-- ========== 7. CREDENTIALS ========== -->
   <section class="section">

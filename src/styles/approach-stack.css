@@ -24,6 +24,15 @@
    gap between the two cards on the same side.
    ============================================================ */
 .approach-stack {
+  /* its top set so the room under the statement before it is the room
+     over it and --gap-more besides (a section's step and a half;
+     approach-stack.js, matchGap): taken off its own top padding, or
+     added to it, so the room is inside the stack, on its field of dots
+     (as a margin it was bare band, no dots); only past the whole
+     padding does the stack draw up over the section before it */
+  --gap-more: calc(var(--sec-lg) * 1.5);
+  --stack-top: calc(var(--sec-lg) - var(--stack-pull, 0px));
+  margin-top: min(0px, var(--stack-top));
   --stack-line: rgba(255, 255, 255, 0.14);
   --stack-dot: rgba(255, 255, 255, 0.55);
   /* one rung of the ladder the cards stand on. A card is about 29rem
@@ -36,6 +45,7 @@
   /* a long run of the band at its foot, the cards and the field's dots
      gone, before the section after it */
   padding: var(--sec-lg) var(--grid-margin) 16rem;
+  padding-top: max(0px, var(--stack-top));
   background: var(--c-dark-fg);
   color: var(--c-white);
 }
@@ -61,8 +71,10 @@
   left: 0;
   right: 0;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 40vh, #000 calc(100% - 30vh), transparent);
-  mask-image: linear-gradient(to bottom, transparent, #000 40vh, #000 calc(100% - 30vh), transparent);
+  /* no fade at its top: the statement's field over it runs on into it,
+     row for row (approach-stack.js, placeField) */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 30vh), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 30vh), transparent);
 }
 /* --dot-x and --dot-y are the script's (placeField); without it, a
    column on the page's centre line */
@@ -304,14 +316,15 @@
   background: var(--tone-copy);
 }
 /* the copy in the middle of its block across as well, under the
-   schematic, which stands in the middle too: held to its measure,
-   centred, each line centred on the card, in white */
+   schematic, which stands in the middle too: held to its measure, the
+   block centred on the card and its lines set left in it, in white */
 .step-card__p {
+  width: fit-content;
   max-width: 28rem;
   margin-inline: auto;
   font-size: var(--t-md);
   line-height: 1.4;
-  text-align: center;
+  text-align: left;
   color: var(--c-white);
 }
 

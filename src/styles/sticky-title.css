@@ -29,6 +29,34 @@
 /* The logo strip's section: its own padding over the title, none under
    the held frame — the approach stack after it brings its own. */
 .sticky-title.logos { padding-bottom: 0; }
+/* The logo strip's held frame: only as tall as the statement, held with
+   its top a little above the screen's middle, the scroll it is held for
+   a run of its own after it (the track's ::after). So the room over the
+   statement is the room under the wall and nothing else (--st-gap-top,
+   with the field's own padding), and the room under it, when it lets
+   go, is the room down to the first card, whatever its height; the
+   approach stack is drawn up to make that the same as the room over it
+   (approach-stack.js, matchGap). */
+@media screen and (min-width: 992px) {
+  .sticky-title.logos:not(.is--static) .sticky-title__track {
+    height: auto;
+    margin-top: 2rem;
+  }
+  .sticky-title.logos:not(.is--static) .sticky-title__track::after {
+    content: "";
+    display: block;
+    height: calc(var(--headings) * 100vh);
+    height: calc(var(--headings) * 100svh);
+  }
+  .sticky-title.logos:not(.is--static) .sticky-title__container {
+    top: calc(50svh - 8rem);
+    height: auto;
+  }
+  .sticky-title.logos:not(.is--static) .sticky-title__stage {
+    position: static;
+    align-items: start;
+  }
+}
 
 .sticky-title__track {
   /* the screen it is held for, and a screen's scroll per statement to
@@ -43,12 +71,6 @@
   height: 100vh;
   height: 100svh;
 }
-/* the carousel over the stage, so it can still be dragged */
-.sticky-title__container > .wavy-marquee {
-  position: relative;
-  z-index: 1;
-}
-
 /* The whole of the held frame, so its middle is the screen's. */
 .sticky-title__stage {
   position: absolute;
@@ -61,8 +83,9 @@
 }
 
 /* A block in the middle of the grid, as wide as the statements' measure,
-   ranged left inside it. */
+   ranged left inside it (wide: below). */
 .sticky-title__inner {
+  --st-size: var(--t-h2);
   grid-column: 1 / -1;
   justify-self: center;
   position: relative;
@@ -81,20 +104,64 @@
    it down as the statement comes in. */
 .sticky-title__rule {
   position: absolute;
-  top: -0.75rem;
+  /* raised by --lead-nudge, which sets the field's rows so the room over
+     the statement and under it come out the same (approach-stack.js) */
+  top: calc(-0.75rem - var(--lead-nudge, 0px));
   bottom: -0.75rem;
   left: calc(-1 * (var(--grid-gutter) + 2 * var(--dotted-rule-bleed) + 2px));
   width: 2px;
-  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.3) 0 2px, transparent 2px var(--dot-pitch, 18px));
+  /* on a column of the band's dots (approach-stack.js, snapLead); a
+     margin, as GSAP's draw-in writes translate: none on the line */
+  margin-left: var(--lead-snap, 0px);
+  overflow: hidden;
   transform-origin: 50% 0;
   pointer-events: none;
+}
+/* the line's dots, a pitch longer than the line, run down with the page
+   while the frame is held, so each stays on a row of the band's dots
+   (approach-stack.js, syncLead: a transform, -pitch to 0). A column of
+   the field's own dots, barely brighter than the field: the track, whole
+   from the start, so it shows how far the statement has to go. */
+.sticky-title__rule-dots {
+  --lead-dots: repeating-linear-gradient(to bottom, currentColor 0 2px, transparent 2px var(--dot-pitch, 18px));
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: calc(100% + var(--dot-pitch, 18px));
+  color: rgba(255, 255, 255, 0.07);
+  background: var(--lead-dots);
+  will-change: transform;
+}
+/* The statement's progress: the track filling from the top as it comes
+   in, in the rail's white, its leading edge soft over a couple of dots, so
+   each dot brightens as the fill reaches it. Moved by transforms alone
+   (sticky-title.js, fillLead): the window slides down from above the
+   line, and the dots in it the other way, so they stand still in the
+   track. Complete, the column carries on into the snake. */
+.sticky-title__rule-fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5 * var(--dot-pitch, 18px)), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5 * var(--dot-pitch, 18px)), transparent);
+  transform: translate3d(0, -100%, 0);
+  will-change: transform;
+}
+.sticky-title__rule-lit {
+  position: absolute;
+  inset: 0;
+  color: rgba(255, 255, 255, 0.55);
+  background: var(--lead-dots);
+  transform: translate3d(0, 100%, 0);
+  will-change: transform;
 }
 
 .sticky-title__el {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: var(--t-h2);
+  font-size: var(--st-size);
   line-height: 1.15;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
   /* the measure, in the statement's own ems so it holds as the scaling
@@ -112,6 +179,30 @@
    narrower, it simply flows. */
 @media (min-width: 992px) {
   .sticky-title__el { text-wrap: balance; }
+}
+
+/* Wide (.is--wide): on Grid Columns 2–11, flowing rather than balanced
+   (balancing would pull the indented line in). The first line indented
+   two columns (--st-indent; 0px for none), so it starts on Grid Column
+   4. The dotted line stands in the gutter before Column 2, as it does
+   beside the block. */
+@media (min-width: 992px) {
+  .sticky-title__inner.is--wide {
+    --st-size: var(--t-h2);
+    grid-column: 2 / 12;
+    justify-self: stretch;
+  }
+  .is--wide .sticky-title__el {
+    --st-col: calc((100% - 9 * var(--grid-gutter)) / 10);
+    max-width: none;
+    --st-indent: calc(2 * (var(--st-col) + var(--grid-gutter)));
+    text-indent: var(--st-indent);
+    text-wrap: pretty;
+    letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  }
+  /* the indent is the statement's first line's alone: the split's word
+     and letter boxes (inline blocks) would each inherit it */
+  .is--wide .sticky-title__el * { text-indent: 0; }
 }
 /* A marked phrase (StickyTitle.astro): a white chip with the lens in red,
    then the words on the red, the ground running the line's full height.
@@ -179,6 +270,18 @@
 @media screen and (max-width: 991px) {
   /* no line, as the hero's heading has none here */
   .sticky-title__rule { display: none; }
+}
+
+/* Not held (.is--static, StickyTitle's hold={false}): the statements in
+   the page's flow, a section's step under what the section opens on and
+   one over what follows, revealed as they come up the screen
+   (sticky-title.js). */
+.sticky-title.is--static .sticky-title__track { height: auto; }
+.is--static .sticky-title__container { position: static; height: auto; }
+.is--static .sticky-title__stage {
+  position: static;
+  padding-top: 0;
+  padding-bottom: var(--sec-lg);
 }
 
 /* Without motion the strip and the statements simply follow one another. */

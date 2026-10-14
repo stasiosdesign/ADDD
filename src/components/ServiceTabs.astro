@@ -1,7 +1,7 @@
 ---
 /*
-  The four routes as one panel that changes in place, on a band of the
-  ink. Under its own heading (the routes' label, set as "What actually
+  The four routes as one panel that changes in place, on a charcoal
+  band. Under its own heading (the routes' label, set as "What actually
   costs you time" is, in white), the
   panel sticks under the nav while the page scrolls on past it, and the
   scroll takes it through the four routes in turn, then lets it go
@@ -9,16 +9,22 @@
 
   Two halves across Grid Columns 1–12, meeting on the page's centre line
   (styles.css, "service tabs"): on the left, on the site's red, a small +
-  near each corner (.corner-marks), the route's title, its line and its
-  button in the middle, and at the foot the four positions, which show
-  where the scroll is and take it to a route; on the right, on the ink,
-  the route's drawing, its dotted lattice and its diagram
-  (ServiceDiagram.astro), moving.
+  near each corner (.corner-marks), the route's name, its line and its
+  button in the middle, and at the foot the four routes' numbers, 01 to
+  04, each a square of its own that fills white as the scroll goes
+  through its route, which say there are four, which one is shown, and
+  take the scroll to any of them; on the right, on the ink, one dotted
+  lattice (dot-field.js) for the whole panel, and over it the four
+  drawings (ServiceDiagram.astro), moving, set one under another in a
+  tall strip that the scroll carries up through the panel.
 
-  The change, after Osmo's Sticky Features: the words going leave the way
-  the scroll runs and the next come in after them, one after another; a
-  drawing after the one shown opens over it from the middle, and one
-  before it is shown as the one over it closes to the middle. Without the
+  The names are the Services dropdown's short forms (Nav.astro), the
+  Workshop's ending turning between "shop" and "flow" as the dropdown's
+  does (word-cycle.js); each name is read as the route's full title
+  (from the Studio), which the button and the number keep too.
+
+  The words and the strip move together, both with the scroll: never
+  locked, slowest round each route so its words can be read. Without the
   script the first route shows, as written here.
 */
 import ActionButton from "./ActionButton.astro";
@@ -35,6 +41,15 @@ interface Props {
   label: string;
 }
 const { cards, hrefs, label } = Astro.props;
+
+// the dropdown's short names, by position (Nav.astro), the first with its
+// turning ending
+const NAMES: { name: string; cycle?: { stem: string; words: string[] } }[] = [
+  { name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] } },
+  { name: "Before Revit" },
+  { name: "Tech Blueprint" },
+  { name: "ADDD Advisory" },
+];
 ---
 <!-- the heading, set as the cost section's is, scrolling with the page -->
 <div class="problem-head service-tabs-head">
@@ -49,15 +64,30 @@ const { cards, hrefs, label } = Astro.props;
 
       <!-- every route in one cell, the cell the size of the largest -->
       <div class="service-tabs__slides">
-        {cards.map((card, i) => (
+        {cards.map((card, i) => {
+          const short = NAMES[i];
+          const title = card.title || short?.name || "";
+          return (
         <div class:list={["service-tabs__slide", { "is--active": i === 0 }]} id={`service-tabs-panel-${i + 1}`} role="tabpanel" aria-labelledby={`service-tabs-tab-${i + 1}`} data-service-tabs-item>
-          <h3 class="service-tabs__h" data-service-tabs-text data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
-          <p class="service-tabs__p" data-service-tabs-text data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
-          <div class="service-tabs__action" data-service-tabs-text>
-            <ActionButton href={hrefs[i] ?? "contact.html"}>View {card.title || "the service"}</ActionButton>
+          <!-- the name and the button each one line in a mask of its own;
+               the line under the name split into masked lines by the
+               script (service-tabs.js) -->
+          <div class="service-tabs__mask">
+            <h3 class="service-tabs__h" aria-label={title} data-service-tabs-text>
+              {short?.cycle ? (
+                <Fragment>{short.cycle.stem}<span class="service-tabs__cycle"><span class="service-tabs__cycle-word" data-word-cycle={short.cycle.words.join("|")}>{short.cycle.words[0]}</span>{short.cycle.words.map((word) => <span class="service-tabs__cycle-ghost">{word}</span>)}</span></Fragment>
+              ) : (short?.name ?? title)}
+            </h3>
+          </div>
+          <p class="service-tabs__p" data-service-tabs-text data-service-tabs-split data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
+          <div class="service-tabs__mask is--action">
+            <div class="service-tabs__action" data-service-tabs-text>
+              <ActionButton href={hrefs[i] ?? "contact.html"}>View {title || "the service"}</ActionButton>
+            </div>
           </div>
         </div>
-        ))}
+          );
+        })}
       </div>
 
       <div class="service-tabs__nav" role="tablist" aria-label={label}>
@@ -69,23 +99,28 @@ const { cards, hrefs, label } = Astro.props;
           role="tab"
           aria-selected={i === 0 ? "true" : "false"}
           aria-controls={`service-tabs-panel-${i + 1}`}
-          aria-label={card.title}
+          aria-label={card.title || NAMES[i]?.name}
           tabindex={i === 0 ? "0" : "-1"}
           data-service-tabs-button
-        ><span class="service-tabs__pos-mark"><span class="service-tabs__pos-fill" data-service-tabs-progress></span></span></button>
+        ><span aria-hidden="true">{String(i + 1).padStart(2, "0")}</span><span class="service-tabs__pos-fill" data-service-tabs-fill aria-hidden="true">{String(i + 1).padStart(2, "0")}</span></button>
         ))}
       </div>
     </div>
 
-    <!-- each route's drawing: its lattice (dot-field.js) and its
-         diagram, side by side in one panel -->
+    <!-- one lattice for the whole panel, set out from the first drawing's
+         ground (dot-field.js), still; over it the drawings, one under
+         another in a strip the panel's height each, carried up through
+         the panel (service-tabs.js), each lifted or lowered onto the same
+         ground line so every one stands on the one lattice -->
     <div class="service-tabs__media">
-      {cards.map((_, i) => (
-      <div class="service-tabs__visual" data-service-tabs-visual aria-hidden="true">
-        <div class="service-tabs__pattern" data-iso-field aria-hidden="true"></div>
-        <ServiceDiagram index={i} class="service-tabs__diagram" animate />
+      <div class="service-tabs__pattern" data-iso-field data-iso-ground=".service-tabs__diagram" aria-hidden="true"></div>
+      <div class="service-tabs__track" data-service-tabs-track>
+        {cards.map((_, i) => (
+        <div class="service-tabs__visual" style={`--st-i:${i}`} data-service-tabs-visual data-iso-frame aria-hidden="true">
+          <ServiceDiagram index={i} class="service-tabs__diagram" animate />
+        </div>
+        ))}
       </div>
-      ))}
     </div>
   </div>
 </div>

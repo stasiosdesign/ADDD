@@ -4,26 +4,21 @@
    ------------------------------------------------------------
    Nothing holds the page: the drawing follows the scroll, from its top
    coming up the screen to its middle reaching the screen's.
-   One number moves, the red coin's height in the drawing, from where
-   it starts down to where it rests on the stack; every coin under it
-   stays where it is until the red coin, with whatever it has taken up,
-   reaches it, and from then on rides under it, so the coins are taken
-   up one after another and the stack keeps its order and its spacing
-   until each join. As each grey coin joins, the form it carries
-   appears on the red face, so the logo is built a form at a time.
+   The column closes up as one piece: the four gaps between the coins
+   each close on their own eased curve, the top gap first and the lowest
+   last, but the curves overlap (OVERLAP), so for most of the way the
+   coins are moving together, the red one fastest, and the stack folds
+   down in one continuous movement rather than a coin at a time. The
+   lowest coin stands on the floor throughout; every coin's place is its
+   gap above the one under it, so the column keeps its order and no coin
+   ever passes another. As each gap closes, the form the coin under it
+   carries appears on the red face, so the logo is still built a form
+   at a time, the forms arriving in quick overlapping succession.
    Each coin's places come from the markup (data-from: its face's height
    apart; data-under: how far under the red face it rides once joined;
    data-rest on the section: where the red face comes to rest). Under
    reduced motion the stack is simply finished. GSAP and ScrollTrigger
    are the site's globals.
-
-   The joins are a sequence, a beat each: the scroll's way is shared
-   equally between them, and in each share the stack travels to the next
-   coin and slows into it (MOVE, eased in and out), then, in contact,
-   is pressed onto it a touch and comes back up (PRESS), a little seat as
-   the coin clicks on, before it sets off for the next. So the four
-   joins come evenly, one after another, rather than wherever an even
-   drift down happens to reach each coin.
 
    The heading the coins are set into stands still (it has no line
    reveal), but it is split into its lines here, without moving them, so
@@ -33,13 +28,13 @@
    preview, where the Visual editor writes into the heading.
    ============================================================ */
 
-// how far before a coin is reached its form starts to show on the red
-// face, in the drawing's units
+// how far before a gap closes the form under it starts to show on the
+// red face, in the drawing's units
 const SHOW = 12;
-// each join's share of the scroll: travelling to the coin, then seating
-// on it; how far the stack is pressed down as it seats (drawing units)
-const MOVE = 0.8;
-const PRESS = 5;
+// how much of each gap's share of the scroll's way it shares with the
+// next: at 0.6 a gap sets off when the one above it is two fifths of the
+// way closed, so the coins are moving together for most of the way
+const OVERLAP = 0.6;
 
 export function mountCoinStack(el, { still = false } = {}) {
   const drawing = el.querySelector(".coin-stack__drawing");
@@ -52,39 +47,43 @@ export function mountCoinStack(el, { still = false } = {}) {
   const under = coins.map((coin) => Number(coin.dataset.under));
   const start = Number(red.dataset.from);
   const rest = Number(el.dataset.rest);
-  // each form on the red face, with the height of the red face at which
-  // the coin carrying it is reached
+  // The column top first, each coin's height measured as the red face's
+  // would be with that coin under it (from - under), so a coin has joined
+  // the one above when the two heights meet. The gaps between them, top
+  // first, close from where the markup sets them to nothing; the lowest
+  // coin stands where it is, on the stack's rest (data-rest).
+  const order = coins.map((_, i) => i).sort((a, b) => from[a] - from[b]);
+  const height = order.map((i) => from[i] - under[i]);
+  height[0] = start - under[coins.indexOf(red)];
+  height[order.length - 1] = rest;
+  const gaps = order.slice(0, -1).map((_, k) => height[k + 1] - height[k]);
+  // each form on the red face, with the gap whose closing brings it
   const forms = [...red.querySelectorAll("[data-coin-form]")].map((form) => {
     const i = coins.findIndex((coin) => coin.dataset.coin === `form-${Number(form.dataset.coinForm) + 1}`);
-    return { form, reached: from[i] - under[i] };
+    return { form, gap: order.indexOf(i) - 1 };
   });
-  // the red face's heights at each join, in order down the column: the
-  // stops the sequence runs between, the last of them the rest
-  const reachedAt = coins.filter((coin) => coin !== red).map((coin) => from[coins.indexOf(coin)] - under[coins.indexOf(coin)]);
-  const stops = [start, ...reachedAt.sort((a, b) => a - b)];
-  // the lowest join is where the stack rests
-  stops[stops.length - 1] = rest;
   const saved = coins.map((coin) => coin.getAttribute("transform"));
 
-  // the drawing with the red face at height g, pressed down by press
-  const draw = (g, press = 0) => {
-    coins.forEach((coin, i) => coin.setAttribute("transform", `translate(${x} ${Math.max(from[i], g + press + under[i]).toFixed(2)})`));
-    forms.forEach(({ form, reached }) => form.setAttribute("opacity", gsap.utils.clamp(0, 1, (g - reached + SHOW) / SHOW).toFixed(3)));
+  // The drawing at the scroll's way p (0–1): each gap's share of it, from
+  // its own start on, eased in and out, so it sets off and settles
+  // gently; the coins placed from the lowest up, each its gap above the
+  // one under it.
+  const close = gsap.parseEase("sine.inOut");
+  const span = 1 / (1 + (gaps.length - 1) * (1 - OVERLAP));
+  const lag = span * (1 - OVERLAP);
+  const draw = (p) => {
+    const left = gaps.map((gap, k) => gap * (1 - close(gsap.utils.clamp(0, 1, (p - k * lag) / span))));
+    let h = height[order.length - 1];
+    for (let k = order.length - 1; k >= 0; k--) {
+      if (k < order.length - 1) h -= left[k];
+      const i = order[k];
+      coins[i].setAttribute("transform", `translate(${x} ${(h + under[i]).toFixed(2)})`);
+    }
+    forms.forEach(({ form, gap }) => form.setAttribute("opacity", gsap.utils.clamp(0, 1, (SHOW - left[gap]) / SHOW).toFixed(3)));
   };
   const undo = () => {
     coins.forEach((coin, i) => coin.setAttribute("transform", saved[i]));
     forms.forEach(({ form }) => form.removeAttribute("opacity"));
-  };
-
-  // the scroll's way p (0–1) as the stack's height and press: each join an
-  // equal share, travelling then seating
-  const travel = gsap.parseEase("power2.inOut");
-  const at = (p) => {
-    const joins = stops.length - 1;
-    const k = Math.min(joins - 1, Math.floor(p * joins));
-    const t = p * joins - k;
-    if (t < MOVE) return { g: stops[k] + (stops[k + 1] - stops[k]) * travel(t / MOVE), press: 0 };
-    return { g: stops[k + 1], press: PRESS * Math.sin(Math.PI * ((t - MOVE) / (1 - MOVE))) };
   };
 
   // the heading's lines, split in place, for the depth (not in the preview)
@@ -94,7 +93,7 @@ export function mountCoinStack(el, { still = false } = {}) {
   const mm = gsap.matchMedia();
   mm.add({ motion: "(prefers-reduced-motion: no-preference)", reduced: "(prefers-reduced-motion: reduce)" }, (context) => {
     if (context.conditions.reduced) {
-      draw(rest);
+      draw(1);
       return undo;
     }
     // from the drawing's top 70% of the way down the screen to its middle
@@ -103,10 +102,7 @@ export function mountCoinStack(el, { still = false } = {}) {
     const tween = gsap.to(along, {
       p: 1,
       ease: "none",
-      onUpdate: () => {
-        const { g, press } = at(along.p);
-        draw(g, press);
-      },
+      onUpdate: () => draw(along.p),
       scrollTrigger: {
         trigger: drawing,
         start: "top 70%",
@@ -114,7 +110,7 @@ export function mountCoinStack(el, { still = false } = {}) {
         scrub: 0.5,
       },
     });
-    draw(start);
+    draw(0);
     return () => {
       tween.scrollTrigger?.kill();
       tween.kill();

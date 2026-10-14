@@ -7,6 +7,7 @@
       .transition            — the wipe panel, outside the container
       nav.mega-nav           — persistent, outside the container
       .column-grid           — the 12-Column Grid overlay (Shift + G)
+      .scrollbar             — the page's own scrollbar (the native one hidden)
       div[data-barba="container"][data-page-name]
         main                 — the page body (the slot)
         footer               — swapped with the page so it animates with it
@@ -27,6 +28,7 @@ import MorphLoader from "../components/MorphLoader.astro";
 import Transition from "../components/Transition.astro";
 import Nav from "../components/Nav.astro";
 import ColumnGrid from "../components/ColumnGrid.astro";
+import ScrollBar from "../components/ScrollBar.astro";
 import Footer from "../components/Footer.astro";
 import DraftModeLabel from "../components/DraftModeLabel.astro";
 import { BUILD_STAMP } from "../build-stamp.js";
@@ -47,6 +49,7 @@ import "../styles/accordion.css";
 import "../styles/transition.css";
 import "../styles/morph-loader.css";
 import "../styles/column-grid.css";
+import "../styles/scrollbar.css";
 import "../styles/page-grid.css";
 import "../styles/approach-stack.css";
 import "../styles/coin-stack.css";
@@ -141,6 +144,7 @@ const draftMode = staging && Astro.locals.draftMode;
 <Transition />
 <Nav />
 <ColumnGrid />
+<ScrollBar />
 <div data-barba="container" data-page-name={pageName} {...docAttrs}>
 <slot />
 <Footer />

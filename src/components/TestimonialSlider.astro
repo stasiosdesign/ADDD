@@ -20,8 +20,9 @@
 
   Every quote, attribution, logo and number of the count is in the
   markup, each stack sized by its longest, so the layout never moves as
-  they change: only the active one of each shows (testimonial-slider.js,
-  styles.css "testimonial slider"). Words and logos come from the Home
+  they change: only the active one of each shows, all of it changed line
+  by line together, the logo rising in a mask of its own as a line does
+  (testimonial-slider.js, styles.css "testimonial slider"). Words and logos come from the Home
   page's Testimonials section (index.astro); quotes are stored without
   quotation marks, which are set here.
 */
@@ -72,7 +73,9 @@ const pad = (n: number) => String(n).padStart(2, "0");
   <div class="testimonial-slider__side">
     <div class="testimonial-slider__logos testimonial-slider__stack">
       {items.map((item, i) => item.logo.src && (
-      <img class:list={["testimonial-slider__swap testimonial-slider__logo", { "is--active": i === 0 }]} data-testimonial-swap={i} src={item.logo.src} width={item.logo.width} height={item.logo.height} alt={item.logo.alt} style={item.logo.style} loading="lazy" draggable="false" aria-hidden={i === 0 ? undefined : "true"}>
+      <span class:list={["testimonial-slider__swap testimonial-slider__logo-mask", { "is--active": i === 0 }]} data-testimonial-swap={i} aria-hidden={i === 0 ? undefined : "true"}>
+        <img class="testimonial-slider__logo" data-testimonial-logo src={item.logo.src} width={item.logo.width} height={item.logo.height} alt={item.logo.alt} style={item.logo.style} loading="lazy" draggable="false">
+      </span>
       ))}
     </div>
 

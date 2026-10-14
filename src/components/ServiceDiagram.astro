@@ -219,9 +219,10 @@ const advisory = {
 const live = animate ? { "data-service-diagram": index } : {};
 // where the drawing's ground is, in its own units, for the field behind it
 // (data-ground: the lattice it stands on, mountIsoField in dot-field.js)
-const ground = [W_ORIGIN, R_ORIGIN, B_ORIGIN, A_ORIGIN][index]?.join(" ");
+const origin = [W_ORIGIN, R_ORIGIN, B_ORIGIN, A_ORIGIN][index];
+const ground = origin?.join(" ");
 ---
-<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-ground={ground} {...live}>
+<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-ground={ground} style={origin ? `--sd-ground-y:${origin[1]}` : undefined} {...live}>
   {index === 0 && (
     <Fragment>
       {workshop.cross.lines.map((d) => <path class="service-diagram__line is--dash" d={d} />)}

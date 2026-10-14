@@ -43,6 +43,16 @@
      below the line's own leading */
   --nav-link-pad-x: 0.25em;
   --nav-link-pad-y: 0.125em;
+  /* The box centred on the letters rather than on the line. Parabolica
+     sits low in its line, so with even padding a label's capitals stood
+     further from the box's top than its baseline did from the foot (8.75
+     to 7.75px at 1920px, measured on the rendered pixels), and the word
+     looked dropped. This much comes off the top and goes on the foot:
+     the ink then stands a touch above the box's middle, as a word set
+     mostly in lower case needs to look centred, its weight being in the
+     x-height on the baseline. The label itself never moves; only the box
+     is drawn lower round it. */
+  --nav-link-optical: 0.045em;
   text-decoration: none;
 }
 .nav-link:focus-visible { outline: none; }
@@ -52,8 +62,12 @@
   display: inline-flex;
   align-items: center;
   overflow: hidden;
-  padding: var(--nav-link-pad-y) var(--nav-link-pad-x);
-  margin: calc(-1 * var(--nav-link-pad-y)) calc(-1 * var(--nav-link-pad-x));
+  padding:
+    calc(var(--nav-link-pad-y) - var(--nav-link-optical)) var(--nav-link-pad-x)
+    calc(var(--nav-link-pad-y) + var(--nav-link-optical));
+  margin:
+    calc(var(--nav-link-optical) - var(--nav-link-pad-y)) calc(-1 * var(--nav-link-pad-x))
+    calc(-1 * var(--nav-link-pad-y) - var(--nav-link-optical));
 }
 /* At rest the block waits just below the box — the extra pixel keeps a
    sub-pixel hairline of it from showing along the bottom edge. */

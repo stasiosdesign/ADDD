@@ -15,11 +15,11 @@
    src/scripts/iso.js), so the lattice runs through the drawing's
    setting-out cross and the forms stand on it, their faces hiding it
    under them. The dots along a line are a whole number to a cell, so
-   every crossing is a dot. A field marked data-iso-field="levels"
-   draws the drawing's levels instead, as a section sets them out:
-   dotted lines straight across, about a cell apart, fitted to the
-   field's height so they stand evenly between its top and foot, in the
-   same dots (Before Revit's card). Held
+   every crossing is a dot. A field marked data-iso-field="grid" draws
+   a plain square grid instead, in the site's dots (.dot-grid's 2px
+   squares), a cell apart both ways, fitted to the field's height so
+   its rows stand evenly between its top and foot, and centred on the
+   drawing's origin across (Before Revit's card). Held
    back to a faint white (or the field's own --iso-line, any colour,
    where a light field draws it dark), and run out to every edge of
    the field, which simply crops it: no margin, no frame, nothing at
@@ -41,14 +41,6 @@
    round the view, moved on and drawn again as the view nears its ends,
    so the canvas never costs a field's whole height.
 
-   mountDotFlicker: the flicker, over the approach band's grid (approach-
-   stack.css), its dots placed by the caller and snapped as the grid's
-   are, each a small square of its own while it is lit.
-
-   The flicker: now and then one dot lights up red, switched rather
-   than faded, on and off in a short burst like a status light, held
-   a moment, then a last blink out. Never more than a few at once, and
-   only while the field is on the screen; with reduced motion, none.
    ============================================================ */
 // the ground's cell, in the drawing's own units, and its dotted lines:
 // about this far apart on the screen, this big, in this white
@@ -56,57 +48,9 @@ const MODULE = 54;
 const LINE_STEP = 6;
 const LINE_DOT = 1.5;
 const LINE = "rgba(255, 255, 255, 0.11)";
+// the square grid's dots: the size of the site's .dot-grid (styles.css)
+const GRID_DOT = 2;
 const ISO = Math.cos(Math.PI / 6);
-// how often a dot lights (s, at random within), and how many at once
-const FLICKER = { min: 0.4, max: 1, most: 3 };
-// the burst: on or off, and for how long (s), in turn
-const BLINK = [[1, 0.08], [0, 0.06], [1, 0.06], [0, 0.12], [1, 0.5], [0, 0.07], [1, 0.05], [0, 0]];
-
-// One burst, as a timeline that calls set(on) at each switch.
-function blink(set, done) {
-  const tl = gsap.timeline({ onComplete: done });
-  let at = 0;
-  BLINK.forEach(([on, hold]) => {
-    tl.call(set, [on === 1], at);
-    at += hold;
-  });
-  return tl;
-}
-
-// A light now and then while the field is on the screen: light() is
-// called at random intervals and starts a burst, or declines (returns
-// nothing). Returns start, stop and the set of bursts running.
-function scheduler(el, light, reducedMotion) {
-  const bursts = new Set();
-  let next = null;
-  const schedule = () => {
-    next = gsap.delayedCall(gsap.utils.random(FLICKER.min, FLICKER.max), () => {
-      if (bursts.size < FLICKER.most) {
-        const tl = light(() => bursts.delete(tl));
-        if (tl) bursts.add(tl);
-      }
-      schedule();
-    });
-  };
-  const start = () => {
-    if (!reducedMotion && !next) schedule();
-  };
-  const stop = () => {
-    next?.kill();
-    next = null;
-  };
-  const watcher = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
-  watcher.observe(el);
-  return {
-    bursts,
-    destroy() {
-      stop();
-      watcher.disconnect();
-      bursts.forEach((tl) => tl.progress(1).kill());
-      bursts.clear();
-    },
-  };
-}
 
 export function mountIsoField(el) {
   const canvas = document.createElement("canvas");
@@ -117,12 +61,19 @@ export function mountIsoField(el) {
   el.appendChild(canvas);
   const ctx = canvas.getContext("2d");
   // the drawing the field stands behind, which names its ground's origin
-  // in its own units (data-ground: "x y" in its viewBox)
-  const drawing = el.parentElement?.querySelector(":scope > svg[data-ground]");
+  // in its own units (data-ground: "x y" in its viewBox): its sibling, or
+  // the one data-iso-ground names among its siblings' (a field shared by
+  // several drawings, the service tabs'). Such a drawing is set out within
+  // its own frame ([data-iso-frame], the field's size), so the field
+  // takes its place in the frame however far the frame has moved.
+  const drawing = el.dataset.isoGround
+    ? el.parentElement?.querySelector(`${el.dataset.isoGround}[data-ground]`)
+    : el.parentElement?.querySelector(":scope > svg[data-ground]");
+  const frame = el.dataset.isoGround ? drawing?.closest("[data-iso-frame]") : null;
   // the cell, in the drawing's units, and what is drawn: the ground's
-  // lattice, or the levels
+  // lattice, or a square grid
   const module = Number(el.dataset.isoModule) || MODULE;
-  const levels = el.dataset.isoField === "levels";
+  const mode = el.dataset.isoField;
 
   let field = null;
   const snap = (v) => Math.round(v * field.dpr) / field.dpr;
@@ -165,18 +116,18 @@ export function mountIsoField(el) {
     run(1, 0, true);
   }
 
-  // The drawing's levels: dotted lines straight across, as many as fit the
-  // field's height about a module apart, fitted to it, each in the middle
-  // of its share, so the first and last stand half a gap in from the
-  // field's top and foot, never against its edges, and the lines lie
-  // evenly about its middle; their dots in columns from the origin, a
-  // whole number to a gap.
-  function drawLevels() {
+  // A square grid of dots a cell apart both ways, the cell fitted to the
+  // field's height so the first and last rows stand half a cell in from
+  // its top and foot, never against its edges, and its columns set out from
+  // the drawing's origin, so the grid is centred on it across. Each dot
+  // the site's 2px square, snapped to the device pixel.
+  function drawGrid() {
     const { width, height, ox, scale } = field;
     const gap = height / Math.max(1, Math.round(height / (module * scale)));
-    const step = gap / Math.max(2, Math.round(gap / LINE_STEP));
+    const half = GRID_DOT / 2;
+    const first = ox - Math.floor(ox / gap) * gap;
     for (let Y = gap / 2; Y < height; Y += gap) {
-      for (let m = Math.ceil(-ox / step); ox + m * step <= width + 0.5; m++) dot(ox + m * step, Y);
+      for (let X = first; X <= width + 0.5; X += gap) ctx.fillRect(snap(X - half), snap(Y - half), GRID_DOT, GRID_DOT);
     }
   }
 
@@ -184,7 +135,7 @@ export function mountIsoField(el) {
     if (!field) return;
     ctx.clearRect(0, 0, field.width, field.height);
     ctx.fillStyle = getComputedStyle(canvas).color;
-    (levels ? drawLevels : drawGround)();
+    (mode === "grid" ? drawGrid : drawGround)();
   }
 
   function layout() {
@@ -205,11 +156,12 @@ export function mountIsoField(el) {
     const view = drawing?.viewBox?.baseVal;
     if (drawing && view?.width) {
       const d = drawing.getBoundingClientRect();
+      const base = frame ? frame.getBoundingClientRect() : box;
       const slice = drawing.preserveAspectRatio?.baseVal?.meetOrSlice === SVGPreserveAspectRatio.SVG_MEETORSLICE_SLICE;
       scale = (slice ? Math.max : Math.min)(d.width / view.width, d.height / view.height);
       const [gx, gy] = drawing.dataset.ground.split(/[ ,]+/).map(Number);
-      ox = d.left - box.left + (d.width - view.width * scale) / 2 + (gx - view.x) * scale;
-      oy = d.top - box.top + (d.height - view.height * scale) / 2 + (gy - view.y) * scale;
+      ox = d.left - base.left + (d.width - view.width * scale) / 2 + (gx - view.x) * scale;
+      oy = d.top - base.top + (d.height - view.height * scale) / 2 + (gy - view.y) * scale;
     }
     field = { width, height, dpr, ox, oy, scale };
     draw();
@@ -237,16 +189,47 @@ export function mountIsoField(el) {
   };
 }
 
-// The flicker over a grid drawn elsewhere: pick() names a dot to light,
-// as the top-left corner of its 2px square in the layer's own
-// coordinates, or nothing when there is none to light just now.
+// The grain: no two neighbouring dots quite alike. Each dot of a grid is
+// one of four brightnesses (a share of the grid's own colour, the four
+// averaging about the colour itself), picked by a hash of its place on the
+// grid's lattice, so a dot is always as bright as it was, through every
+// redraw and wherever the drawn stretch has moved.
+const GRAIN = [
+  { at: 0.2, level: 1.2 },
+  { at: 0.5, level: 1.05 },
+  { at: 0.8, level: 0.9 },
+  { at: 1, level: 0.7 },
+];
+export function grain(k, r) {
+  let h = Math.imul(k | 0, 374761393) + Math.imul(r | 0, 668265263);
+  h = Math.imul(h ^ (h >>> 13), 1274126177);
+  h ^= h >>> 16;
+  const v = (h >>> 0) / 4294967296;
+  return GRAIN.findIndex((g) => v < g.at);
+}
+// a colour, any CSS colour, as its red, green, blue and alpha (0–1)
+const rgba = (() => {
+  const c = document.createElement("canvas").getContext("2d", { willReadFrequently: true });
+  return (color) => {
+    c.clearRect(0, 0, 1, 1);
+    c.fillStyle = color;
+    c.fillRect(0, 0, 1, 1);
+    const [r, g, b, a] = c.getImageData(0, 0, 1, 1).data;
+    return { r, g, b, a: a / 255 };
+  };
+})();
+
+const PROBE_SPAN = 64;
+
 export function mountDotGrid(el) {
   const canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
   Object.assign(canvas.style, { position: "absolute", left: "0", top: "0", display: "block", pointerEvents: "none" });
   // the grid's lengths, resolved where they are set (cqw, %, px alike):
   // a hidden box at --dot-x, --dot-y, as wide as the pitch and as tall
-  // as a dot
+  // as a dot. It is PROBE_SPAN pitches wide, as layout rounds a box to
+  // 1/64px: one pitch measured alone drifts off a CSS-placed block by that
+  // rounding at every step (0.2px a card across the logo wall).
   const probe = document.createElement("span");
   probe.setAttribute("aria-hidden", "true");
   Object.assign(probe.style, {
@@ -255,7 +238,7 @@ export function mountDotGrid(el) {
     pointerEvents: "none",
     left: "var(--dot-x, 1px)",
     top: "var(--dot-y, 1px)",
-    width: "var(--dot-pitch, 18px)",
+    width: `calc(var(--dot-pitch, 18px) * ${PROBE_SPAN})`,
     height: "var(--dot-size, 2px)",
   });
   el.append(probe, canvas);
@@ -280,7 +263,7 @@ export function mountDotGrid(el) {
   function draw(force) {
     const box = el.getBoundingClientRect();
     const p = getComputedStyle(probe);
-    const pitch = parseFloat(p.width);
+    const pitch = parseFloat(p.width) / PROBE_SPAN;
     const size = parseFloat(p.height) || 2;
     const x = parseFloat(p.left) || 0;
     const y = parseFloat(p.top) || 0;
@@ -317,19 +300,25 @@ export function mountDotGrid(el) {
     from = top0 / dpr;
     span = h / dpr;
 
-    ctx.fillStyle = getComputedStyle(el).color;
     // each dot its own whole device pixels, its top left the nearest to
-    // where its centre less half a dot falls
+    // where its centre less half a dot falls; gathered by its grain, one
+    // path to each brightness, so the canvas is filled four times
     const side = Math.max(1, Math.round(size * dpr));
     const half = size / 2;
     const columns = [];
     for (let k = Math.ceil((-size - x) / pitch); x + k * pitch - size <= box.width; k++) {
-      columns.push(Math.round((x + k * pitch - half) * dpr));
+      columns.push([k, Math.round((x + k * pitch - half) * dpr)]);
     }
+    const paths = GRAIN.map(() => new Path2D());
     for (let r = Math.ceil((from - size - y) / pitch); y + r * pitch - size <= from + span; r++) {
       const dy = Math.round((y + r * pitch - half) * dpr) - top0;
-      for (const dx of columns) ctx.fillRect(dx, dy, side, side);
+      for (const [k, dx] of columns) paths[grain(k, r)].rect(dx, dy, side, side);
     }
+    const ink = rgba(getComputedStyle(el).color);
+    paths.forEach((path, i) => {
+      ctx.fillStyle = `rgba(${ink.r}, ${ink.g}, ${ink.b}, ${Math.min(1, ink.a * GRAIN[i].level).toFixed(4)})`;
+      ctx.fill(path);
+    });
   }
 
   // drawn again when the layer changes size, when its grid is set out
@@ -378,33 +367,6 @@ export function mountDotGrid(el) {
       density?.removeEventListener("change", onDensity);
       canvas.remove();
       probe.remove();
-    },
-  };
-}
-
-export function mountDotFlicker(layer, { pick, reducedMotion = false } = {}) {
-  const flicker = scheduler(layer, (done) => {
-    const at = pick();
-    if (!at) return null;
-    const el = document.createElement("span");
-    el.className = "dot-flicker";
-    el.style.transform = `translate(${at.x}px, ${at.y}px)`;
-    layer.appendChild(el);
-    return blink(
-      (on) => {
-        el.style.opacity = on ? "1" : "0";
-      },
-      () => {
-        el.remove();
-        done();
-      },
-    );
-  }, reducedMotion);
-
-  return {
-    destroy() {
-      flicker.destroy();
-      layer.querySelectorAll(".dot-flicker").forEach((el) => el.remove());
     },
   };
 }

@@ -29,15 +29,17 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 
 // The Services cards (ServiceCard.astro), four across on the 12-Column
 // Grid: each service's name and a line on it, on a card with a pattern of
-// its own. The names here are the dropdown's own short forms; the services'
+// its own. Each line is set as two, by hand, after Before Revit's: the
+// first the longer, the second about four fifths of it, so the four read
+// as one set rather than wrapping wherever their words fall. The names here are the dropdown's own short forms; the services'
 // names everywhere else stay as they are. The first ends in a word that
 // turns between "shop" and "flow", as the homepage hero's word does: Work,
 // then shop or flow.
-const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string }[] = [
-  { href: "/workshops-audits.html", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: "A half-day diagnostic on a live project, with a written report." },
-  { href: "/before-revit.html", name: "Before Revit", text: "A review of early-stage design, before Revit or Archicad." },
-  { href: "/technology-blueprint.html", name: "Tech - Blueprint", text: "An eight-week practice-wide strategy and sequenced roadmap." },
-  { href: "/advisory.html", name: "ADDD Advisory", text: "Monthly guidance on AI, BIM, software and digital priorities." },
+const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string[] }[] = [
+  { href: "/workshops-audits.html", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: ["A half-day live-project diagnostic,", "followed by a written report."] },
+  { href: "/before-revit.html", name: "Before Revit", text: ["A review of early-stage design,", "before Revit or Archicad."] },
+  { href: "/technology-blueprint.html", name: "Tech - Blueprint", text: ["An eight-week practice-wide strategy", "and a sequenced roadmap."] },
+  { href: "/advisory.html", name: "ADDD Advisory", text: ["Monthly advice on AI, BIM, software", "and other digital priorities."] },
 ];
 ---
 <nav data-menu-open="false" data-menu-wrap class="mega-nav">

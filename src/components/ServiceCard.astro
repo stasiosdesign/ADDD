@@ -2,8 +2,8 @@
 /*
   One service as a card in the nav's Services dropdown (Nav.astro; nav.css,
   "Services cards"): the service's name, large, in the middle of the card,
-  a line on the service under it, its number small in the corner, and
-  behind it a pattern of its own. The card takes the nav's state, light or
+  a line on the service under it in two set lines, and behind it a
+  pattern of its own. The card takes the nav's state, light or
   dark (nav.css).
 
   A name with a cycle (the Workshop's) is drawn as its stem and a word that
@@ -21,17 +21,17 @@
 
     0  Workflow Workshop     strokes: two streams along the diagonal, the
                              way work runs through a practice
-    1  Before Revit          dots: levels, dotted lines straight across,
-                             evenly spaced, as a section sets out its
-                             floors before the model is built
+    1  Before Revit          dots: a square grid, close and exact, the
+                             approach band's dots on a tighter pitch,
+                             the sheet a design is set out on before
+                             the model is built
     2  Technology Blueprint  dots: the isometric ground, dotted lines at
-                             30° either way, a lattice of cube tops
+                             30° either way, a fine lattice of cube tops
     3  Ongoing Advisory      strokes: rings round the middle, evenly
                              spaced, as regular sessions are
 
   Every pattern stops round the name, as the hero's pattern stops round
-  its words, and fades round the number in the corner (nav.css), so both
-  always stand clear. The strokes are worked out here, at build, from a
+  its words, so it always stands clear. The strokes are worked out here, at build, from a
   seeded random sequence, so a card's pattern is the same every time;
   drawn as a few paths (one per tint) in a viewBox the card's shape at its
   widest, cropped to the card at any other (slice), at one pixel's weight
@@ -43,13 +43,15 @@
 */
 interface Props {
   href: string;
-  /** The service's place, from 0: its number (01…) and its pattern. */
+  /** The service's place, from 0: its pattern. */
   index: number;
   title: string;
   /** Draw the name as a stem and a word turning through these endings (the first is the name's own). */
   cycle?: { stem: string; words: string[] };
-  /** The line under the name. */
-  text: string;
+  /** The line under the name, as its set lines: composed rather than
+      left to wrap, the first the longer, so the four cards share one
+      silhouette. A line still wraps where a card is too narrow for it. */
+  text: string[];
   [attr: string]: unknown;
 }
 
@@ -80,8 +82,7 @@ const smooth = (a: number, b: number, x: number) => {
 };
 
 // Open round the name: an ellipse over the middle, RX by RY of the box,
-// faded out from FROM to TO of its size (round the number in the corner,
-// the stylesheet's mask: nav.css).
+// faded out from FROM to TO of its size.
 const RX = 0.44;
 const RY = 0.22;
 const FROM = 0.82;
@@ -91,18 +92,19 @@ const clearAt = (u: number, v: number) => smooth(FROM, TO, Math.hypot((u - 0.5) 
 // Each service's pattern. Strokes: the field's strength at a cell (u
 // across and v down, 0–1; c and r the cell's column and row). Dots: what
 // the canvas draws (dot-field.js) and its cell, in the box's units — the
-// levels a cell of the strokes' apart (one step of the card), the ground
-// six (a lattice near the reference's: about two cube tops across a card).
+// grid a little over half a cell of the strokes' (about 13px on a wide
+// screen, two thirds of the approach band's pitch), the ground four
+// (three or so cube tops across a card).
 type Pattern =
   | { strokes: (u: number, v: number, c: number, r: number) => number }
-  | { dots: "levels" | "ground"; module: number };
+  | { dots: "grid" | "ground"; module: number };
 const PATTERNS: Pattern[] = [
   // two streams along the diagonal, from the foot's left to the top's right
   { strokes: (u, v) => Math.exp(-((((u + v) / 2 - 0.5) / 0.1) ** 2)) },
-  // levels, straight across, evenly spaced
-  { dots: "levels", module: CELL_H },
-  // the isometric ground
-  { dots: "ground", module: 6 * CELL_H },
+  // a square grid, close and exact
+  { dots: "grid", module: 11 },
+  // the isometric ground, fine
+  { dots: "ground", module: 4 * CELL_H },
   // rings round the middle, evenly spaced
   {
     strokes: (u, v) => {
@@ -159,11 +161,10 @@ const clearMask = (() => {
   {"dots" in pattern && (
     <span class="service-card__dots" data-iso-field={pattern.dots} data-iso-module={pattern.module} style={`--sc-clear:${clearMask}`} aria-hidden="true"></span>
   )}
-  <span class="service-card__num" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
   {cycle ? (
     <span class="service-card__title"><span class="service-card__sr">{title}</span><span aria-hidden="true">{cycle.stem}<span class="service-card__cycle"><span class="service-card__cycle-word" data-word-cycle={cycle.words.join("|")}>{cycle.words[0]}</span>{cycle.words.map((word) => <span class="service-card__cycle-ghost">{word}</span>)}</span></span></span>
   ) : (
     <span class="service-card__title">{title}</span>
   )}
-  <span class="service-card__text">{text}</span>
+  <span class="service-card__text">{text.map((line, i) => <>{i > 0 && <br />}{line}</>)}</span>
 </a>

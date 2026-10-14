@@ -36,7 +36,7 @@ export const homePage = defineType({
     ]),
     pageSection('cost', 'The cost of standing still', 'The heading row and the three cards with their pictures.', [
       ...sectionHead('The standfirst on the left.'),
-      itemsField('cards', 'Cards', 'tile', 'The three cards, left to right; the icon on each stays in the code.'),
+      itemsField('cards', 'Cards', 'tile', 'The three cards, left to right: the picture, the title and the line of text.'),
     ]),
     pageSection('routes', 'Ways to work with ADDD', 'The heading row and the four route cards. Where each card leads stays in the code.', [
       ...sectionHead(),

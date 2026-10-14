@@ -249,8 +249,7 @@ Classes style, `data-*` attributes are what scripts hook onto, and state is a
 `data-*` value or an `is--*` modifier. Components follow BEM:
 `.block__element`, `.block.is--variant`. Components that started life as
 third-party snippets carry names for what they are here — `.action-button`,
-`.contact-button`, `.accordion` — rather than the supplier's. Osmo's Wavy
-Marquee keeps its own `.wavy-marquee` names and `data-wavy-marquee-*` hooks.
+`.contact-button`, `.accordion` — rather than the supplier's.
 
 ### Sizing — the Osmo scaling system
 
@@ -372,11 +371,9 @@ and the shader disk cache (which the scripts can disable) hides it.
   "Signup tagline" and "Signup heading" are no longer shown).
 - **Logos** — client logos live in `public/assets/logos/`, with `Black/`,
   `White/` and `SVGs/` variants of each practice mark. The ADDD brand mark is
-  `public/assets/logo.svg`. The homepage strip under the hero runs on Osmo's
-  Wavy Marquee (`src/scripts/wavy-marquee.js`): a seamless loop that scroll
-  speed and dragging push along (the drag through `ScrollTrigger.observe`,
-  ScrollTrigger's built-in Observer), without its wave: the tiles run level,
-  one straight row.
+  `public/assets/logo.svg`. Under the hero the homepage shows every client
+  at once, each on a card of its own, in one even grid across the 12
+  Grid Columns (styles.css "logo wall": five across, two below 992px).
 - **Page transitions** — [Barba](https://barba.js.org/) 2.10.3. A panel wipes up
   over the page, shows the incoming page's name, then continues up to reveal it.
   The logo intro — the Logo Morph Loader (`MorphLoader.astro`,
@@ -511,6 +508,16 @@ and the shader disk cache (which the scripts can disable) hides it.
   Blueprint's sheet the same, and the Advisory's rings touch the lattice
   at their sessions. It is faint, and runs out to every edge of its
   field.
+- **Band steps** — the ink band after the hero comes up over it with its
+  top edge in pieces, one per two Grid Columns (six from 992px, three on
+  a tablet, two on a phone), their sides on the gutters' middles
+  (`initBandSteps`, `parallax.js`; styles.css "band steps"). Nothing shows
+  with the page at the top; from the first of the scroll each piece comes
+  up faster than the band on a curve of its own (`BAND_STEPS`: the left
+  quick to start, the right late; up to 22% of the screen), so the steps
+  keep changing shape, in a staircase none of the first five ever breaks.
+  One timeline, a short lag behind the scroll, a transform each; not
+  under reduced motion.
 - **What actually costs you time** — the heading alone, centred and
   larger than the hero's, its two lines set close and still (no line
   reveal), over three level
@@ -522,19 +529,19 @@ and the shader disk cache (which the scripts can disable) hides it.
   seventh of the card's width, measured as a container), on its own
   ground (white, ink, a mid grey; `--pc-field`, `--pc-dots`), with the
   card's picture (from the Studio) over its middle five by three, so
-  it is landscape too, and the icon chip on the picture's corner; the
-  field's and the picture's edges run midway between lines of dots.
-  Under it, on the band (`--c-dark-bg`), the number (01–03, from the
-  code), the title and the line in white, a hairline down the band
-  where two cards meet. From 992px the scroll sets the three out as it
-  passes (`initProblemParallax`, `site.js`; scrubbed, a transform only):
-  coming up the screen they stand as a stair, each a step
-  (`PROBLEM_STAIR`, 2.25rem) lower than the one before, and close up as
-  they rise into one level row, exactly on the grid, which holds for
-  about a quarter of the row's way across the screen round its middle;
-  going on up they part into the stair reversed, the last card in the
-  first to lift. Scrolling back runs it back. Not under reduced motion,
-  nor below 992px. On a tablet each
+  it is landscape too; the field's and the picture's edges run midway
+  between lines of dots. Under it, on the band (`--c-dark-bg`), the
+  title, large (1.875rem; 1.5rem on a phone), and the line in white, the
+  band unbroken where two cards meet. From 992px the scroll
+  sets the three at three depths as it passes (`initProblemParallax`,
+  `parallax.js`; one scrubbed tween, a transform only): coming up the
+  screen they stand as a stair, the white card leading and each after
+  it a step (`PROBLEM_STAIR`, 4.5rem) lower, and the stair turns over
+  in one continuous movement (a sine curve from +i steps to -i) into its
+  reverse, so going up and out the grey card leads and the white comes
+  last. The row is level only for the instant it passes through the
+  middle of its way; there is no hold. Scrolling back runs it back. Not
+  under reduced motion, nor below 992px. On a tablet each
   card lies on its side, the field on Grid Columns 1–3 and the words
   from Grid Column 4.
 - **Coin stack** — set into that heading (`CoinStack.astro`,
@@ -550,46 +557,82 @@ and the shader disk cache (which the scripts can disable) hides it.
   coins; unsplit, in the Studio's preview, the heading stands in front
   whole). The red coin, the width of a couple of
   letters, starts at the foot of the first line. Nothing holds or steers the scroll. As the
-  drawing passes up the screen, the red coin comes down and takes each
-  grey coin up as it reaches it, one after another, and each one's form
-  appears on the red face as it joins, so the logo is built a form at a
-  time; the stack comes to rest where the lowest coin stood, just under
-  the heading. The joins are a sequence of even beats: the scroll's way
-  is shared equally between the four, and in each the stack travels to
-  the next coin, slows into it (eased in and out), and is pressed onto it
-  a touch and comes back up as it seats (`MOVE`, `PRESS`). It runs from
+  drawing passes up the screen, the column closes up as one piece: the
+  four gaps between the coins each close on their own eased curve, top
+  first, the curves overlapping (`OVERLAP`, 0.6), so the coins move
+  together, the red one fastest, in one continuous fold rather than a
+  coin at a time, and each coin's form appears on the red face as its
+  gap closes, so the logo is still built a form at a time; the stack
+  comes to rest where the lowest coin stood, just under the heading. It
+  runs from
   the drawing's top 70% of the way down the screen to its middle a
   little above the screen's. Under reduced motion it is the finished
   stack, still.
-- **Service tabs** — the homepage's four routes, after the routes' heading
-  row, on a band of the ink the page's full width (`ServiceTabs.astro`,
-  `service-tabs.js`, styles.css "service tabs"): one panel that changes in
-  place. Over it, the routes' label as its heading, set exactly as "What
-  actually costs you time" is (`.problem-head`, with its line reveal), in
-  white. The panel is two halves across
-  Grid Columns 1–12 meeting on the page's centre line: on the site's red,
-  the route's title, line and button, a small + near each corner and four
-  positions at the foot (the + in a 2px stroke); on the ink, the route's
-  drawing (its dotted lattice and its diagram in white, moving). From 768px across and 540px down the panel
-  sticks under the nav (`position: sticky`) for 75% of
-  a screen of scroll per route, the scroll taking it through the four in
-  turn and the bar of the route in front filling as it goes, then lets
-  go; a position scrolls to its route. A change follows Osmo's Sticky
-  Features: the words leave the way the scroll runs and the next come in
-  after them, staggered, and a later drawing opens over the shown one
-  from the middle (an earlier one is uncovered as the ones over it
-  close), in either direction. On a phone it sits in the flow and a
-  position is pressed to change the route. Under reduced motion the
-  changes are immediate.
+- **Service tabs** — the homepage's four routes, straight after the cost
+  section, on a charcoal band the page's full width (`ServiceTabs.astro`,
+  `service-tabs.js`, styles.css "service tabs"): one panel the scroll moves
+  through. Over it, the routes' label as its heading, set as "What
+  actually costs you time" is (`.problem-head`, with its line reveal) a
+  step smaller, in white, with more room above and below. The band is a
+  charcoal (`--st-ground`, the site's `--c-dark-bg`, #1a1a1a) and the drawing's half a near-black
+  (`--st-media`, #050505), parted by tone alone; the nav's dark blocks
+  over the band (its group #181818, the logo block #262626) sit either
+  side of the charcoal. The panel is two halves across Grid Columns
+  1–12 meeting on the page's centre line: on the site's red, the
+  route's name (the Services dropdown's short forms, kept in
+  `ServiceTabs.astro`: Work[shop/flow] with the dropdown's turning
+  ending, Before Revit, Tech Blueprint, ADDD Advisory; read and buttoned
+  with the full title from the Studio), its line and button, a small
+  solid white + near each corner (in a 2px stroke), and at the foot the
+  numbers 01–04, each a small block of its own, a touch wider than
+  tall, close together, its numeral in a heavier label face, greyed, the
+  one in front alone filling white from the left as the scroll goes
+  through its route, the numeral in the ink where the white has reached
+  it. On the near-black,
+  one dotted lattice for the whole panel, still, and over it the four
+  diagrams (white, moving, a step brighter here than their own tints),
+  one under another in a tall strip, each moved onto one ground line
+  (`--st-ground-y`) so all stand on the one lattice. From 768px across
+  and 540px down the panel sticks centred in the screen under the nav,
+  halfway between the nav's foot (`--nav-h`) and the screen's
+  (`position: sticky`), for 75% of a screen of scroll per route, then
+  lets go; a number scrolls to the middle of its route. One value
+  follows the scroll throughout and draws both halves: the strip carried
+  up a moment behind the scroll (`SMOOTH`), so it glides. The words are
+  not tied to it: they change only once the strip is well past the
+  middle of a hand-over (`SWITCH`, a tolerance either way), and then as a
+  timed change, line by line, each line rising out through its own mask
+  (the name, the line under it split into lines, the button), top line
+  first, the next route's rising in after them; they are never left
+  half-split where the scroll stops. Nothing plays on its own or locks:
+  it runs on an even pace with a sine wave on it (`DWELL`), slowest with
+  each route in the middle, where it is read, and quickest at the
+  hand-over. On a phone it sits in the flow and a number eases the panel
+  to its route. Under reduced motion the changes are immediate.
 - **Testimonials** — the homepage's quotes (`TestimonialSlider.astro`,
   `testimonial-slider.js`), after the Outsource Consultants slider: every
-  quote mounted and stacked in one place, split into masked lines that
-  rise in one after another and run back out last line first (its
-  timings: 0.3s a line, 0.05s apart), with the count, the attribution and
-  the logo fading with them. On the 12-Column Grid: the dotted rule upright
-  on the left edge of Grid Column 3, the logo and the two square controls
-  on it (white blocks, as the research slider's arrows are), the quote on Grid Columns 5–11; below 992px the rule lies across
+  quote mounted and stacked in one place, with no title over it, the
+  section coming out from under the band above as the footer does from
+  under the page (`initRevealParallax`, `parallax.js`: from 0.9 of a quarter
+  of the screen higher, measured off the screen so the section's own
+  changes of height never move it, and under a 24% scrim), split
+  into masked lines that rise in one after another and run back out last
+  line first (its timings: 0.3s a line, 0.05s apart), and with them, in
+  the same run, the count and the attribution in masked lines of their
+  own and the logo rising in a mask as a line does. On the 12-Column
+  Grid: the dotted rule upright on the left edge of Grid Column 3, the
+  section's full height, from the band above to the section after, the
+  logo and the two square controls on it (white blocks, as the research
+  slider's arrows are, inverting to the ink with a white arrow on hover
+  and focus), the quote on Grid Columns 5–11; below 992px the rule lies across
   the grid between the quote and a row of the logo and the controls. The
+  quotes' room is the height of the quote showing, so the section, its
+  rule and its controls stretch or gather to each quote as it comes in
+  (an elastic ease with one small overshoot, `SIZE`) under the controls,
+  which stand a fixed step under the logo and never move with it (below
+  992px, where they sit under the quote, the room stays the longest
+  quote's), and the page's
+  scroll positions are measured again once it settles. The
   words and logos come from the Home page's Testimonials section; the
   logos, white marks, are set in ink. Under reduced motion, and in the
   Studio's preview, a change is a fade.
@@ -627,13 +670,15 @@ and the shader disk cache (which the scripts can disable) hides it.
   in. In the drawer a panel's items slide in one after the next, 0.06s
   apart. The four Services cards (`ServiceCard.astro`) are minimal and
   typographic: each a block a quarter of the screen and sixteen steps
-  (`--sc-step`) tall, in the nav's state like the bar (white with the name
-  in ink, or near-black with it in white: `--nav-bg`, `--nav-fg`), the
+  (`--sc-step`) tall, in the nav's state like the bar (a near-white with
+  the name in ink, or a charcoal with it in white, each a step off the
+  bar's group: `--nav-card-bg`, `--nav-fg`), the
   service's name large in its middle both ways, on one line, in the
   dropdown's own short forms (Work[shop/flow], Before Revit, Tech -
   Blueprint, ADDD Advisory; the names everywhere else are unchanged), a
-  line on the service small under it, its number small in the top
-  corner, and behind it a faint pattern of its own, stopping round the
+  line on the service small under it, set by hand as two lines, the
+  first the longer (Before Revit's proportions, the model for the
+  four), and behind it a faint pattern of its own, stopping round the
   name. The Workshop's ending turns between "shop" and "flow" with the
   homepage hero's word cycle (`word-cycle.js`, mounted once by
   `initMegaNav`), in a box as wide as its widest ending, so the name
@@ -641,9 +686,10 @@ and the shader disk cache (which the scripts can disable) hides it.
   strokes, worked out at build from a seeded sequence — two streams along
   the diagonal (Workflow Workshop), rings (Ongoing Advisory) — or the
   site's dotted lines, drawn on a canvas by the drawings' ground field
-  (`mountIsoField`, `dot-field.js`, in `--nav-card-dots`) — evenly spaced
-  levels straight across (Before Revit), an isometric lattice of cube tops
-  at 30° either way (Technology Blueprint). Flush, they carry their ground a
+  (`mountIsoField`, `dot-field.js`, in `--nav-card-dots`) — a square grid
+  of the approach band's 2px dots on a tighter pitch (Before Revit), a
+  fine isometric lattice of cube tops at 30° either way (Technology
+  Blueprint). Flush, they carry their ground a
   pixel under the next card, so a seam at a fractional device pixel never
   shows the dimmed page. In the drawer they stand one under another, nine
   steps tall, still flush. The three Resources blocks, a third of the screen each, are

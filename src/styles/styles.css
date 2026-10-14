@@ -110,25 +110,24 @@
 html {
   -webkit-text-size-adjust: 100%;
 
-  /* Always render the scrollbar, whether or not the page currently overflows.
-     Mid-transition the outgoing container is removed and the incoming one is
-     position:fixed, so for a moment nothing is in flow — without this the bar
-     would vanish and take the layout sideways with it. */
+  /* Always a scrolling page, whether or not it currently overflows: mid-
+     transition the outgoing container is removed and the incoming one is
+     position:fixed, so for a moment nothing is in flow. The browser's own
+     scrollbar is hidden (it takes no width, so nothing moves sideways); the
+     page's own stands in for it (ScrollBar.astro). */
   overflow-y: scroll;
+  scrollbar-width: none;
 }
 
 /* Barba calls lenis.stop() on every navigation, and lenis.css answers that with
-   `.lenis.lenis-stopped { overflow: clip }` — which removes the scrollbar and
-   shifts the layout by its width, then shifts it back on start(). Re-assert the
-   scrollbar at higher specificity. Only overflow-y is set, so Lenis keeps its
-   overflow-x: clip. Scrolling stays disabled during the transition regardless:
-   Lenis calls preventDefault on wheel and touch while stopped. */
+   `.lenis.lenis-stopped { overflow: clip }`. Re-assert the scrolling page at
+   higher specificity. Only overflow-y is set, so Lenis keeps its overflow-x:
+   clip. Scrolling stays disabled during the transition regardless: Lenis calls
+   preventDefault on wheel and touch while stopped. */
 html.lenis.lenis-stopped { overflow-y: scroll; }
 
-/* scrollbar: a thin light thumb on a black track */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: rgb(0, 0, 0); }
-::-webkit-scrollbar-thumb { background: rgb(200, 200, 200); }
+/* the browser's own scrollbar hidden (the page's own: ScrollBar.astro) */
+::-webkit-scrollbar { display: none; }
 
 body {
   margin: 0;
@@ -725,9 +724,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .ink-band { background: var(--c-dark-fg); }
 
 /* On the site's ink, the band the approach stack below it carries, with
-   the marks in their white versions (assets/logos/White). */
+   the marks in their white versions (assets/logos/White). Its title well
+   up the band, close under the steps' edge. */
 .logos {
-  padding: 8.875rem 0;
+  --logos-top: 5.5rem;
+  padding: var(--logos-top) 0 8.875rem;
   background: var(--c-dark-fg);
   color: var(--c-white);
 }
@@ -736,76 +737,220 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    rather than touching them. Set as an .h4 in the display face, a step
    heavier (the kit's 500, the next weight up from 400) and on the larger
    headings' closer leading, and held to Grid Columns 1–4 on the 12-Column
-   Grid (page-grid.css). A section's step under it, so it stands clear of
-   the marks. Balanced, as the approach heading under it is, so no word is
+   Grid (page-grid.css). Half a section's step over the wall. Balanced, as the approach heading under it is, so no word is
    left on a line alone. */
 .logos__title {
   margin: 0 var(--page-pad) calc(var(--sec-md) / 2);
-  /* a step over the .h4 it is set as, at every breakpoint */
-  font-size: calc(var(--t-h4) * 1.15);
+  /* well over the .h4 it is set as, at every breakpoint */
+  font-size: calc(var(--t-h4) * 1.55);
   font-weight: var(--fw-heading-medium);
-  line-height: 1.1;
+  line-height: 0.95;
   text-wrap: balance;
   /* a line break written into the title starts its next line there */
   white-space: pre-line;
 }
-/* A dotted rule between the title and the marks, Grid Columns 1–12:
-   2px dots on a 12px pitch, each centred in its tile. The rule stands
-   out past the margin by the 5px a dot sits in from its tile, and round
-   fits a whole number of tiles, so the first dot starts on Grid Column 1
-   and the last ends on Grid Column 12. Half the title's step stands over
-   it and a fifth under it: the marks sit in the middle of their tall
-   tiles, so the tiles' own room above them already parts them from the
-   rule, and a full half there left the marks floating well clear of the
-   line they belong to. */
-.dotted-rule {
-  height: 2px;
-  background: var(--dotted-rule);
+/* ------------------------------------------------------------
+   Logo wall (index.astro)
+   ------------------------------------------------------------
+   Every client at once, each mark on a card of its own: a plain
+   rectangle a step off the band's ink, no outline, the mark in its
+   middle at a balanced size: --logo-shape is the square root of the
+   mark's proportion (index.astro), and the width follows it only in
+   part (its 0.75th power), so the squarer marks, which the same area of
+   ink would leave looking small, stand a little larger than the wide
+   wordmarks. One tight grid, a few pixels between the cards: five
+   across from 992px (two full rows for the ten clients), two across
+   below. From 992px it is set on the band's dots: a card and its gap
+   are a whole number of the dots' pitch (--dot-pitch, the approach's
+   field's: approach-stack.js), as near a fifth of Grid Columns 1–12 as
+   that allows, and the wall is moved onto the dots' columns (within half
+   a pitch of centred), so every gap between two cards has a column of
+   dots down its middle.
+   ------------------------------------------------------------ */
+/* From 992px the title starts on Grid Column 2: the grid's margin, a
+   Column and a gutter in, set left. */
+@media screen and (min-width: 992px) {
+  .page--grid .logos .logos__title {
+    --title-col: calc((100% - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
+    max-width: none;
+    margin-left: calc(var(--grid-margin) + var(--title-col) + var(--grid-gutter));
+    margin-right: 0;
+  }
 }
-.logos__rule {
-  margin: 0 calc(var(--grid-margin) - var(--dotted-rule-bleed)) calc(var(--sec-md) / 5);
+/* The title, the wall and the statement on the band's field of dots
+   (.band-field: the approach's below, at its pitch; StickyTitle's dots),
+   the whole section from the band's top edge, set out from the band's
+   top left corner as the steps' pieces are, so their dots meet. Under
+   the title, the cards (which hide the dots behind them) and the held
+   statement. */
+.logos__field {
+  /* the band's width, which the wall measures itself against */
+  container-type: inline-size;
+  position: relative;
+  padding-bottom: var(--sec-md);
 }
-
-/* No box: each mark stands on the band on its own. The tile keeps its
-   size, so the strip keeps its pitch and the mark its centre. */
-.logo-tile {
-  flex: none;
-  width: 12.5625rem;
-  height: 11.125rem;
+.sticky-title__dots {
+  --dot-x: var(--dot-phase, calc(var(--dot-pitch, 0.875rem) / 2));
+  --dot-y: calc(var(--dot-pitch, 0.875rem) / 2);
+  position: absolute;
+  inset: 0;
+}
+.logos__field > * { position: relative; }
+/* the grid's width inside the margins */
+.logo-wall-wrap { padding: 0 var(--grid-margin); }
+.logo-wall {
+  --wall-gap: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--wall-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media screen and (min-width: 992px) {
+  .logo-wall {
+    --p: var(--dot-pitch, 0.875rem);
+    /* a card and its gap: the nearest whole number of pitches to a fifth
+       of the grid's width (100cqw: the band's, .logos__field) */
+    --wall-step: round(nearest, calc((100cqw - 2 * var(--grid-margin) + var(--wall-gap)) / 5), var(--p));
+    --wall-w: calc(5 * var(--wall-step) - var(--wall-gap));
+    /* its left edge from the band's, where each gap's middle falls on a
+       column of dots (the first --dot-phase in: approach-stack.js), as near
+       centred as the dots allow */
+    --ph: var(--dot-phase, calc(var(--p) / 2));
+    --wall-x: calc(round(down, calc((100cqw - var(--wall-w)) / 2 - var(--ph) - var(--wall-gap) / 2), var(--p)) + var(--ph) + var(--wall-gap) / 2);
+    grid-template-columns: repeat(5, calc(var(--wall-step) - var(--wall-gap)));
+    /* a row and its gap: the whole number of pitches nearest 3/5 of a
+       step, so the rows keep to the dots as the columns do; the wall's
+       top is put on a row of dots by data-dot-snap (dot-snap.js) */
+    grid-auto-rows: calc(round(nearest, calc(var(--wall-step) * 0.6), var(--p)) - var(--wall-gap));
+    translate: 0 var(--dot-snap-y, 0px);
+    width: var(--wall-w);
+    /* the wrap stands a grid margin in from the band */
+    margin-left: calc(var(--wall-x) - var(--grid-margin));
+  }
+}
+.logo-wall__card {
+  --logo-size: 3.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  aspect-ratio: 5 / 3;
+  border-radius: var(--radius);
+  /* the band's own ground: no card, only a hole in the dots, the cards
+     being on the dots' lattice (data-dot-snap) */
+  background: var(--c-dark-fg);
+}
+.logo-wall__card img {
+  display: block;
+  width: calc(var(--logo-size) * var(--logo-shape, 2) * 0.8);
+  width: calc(var(--logo-size) * pow(var(--logo-shape, 2), 0.75));
+  max-width: 76%;
+  max-height: 64%;
+  object-fit: contain;
+  height: auto;
+  user-select: none;
+}
+@media screen and (max-width: 991px) {
+  .logo-wall { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Logo Wall Cycle (logo-wall-cycle.js): every card shows, and two at a
+   time trade logos. The logo's box fills the card, so the outgoing and
+   incoming logos overlap as they slide. */
+.logo-wall__card { overflow: hidden; }
+@media screen and (min-width: 992px) {
+  .logo-wall__card { aspect-ratio: auto; }
+}
+.logo-wall__logo { position: relative; width: 100%; height: 100%; }
+.logo-wall__logo-target {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+@media screen and (max-width: 767px) {
+  .logo-wall__card { --logo-size: 2.75rem; }
+}
 
-/* The strip's motion: Osmo's Wavy Marquee (src/scripts/wavy-marquee.js),
-   without its wave — the tiles run level, one straight row. Clipped
-   across only; the script measures the loop from the tiles' own offsets,
-   so the gap is part of it. */
-.wavy-marquee {
-  position: relative;
-  width: 100%;
-  overflow-x: clip;
+/* ------------------------------------------------------------
+   Band steps (index.astro, initBandSteps in parallax.js)
+   ------------------------------------------------------------
+   The ink band's top edge in pieces, one per two Grid Columns, standing
+   on the edge and above it, in the band's ink, over the hero (above its
+   scrim). Each piece is two Grid Columns and their gutters wide, its
+   sides on the middles of the gutters, so the steps fall between the
+   columns as the grid's overlay draws them; the outer two run on to the
+   screen's edges. The pieces wait flush (yPercent 100: below their own
+   boxes, inside the band); the script raises each at its own rate with
+   the scroll (initBandSteps, parallax.js). Six from 992px, three on a tablet's six
+   columns, two on a phone's four.
+   ------------------------------------------------------------ */
+.band-steps-host { position: relative; }
+.band-steps {
+  /* Its lengths in the steps' own width (cqw), not percentages: a
+     percentage inside a piece measures the piece, so the dots' layers
+     came out a piece wide and set back by the wrong amount, leaving
+     patches with no dots. The band's width, a Grid Column, a piece. */
+  --band-w: 100cqw;
+  --band-col: calc((100cqw - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
+  --band-seg: calc(2 * (var(--band-col) + var(--grid-gutter)));
+  container-type: inline-size;
+  position: absolute;
+  left: 0;
+  right: 0;
+  /* a pixel down into the band, so no hairline of the hero can show
+     between a piece and the band where the edge falls between pixels */
+  bottom: calc(100% - 1px);
+  /* the tallest lead (BAND_STEPS, parallax.js): 22% of the screen */
+  height: calc(22vh + 1px);
+  height: calc(22svh + 1px);
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  /* its pieces' moves kept to itself: nothing in it is laid out or
+     painted again with the page, and nothing in the page with it */
+  contain: strict;
 }
-.wavy-marquee__collection {
-  position: relative;
-  width: 100%;
-}
-.wavy-marquee__list {
-  position: relative;
-  /* moved every frame by the script: on a layer of its own, the strip is
-     painted once and slid by the compositor rather than repainted */
+.band-steps__seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  /* from the middle of the gutter before its first column */
+  --seg-left: calc(var(--grid-margin) + var(--i) * var(--band-seg) - var(--grid-gutter) / 2);
+  left: var(--seg-left);
+  /* a pixel on under the next piece, so their meeting, between pixels
+     at most widths, never shows a hairline of the hero between them */
+  width: calc(var(--band-seg) + 1px);
+  overflow: hidden;
+  background: var(--c-dark-fg);
+  transform: translateY(100%);
   will-change: transform;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: max-content;
-  touch-action: pan-y;
 }
-.wavy-marquee__item {
-  position: relative;
-  flex: none;
-  user-select: none;
-  -webkit-user-select: none;
+/* The logos' field of dots carried up into the pieces: in each, the
+   piece's own size of field, its dots set out on the logos' lattice (a
+   column half a pitch in from the band's left, taken back by the piece's
+   own left; a row half a pitch under the band's top edge, which is a
+   pixel over the layer's foot), so each dot is the field's own, grain
+   and all, and moved down as the piece moves up (initBandSteps), so
+   the dots stay put on the band and each piece opens onto them. */
+.band-steps__dots {
+  --dot-x: calc(var(--dot-phase, calc(var(--dot-pitch, 0.875rem) / 2)) - var(--seg-left));
+  --dot-y: calc(100% - 1px + var(--dot-row, calc(var(--dot-pitch, 0.875rem) / 2)));
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.band-steps__seg:first-child { --seg-left: 0px; left: 0; width: calc(var(--grid-margin) + var(--band-seg) - var(--grid-gutter) / 2 + 1px); }
+.band-steps__seg:nth-child(6) { width: auto; right: 0; }
+@media screen and (max-width: 991px) {
+  .band-steps__seg:nth-child(n + 4) { display: none; }
+  .band-steps__seg:nth-child(3) { width: auto; right: 0; }
+}
+@media screen and (max-width: 767px) {
+  .band-steps__seg:nth-child(n + 3) { display: none; }
+  .band-steps__seg:nth-child(2) { width: auto; right: 0; }
 }
 
 /* ============================================================
@@ -852,10 +997,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    and the picture's each run midway between two lines of dots and a
    ring of dots frames the picture. Each field has its own ground,
    white, ink and a mid grey, and its dots their tint for it. Under
-   it the band, one for all three, a hairline where two cards meet:
-   the card's number, its title and its line, in white. Below 992px
-   the cards stand apart, one under another.
+   it the band, one for all three, with no line where two cards meet:
+   the card's title, large, and its line, in white. Below 992px the
+   cards stand apart, one under another.
    ------------------------------------------------------------ */
+/* the section a little further off the band above it than a section's
+   own step */
+.section.cost { padding-top: calc(var(--sec-lg) * 1.35); }
 .problem-head {
   /* the heading's size, which the coin stack set into it is sized from */
   --head-size: 5.25rem;
@@ -865,11 +1013,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 /* the heading and the coins in the one cell */
 .problem-head > * { grid-area: 1 / 1; }
-/* Held to a measure that wraps it onto two lines, as the routes heading
-   in the next section is: that one pushed to the right edge the way the
-   hero headline is; this one centred, its two lines evened out. */
-.problem-head__h,
-.routes__h {
+/* Held to a measure that wraps it onto two lines, centred, its two
+   lines evened out. */
+.problem-head__h {
   flex: 0 1 auto;
   margin: 0 0 0 auto;
   font-family: var(--font-display);
@@ -916,8 +1062,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
      card row on the page */
   gap: 1.25rem;
   align-items: stretch;
-  /* close under the heading and its coins */
+  /* close under the heading and its coins, and well clear of the band
+     that follows */
   margin-top: 4.5rem;
+  margin-bottom: 4rem;
 }
 
 .problem-card {
@@ -932,8 +1080,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   flex-direction: column;
   border-radius: var(--radius);
   overflow: hidden;
-  /* the band the words stand on */
-  background: var(--c-dark-bg);
   color: var(--c-white);
 }
 .problem-card:nth-child(2) {
@@ -978,49 +1124,31 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   height: 100%;
   object-fit: cover;
 }
-/* The icon rides on the image as a chip, in the same corner the
-   routes and services cards put their label, so all three sit in
-   exactly one place and at one size. */
-.problem-card__icon {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: var(--radius-sm);
-  /* a hairline, so the chip still reads where the photograph behind
-     it is pale */
-  border: 1px solid var(--c-border);
-  background: var(--c-white);
-  color: var(--c-text);
-}
-.problem-card__icon svg { width: 1.375rem; height: 1.375rem; display: block; }
 
 /* The band of words under the field. It takes the row's slack, so
    three cards of different words still end level. */
+/* (the band's ground is its own, not the card's: under the field, the
+   card's ground showed as a grey hairline round the field's edge
+   wherever the scroll left the card on a fraction of a pixel) */
 .problem-card__body {
   flex: 1 0 auto;
+  background: var(--c-dark-bg);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
   padding: 1.5rem 1.5rem 1.75rem;
 }
-/* the card's number, in the label face, a step over the title */
-.problem-card__num {
-  margin-bottom: 0.25rem;
-  font-size: 0.8125rem;
-  line-height: 1;
-}
+/* the title, the band's lead: large enough to read as the card's
+   heading over its line, still on one line across a card's four Grid
+   Columns where it fits */
 .problem-card__h {
-  margin: 0;
+  margin: 0 0 0.25rem;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: 1.375rem;
-  line-height: 1.2;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  font-size: 1.875rem;
+  line-height: 1.1;
+  letter-spacing: calc(var(--primary-tracking) - 0.025em);
+  text-wrap: balance;
 }
 .problem-card__p {
   margin: 0;
@@ -1030,15 +1158,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* From 992px the three are one strip (its thirds: page-grid.css):
-   only its outer corners rounded, and a hairline down the band where
-   two cards meet; the fields part by their grounds alone. The scroll
-   sets the three out as it passes, a stair closing up into the level
-   row and parting again (initProblemParallax, site.js). */
+   only its outer corners rounded, nothing drawn where two cards meet:
+   the fields part by their grounds alone, the band runs on unbroken. The scroll
+   sets the three out as it passes, a stair turning over into the
+   reversed stair (initProblemParallax, parallax.js). */
 @media screen and (min-width: 992px) {
+  /* Flush neighbours overlap by a pixel (see "Seams", the end of this
+     file): each card but the last runs a pixel on under the next. */
+  .problem-card:not(:last-child) { margin-right: -1px; }
   .problem-card:nth-child(1) { border-radius: var(--radius) 0 0 var(--radius); }
   .problem-card:nth-child(2) { border-radius: 0; }
   .problem-card:nth-child(3) { border-radius: 0 var(--radius) var(--radius) 0; }
-  .problem-card + .problem-card .problem-card__body { box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.1); }
 }
 
 /* Stacked: the cards one under another, the heading and its coins
@@ -1046,7 +1176,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    phone. */
 @media screen and (max-width: 991px) {
   .problem-head { --head-size: 3.5rem; }
-  .routes__h { margin-left: 0; max-width: none; }
   .problem-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; margin-top: 2.5rem; }
 }
 /* A tablet: each card on its side across the grid's six columns, the
@@ -1062,6 +1191,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 @media screen and (max-width: 767px) {
   .problem-head { --head-size: 2.75rem; }
+  .problem-card__h { font-size: 1.5rem; }
 }
 
 /* ============================================================
@@ -1301,45 +1431,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .approach__card-image { flex: 0 1 auto; min-height: 0; width: 100%; max-width: none; aspect-ratio: 16 / 10; }
 }
 
-/* ============================================================
-   5 — routes
-   ============================================================ */
-/* A touch more room above the eyebrow than the section default, which
-   is the separation from the white section before it. */
-/* The section drops its own side padding and the header keeps its
-   container's. */
-.routes {
-  padding-top: 7.375rem;
-  padding-left: 0;
-  padding-right: 0;
-  /* the site's off-white, for the charcoal cards */
-  background: var(--c-light-bg);
-  color: var(--c-text);
-}
-.routes > .container { padding: 0 var(--page-pad); }
-
-/* The hero's lede-left/heading-right composition: a narrow column of
-   supporting copy and its eyebrow, set against a large heading pushed
-   to the right edge. */
-.routes__head {
-  display: flex;
-  gap: 4rem;
-  align-items: flex-start;
-}
-/* The hero's own interval between the lede and the label beneath it,
-   so the left column reads as two placed pieces rather than a block. */
-.routes__lede {
-  flex: 0 0 19.8rem;
-  display: flex;
-  flex-direction: column;
-  gap: 2.5rem;
-}
-/* The heading is .problem-head__h's, set with it above. Held well inside
-   the column it is pushed to the right of: it breaks after "needs"
-   anywhere from 9em to 12em, so the narrower measure keeps the two lines
-   and spends the difference on the space between the heading and the
-   lede — the hero's interval between its own two columns. */
-
 /* ------------------------------------------------------------
    insight cards (InsightCard.astro): the research cards; the rest of
    their setting under "9 — insight cards" below
@@ -1417,12 +1508,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   color: #6b6b6b;
 }
 
-@media screen and (max-width: 991px) {
-  /* Stacked, so the interval the two columns held side by side becomes
-     the gap between the lede and the heading under it. */
-  .routes__head { flex-direction: column; gap: 3.5rem; }
-  .routes__lede { flex: none; width: 100%; gap: 2rem; }
-}
 
 /* ============================================================
    6 — case study / testimonial
@@ -1464,30 +1549,40 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    Testimonial slider (TestimonialSlider.astro, testimonial-slider.js)
    ------------------------------------------------------------
    After the Outsource Consultants slider: the quotes stacked in one
-   cell and changed line by line, on the 12-Column Grid. The site's
-   dotted rule stands upright on the left edge of Grid Column 3 for the
-   slider's full height, its spine: the practice's logo sits centred on
+   cell and changed line by line, on the 12-Column Grid, with no title
+   over them. The site's dotted rule stands upright on the left edge of
+   Grid Column 3 for the section's full height, from the band above to
+   the section after, its spine: the practice's logo sits centred on
    it, level with the quote, and the two round controls at its foot,
    level with who said it, the rule opened round each by a patch of the
    page's ground. The quote takes Grid Columns 5–11 in the display face
    at its third step; a section step under it, on those columns' own
    grid, the count on Grid Column 5 and the attribution from Grid
-   Column 6, in the label face. Every stack is as large as its largest
-   member, so nothing moves as the quotes change.
+   Column 6, in the label face. The quotes' room is the height of the
+   quote showing, eased to the next with a little give as it changes,
+   and the section, its rule and its controls follow it; the smaller
+   stacks (the count, the attribution, the logo) are as large as their
+   largest member.
    ------------------------------------------------------------ */
-/* Set off from the routes section above it by a section step and a
-   half, so it reads as its own chapter. */
-.testimonials {
+/* The testimonials come out from under the band above (initRevealParallax,
+   parallax.js): a clipping wrap, on the section's own ground, so the strip
+   the section vacates mid-reveal is the section's too; the section kept on
+   a layer of its own, as the hero is. */
+.reveal-wrap {
   position: relative;
-  margin-top: calc(var(--sec-lg) + var(--sec-md));
+  overflow: hidden;
+  overflow: clip;
+  background: var(--c-light-bg);
 }
-/* centred over the slider, across the grid, at the routes heading's
-   size and leading */
-.testimonials__title {
-  margin: 0 var(--page-pad);
-  text-align: center;
-  font-size: 3.75rem;
-  line-height: 1.05;
+[data-reveal-parallax-inner] { will-change: transform; }
+/* Set off from the band above it by a section step and a half, so it
+   reads as its own chapter: room inside the section (--slider-above),
+   not a margin outside it, so the rule can run up through it to the
+   band. */
+.testimonials {
+  --slider-above: calc(var(--sec-lg) + var(--sec-md));
+  position: relative;
+  padding-top: var(--slider-above);
 }
 
 .testimonial-slider {
@@ -1497,10 +1592,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   --slider-pad: var(--sec-md);
   --slider-control: 3.5rem;
   --slider-clear: 1.25rem;
+  /* its rule well darker than the site's dotted rule (30% of the ink),
+     as it is the section's spine, standing or lying */
+  --dotted-rule: linear-gradient(to right, transparent 5px, color-mix(in srgb, currentColor 70%, transparent) 5px 7px, transparent 7px) center / 12px 2px round;
+  --dotted-rule-vertical: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 70%, transparent) 5px 7px, transparent 7px) center / 2px 12px round;
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
   column-gap: var(--grid-gutter);
-  margin-top: 3.5rem;
   padding: 0 var(--page-pad);
 }
 
@@ -1519,12 +1617,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .testimonial-slider__stack { display: grid; }
 .testimonial-slider__stack > * { grid-area: 1 / 1; }
 
+/* as tall as the quote showing (testimonial-slider.js eases it from one
+   to the next); the others, stacked in it and out of sight, may run past
+   its foot */
 .testimonial-slider__quotes {
   grid-column: 1 / -1;
   display: grid;
 }
 .testimonial-slider__quote {
   grid-area: 1 / 1;
+  /* its own height, not the stack's, so the room can be fitted to it */
+  align-self: start;
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
@@ -1556,8 +1659,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* What swaps with the quote (the count's number, the attribution, the
-   logo): the one going fades as the quote's lines leave, the one
-   coming as the next quote's lines arrive. */
+   logo): split, it changes with the quote's lines, line by line, in the
+   script's run, shown and hidden by the script (.is--split); unsplit
+   (reduced motion, the Studio's preview), the one going fades as the
+   quote leaves, the one coming as the next arrives. */
 .testimonial-slider__swap {
   opacity: 0;
   visibility: hidden;
@@ -1568,25 +1673,31 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   visibility: visible;
   transition: opacity .3s ease-in-out .3s, visibility 0s .3s;
 }
+.testimonial-slider.is--split .testimonial-slider__swap { opacity: 1; transition: none; }
 
 /* The side: Grid Columns 3–4, the rule down its left edge, the left
-   edge of Grid Column 3, and on it the logo at the top and the controls
-   at the foot, each centred on the rule. */
+   edge of Grid Column 3, and on it the logo at the top, level with the
+   quote, and the controls a fixed step under it, each centred on the
+   rule. The controls hold their place whatever the quote: the quotes'
+   room grows and gathers below them (testimonial-slider.js), the rule
+   and the section's foot with it, never the buttons under the pointer. */
 .testimonial-slider__side {
   grid-column: 3 / 5;
   grid-row: 1;
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: var(--slider-controls-gap, 4.5rem);
   align-items: flex-start;
   padding: var(--slider-pad) 0;
 }
-/* the site's dotted rule, stood upright on the line */
+/* the site's dotted rule, stood upright on the line, from the section's
+   top (the band above) to its foot (the section after) */
 .testimonial-slider__side::before {
   content: "";
   position: absolute;
-  top: 0;
+  top: calc(-1 * var(--slider-above, 0px));
   bottom: 0;
   left: -1px;
   width: 2px;
@@ -1612,6 +1723,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-items: center;
   align-items: center;
 }
+/* each logo in a mask of its own, which it rises into as a line does;
+   opened a little past the mark so nothing of it is cut */
+.testimonial-slider__logo-mask {
+  display: block;
+  overflow: hidden;
+  padding: 0.25rem;
+  margin: -0.25rem;
+}
 /* Each balanced by its ink, as the logo strip's are (--logo-shape,
    index.astro), and set in ink: the marks are white ones, made for the
    strip's ink band. */
@@ -1631,8 +1750,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 /* Square, as the research slider's arrows are (.arrows): a white block
    on the off-white with the controls' radius and no outline, the
-   arrow in ink, and over it the fill and a white arrow the script runs
-   in on hover and keyboard focus. */
+   arrow in ink, and over it the fill, in the ink, and a white arrow the
+   script runs in on hover and keyboard focus: the block inverts. */
 .testimonial-slider__button {
   position: relative;
   display: flex;
@@ -1657,7 +1776,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .testimonial-slider__fill {
   position: absolute;
   inset: 0;
-  background: var(--c-red);
+  background: var(--c-text);
   transform: scale(0);
 }
 .testimonial-slider__over {
@@ -1678,13 +1797,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    a row of the logo at its start and the controls, side by side, at its
    end, as standing it divides the two sides from 992px. */
 @media screen and (max-width: 991px) {
-  .testimonials { margin-top: var(--sec-lg); }
-  .testimonial-slider { margin-top: 2.5rem; }
+  .testimonials { --slider-above: var(--sec-lg); }
   .testimonial-slider__main { grid-column: 1 / -1; padding-bottom: 0; }
   .testimonial-slider__side {
     grid-column: 1 / -1;
     grid-row: 2;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
     margin-top: 2.5rem;
     padding: 2.5rem 0 var(--slider-pad);
@@ -2151,9 +2270,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   overflow: hidden;
   background: var(--c-red);
 }
-/* the scrim, here and over the homepage hero as it leaves */
+/* the scrim, here, over the homepage hero as it leaves and over the
+   testimonials as they come out from under the band above */
 .footer-wrap__dark,
-.hero-wrap__dark {
+.hero-wrap__dark,
+.reveal-wrap__dark {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -2388,8 +2509,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   :root { --t-h1: 3rem; --t-h2: 2.375rem; --t-h3: 2rem; --t-h4: 1.75rem; --sec-lg: 5rem; --sec-md: 4rem; --page-pad: 2rem; }
 
   .hero__heading { font-size: 2.18rem; }
-  .routes__h,
-  .testimonials__title { font-size: 2.1893rem; }
   .cta__heading { font-size: 2.1371rem; }
   .approach__card-mark { width: 2.5rem; }
   .approach__card-p { font-size: 1rem; }
@@ -2474,8 +2593,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 @media (max-width: 767px) {
   :root { --t-h1: 2.375rem; --t-h2: 2rem; --t-h3: 1.75rem; --t-h4: 1.5rem; --page-pad: 1.25rem; }
   .hero__heading { font-size: 2.14rem; }
-  .routes__h,
-  .testimonials__title { font-size: 2rem; }
   .cta__heading { font-size: 2.125rem; }
   /* Held to a share of the height, as on tablet, for a phone on its side. */
   .approach__card-h { font-size: min(3.0938rem, 15svh); }
@@ -2572,35 +2689,61 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    proportion (seven across to six down), so on a wide screen it keeps
    its shape. Below that the panel sits in the flow.
 
-   The left half, on the site's red, in white: the route's title, its
-   line and its button centred, the four positions at the foot, and a
+   The left half, on the site's red, in white: the route's name, its
+   line and its button centred, the four numbers at the foot, and a
    small + near each corner (.corner-marks). Every route's words share
    one cell, the size of the largest, so nothing moves as they change.
-   The positions: a small square each, in a block a step darker than the
-   red (as the footer's social marks are); the one in front a bar, filling
-   in white as the scroll crosses its route.
+   The numbers: 01 to 04, each a square of its own, close together, a
+   faint white with the numeral held back; the one in front alone fills
+   white from the left as the scroll goes through its route, a small
+   loading bar of its own, the others staying grey, its numeral turning to the
+   ink where the white has reached it (a copy of it, in the ink, on the
+   white, clipped to the fill: .service-tabs__pos-fill).
 
-   The right half, on the ink: each route's drawing, its dotted lattice (dot-field.js) and its diagram in
-   white, the faces in the ink, on a panel of its own, the four stacked
-   and opened over one another from the middle (service-tabs.js). Below
-   992px the two halves stand one over the other.
+   The right half, on a near-black (--st-media): one dotted lattice
+   (dot-field.js), still, and over it each route's diagram in white, the
+   faces in the near-black, one under another in a strip
+   (.service-tabs__track) the panel shows one of at a time; the scroll
+   carries the strip up through it (service-tabs.js). Every diagram is
+   lifted or lowered onto one ground line (--st-ground-y), so each
+   stands on the one lattice as it comes to the middle. Below 992px the
+   two halves stand one over the other.
+
+   The band and the drawing's half part by tone alone: the band a
+   charcoal (--st-ground), the drawing's half well under it. The nav's
+   dark blocks over the band's top (nav.css: the group #181818, the
+   feature block #202020, the logo block #262626) sit about the charcoal
+   (#1a1a1a): the group all but on it, the feature and logo blocks
+   lighter, so the bar is held by its lighter blocks over the band.
    ============================================================ */
 .service-tabs-section {
-  /* the band of the ink, the page's full width, its heading and panel on
-     Grid Columns 1–12 at every width, a section's step above and below */
+  /* the band's charcoal (the site's own dark ground), and the drawing's
+     half, near black, well under it, so the two never run into each
+     other */
+  --st-ground: var(--c-dark-bg);
+  --st-media: #050505;
+  /* the band, the page's full width, its heading and panel on Grid
+     Columns 1–12 at every width, a section's step above and below */
   padding: var(--sec-lg) var(--grid-margin);
-  background: var(--c-dark-fg);
+  background: var(--st-ground);
   color: var(--c-white);
 }
-/* the heading's room under it, as the cost section's cards have */
-.service-tabs-head { margin-bottom: 4.5rem; }
+/* The heading a step under the cost section's, with more room round it,
+   so it stands on its own before the panel begins. */
+.service-tabs-head {
+  --head-size: 4.625rem;
+  margin: 2.5rem 0 7rem;
+}
 @media screen and (max-width: 991px) {
-  .service-tabs-head { margin-bottom: 2.5rem; }
+  .service-tabs-head { --head-size: 3.125rem; margin: 1rem 0 3.5rem; }
+}
+@media screen and (max-width: 767px) {
+  .service-tabs-head { --head-size: 2.5rem; }
 }
 
 .service-tabs {
-  /* where the panel sticks, and the room it leaves at the foot */
-  --st-top: calc(var(--nav-h) + var(--grid-margin));
+  /* the least room round the panel, under the nav and above the foot of
+     the screen */
   --st-gap: var(--grid-margin);
   /* the scroll each route has while the panel is stuck */
   --st-step: 75vh;
@@ -2614,6 +2757,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 .service-tabs__copy {
+  /* a pixel on under the drawing beside it (below 992px, over it), so
+     the two halves never show a hairline between them ("Seams") */
+  margin-right: -1px;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -2627,8 +2773,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   border-radius: var(--radius) 0 0 var(--radius);
 }
 /* in from each corner by half the old tab's height, in a firmer stroke
-   than the utility's hairline */
-.service-tabs__marks { --mark-inset: 1.75rem; --mark-stroke: 2px; }
+   than the utility's hairline, in solid white */
+.service-tabs__marks { --mark-inset: 1.75rem; --mark-stroke: 2px; --mark-ink: var(--c-white); }
 .service-tabs__slides {
   flex: 1;
   display: grid;
@@ -2643,8 +2789,19 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   align-items: center;
   gap: 1.25rem;
 }
-/* until the script takes them over, only the first shows */
+/* until the script takes them over, only the first shows; the script
+   moves the words with the scroll, line by line, through their masks */
 .service-tabs__slide:not(.is--active) { visibility: hidden; opacity: 0; }
+/* the name's mask and the button's: one line each, clipping, opened past
+   the glyphs (the display face overhangs its 1.05 leading) and past the
+   button's focus ring, and drawn back by as much, so nothing moves; the
+   line under the name is split into the headings' own masks (.line-mask) */
+.service-tabs__mask {
+  overflow: hidden;
+  padding: 0.25em 0.5em;
+  margin: -0.25em -0.5em;
+}
+.service-tabs__mask.is--action { padding: 0.5rem; margin: -0.5rem; }
 .service-tabs__h {
   margin: 0;
   font-family: var(--font-display);
@@ -2654,6 +2811,22 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
   text-wrap: balance;
 }
+/* The Workshop's turning ending (word-cycle.js), as the dropdown's
+   (nav.css, .service-card__cycle): every ending stood unseen in one cell,
+   so the box is the widest ending's width and the name never moves; the
+   word laid over them, out of the flow. Its letters still scrambling in
+   a held-back white, as the red the hero's take would vanish on the red. */
+.service-tabs__cycle { position: relative; display: inline-grid; }
+.service-tabs__cycle-ghost { grid-area: 1 / 1; visibility: hidden; }
+.service-tabs__cycle-word {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  white-space: pre;
+  clip-path: inset(-0.5em -0.08em);
+}
+.service-tabs__cycle-word .is--scrambling { color: rgba(255, 255, 255, 0.55); }
 .service-tabs__p {
   max-width: 26rem;
   margin: 0;
@@ -2664,97 +2837,131 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 .service-tabs__action { margin-top: 0.75rem; }
 
-/* the four positions, in a block a step darker than the red */
+/* the four numbers: blocks of their own, close together, a touch wider
+   than tall, in the label face (the button's) at a heavier weight */
 .service-tabs__nav {
   display: flex;
   align-items: center;
-  padding: 0 0.375rem;
-  border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.16);
+  gap: 0.1875rem;
 }
+/* greyed: a faint white on the red, the numeral held back */
 .service-tabs__pos {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 1.875rem;
-  padding: 0 0.3125rem;
-  border: 0;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-}
-.service-tabs__pos:focus-visible { outline: 1px solid var(--c-white); outline-offset: -2px; }
-.service-tabs__pos-mark {
   position: relative;
-  display: block;
-  width: 0.375rem;
-  height: 0.375rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.4375rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.45);
-  transition: width 0.45s var(--ease-osmo), background-color 0.25s ease;
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.66);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: var(--label-tracking);
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.6s ease, color 0.6s ease;
 }
-.service-tabs__pos:hover .service-tabs__pos-mark { background: rgba(255, 255, 255, 0.8); }
-/* the one in front: a bar, its track quiet, filling in white */
-.service-tabs__pos.is--active .service-tabs__pos-mark {
-  width: 2.75rem;
-  background: rgba(255, 255, 255, 0.3);
-}
+.service-tabs__pos:hover { background: rgba(255, 255, 255, 0.3); color: var(--c-white); }
+.service-tabs__pos:focus-visible { outline: 1px solid var(--c-white); outline-offset: 2px; }
+/* the one in front: its numeral in full white until the fill reaches it */
+.service-tabs__pos.is--active { background: rgba(255, 255, 255, 0.26); color: var(--c-white); }
+/* the fill: the white, with the numeral in the ink on it, over the
+   square, clipped to as far as the scroll has gone (service-tabs.js) */
 .service-tabs__pos-fill {
   position: absolute;
   inset: 0;
+  display: grid;
+  place-items: center;
   background: var(--c-white);
-  transform: scaleX(0);
-  transform-origin: 0% 50%;
+  color: var(--c-text);
+  clip-path: inset(0 100% 0 0);
+  pointer-events: none;
+  /* a number handing over fades its fill out, the next fades its in */
+  transition: opacity 0.6s ease;
 }
 
-/* the right half, on the ink, its drawings stacked in it */
+/* the right half, on the near-black, showing one drawing of the strip
+   over the one lattice */
 .service-tabs__media {
   position: relative;
   min-width: 0;
   min-height: 0;
   aspect-ratio: 7 / 6;
   overflow: hidden;
-  background: var(--c-dark-fg);
+  background: var(--st-media);
   border-radius: 0 var(--radius) var(--radius) 0;
 }
-/* each route's drawing, on the ink */
+/* each route's drawing, the strip open behind it onto the lattice */
 .service-tabs__visual {
-  /* the drawing in white, its faces in the ink they stand on */
+  /* the drawing in white, its faces in the near-black they stand on, so
+     a solid hides the lattice under it; its lines a step brighter than
+     the diagrams' own tints (below), as this is the darkest ground on
+     the page */
   --c-text: var(--c-white);
-  --diagram-ground: var(--c-dark-fg);
+  --diagram-ground: var(--st-media);
+  --sd-line: 80%;
+  --sd-soft: 46%;
+  --sd-layer: 48%;
+  --sd-setout: 34%;
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  top: calc(var(--st-i, 0) * 100%);
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--c-dark-fg);
 }
-/* until the script takes them over, only the first shows */
-.service-tabs__visual + .service-tabs__visual { clip-path: inset(50% 50% 50% 50%); }
-/* the drawing's lattice, to the panel's edges (dot-field.js) */
+/* the strip: the panel's own box, its drawings one under another below
+   the first, carried up through it (service-tabs.js); without the
+   script the first shows, the rest cropped by the panel */
+.service-tabs__track {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+/* the one lattice, to the panel's edges, still, set out from the first
+   drawing's ground (dot-field.js), a touch brighter than a field's
+   default, still well under the drawings */
 .service-tabs__pattern {
+  --iso-line: rgba(255, 255, 255, 0.16);
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 .service-tabs__pattern > canvas { display: block; }
-/* the drawing, nearly the whole of its field */
+/* the drawing, nearly the whole of its field, moved up or down onto the
+   strip's one ground line: from its own ground (--sd-ground-y, in its
+   256-unit-high viewBox: ServiceDiagram.astro) to the shared one, a
+   share of its own height, so every drawing stands on the one lattice */
 .service-tabs__diagram {
+  --st-ground-y: 177;
   position: relative;
   display: block;
   width: min(94%, 41rem);
   height: auto;
   max-height: 94%;
+  transform: translateY(calc((var(--st-ground-y) - var(--sd-ground-y, 177)) / 256 * 100%));
 }
 
-/* Stuck: the panel a nav's height and the margin under the top, as tall as
-   the screen leaves it and never taller than the right half's proportion
-   (half the grid's width, seven across to six down); the stretch it
-   sticks for, a step of scroll for each route after it. */
+/* Stuck: the panel as tall as the screen leaves under the nav (the
+   margin's room above and below it at least) and never taller than the
+   right half's proportion (half the grid's width, seven across to six
+   down), centred in the screen under the nav: the nav's foot (--nav-h,
+   the bar's height at every width) is the top of what is seen, so the
+   panel is set halfway between it and the foot of the screen, not
+   halfway down the whole screen. The stretch it sticks for, a step of
+   scroll for each route after it. */
 @media screen and (min-width: 768px) and (min-height: 540px) {
   .service-tabs {
-    --st-panel-h: min(100vh - var(--st-top) - var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
-    --st-panel-h: min(100svh - var(--st-top) - var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
+    --st-panel-h: min(100vh - var(--nav-h) - 2 * var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
+    --st-panel-h: min(100svh - var(--nav-h) - 2 * var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
+    --st-top: calc(var(--nav-h) + (100vh - var(--nav-h) - var(--st-panel-h)) / 2);
+    --st-top: calc(var(--nav-h) + (100svh - var(--nav-h) - var(--st-panel-h)) / 2);
     height: calc(var(--st-panel-h) + var(--st-count, 4) * var(--st-step));
   }
   .service-tabs__panel {
@@ -2772,6 +2979,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 @media screen and (max-width: 991px) {
   .service-tabs__panel { grid-template-columns: minmax(0, 1fr); }
   .service-tabs__copy {
+    margin-right: 0;
+    margin-bottom: -1px;
     padding: 2.5rem 1.5rem 2rem;
     border-radius: var(--radius) var(--radius) 0 0;
   }
@@ -2785,8 +2994,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 @media screen and (min-width: 768px) and (max-width: 991px) and (min-height: 540px) {
   .service-tabs {
-    --st-panel-h: calc(100vh - var(--st-top) - var(--st-gap));
-    --st-panel-h: calc(100svh - var(--st-top) - var(--st-gap));
+    --st-panel-h: calc(100vh - var(--nav-h) - 2 * var(--st-gap));
+    --st-panel-h: calc(100svh - var(--nav-h) - 2 * var(--st-gap));
   }
   .service-tabs__panel { grid-template-rows: auto minmax(0, 1fr); }
   .service-tabs__copy { flex: none; }
@@ -2815,6 +3024,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
      that shows the drawing small may draw it finer */
   --sd-stroke: 1;
   --sd-dash: 3 3;
+  /* the ink's tints: a line, a soft line or ring, a lower layer, and the
+     setting-out; a field that needs the drawing brighter or quieter sets
+     them (the service tabs' panel) */
+  --sd-line: 60%;
+  --sd-soft: 32%;
+  --sd-layer: 34%;
+  --sd-setout: 24%;
   overflow: visible;
 }
 .service-diagram :is(path, circle) {
@@ -2823,32 +3039,32 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 .service-diagram__line {
   fill: none;
-  stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent);
+  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent);
   stroke-width: var(--sd-stroke);
 }
-.service-diagram__line.is--soft { stroke: color-mix(in srgb, var(--sd-ink) 32%, transparent); }
+.service-diagram__line.is--soft { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-soft), transparent); }
 .service-diagram__line.is--dash { stroke-dasharray: var(--sd-dash); }
-.service-diagram__line.is--dash:not(.is--soft) { stroke: color-mix(in srgb, var(--sd-ink) 24%, transparent); }
+.service-diagram__line.is--dash:not(.is--soft) { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-setout), transparent); }
 /* Solid lines are things; dotted ones are what moves or relates them:
    a path work takes, a design carried across, a part mapped into a plan.
    A path keeps its line's weight; only the setting-out is faint. */
 .service-diagram__line.is--path { stroke-dasharray: var(--sd-dash); }
 .service-diagram__ring {
   fill: var(--sd-ground);
-  stroke: color-mix(in srgb, var(--sd-ink) 32%, transparent);
+  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-soft), transparent);
   stroke-width: var(--sd-stroke);
 }
 .service-diagram__ring.is--accent { stroke: var(--sd-accent); }
-.service-diagram__ring.is--session { stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent); }
+.service-diagram__ring.is--session { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent); }
 /* a solid: its faces the field's ground, its edges the group's stroke */
 .service-diagram__solid {
   fill: var(--sd-ground);
-  stroke: color-mix(in srgb, var(--sd-ink) 60%, transparent);
+  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent);
   stroke-width: var(--sd-stroke);
 }
 .service-diagram__solid.is--accent { stroke: var(--sd-accent); }
 /* the lower layers of an exploded stack, a weight quieter */
-.service-diagram__solid.is--soft { stroke: color-mix(in srgb, var(--sd-ink) 34%, transparent); }
+.service-diagram__solid.is--soft { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-layer), transparent); }
 .service-diagram__accent {
   fill: none;
   stroke: var(--sd-accent);
@@ -2967,15 +3183,29 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
     right var(--mark-a) bottom var(--mark-b), right var(--mark-b) bottom var(--mark-a);
 }
 
-/* A dot of a grid lighting red (mountDotFlicker, dot-field.js): a square
-   the grid's dots' size, switched on and off by the script. */
-.dot-flicker {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 2px;
-  background: var(--c-red);
-  opacity: 0;
-  pointer-events: none;
+/* The ink band's fields of dots (approach-stack.js, index.astro): the
+   approach's, the logos' and the steps' pieces' one design, a dot of
+   1.5px (whole device pixels: dot-field.js) in one faint white, on the
+   pitch the approach field fits to its cards (--dot-pitch, set on each
+   by approach-stack.js; 0.875rem until then). */
+.dot-grid.band-field {
+  --dot-size: 1.5px;
+  --dot-grid-ink: rgba(255, 255, 255, 0.11);
 }
+/* the approach's a touch quieter, under its cards and rail */
+.dot-grid.band-field.approach-stack__field-dots { --dot-grid-ink: rgba(255, 255, 255, 0.09); }
+
+/* ============================================================
+   Seams
+   ------------------------------------------------------------
+   Two blocks that meet edge to edge seldom meet on a whole device
+   pixel: at most widths, zooms and densities their shared edge falls
+   part-way through one, each covers only part of it, and the ground
+   behind shows through as a hairline, there on one screen and gone on
+   the next. So wherever two grounds meet flush, the one in front runs a
+   pixel on under the next (a negative margin, or a pixel of its ground
+   past its edge), so the pixel they share is always covered: the cost
+   cards, the service tabs' halves, the band steps' pieces and their
+   foot, the Services cards (nav.css, --sc-bleed), the ink band's two
+   sections on one ground (.ink-band). A new flush pair takes the same.
+   ============================================================ */

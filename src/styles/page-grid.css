@@ -63,7 +63,7 @@
 
   /* Rows that compose across the grid. column-gap: normal hands them
      the grid's own gutter in place of the gap each sets as a flex row. */
-  .page--grid :is(.routes__head, .section-title, .creds__grid),
+  .page--grid :is(.section-title, .creds__grid),
   .page--grid .container > .pg-hero__grid {
     grid-column: 1 / -1;
     display: grid;
@@ -114,7 +114,7 @@
   }
 
   /* --- Intros: the lede in Grid Columns 2–4 -------------------- */
-  .page--grid :is(.routes__lede, .section-title > .text-md) { grid-column: 2 / 5; }
+  .page--grid .section-title > .text-md { grid-column: 2 / 5; }
 
   /* The intro headings start on Grid Column 7, as the hero's does, so
      the page has one heading line from top to bottom, and most keep
@@ -124,7 +124,6 @@
      stack's heading is the one that opens on the left, on Grid
      Column 2 (approach-stack.css), and the problems' title is centred
      on the page's centre line, over its cards (styles.css). */
-  .page--grid .routes__h { grid-column: 7 / 12; margin: 0; }
   .page--grid .section-title__body { grid-column: 7 / 12; margin: 0; }
   .page--grid .compare .section-title__body { grid-column: 6 / 12; }
   .page--grid .compare .h2 { text-wrap: balance; }

@@ -31,10 +31,12 @@ const REVEAL = 1;
 const FADE_OUT = 0.85;
 const OVERLAP = 0.15;
 const HOLD = 0.35;
-// how long each character takes to come in; when, after it starts to, it
-// turns from red to white, and how quickly — so only the few characters
-// at the leading edge are red at any moment, in the same units
-const CHAR_IN = 0.5;
+// how long each character takes to come in (long enough that a soft wave
+// of letters is coming in at once, rather than each flicking on); when,
+// after it starts to, it turns from red to white, and how quickly — so
+// only the few characters at the leading edge are red at any moment, in
+// the same units
+const CHAR_IN = 0.8;
 const RED_FOR = 0.22;
 const CHAR_SETTLE = 0.3;
 // the scrub's ease after the scroll (s)
@@ -48,14 +50,21 @@ export function mountStickyTitle(wrap) {
     const styles = getComputedStyle(wrap);
     const red = styles.getPropertyValue("--c-red").trim() || "#c40000";
 
+    // the held frame: where it is held (its sticky top) and its height
+    const frame = wrap.querySelector(".sticky-title__container");
     const masterTl = gsap.timeline({
       scrollTrigger: {
         // the held frame's run, after anything the section opens on
         trigger: wrap.querySelector('[data-sticky-title="track"]') || wrap,
-        start: "top 40%",
-        // to the held frame's release, so the frame lets go the moment the
-        // last statement has fully come in
-        end: "bottom bottom",
+        // held, from a little before the frame takes hold to its release
+        // (the track's foot at the frame's foot as held), so it lets go
+        // the moment the last statement has fully come in; not held
+        // (.is--static), from as the statement comes up into the screen
+        // to a little over the screen's middle
+        start: wrap.classList.contains("is--static") ? "top 85%" : "top 40%",
+        end: wrap.classList.contains("is--static")
+          ? "bottom 45%"
+          : () => `bottom ${(parseFloat(getComputedStyle(frame).top) || 0) + frame.offsetHeight}px`,
         scrub: SMOOTH,
       },
     });
@@ -116,6 +125,9 @@ export function mountStickyTitle(wrap) {
         const start = at(split.chars.indexOf(own[0]));
         const end = at(split.chars.indexOf(own[own.length - 1])) + step;
         headingTl.fromTo(mark, { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: end - start, ease: "none" }, start);
+        // and faded up with its letters, so the red ground comes in as
+        // softly as the words on it rather than standing whole ahead of them
+        headingTl.fromTo(mark, { opacity: 0 }, { opacity: 1, duration: end - start + CHAR_IN, ease: "none" }, start);
       });
       masterTl.add(headingTl, index === 0 ? 0 : `-=${OVERLAP}`);
       return split;
@@ -124,10 +136,42 @@ export function mountStickyTitle(wrap) {
     // lets go as soon as it has come in, with no scroll left empty after it
     if (headings.length > 1) masterTl.to({}, { duration: HOLD });
 
-    // The dotted line beside the statement draws down as the first comes
-    // in, ahead of it, so it stands whole before the frame lets go.
+    // The dotted line beside the statement is its progress: a track of
+    // dots, filled from the top as the first statement comes in, all
+    // filled as it is whole. The fill flows: its edge is soft over a couple
+    // of dots (sticky-title.css), so each dot brightens as the edge comes
+    // to it. Where it stands is counted in the line's dots' own box, which
+    // runs with the page while the frame is held (rule.leadShift, -pitch
+    // to 0, approach-stack.js's). Transforms alone: the fill's window
+    // comes down from above the line and the dots in it go back up by as
+    // much, so they stand still in the track. The line's length and the
+    // pitch are read on each refresh, never on the scroll.
     const rule = wrap.querySelector("[data-rail-lead]");
-    if (rule) masterTl.fromTo(rule, { scaleY: 0 }, { scaleY: 1, duration: REVEAL, ease: "none" }, 0);
+    const fill = rule?.querySelector(".sticky-title__rule-fill");
+    const lit = rule?.querySelector(".sticky-title__rule-lit");
+    const lead = { amount: 0, extent: 0, pitch: 18 };
+    const measureLead = () => {
+      if (!rule) return;
+      lead.extent = rule.offsetHeight;
+      lead.pitch = parseFloat(getComputedStyle(rule).getPropertyValue("--dot-pitch")) || 18;
+      fillLead();
+    };
+    function fillLead() {
+      if (!fill) return;
+      const { pitch, extent } = lead;
+      const box = extent + pitch;
+      // the fill's edge, past the line's foot by the soft edge's length
+      // once the statement is whole, so the last dot is fully lit
+      const edge = -(rule.leadShift || 0) + lead.amount * (extent + 2.5 * pitch);
+      fill.style.transform = `translate3d(0, ${(edge - box).toFixed(2)}px, 0)`;
+      lit.style.transform = `translate3d(0, ${(box - edge).toFixed(2)}px, 0)`;
+    }
+    if (rule) {
+      rule.leadLight = fillLead;
+      masterTl.fromTo(lead, { amount: 0 }, { amount: 1, duration: REVEAL + CHAR_IN / 2, ease: "none", onUpdate: fillLead }, 0);
+      measureLead();
+      ScrollTrigger.addEventListener("refresh", measureLead);
+    }
 
     // Run the timeline through once now, while the page is still covered.
     // A tween reads its start values off the element's computed style the
@@ -142,8 +186,12 @@ export function mountStickyTitle(wrap) {
       masterTl.scrollTrigger?.kill();
       masterTl.kill();
       splits.forEach((split) => split.revert());
-      gsap.set(wrap.querySelectorAll("[data-sticky-title-mark]"), { clearProps: "clipPath" });
-      if (rule) gsap.set(rule, { clearProps: "transform" });
+      gsap.set(wrap.querySelectorAll("[data-sticky-title-mark]"), { clearProps: "clipPath,opacity" });
+      if (rule) {
+        ScrollTrigger.removeEventListener("refresh", measureLead);
+        delete rule.leadLight;
+        fill.style.transform = lit.style.transform = "";
+      }
       headings.forEach((heading) => {
         heading.removeAttribute("aria-label");
         gsap.set(heading, { clearProps: "visibility" });

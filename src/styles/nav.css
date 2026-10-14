@@ -112,6 +112,13 @@
   /* the drawer's dropdown panels: the page's off-white, which the white
      cards and blocks stand off, as they do on the page; dark, the bar's */
   --nav-panel-bg: color-mix(in oklab, var(--c-light-bg), var(--c-dark-fg) var(--nav-dark));
+  /* The Services cards' ground on the bar's row (from 992px): the bar's
+     greys continued down rather than a ground of their own, a hair
+     lighter than the group's (#ececec) light, and dark a step darker than
+     the group's (which renders #181818), so the dropdown reads as the
+     bar's own and still stands apart from it. In the drawer the cards
+     keep the bar's ground, which the panel's off-white sets off. */
+  --nav-card-bg: color-mix(in oklab, #efefef, #121212 var(--nav-dark));
   /* the Services cards' dotted patterns (ServiceCard.astro): the site's
      ink dots on the white (--dot-grid-on-light, styles.css, a touch
      fainter, as these are lines of dots, not a field of them); on the
@@ -382,18 +389,17 @@
 /* --- Services cards (ServiceCard.astro) -----------------------------
    Minimal and typographic: each card one block, the service's name
    large in its middle, both ways, a line on the service small under it,
-   its number small in the top corner in the label face, and behind it a
-   pattern of its own, faint, stopping
+   and behind it a pattern of its own, faint, stopping
    round the name: the hero's linework (the Slash Field's upright
    strokes, drawn at build in ServiceCard.astro) or the site's dotted
    line (the drawings' grounds' dots, dot-field.js). The four share the
    strokes' weight and tints and the dots' size and spacing, so they
    read as one set with four characters.
 
-   The card takes the nav's state, as the bar does: the bar's own ground
-   and ink (--nav-bg, --nav-fg), so light it is white with the name in
-   ink, dark near-black with the name in white, and the strokes, the
-   number and the hover's shade are all the card's ink (currentColor),
+   The card takes the nav's state, as the bar does: a ground of the
+   bar's greys (--nav-card-bg) and the bar's ink (--nav-fg), so light it
+   is a near-white with the name in ink, dark a charcoal with the name in
+   white, and the strokes and the hover's shade are the card's ink (currentColor),
    the dots theirs (--nav-card-dots). The dots are drawn on a canvas,
    which the menu redraws when the state reaches the dropdown
    (initMegaNav).
@@ -426,10 +432,6 @@
   /* the hover's shade, the card's ink laid over its ground: a light over
      the near-black, a shadow over the white */
   --sc-shade: currentColor;
-  /* the patterns faded out round the number in the corner, measured from
-     the card's own corner, so it holds however a pattern is cropped to
-     the card */
-  --sc-num-fade: radial-gradient(circle at calc(var(--sc-pad) + 0.5rem) calc(var(--sc-pad) + 0.375rem), transparent 1.75rem, #000 3.25rem);
   /* The cards stand flush, one ground, but a quarter of the screen is
      seldom a whole number of device pixels (1366px at 1.5x puts an edge
      at 1024.5): there the two cards' edges each half cover the pixel
@@ -438,7 +440,8 @@
      past its edge, under the card after it — along the row from 992px,
      down the column in the drawer — and the seam always has the ground
      beneath it. */
-  --sc-bleed: 1px 0 0 var(--nav-bg);
+  --sc-bleed: 1px 0 0 var(--sc-card-bg);
+  --sc-card-bg: var(--nav-card-bg);
   position: relative;
   display: grid;
   place-items: center;
@@ -448,7 +451,7 @@
   min-height: calc(9 * var(--sc-step));
   padding: calc(2 * var(--sc-step)) var(--sc-pad);
   overflow: hidden;
-  background: var(--nav-bg);
+  background: var(--sc-card-bg);
   box-shadow: var(--sc-bleed);
   color: var(--nav-fg);
   text-decoration: none;
@@ -479,8 +482,6 @@
   fill: none;
   stroke: currentColor;
   pointer-events: none;
-  -webkit-mask-image: var(--sc-num-fade);
-  mask-image: var(--sc-num-fade);
 }
 .service-card__pattern path {
   stroke-width: 1;
@@ -488,33 +489,18 @@
 }
 /* the dots, to the card's edges, on their canvas (dot-field.js), in the
    state's dot ink; open round the name by the clearing the strokes take
-   (--sc-clear, ServiceCard.astro), and faded round the number as they are */
+   (--sc-clear, ServiceCard.astro) */
 .service-card__dots {
   --iso-line: var(--nav-card-dots);
   position: absolute;
   inset: 0;
   pointer-events: none;
-  -webkit-mask-image: var(--sc-clear), var(--sc-num-fade);
-  mask-image: var(--sc-clear), var(--sc-num-fade);
+  -webkit-mask-image: var(--sc-clear);
+  mask-image: var(--sc-clear);
   -webkit-mask-size: 100% 100%;
   mask-size: 100% 100%;
-  -webkit-mask-composite: source-in;
-  mask-composite: intersect;
 }
 .service-card__dots > canvas { display: block; }
-/* the number, small, in the top corner, in the label face, in the
-   card's ink, held back */
-.service-card__num {
-  position: absolute;
-  top: var(--sc-pad);
-  left: var(--sc-pad);
-  z-index: 1;
-  font-family: var(--font-mono);
-  font-size: .75rem;
-  line-height: 1;
-  letter-spacing: 0;
-  color: color-mix(in srgb, currentColor 55%, transparent);
-}
 /* the name, large, on one line where it fits (the dropdown's short
    names all do), evened out where it must wrap */
 .service-card__title {
@@ -522,15 +508,15 @@
   z-index: 1;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 2.25rem;
+  font-size: 2.125rem;
   line-height: 1.05;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
   text-align: center;
   text-wrap: balance;
 }
 /* the line on the service, under the name: the body face, well under the
-   name's size, in the card's ink held back as the number is, on a
-   measure that sets each line on two, evened out */
+   name's size, in the card's ink held back, in the two lines it is set
+   in (Nav.astro), each wrapping only where a card is too narrow for it */
 .service-card__text {
   position: relative;
   z-index: 1;
@@ -538,7 +524,6 @@
   font-size: .875rem;
   line-height: 1.4;
   text-align: center;
-  text-wrap: balance;
   color: color-mix(in srgb, currentColor 66%, transparent);
 }
 /* the name as it is written, for screen readers only, where what is
@@ -594,7 +579,13 @@
    are told apart by tone alone. A link row takes the cards' hover, a
    shade laid over it, and their focus ring. */
 
+/* The Resources blocks a hair off white, as the Services cards are
+   (--nav-card-bg), their mark's square and their feature's field each a
+   step under that, so the dropdown sits closer to the bar's greys */
 .resource-block {
+  --sc-ground: #efefef;
+  --sc-num: #e2e2e2;
+  --sc-field: #e7e7e7;
   position: relative;
   display: grid;
   grid-template-columns: var(--sc-head) minmax(0, 1fr);
@@ -958,7 +949,7 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
      down, on one line where it fits. */
   .service-card__title { font-size: 1.5rem; }
   .service-card { row-gap: .5rem; }
-  .service-card { --sc-bleed: 0 1px 0 var(--nav-bg); }
+  .service-card { --sc-card-bg: var(--nav-bg); --sc-bleed: 0 1px 0 var(--sc-card-bg); }
 }
 
 @media screen and (max-width: 479px) {

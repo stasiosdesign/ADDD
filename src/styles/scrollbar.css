@@ -1,0 +1,61 @@
+/* ============================================================
+   Scrollbar (ScrollBar.astro, scrollbar.js)
+   ------------------------------------------------------------
+   A 176px track at the right edge, in the middle of the screen, and a
+   48px thumb that runs its length (128px) as the page goes from top to
+   foot; squared. Both white, blended by exclusion, so over the off-white
+   the thumb reads near black and the track a light grey, and over the
+   ink the other way round, with nothing to switch per section.
+
+   Over the nav (100), under the wipe and the grid overlay (200).
+   Hidden while the page is still and nobody is on it (.is--shown, set
+   while it scrolls, is hovered or dragged), and below 768px, where the
+   page scrolls by touch.
+   ============================================================ */
+.scrollbar {
+  --bar-h: 11rem;
+  --thumb-h: 3rem;
+  position: fixed;
+  right: 1rem;
+  top: 50%;
+  z-index: 150;
+  width: 4px;
+  height: var(--bar-h);
+  translate: 0 -50%;
+  mix-blend-mode: exclusion;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  cursor: pointer;
+}
+.scrollbar.is--shown { opacity: 1; }
+/* a wider reach for the pointer than the bar's 4px */
+.scrollbar::before {
+  content: "";
+  position: absolute;
+  inset: 0 -0.625rem;
+}
+.scrollbar__track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.2);
+}
+.scrollbar__thumb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--thumb-h);
+  background: #fff;
+  will-change: transform;
+  cursor: grab;
+  transition: scale 0.3s ease-out;
+}
+/* wider as the pointer comes to the bar, from its middle */
+.scrollbar:hover .scrollbar__thumb,
+.scrollbar.is--dragging .scrollbar__thumb { scale: 1.8 1; }
+.scrollbar.is--dragging,
+.scrollbar.is--dragging .scrollbar__thumb { cursor: grabbing; }
+
+@media screen and (max-width: 767px) {
+  .scrollbar { display: none; }
+}

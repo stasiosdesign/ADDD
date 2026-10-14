@@ -23,13 +23,13 @@ import "./gsap-setup.js";
 import { motion, coverPage, showPage, pageShown, registerPageCleanup, runPageCleanups } from "./page.js";
 import { lenis, resetScroll } from "./scroll.js";
 import { initNav, initNavLinks } from "./nav.js";
-import { initHeroParallax, initFooterParallax, initGlobalParallax, initProblemParallax } from "./parallax.js";
+import { initHeroParallax, initFooterParallax, initGlobalParallax, initProblemParallax, initRevealParallax, initBandSteps } from "./parallax.js";
 import { initLineReveal, initStackCards, LINE_REVEAL } from "./reveals.js";
 import { initInsightSlider } from "./insight-slider.js";
 import { initApproachSlides, initShutterScrollTransition } from "./approach-slides.js";
 import { initFilterGroups } from "./filter-groups.js";
-import { initWavyMarquee } from "./wavy-marquee.js";
 import { initColumnGrid } from "./column-grid.js";
+import { initScrollbar } from "./scrollbar.js";
 import { initLogoMorphLoader } from "./logo-morph-loader.js";
 import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
@@ -40,6 +40,8 @@ import { mountServiceDiagram } from "./service-diagram.js";
 import { mountCoinStack } from "./coin-stack.js";
 import { mountTestimonialSlider } from "./testimonial-slider.js";
 import { mountServiceTabs } from "./service-tabs.js";
+import { mountLogoWallCycle } from "./logo-wall-cycle.js";
+import { mountDotSnap } from "./dot-snap.js";
 
 
 // The wipe panel lives outside the Barba container, so it is looked up once.
@@ -406,10 +408,13 @@ const PAGE_COMPONENTS = [
   ["[data-enquiry-offer]", initEnquiryOffer],
   ["[data-slash-field]", initSlashField],
   ["[data-word-cycle]", initWordCycle],
+  ["[data-logo-wall-cycle-init]", initLogoWallCycle],
+  ["[data-dot-snap]", initDotSnap],
   ["[data-filter-group]", initFilterGroups],
   ["[data-hero-parallax]", initHeroParallax],
   ["[data-footer-parallax]", initFooterParallax],
-  ["[data-wavy-marquee-init]", initLogoMarquee],
+  ["[data-reveal-parallax]", initRevealParallax],
+  ["[data-band-steps]", initBandSteps],
   [".nav-link", initNavLinks],
 ];
 
@@ -593,12 +598,13 @@ function replayHeldHistoryStep() {
 barba.hooks.after(replayHeldHistoryStep);
 barba.hooks.afterOnce(replayHeldHistoryStep);
 
-// The nav, the Contact button and the layout grid live outside the Barba
-// container, so they survive every navigation and are wired up once per
-// document load.
+// The nav, the Contact button, the layout grid and the scrollbar live
+// outside the Barba container, so they survive every navigation and are
+// wired up once per document load.
 initNav();
 initHomeLink();
 initColumnGrid();
+initScrollbar();
 
 barba.init({
   debug: false,
@@ -636,13 +642,6 @@ barba.init({
 // COMPONENTS
 // -----------------------------------------
 
-function initLogoMarquee(container) {
-  container.querySelectorAll("[data-wavy-marquee-init]").forEach((el) => {
-    const marquee = initWavyMarquee(el);
-    if (marquee) registerPageCleanup(marquee.destroy);
-  });
-}
-
 
 /* ============================================================
    Approach stack — the homepage's steps (approach-stack.js)
@@ -671,6 +670,20 @@ function initApproachStack(container) {
    ============================================================
    Mounted per page from the registry and torn down with it.
    ============================================================ */
+function initLogoWallCycle(container) {
+  container.querySelectorAll("[data-logo-wall-cycle-init]").forEach((root) => {
+    const wall = mountLogoWallCycle(root);
+    registerPageCleanup(() => wall.destroy());
+  });
+}
+
+function initDotSnap(container) {
+  container.querySelectorAll("[data-dot-snap]").forEach((el) => {
+    const snap = mountDotSnap(el);
+    registerPageCleanup(() => snap.destroy());
+  });
+}
+
 function initWordCycle(container) {
   container.querySelectorAll("[data-word-cycle]").forEach((el) => {
     const cycle = mountWordCycle(el);
@@ -717,6 +730,9 @@ function initServiceTabs(container) {
   container.querySelectorAll("[data-service-tabs]").forEach((el) => {
     const tabs = mountServiceTabs(el, {
       reducedMotion: motion.reduced,
+      // in the Studio's preview the Visual editor writes into the words,
+      // so they are left unsplit
+      still: document.documentElement.hasAttribute("data-draft"),
       scrollTo: (target) => {
         if (motion.reduced) return lenis.scrollTo(target, { immediate: true });
         const distance = Math.abs(target - window.scrollY);

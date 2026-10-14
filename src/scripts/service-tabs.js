@@ -1,126 +1,123 @@
 /* ============================================================
-   Service tabs — the four routes in one panel that changes in place
-   (src/components/ServiceTabs.astro, styles.css "service tabs")
+   Service tabs — the four routes in one panel, moved through by the
+   scroll (src/components/ServiceTabs.astro, styles.css "service tabs")
    ------------------------------------------------------------
-   After Osmo's Sticky Features, whose transitions these are. Where the
-   screen is tall and wide enough (STICKY, as the stylesheet has it) the
-   panel sticks under the nav for a stretch of scroll (position:
-   sticky), and the scroll takes it through the four
-   routes: each has an equal share of that stretch, the route in front
-   is the share the scroll is in, and the bar of its position fills as
-   the scroll crosses its share. Once the last share is done the panel
-   lets go and the page scrolls on. Pressing a position scrolls to the
-   start of its share (the caller's scrollTo, on Lenis). On a smaller
-   screen the panel sits in the flow and a position is pressed to change
-   the route.
+   Where the screen is tall and wide enough (STICKY, as the stylesheet
+   has it) the panel sticks under the nav for a stretch of scroll
+   (position: sticky), and the scroll takes it through the four routes:
+   each has an equal share of that stretch. Once the last share is done
+   the panel lets go and the page scrolls on. Pressing a number scrolls
+   to the middle of its share (the caller's scrollTo, on Lenis). On a
+   smaller screen the panel sits in the flow and a number is pressed to
+   change the route.
 
-   A change: the words of the route going leave the way the scroll runs
-   (each of its title, line and button 30px up as it fades, scrolling
-   down; down, scrolling back up), and the next route's come in after
-   them from the other side, one after another. A drawing after the one
-   shown opens over it from the middle (a clip-path inset); one before it
-   is shown as the drawing over it closes back to the middle, so the
-   panels stack in their order whichever way the scroll runs, and every
-   panel over the one shown is closed once it settles. A change caught
-   part-way by the next is taken up from where it is; the scroll may skip
-   several routes at once, and goes straight to the one it lands on. A
-   route found by a refresh (a reload part-way, a resize) is set at once.
+   One number, s, says where the drawings are: 0 on the first route, 1
+   on the second, and between two, part-way. It follows the scroll, a
+   moment behind it (SMOOTH), so the strip glides rather than steps:
 
-   With reduced motion the words and the drawing change at once.
+     - the drawings, one under another in a strip, are carried up the
+       panel s drawings' heights (one lattice stands still behind them:
+       dot-field.js), with the scroll, wherever it stops;
+     - the words are not. They change only once the strip is well past
+       the middle of a hand-over (SWITCH: a tolerance either way, so a
+       scroll that stops near the middle, or turns there, never flickers
+       between two routes), and then as a change of their own, timed
+       rather than scrolled: the route's lines (its name, its line split
+       into lines, its button) rise out through their masks, top line
+       first, the way the scroll runs, and the next route's rise in
+       after them from the other side. Words are never left half-split
+       where the scroll stops. A change caught by the next is taken up
+       from where it is; the scroll may skip several routes, and the
+       words go straight to the one it lands on;
+     - the route in front is the one whose words show: its number's
+       state, and the one a reader and the keyboard reach.
+
+   s runs on an even pace with a sine wave on it (curve), slowest with
+   each route in the middle of the panel and quickest at the hand-over,
+   and holds at either end of the stretch, as the panel sticks and lets
+   go. The number of the route in front fills white across its route's
+   share of the scroll, from the left, a small loading bar of its own,
+   its numeral in the ink where the white has reached it; every other
+   number stays grey.
+
+   In the flow, a pressed number eases s to its route (SLIDE), and fills
+   only its own square. With reduced motion the route changes at once.
    ============================================================ */
 
-// Osmo's: the drawing's opening and closing; the words going and coming
-const REVEAL = { duration: 0.75, ease: "power4.inOut" };
-const WORDS = { shift: 30, out: 0.4, in: 0.75, stagger: 0.1, ease: "power4.out" };
 // where the panel sticks (the stylesheet's own query)
 const STICKY = "(min-width: 768px) and (min-height: 540px)";
+// how slow the strip runs with a route in the middle, as a share of its
+// even pace (the rest goes into the hand-over): slow enough to read by,
+// never quite still
+const DWELL = 0.12;
+// how far behind the scroll the strip follows (s), so it glides
+const SMOOTH = { duration: 0.6, ease: "power3.out" };
+// how far past the route shown the strip must go (in routes) before the
+// words change: past the hand-over's middle by a margin either way
+const SWITCH = 0.6;
+// the words' change: the lines going, then the lines coming, each a
+// line's height through its mask, one after another; the coming start
+// as the going are nearly gone (at)
+const WORDS = {
+  out: { duration: 0.42, stagger: 0.045, ease: "power2.in" },
+  in: { duration: 0.75, stagger: 0.07, ease: "power3.out" },
+  at: 0.32,
+};
+// a pressed route's move, in the flow
+const SLIDE = { duration: 0.9, ease: "power3.inOut" };
 
-const OPEN = "inset(0% 0% 0% 0%)";
-const SHUT = "inset(50% 50% 50% 50%)";
-
-export function mountServiceTabs(root, { reducedMotion = false, scrollTo = (y) => window.scrollTo(0, y) } = {}) {
+export function mountServiceTabs(root, { reducedMotion = false, still = false, scrollTo = (y) => window.scrollTo(0, y) } = {}) {
   const panel = root.querySelector("[data-service-tabs-panel]");
   const items = [...root.querySelectorAll("[data-service-tabs-item]")];
+  const track = root.querySelector("[data-service-tabs-track]");
   const visuals = [...root.querySelectorAll("[data-service-tabs-visual]")];
   const buttons = [...root.querySelectorAll("[data-service-tabs-button]")];
-  const fills = buttons.map((button) => button.querySelector("[data-service-tabs-progress]"));
+  const fills = buttons.map((button) => button.querySelector("[data-service-tabs-fill]"));
   const count = Math.min(items.length, visuals.length, buttons.length);
-  if (!panel || count < 1) return { destroy() {} };
+  if (!panel || !track || count < 1) return { destroy() {} };
 
   const texts = items.map((item) => [...item.querySelectorAll("[data-service-tabs-text]")]);
-  const wordRuns = new Array(count).fill(null);
-  const visualRuns = new Array(count).fill(null);
-  let current = 0;
-  // what pressing a position does, by the mode the screen is in
-  let press = (i) => goTo(i);
+  const clamp = gsap.utils.clamp;
+  const state = { s: 0 };
+  // the route whose words show, and their change under way
+  let shown = 0;
+  let words = null;
+  let slide = null;
+  // what pressing a number does, by the mode the screen is in, and how
+  // the numbers are filled again when the route in front changes
+  let press = () => {};
+  let refill = () => {};
 
-  // at rest: the first route's words and drawing, every other's out of sight
-  items.forEach((item, i) => {
-    gsap.set(item, { autoAlpha: i === 0 ? 1 : 0 });
-    item.inert = i !== 0;
-  });
-  visuals.forEach((visual, i) => gsap.set(visual, { clipPath: i === 0 ? OPEN : SHUT }));
-  gsap.set(fills, { scaleX: 0, transformOrigin: "0% 50%" });
-
-  // the words of route i going, or coming, the way the change runs
-  // (dir 1, on down the page; -1, back up it)
-  function wordsOut(i, dir) {
-    wordRuns[i]?.kill();
-    if (reducedMotion) {
-      gsap.set(texts[i], { autoAlpha: 0, y: 0 });
-      gsap.set(items[i], { autoAlpha: 0 });
-      return;
-    }
-    wordRuns[i] = gsap.timeline()
-      .to(texts[i], { autoAlpha: 0, y: -dir * WORDS.shift, duration: WORDS.out, ease: WORDS.ease })
-      .set(items[i], { autoAlpha: 0 });
-  }
-  function wordsIn(i, dir) {
-    wordRuns[i]?.kill();
-    gsap.set(items[i], { autoAlpha: 1 });
-    if (reducedMotion) {
-      gsap.set(texts[i], { autoAlpha: 1, y: 0 });
-      return;
-    }
-    wordRuns[i] = gsap.timeline().fromTo(
-      texts[i],
-      { autoAlpha: 0, y: dir * WORDS.shift },
-      { autoAlpha: 1, y: 0, duration: WORDS.in, ease: WORDS.ease, stagger: WORDS.stagger },
-    );
+  // Each route's lines, top to bottom: the name and the button whole (each
+  // one line, in a mask of its own: ServiceTabs.astro), the line under the
+  // name split into its lines, each in a mask (SplitText, as the headings'
+  // line reveal; split again as its width changes or the webfont arrives,
+  // and set where they stand). Unsplit in the Studio's preview, where the
+  // words fade instead.
+  const lines = texts.map((pieces) => pieces);
+  const splits = [];
+  if (!still) {
+    texts.forEach((pieces, i) => {
+      pieces.forEach((el) => {
+        if (!el.hasAttribute("data-service-tabs-split")) return;
+        splits.push(SplitText.create(el, {
+          type: "lines",
+          mask: "lines",
+          linesClass: "line",
+          aria: "none",
+          autoSplit: true,
+          onSplit(self) {
+            lines[i] = pieces.flatMap((piece) => (piece === el ? self.lines : [piece]));
+            words?.progress(1);
+            gsap.set(lines[i], { yPercent: i === shown ? 0 : 100 });
+          },
+        }));
+      });
+    });
   }
 
-  // the drawings stack in their order, so a later one opens over the shown
-  // one and an earlier one is uncovered by closing the ones over it
-  function clip(i, to) {
-    visualRuns[i]?.kill();
-    if (reducedMotion) {
-      gsap.set(visuals[i], { clipPath: to });
-      return;
-    }
-    visualRuns[i] = gsap.to(visuals[i], { clipPath: to, duration: REVEAL.duration, ease: REVEAL.ease });
-  }
-  function showVisual(from, to) {
-    if (to > from) {
-      clip(to, OPEN);
-      return;
-    }
-    // the one to show waits open under the others; those between it and
-    // the one going are shut at once, out of sight under it
-    visualRuns[to]?.kill();
-    gsap.set(visuals[to], { clipPath: OPEN });
-    for (let k = to + 1; k < from; k++) {
-      visualRuns[k]?.kill();
-      gsap.set(visuals[k], { clipPath: SHUT });
-    }
-    // and any above the one going, unless still closing from a change
-    for (let k = from + 1; k < count; k++) {
-      if (visualRuns[k]?.isActive()) continue;
-      gsap.set(visuals[k], { clipPath: SHUT });
-    }
-    clip(from, SHUT);
-  }
-
-  // the positions: which is in front, to the eye and to a reader
+  // the route in front: its number, and the one a reader and the
+  // keyboard reach
   function select(i) {
     buttons.forEach((button, k) => {
       const on = k === i;
@@ -133,39 +130,97 @@ export function mountServiceTabs(root, { reducedMotion = false, scrollTo = (y) =
       item.inert = k !== i;
     });
   }
-  // the bar in front, filled by this much; the others empty
-  function fill(i, amount) {
-    fills.forEach((el, k) => gsap.set(el, { scaleX: k === i ? amount : 0 }));
-  }
 
-  function goTo(next, { instant = false } = {}) {
-    if (next < 0 || next >= count || next === current) return;
-    const from = current;
-    const dir = next > from ? 1 : -1;
-    current = next;
+  // The words to route next: the shown route's lines out the way the
+  // change runs (dir 1, on down the page: up and out; -1, back: down and
+  // out), then the next route's in from the other side. Every other
+  // route's put away, out of sight below.
+  function showWords(next, { instant = false } = {}) {
+    const from = shown;
+    const dir = next >= from ? 1 : -1;
+    shown = next;
     select(next);
-    if (instant) {
-      wordRuns.forEach((run) => run?.kill());
-      visualRuns.forEach((run) => run?.kill());
-      items.forEach((item, k) => gsap.set(item, { autoAlpha: k === next ? 1 : 0 }));
-      gsap.set(texts.flat(), { autoAlpha: 1, y: 0 });
-      visuals.forEach((visual, k) => gsap.set(visual, { clipPath: k <= next ? OPEN : SHUT }));
+    refill();
+    words?.kill();
+    words = null;
+    items.forEach((item, i) => {
+      if (i === next || (i === from && !instant)) return;
+      item.style.visibility = "hidden";
+      if (still) item.style.opacity = "0";
+      else gsap.set(lines[i], { yPercent: 100 });
+    });
+    if (instant || reducedMotion || from === next) {
+      items[from].style.visibility = from === next ? "visible" : "hidden";
+      items[next].style.visibility = "visible";
+      if (still) items[next].style.opacity = "1";
+      else gsap.set(lines[next], { yPercent: 0 });
       return;
     }
-    wordsOut(from, dir);
-    wordsIn(next, dir);
-    showVisual(from, next);
+    words = gsap.timeline();
+    if (still) {
+      words.to(items[from], { opacity: 0, duration: WORDS.out.duration, ease: "power1.inOut" }, 0);
+    } else {
+      words.to(lines[from], { yPercent: -100 * dir, ...WORDS.out }, 0);
+    }
+    words.set(items[from], { visibility: "hidden" });
+    words.set(items[next], { visibility: "visible" }, WORDS.at);
+    if (still) {
+      words.fromTo(items[next], { opacity: 0 }, { opacity: 1, duration: WORDS.in.duration, ease: "power1.inOut" }, WORDS.at);
+    } else {
+      words.fromTo(lines[next], { yPercent: 100 * dir }, { yPercent: 0, ...WORDS.in }, WORDS.at);
+    }
   }
 
+  // The numbers' fills: the route in front's, amount (0–1) of its block
+  // from the left; every other faded out where it stands (the stylesheet
+  // eases the fade), rather than cut, so a hand-over between two numbers
+  // is a soft one.
+  function fillTo(active, amount) {
+    fills.forEach((el, k) => {
+      const on = k === active;
+      el.style.opacity = on ? "1" : "0";
+      if (on) el.style.clipPath = `inset(0 ${((1 - clamp(0, 1, amount)) * 100).toFixed(2)}% 0 0)`;
+    });
+  }
+
+  // The strip at s, and the words changed once it is far enough past the
+  // route they show.
+  function draw(s) {
+    state.s = s;
+    track.style.transform = `translate3d(0, ${(-100 * s).toFixed(3)}%, 0)`;
+    if (Math.abs(s - shown) > SWITCH) showWords(clamp(0, count - 1, Math.round(s)));
+  }
+
+  // the scroll's way through the stretch, u routes (0–count), as s: an
+  // even run with a sine wave on it, slowest at each route's middle
+  // (u = i + 0.5, s = i), held at either end
+  const k = 1 - DWELL;
+  const curve = (u) => {
+    const x = u - 0.5;
+    return clamp(0, count - 1, x - (k * Math.sin(2 * Math.PI * x)) / (2 * Math.PI));
+  };
+
+  // at rest: the first route. Split, the masks alone hide the words, so
+  // every route is held at full opacity (the stylesheet fades all but the
+  // one in front, for the page without the script)
+  if (!still) items.forEach((item) => { item.style.opacity = "1"; });
+  showWords(0, { instant: true });
+  draw(0);
+  fillTo(0, 1);
+
   const mm = gsap.matchMedia();
-  // stuck: the scroll through the panel's stretch takes it through the routes
+  // stuck: the scroll through the panel's stretch moves the strip, a
+  // moment behind it, and fills the numbers
   mm.add(STICKY, () => {
     const stickAt = () => parseFloat(getComputedStyle(panel).top) || 0;
-    // the share of the stretch the scroll is in, and how far across it
-    const follow = (progress, instant) => {
-      const i = Math.min(count - 1, Math.floor(progress * count));
-      goTo(i, { instant });
-      fill(i, progress >= 1 ? 1 : progress * count - i);
+    const glide = reducedMotion ? null : gsap.quickTo(state, "s", { ...SMOOTH, onUpdate: () => draw(state.s) });
+    // only the route in front fills, across its own share; the rest grey
+    let u = 0;
+    refill = () => fillTo(shown, u - shown);
+    const target = (progress) => {
+      u = progress * count;
+      refill();
+      return reducedMotion ? clamp(0, count - 1, Math.floor(u)) : curve(u);
     };
     const range = ScrollTrigger.create({
       trigger: root,
@@ -173,26 +228,53 @@ export function mountServiceTabs(root, { reducedMotion = false, scrollTo = (y) =
       start: () => `top ${stickAt()}px`,
       end: () => `+=${Math.max(1, root.offsetHeight - panel.offsetHeight)}`,
       invalidateOnRefresh: true,
-      onUpdate: (self) => follow(self.progress, false),
-      onRefresh: (self) => follow(self.progress, true),
+      onUpdate: (self) => {
+        const s = target(self.progress);
+        if (glide) glide(s);
+        else draw(s);
+      },
+      // found by a refresh (a reload part-way, a resize): set at once
+      onRefresh: (self) => {
+        const s = target(self.progress);
+        if (glide) glide(s, s);
+        draw(s);
+        showWords(clamp(0, count - 1, Math.round(s)), { instant: true });
+      },
     });
-    // a position takes the scroll to just inside the start of its share
-    press = (i) => scrollTo(range.start + ((i + 0.02) / count) * (range.end - range.start));
+    // a number takes the scroll to the middle of its share, where its
+    // route stands in the middle of the panel
+    press = (i) => scrollTo(range.start + ((i + 0.5) / count) * (range.end - range.start));
     return () => {
       range.kill();
-      press = (i) => goTo(i);
+      gsap.killTweensOf(state);
+      refill = () => {};
     };
   });
-  // in the flow: a position changes the route, its bar full
+  // in the flow: a number eases the strip to its route, the words
+  // changing as it passes
   mm.add(`not all and ${STICKY}`, () => {
-    fill(current, 1);
-    press = (i) => {
-      goTo(i);
-      fill(current, 1);
+    const to = (i) => {
+      slide?.kill();
+      fillTo(i, 1);
+      if (reducedMotion) {
+        draw(i);
+        return showWords(i, { instant: true });
+      }
+      slide = gsap.to(state, {
+        s: i,
+        duration: SLIDE.duration,
+        ease: SLIDE.ease,
+        onUpdate: () => draw(state.s),
+        // a route only a step away may stop inside the tolerance
+        onComplete: () => shown !== i && showWords(i),
+      });
     };
+    to(clamp(0, count - 1, Math.round(state.s)));
+    press = to;
+    return () => slide?.kill();
   });
 
-  // pressing a position, or moving along them from the keyboard
+  // pressing a number, or moving along them from the keyboard
   const onClick = (e) => {
     const i = buttons.indexOf(e.target.closest("[data-service-tabs-button]"));
     if (i >= 0) press(i);
@@ -214,10 +296,20 @@ export function mountServiceTabs(root, { reducedMotion = false, scrollTo = (y) =
       root.removeEventListener("click", onClick);
       root.removeEventListener("keydown", onKey);
       mm.revert();
-      wordRuns.forEach((run) => run?.kill());
-      visualRuns.forEach((run) => run?.kill());
-      items.forEach((item) => { item.inert = false; });
-      gsap.set([...items, ...texts.flat(), ...visuals, ...fills], { clearProps: "all" });
+      slide?.kill();
+      words?.kill();
+      items.forEach((item) => {
+        item.inert = false;
+        item.style.removeProperty("visibility");
+        item.style.removeProperty("opacity");
+      });
+      splits.forEach((split) => split.revert());
+      gsap.set(texts.flat(), { clearProps: "transform" });
+      fills.forEach((el) => {
+        el.style.removeProperty("clip-path");
+        el.style.removeProperty("opacity");
+      });
+      track.style.removeProperty("transform");
     },
   };
 }

@@ -17,7 +17,7 @@ export const homePage = {
     secondaryButton: 'Work With Us',
   },
   logos: {
-    title: 'Used & trusted by\nLeading practices',
+    title: 'Practices\nwe’ve worked with',
   },
   approach: {
     statement:
@@ -69,6 +69,11 @@ export const homePage = {
         name: 'Elena Foster',
         role: 'Design director, Haworth Tompkins',
         clientId: 'client-haworth-tompkins',
+      },
+      {
+        quote: 'The proposal was professionally presented and the report was clear, insightful and highly informative. It provided valuable guidance for our internal discussions and decision making, while also highlighting a range of AI opportunities and solutions that we would not have identified independently. Thank you for your time, expertise and the quality of the recommendations provided.',
+        role: 'DMWR Architects',
+        clientId: 'client-dmwr',
       },
     ]),
   },

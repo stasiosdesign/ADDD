@@ -34,9 +34,15 @@ interface Props {
       it, revealed with its letters (sticky-title.js). Where the statement no
       longer has it, the statement is set plain. */
   mark?: string;
+  /** The band's field of dots behind the whole section, the "before" slot and the held frame alike (.band-field, styles.css). */
+  dots?: boolean;
+  /** The statements on Grid Columns 2–11, the first line indented two columns (--st-indent, sticky-title.css). */
+  wide?: boolean;
+  /** Hold the statements on the screen while the section scrolls under them (the default); false sets them in the page's flow, revealed as they come up the screen. */
+  hold?: boolean;
 }
 
-const { headings, id, class: className, "aria-label": label, navHold = false, field, rule = false, mark } = Astro.props;
+const { headings, id, class: className, "aria-label": label, navHold = false, field, rule = false, mark, dots = false, wide = false, hold = true } = Astro.props;
 
 // A statement around its marked phrase, where it has it.
 const parts = (text: string) => {
@@ -44,14 +50,15 @@ const parts = (text: string) => {
   return at < 0 ? null : { before: text.slice(0, at), mark: mark!, after: text.slice(at + mark!.length) };
 };
 ---
-<section data-sticky-title="wrap" class:list={["sticky-title", className]} id={id} aria-label={label} data-nav-hold={navHold ? "" : undefined} style={`--headings:${headings.length}`}>
+<section data-sticky-title="wrap" class:list={["sticky-title", className, { "is--static": !hold }]} id={id} aria-label={label} data-nav-hold={navHold ? "" : undefined} style={`--headings:${headings.length}`}>
+  {dots && <span class="sticky-title__dots dot-grid band-field" aria-hidden="true"></span>}
   <slot name="before" />
   <div data-sticky-title="track" class="sticky-title__track">
     <div class="sticky-title__container">
       <slot name="top" />
       <div class="sticky-title__stage">
-        <div class="sticky-title__inner">
-          {rule && <span class="sticky-title__rule" aria-hidden="true" data-rail-lead></span>}
+        <div class:list={["sticky-title__inner", { "is--wide": wide }]}>
+          {rule && <span class="sticky-title__rule" aria-hidden="true" data-rail-lead><span class="sticky-title__rule-dots"><span class="sticky-title__rule-fill"><span class="sticky-title__rule-lit"></span></span></span></span>}
           {headings.map((text, i) => {
             const p = parts(text);
             return (

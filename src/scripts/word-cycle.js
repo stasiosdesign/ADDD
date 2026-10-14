@@ -50,7 +50,9 @@ export function mountWordCycle(el) {
 
   mm.add("(prefers-reduced-motion: no-preference)", () => {
     const written = el.textContent;
-    heading.setAttribute("aria-label", heading.textContent.replace(/\s+/g, " ").trim());
+    // the heading's name as written, unless it already has one of its own
+    const named = heading.hasAttribute("aria-label");
+    if (!named) heading.setAttribute("aria-label", heading.textContent.replace(/\s+/g, " ").trim());
 
     // A copy of the word, out of sight in the heading, to measure the next
     // word in the heading's own type.
@@ -161,7 +163,7 @@ export function mountWordCycle(el) {
       ruler.remove();
       el.textContent = written;
       gsap.set(el, { clearProps: "width" });
-      heading.removeAttribute("aria-label");
+      if (!named) heading.removeAttribute("aria-label");
     };
   });
 
