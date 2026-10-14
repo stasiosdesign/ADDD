@@ -138,8 +138,6 @@ const INSET_X = 0.18;
 const INSET_Y = 0.16;
 // How close (px) a stroke may come to a word's letters.
 const WORD_GAP = 1.5;
-// The tints a stroke can take: ink steps for each red step (see colors).
-const SHADES = (2 * LEVELS + 1) * (SIGNAL_LEVELS + 1);
 // How long the system's light takes to die away (s): the ink a signal leaves
 // in the strokes, and the red, which goes well before it, so a stroke the
 // signal crosses turns from red to ink before it settles back to the base.
@@ -381,12 +379,14 @@ export function mountSlashField(el) {
   let veiled = [-1, -1];
   let stir, gone;
   // drawing: what is on the canvas, per cell — its tint (−1 none) and its
-  // stroke (0 none) as last drawn — and a frame's scratch: per row, whether
-  // it has changed; the strokes to draw, in tint order; and where each
-  // tint's run of them ends. Kept from frame to frame, so a frame allocates
-  // nothing.
-  let tint, shown, stale, order;
-  const ends = new Uint32Array(SHADES + 1);
+  // stroke (0 none) as last drawn — and a frame's scratch: per block of a
+  // row (block cells across, blocks to a row), whether a cell in it has
+  // changed. Kept from frame to frame, so a frame allocates nothing.
+  let tint, shown, stale;
+  let block = 1;
+  let blocks = 0;
+  // the screen's pixels to a CSS px, which the canvas is drawn at
+  let dpr = 1;
   let words = [];
   // the words brought into the field, while it is keeping them out — until
   // the intro's pulse brings each in (opts.words "unborn"), or as the page
@@ -605,7 +605,7 @@ export function mountSlashField(el) {
   // The canvas at the pattern's size, sharp for the device's pixels; it sits
   // up and left of the container by the overscan.
   function sizeCanvas() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.style.left = `${-ox}px`;
     canvas.style.top = `${-oy}px`;
     canvas.style.width = `${cols * cellW}px`;
@@ -613,14 +613,32 @@ export function mountSlashField(el) {
     canvas.width = Math.round(cols * cellW * dpr);
     canvas.height = Math.round(rows * cellH * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    block = fitBlock(dpr);
+    resetAtlas();
+  }
+
+  // The run of cells a row is cleared and drawn again by (draw): the fewest
+  // whose width is a whole number of the screen's pixels. A cell's own edge
+  // seldom falls on a pixel's (7 CSS px is 10.5 at 1.5x), and clearing to a
+  // fraction of a pixel would thin the edge of the stroke beside it a
+  // little each time; cleared to whole pixels, a run never touches a pixel
+  // the next run has drawn into. The strokes stand well in from their
+  // rows' top and foot, so the rows need no such care. Whole rows where
+  // nothing under eight cells fits.
+  function fitBlock(dpr) {
+    for (let m = 1; m <= 8; m++) {
+      const px = m * cellW * dpr;
+      if (Math.abs(px - Math.round(px)) < 1e-6) return m;
+    }
+    return Math.max(1, cols);
   }
 
   // A canvas with nothing on it yet, as sizing it leaves it, for n cells.
   function blank(n) {
     tint = new Int16Array(n).fill(-1);
     shown = new Uint8Array(n);
-    stale = new Uint8Array(cols ? Math.ceil(n / cols) : 0);
-    order = new Uint32Array(n);
+    blocks = cols ? Math.ceil(cols / block) : 0;
+    stale = new Uint8Array(cols ? Math.ceil(n / cols) * blocks : 0);
   }
 
   // The field cut back to the container once the homepage's intro is over:
@@ -781,16 +799,117 @@ export function mountSlashField(el) {
     }
   }
 
-  /* ---------- drawing: only the rows that have changed ---------- */
-  // The canvas keeps what was drawn last frame, and only the rows with a
-  // stroke whose tint or shape has changed since are drawn again: cleared
-  // across, and every stroke in them drawn anew. A row's strokes stand well
-  // in from its top and foot, so clearing one never touches another's — the
-  // canvas is always exactly what drawing it whole would give. The strokes
-  // drawn are sorted by tint (a counting sort into the arrays kept for it),
-  // one path per tint, so a frame makes no objects for the garbage
-  // collector, and a quiet field costs next to nothing to keep up however
-  // fine its grid.
+  /* ---------- drawing: only the cells that have changed, from an atlas ---------- */
+  // The canvas keeps what was drawn last frame, and only the runs of cells
+  // (block across, fitBlock) holding a stroke whose tint or shape has
+  // changed since are drawn again: cleared, and every stroke in them drawn
+  // anew. A stroke stands inside its own cell, and a run is cleared to
+  // whole pixels of the screen, so clearing one never touches another's —
+  // the canvas is always exactly what drawing it whole would give.
+  //
+  // Each stroke is drawn as a path once, into an atlas — a stroke of a
+  // given shape, tint and place against the screen's pixels: a cell's edge
+  // seldom falls on a pixel's, and a path's pixels depend on where in a
+  // pixel it starts — and copied from there onto the canvas after that,
+  // whole pixels onto whole pixels, which gives exactly the pixels the path
+  // would. A frame is then one batch of copies for the GPU, where a path
+  // per tint was a draw each: with a wave under way some hundred tints
+  // change a frame, and those draws, not the pixels, were most of what the
+  // page cost the GPU while the hero was on screen. (Drawn by whole rows,
+  // as it first was, nearly every row was drawn again every frame as well,
+  // thousands of hairlines a frame; the cells that change are a few
+  // hundred.) A frame makes no objects for the garbage collector, and a
+  // quiet field costs next to nothing to keep up however fine its grid.
+  const ATLAS = 2048;
+  const atlas = document.createElement("canvas");
+  const actx = atlas.getContext("2d");
+  const sprites = new Map();
+  let spriteW = 0;
+  let spriteH = 0;
+  let perRow = 1;
+  let slots = 0;
+  let used = 0;
+  // its strokes gone with its context: every one drawn again as needed
+  atlas.addEventListener("contextrestored", () => {
+    resetAtlas();
+    blank(cols * rows);
+    draw();
+  });
+
+  // The atlas for the cell size at hand: a sprite is a cell and a pixel
+  // round it, for the part of a pixel a cell may start into.
+  function resetAtlas() {
+    spriteW = Math.ceil(cellW * dpr) + 2;
+    spriteH = Math.ceil(cellH * dpr) + 2;
+    perRow = Math.max(1, Math.floor(ATLAS / spriteW));
+    const perColumn = Math.max(1, Math.floor(ATLAS / spriteH));
+    slots = perRow * perColumn;
+    const w = perRow * spriteW;
+    const h = perColumn * spriteH;
+    if (atlas.width !== w || atlas.height !== h) {
+      atlas.width = w;
+      atlas.height = h;
+    } else {
+      actx.setTransform(1, 0, 0, 1, 0, 0);
+      actx.clearRect(0, 0, w, h);
+    }
+    sprites.clear();
+    used = 0;
+  }
+
+  // The sprite of stroke g in tint k for the cell at column c of row r: its
+  // slot in the atlas, given one if it has none yet and put down to be
+  // drawn (wanted). How far into a pixel the cell starts (fx, fy) is part
+  // of what it is: the stroke is drawn that far into its slot, so copied
+  // back to the pixel the cell starts in, it lies exactly where the path
+  // would have.
+  const wanted = [];
+  function sprite(c, r, g, k) {
+    const x = c * cellW * dpr;
+    const y = r * cellH * dpr;
+    const fx = x - Math.floor(x);
+    const fy = y - Math.floor(y);
+    const key = ((k * 8 + g) * 4096 + Math.round(fx * 4095)) * 4096 + Math.round(fy * 4095);
+    let slot = sprites.get(key);
+    if (slot === undefined) {
+      // full: begun again (what was copied onto the canvas stays as it is;
+      // the sprites wanted so far are drawn first, into the atlas as it was)
+      if (used >= slots) {
+        drawSprites();
+        resetAtlas();
+      }
+      slot = used++;
+      sprites.set(key, slot);
+      wanted.push(slot, g, k, fx, fy);
+    }
+    return slot;
+  }
+
+  // The sprites wanted since the last time, drawn into the atlas: one path
+  // per tint, every stroke of that tint in it, as the field was first drawn
+  // (how a path is rasterised depends a little on how much is in it, so
+  // the strokes come out as they did).
+  function drawSprites() {
+    if (!wanted.length) return;
+    actx.lineWidth = opts.stroke;
+    actx.lineCap = "butt";
+    for (let i = 0; i < wanted.length; i += 5) {
+      const k = wanted[i + 2];
+      if (k < 0) continue;
+      actx.beginPath();
+      for (let j = i; j < wanted.length; j += 5) {
+        if (wanted[j + 2] !== k) continue;
+        const slot = wanted[j];
+        actx.setTransform(dpr, 0, 0, dpr, (slot % perRow) * spriteW + 1 + wanted[j + 3], Math.floor(slot / perRow) * spriteH + 1 + wanted[j + 4]);
+        segment(actx, wanted[j + 1]);
+        wanted[j + 2] = -1;
+      }
+      actx.strokeStyle = colors[k];
+      actx.stroke();
+    }
+    wanted.length = 0;
+  }
+
   function draw() {
     if (!cols || !rows) return;
     // a stirred stroke turns through the three strokes, about twenty times a
@@ -798,88 +917,107 @@ export function mountSlashField(el) {
     const spin = Math.floor(now() * 22);
     let changed = 0;
     for (let r = 0; r < rows; r++) {
-      let row = 0;
       const veil = r === veiled[0] || r === veiled[1];
-      for (let i = r * cols, end = i + cols; i < end; i++) {
+      const row = r * blocks;
+      for (let i = r * cols, c = 0; c < cols; i++, c++) {
         let k = -1;
         let g = 0;
         if (glyph[i] && !gone[i] && !veil) {
           const level = Math.min(2 * LEVELS, Math.ceil(Math.max(heat[i], glow[i], settled[i] ? REST : 0) * LEVELS));
           const red = signal[i] ? Math.ceil(Math.min(1, signal[i]) * SIGNAL_LEVELS) : 0;
           k = red * (2 * LEVELS + 1) + level;
-          g = stir[i] ? 1 + Math.floor(hash(i - r * cols, r, 20 + spin) * 3) : glyph[i];
+          g = stir[i] ? 1 + Math.floor(hash(c, r, 20 + spin) * 3) : glyph[i];
         }
         if (k === tint[i] && g === shown[i]) continue;
         tint[i] = k;
         shown[i] = g;
-        row = 1;
+        const b = row + ((c / block) | 0);
+        if (!stale[b]) {
+          stale[b] = 1;
+          changed++;
+        }
       }
-      stale[r] = row;
-      changed += row;
     }
     if (!changed) return;
 
-    // clear the rows that changed, a run of them at a time, and count their
-    // strokes by tint
-    ends.fill(0);
+    // clear the runs that changed, neighbours along a row together
     for (let r = 0; r < rows; r++) {
-      if (!stale[r]) continue;
-      let last = r;
-      while (last + 1 < rows && stale[last + 1]) last++;
-      ctx.clearRect(0, r * cellH, cols * cellW, (last + 1 - r) * cellH);
-      for (let i = r * cols, end = (last + 1) * cols; i < end; i++) if (tint[i] >= 0) ends[tint[i] + 1]++;
-      r = last;
+      const row = r * blocks;
+      for (let b = 0; b < blocks; b++) {
+        if (!stale[row + b]) continue;
+        let last = b;
+        while (last + 1 < blocks && stale[row + last + 1]) last++;
+        const c0 = b * block;
+        const c1 = Math.min(cols, (last + 1) * block);
+        ctx.clearRect(c0 * cellW, r * cellH, (c1 - c0) * cellW, cellH);
+        b = last;
+      }
     }
-    for (let k = 1; k <= SHADES; k++) ends[k] += ends[k - 1];
+    // then every stroke in them: its sprite found or put down to be drawn,
+    // the sprites wanted drawn into the atlas, and each copied onto the
+    // canvas pixel for pixel
     for (let r = 0; r < rows; r++) {
-      if (!stale[r]) continue;
-      for (let i = r * cols, end = i + cols; i < end; i++) if (tint[i] >= 0) order[ends[tint[i]]++] = i;
+      const row = r * blocks;
+      for (let b = 0; b < blocks; b++) {
+        if (!stale[row + b]) continue;
+        const c0 = b * block;
+        const c1 = Math.min(cols, (b + 1) * block);
+        for (let c = c0, i = r * cols + c0; c < c1; c++, i++) if (tint[i] >= 0) sprite(c, r, shown[i], tint[i]);
+      }
     }
-
-    ctx.lineWidth = opts.stroke;
-    ctx.lineCap = "butt";
-    for (let k = 0, start = 0; k < SHADES; start = ends[k], k++) {
-      if (ends[k] === start) continue;
-      ctx.beginPath();
-      for (let o = start; o < ends[k]; o++) segment(order[o], shown[order[o]]);
-      ctx.strokeStyle = colors[k];
-      ctx.stroke();
+    drawSprites();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    for (let r = 0; r < rows; r++) {
+      const row = r * blocks;
+      const y = Math.floor(r * cellH * dpr) - 1;
+      for (let b = 0; b < blocks; b++) {
+        if (!stale[row + b]) continue;
+        stale[row + b] = 0;
+        const c0 = b * block;
+        const c1 = Math.min(cols, (b + 1) * block);
+        for (let c = c0, i = r * cols + c0; c < c1; c++, i++) {
+          if (tint[i] < 0) continue;
+          const slot = sprite(c, r, shown[i], tint[i]);
+          ctx.drawImage(atlas, (slot % perRow) * spriteW, Math.floor(slot / perRow) * spriteH, spriteW, spriteH, Math.floor(c * cellW * dpr) - 1, y, spriteW, spriteH);
+        }
+      }
     }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  // Adds cell i's stroke — g: 1 /, 2 |, 3 \, or a mark: 4 :, 5 ;, 6 . — to
-  // the path. A mark's dot is a stroke as long as it is thick, so it takes
-  // the same tints, in the same path, as the strokes.
-  function segment(i, g) {
-    const x = (i % cols) * cellW;
-    const r = (i / cols) | 0;
-    const top = r * cellH + cellH * INSET_Y;
-    const bottom = (r + 1) * cellH - cellH * INSET_Y;
+  // Adds a stroke — g: 1 /, 2 |, 3 \, or a mark: 4 :, 5 ;, 6 . — to the
+  // path on target, for a cell whose top-left corner is at (0, 0). A mark's
+  // dot is a stroke as long as it is thick, so it takes the same tints as
+  // the strokes.
+  function segment(target, g) {
+    const top = cellH * INSET_Y;
+    const bottom = cellH - cellH * INSET_Y;
     if (g >= 4) {
-      const cx = x + cellW / 2;
+      const cx = cellW / 2;
       const d = opts.stroke * 1.2;
       const dot = (y) => {
-        ctx.moveTo(cx, y - d / 2);
-        ctx.lineTo(cx, y + d / 2);
+        target.moveTo(cx, y - d / 2);
+        target.lineTo(cx, y + d / 2);
       };
-      const upper = r * cellH + cellH * 0.44;
+      const upper = cellH * 0.44;
       const lower = bottom - d / 2;
       if (g === 6) dot(lower);
       else dot(upper);
       if (g === 4) dot(lower);
       if (g === 5) {
-        ctx.moveTo(cx, lower - d / 2);
-        ctx.lineTo(cx - cellW * 0.14, bottom + cellH * 0.07);
+        target.moveTo(cx, lower - d / 2);
+        target.lineTo(cx - cellW * 0.14, bottom + cellH * 0.07);
       }
     } else if (g === 2) {
-      ctx.moveTo(x + cellW / 2, top);
-      ctx.lineTo(x + cellW / 2, bottom);
+      target.moveTo(cellW / 2, top);
+      target.lineTo(cellW / 2, bottom);
     } else if (g === 1) {
-      ctx.moveTo(x + cellW * INSET_X, bottom);
-      ctx.lineTo(x + cellW * (1 - INSET_X), top);
+      target.moveTo(cellW * INSET_X, bottom);
+      target.lineTo(cellW * (1 - INSET_X), top);
     } else {
-      ctx.moveTo(x + cellW * INSET_X, top);
-      ctx.lineTo(x + cellW * (1 - INSET_X), bottom);
+      target.moveTo(cellW * INSET_X, top);
+      target.lineTo(cellW * (1 - INSET_X), bottom);
     }
   }
 

@@ -197,10 +197,13 @@ src/
                              name and <main>; repeated content (cards, FAQs)
                              sits in a data array in the frontmatter
   styles/*.css               the site stylesheets, imported by the layout
-  scripts/                   site.js (Barba lifecycle and every interaction),
-                             logo-morph-loader.js, logo-morph.js,
-                             logo-stack-loader.js, wavy-marquee.js,
-                             column-grid.js, slash-field.js, approach-stack.js
+  scripts/                   site.js (the arrival, the wipe and the page
+                             lifecycle), with gsap-setup.js, scroll.js (Lenis
+                             and ScrollTrigger), page.js (what components
+                             share) and nav.js around it, and one module per
+                             component: slash-field.js, approach-stack.js,
+                             sticky-title.js, service-tabs.js, parallax.js,
+                             reveals.js, insight-slider.js, …
 public/assets/               images, logos, icons and logo.svg, served as-is at
                              /assets/…
 astro.config.mjs
@@ -226,9 +229,14 @@ timelines and the Contact button's width measurement are wired up once per
 document rather than per page. Anything inside the container is replaced on
 every navigation, so page-level behaviour is bound per container: each
 component is listed in `PAGE_COMPONENTS` in `src/scripts/site.js`, with the
-selector that marks it, and anything it leaves running registers an undo with
-`registerPageCleanup()`. `data-page-name` comes from each page's `pageName`
-prop. Once a page is built it is measured (`ScrollTrigger.refresh()`), and
+selector that marks it, so a component's script runs only on a page that
+has its markup, and anything it leaves running registers an undo with
+`registerPageCleanup()` (`src/scripts/page.js`, which also holds the
+visitor's motion preference and `pageShown()`, kept once the page is in
+view). `data-page-name` comes from each page's `pageName` prop, and is
+carried on `<html>` as `data-page` (with `data-theme`, light or dark) for
+the stylesheets that lay a page out by it. Once a page is built it is
+measured (`ScrollTrigger.refresh()`), and
 its height is then watched (`watchPageHeight`): any change in it that is not
 a resize (the Visual editor rewriting a heading, an accordion opening, a late
 picture, a stylesheet hot-reloaded in development) has the page measured
@@ -279,10 +287,9 @@ navigation onto that page.
 
 - The stylesheets are imported in their cascade order and bundled into a single
   hashed file.
-- `site.js` is bundled as a module, importing `logo-morph-loader.js` (and,
-  through it and the nav's logo, `logo-morph.js`), `logo-stack-loader.js`,
-  `wavy-marquee.js`, `column-grid.js`, `slash-field.js` and
-  `approach-stack.js`. GSAP (with its plugins, ScrambleTextPlugin among
+- `site.js` is bundled as one module with everything it imports: the
+  setup (`gsap-setup.js`, `scroll.js`, `page.js`), the nav (`nav.js`) and
+  the components. GSAP (with its plugins, ScrambleTextPlugin among
   them), Barba and Lenis stay on the jsDelivr CDN and are loaded as classic
   scripts ahead of it, so they are globals by the time it runs.
   Lenis's small stylesheet is bundled with the site CSS (`src/styles/lenis.css`)
@@ -295,6 +302,51 @@ navigation onto that page.
   some of the browsers it supports today. Vercel compresses both in transit.
 - `compressHTML` is off. Astro 7 otherwise strips the whitespace between
   elements, which closes up the spaces between inline elements.
+
+## Performance
+
+The homepage runs a dozen scroll-linked and time-based effects at once, so
+every one of them keeps to a few rules, found the hard way (profiled on an
+Intel integrated GPU at 1280 × 800, 1.5x, in October 2026):
+
+- **Scroll-linked work moves transforms and opacity, and measures on
+  refresh, never per frame.** Positions are read in `onRefresh` and kept;
+  a scroll frame reads nothing off the layout (`getBoundingClientRect`,
+  `offsetHeight`, `getComputedStyle`, `scrollY`) after anything has been
+  written, which would have the browser lay the page out again mid-frame.
+  ScrollTrigger callbacks take the scroll from `self.scroll()`.
+- **One scroll pipeline.** Lenis first in the GSAP tick, ScrollTrigger once
+  from Lenis, every tween after; `src/scripts/scroll.js`. Nothing else
+  listens to the browser's `scroll` event.
+- **A canvas draws only what changed, and only while it is on screen.**
+  Its size is set once (setting a canvas's size throws its backing store
+  away), its content is redrawn in the cells or stretch that changed, and
+  a stroke that repeats is drawn once into an atlas and copied. The GPU
+  cost of a canvas is the number of separate draws a frame far more than
+  the pixels: the Slash Field cost two thirds of the GPU's time at rest
+  when it stroked a path per tint per frame, and a few percent copying
+  sprites.
+- **Text and DOM churn is kept off the hot path.** A ScrambleText decode
+  rewrites a label's children a dozen times a second; nothing on `:root`
+  or `body` uses `:has()`, which the browser would evaluate again on every
+  such change (the page's name and theme go on `<html>` as attributes
+  instead), and a measurement of changing text is taken on a canvas
+  (`measureText`), not off the layout.
+- **Everything is scoped and undone.** A component runs only where its
+  markup is (the registry in `site.js`), runs its loops only while on
+  screen (IntersectionObserver or a ScrollTrigger's `onToggle`), and
+  registers an undo for every tween, trigger, listener, timer and observer
+  it starts (`registerPageCleanup`).
+
+How it was measured, so a change can be: a headed Chrome driven over the
+DevTools protocol, real wheel gestures (`Input.synthesizeScrollGesture`,
+so Lenis handles them), `performance.mark` phases, a `requestAnimationFrame`
+recorder for dropped frames, and a trace (`devtools.timeline`, the frame
+pipeline, the CPU profiler) summed per phase: main-thread time by kind,
+forced style and layout by caller, paints by element, and the GPU process's
+busy time. Measure a repeat visit as well as a first one: a first visit
+pays for shader compilation as each new kind of drawing scrolls into view,
+and the shader disk cache (which the scripts can disable) hides it.
 
 ## Notes
 
@@ -330,9 +382,8 @@ navigation onto that page.
   The logo intro — the Logo Morph Loader (`MorphLoader.astro`,
   `logo-morph-loader.js`, `logo-morph.js`): A D D D drawn into the logo's
   forms and the red disc opening behind them, which on the homepage plays out
-  in the hero's own Slash Field and flies into the nav's logo slot; Osmo's
-  Logo Stack Loader is kept behind `?loader=stack` — plays once
-  per browsing session: on the first page the visitor lands on, whichever it
+  in the hero's own Slash Field and flies into the nav's logo slot — plays
+  once per browsing session: on the first page the visitor lands on, whichever it
   is, and again only on a genuine reload. Any other document load in the
   session — Barba falling back to a full load, a back/forward that misses the
   bfcache, a typed URL — opens on the wipe's reveal instead, and so does any
@@ -382,8 +433,11 @@ navigation onto that page.
   The sequence runs only while the band is on screen and the page has
   arrived, and never under reduced motion. Arriving from another page, the
   words are taken out of the field while the wipe covers it and decoded back
-  in from the foot of the band up as it lifts. The canvas only redraws the
-  rows that changed each frame, so a quiet field costs next to nothing. On
+  in from the foot of the band up as it lifts. The canvas redraws only the
+  cells that changed each frame, every stroke copied from an atlas it was
+  drawn into once (so a frame is one draw for the GPU, where a path per
+  tint was most of what the page cost it), so a quiet field costs next to
+  nothing. On
   the homepage the band is 102% of the dotted band's height
   (`--hero-band-scale`), and sits recessed between the bar and the copy: a
   close, light shade under the bar's edge and a fainter one along the
@@ -539,9 +593,14 @@ navigation onto that page.
   words and logos come from the Home page's Testimonials section; the
   logos, white marks, are set in ink. Under reduced motion, and in the
   Studio's preview, a change is a fade.
-- **Smooth scroll** — [Lenis](https://github.com/darkroomengineering/lenis) 1.2.3,
-  driven by the GSAP ticker rather than `autoRaf`, so the transition can stop and
-  restart it around a navigation.
+- **Smooth scroll** — [Lenis](https://github.com/darkroomengineering/lenis) 1.2.3
+  (`src/scripts/scroll.js`), driven by the GSAP ticker rather than `autoRaf`,
+  so the transition can stop and restart it around a navigation, and first
+  in the tick, so it moves the page before any tween writes. ScrollTrigger
+  follows it once a frame, from Lenis's own scroll event: the browser's
+  scroll event is held back from ScrollTrigger while Lenis is scrolling (it
+  would update everything a second time, a frame early), and still reaches
+  it for any other scroll.
 - **Navigation** — mega nav with directional hover dropdowns, mobile slide-over
   panels and an animated burger, built on GSAP 3.15 via CDN. From 992px the bar
   is a row of full-height blocks: the logo block (the ADDD triangles on the

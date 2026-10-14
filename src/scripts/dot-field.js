@@ -260,9 +260,22 @@ export function mountDotGrid(el) {
   });
   el.append(probe, canvas);
   const ctx = canvas.getContext("2d");
-  // the stretch the canvas holds, in the layer's own box (CSS px)
+  // the stretch the canvas holds, in the layer's own box (CSS px); the
+  // layer's height and its top on the page as last drawn, so the scroll
+  // can tell whether the view is still inside that stretch without
+  // measuring the layout; and whether the layer is tall enough to need one
   let from = 0;
   let span = 0;
+  let height = 0;
+  let top = 0;
+  let tall = false;
+
+  // whether the view still lies well inside the stretch drawn, at scroll y
+  const covered = (y) => {
+    const at = y - top;
+    const view = window.innerHeight;
+    return from <= Math.max(0, at - view / 2) && from + span >= Math.min(height, at + 1.5 * view);
+  };
 
   function draw(force) {
     const box = el.getBoundingClientRect();
@@ -273,29 +286,37 @@ export function mountDotGrid(el) {
     const y = parseFloat(p.top) || 0;
     if (!box.width || !box.height || !(pitch > 1)) return;
     const view = window.innerHeight;
+    height = box.height;
+    top = box.top + window.scrollY;
     // a tall layer holds three screens round the view, until the view
     // comes within half a screen of either end
-    let top = 0;
-    let height = box.height;
-    if (box.height > 3 * view) {
-      const at = -box.top;
-      if (!force && span && from <= Math.max(0, at - view / 2) && from + span >= Math.min(box.height, at + 1.5 * view)) return;
-      height = 3 * view;
-      top = gsap.utils.clamp(0, box.height - height, at - view);
+    let start = 0;
+    let shown = height;
+    tall = height > 3 * view;
+    if (tall) {
+      if (!force && span && covered(window.scrollY)) return;
+      shown = 3 * view;
+      start = gsap.utils.clamp(0, height - shown, -box.top - view);
     }
     const dpr = window.devicePixelRatio || 1;
-    const top0 = Math.round(top * dpr);
+    const top0 = Math.round(start * dpr);
     const w = Math.round(box.width * dpr);
-    const h = Math.round(height * dpr);
-    canvas.width = w;
-    canvas.height = h;
-    canvas.style.width = `${w / dpr}px`;
-    canvas.style.height = `${h / dpr}px`;
+    const h = Math.round(shown * dpr);
+    // sized only when its size has changed: setting a canvas's size throws
+    // its backing store away and makes a new one, which the GPU then has to
+    // take in again; cleared, it keeps the one it has
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+      canvas.style.width = `${w / dpr}px`;
+      canvas.style.height = `${h / dpr}px`;
+    } else {
+      ctx.clearRect(0, 0, w, h);
+    }
     canvas.style.transform = top0 ? `translateY(${top0 / dpr}px)` : "";
     from = top0 / dpr;
     span = h / dpr;
 
-    ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = getComputedStyle(el).color;
     // each dot its own whole device pixels, its top left the nearest to
     // where its centre less half a dot falls
@@ -313,7 +334,13 @@ export function mountDotGrid(el) {
 
   // drawn again when the layer changes size, when its grid is set out
   // afresh (the style the approach band's script writes on it), when
-  // the screen's density changes, and, tall, as the view moves along it
+  // the screen's density changes, and, tall, as the view moves along it.
+  // A short layer is drawn whole, so the scroll never redraws it; a tall
+  // one only while it is on the screen, and only when the view has left
+  // the stretch drawn — told from the scroll position and what was
+  // measured last, so a scroll frame reads nothing off the layout. (Every
+  // scroll frame used to size and redraw every grid on the page, on
+  // screen or not, and read the layout after the frame's other writes.)
   const resized = new ResizeObserver(() => draw(true));
   resized.observe(el);
   const restyled = new MutationObserver(() => draw(true));
@@ -329,15 +356,17 @@ export function mountDotGrid(el) {
     draw(true);
   };
   watchDensity();
-  let frame = 0;
-  const onScroll = () => {
-    if (frame) return;
-    frame = requestAnimationFrame(() => {
-      frame = 0;
-      draw(false);
-    });
-  };
-  window.addEventListener("scroll", onScroll, { passive: true });
+  // The scroll, as the page's ScrollTrigger has it, while the layer is on
+  // the screen: the stretch moved on once the view has left it. Nothing
+  // is read off the layout to decide.
+  const along = ScrollTrigger.create({
+    trigger: el,
+    start: "top bottom",
+    end: "bottom top",
+    onUpdate: (self) => {
+      if (tall && !covered(self.scroll())) draw(false);
+    },
+  });
   draw(true);
 
   return {
@@ -345,9 +374,8 @@ export function mountDotGrid(el) {
     destroy() {
       resized.disconnect();
       restyled.disconnect();
+      along.kill();
       density?.removeEventListener("change", onDensity);
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
       canvas.remove();
       probe.remove();
     },

@@ -43,13 +43,30 @@ preview`, `npm run check` (types for the site, then the Studio's checks),
   `src/pages/reports/[slug].astro` and `src/pages/newsletter/[slug].astro`
   are one page per report and newsletter issue in Sanity.
 - `src/layouts/BaseLayout.astro` the shared shell; `src/components/`,
-  `src/styles/`, `src/scripts/` (`site.js` owns the Barba lifecycle).
+  `src/styles/`, `src/scripts/`: `site.js` owns the arrival, the wipe and
+  the Barba lifecycle (the registry of page components); around it
+  `gsap-setup.js`, `scroll.js` (Lenis, and how ScrollTrigger follows it),
+  `page.js` (motion preference, cleanups, `pageShown()`), `nav.js`, and
+  one module per component. A new component is a module exporting a
+  mount/init function, listed in `PAGE_COMPONENTS` with its selector.
 - Links in the shared shell (the nav, the footer, the closing call to
   action, the sliders) are root-relative (`/about.html`, `/assets/...`), so
   they work one folder deep on the report and issue pages too.
 - `src/sanity/`: the site's side of the CMS (below).
 - `webflow-billing-toggle/`: tracked, standalone Webflow embed snippets with
   their own docs. Not part of the Astro build. Do not touch unless asked.
+
+## Performance
+
+The README's "Performance" section has the rules every effect keeps to
+(measured 2026-10-14): scroll-linked work is transforms and opacity,
+measured on refresh and never per frame; one scroll pipeline (`scroll.js`),
+nothing else on the browser's `scroll` event; a canvas sized once, drawn
+only where it changed and only on screen, repeated strokes from an atlas;
+no `:has()` on `:root` or `body`; every loop gated on being on screen and
+undone with `registerPageCleanup`. Measure before and after any change to
+an animation, in real rendered frames (the README says how); do not add a
+scroll-linked effect that reads layout per frame.
 
 ## Assets
 

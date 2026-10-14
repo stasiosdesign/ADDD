@@ -64,9 +64,10 @@
   right: 0;
 }
 /* The state before the script has read the ground: the attribute, or a
-   page that marks itself dark. Once it has, the tween's own value on the
-   bar's style, and the nav's, takes over from these. */
-body:has(.page--dark) .mega-nav:not([data-nav-theme]),
+   dark page (data-theme on <html>: BaseLayout.astro, and site.js on a
+   navigation). Once it has, the tween's own value on the bar's style, and
+   the nav's, takes over from these. */
+:root[data-theme="dark"] .mega-nav:not([data-nav-theme]),
 .mega-nav[data-nav-theme="dark"] { --nav-dark: 100%; }
 
 /* The colours, mixed on each part of the nav — the bar and the dropdown —

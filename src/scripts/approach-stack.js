@@ -464,6 +464,10 @@ export function mountApproachStack(root, { lenis } = {}) {
       trailEls.top.style.transform = `scaleY(${trail.top / 100})`;
       trailEls.bottom.style.transform = `scaleY(${trail.bottom / 100})`;
     };
+    // the two lengths eased to their new values on every frame of the
+    // scroll: one tween each, retargeted, rather than a new tween a frame
+    const easeTop = gsap.quickTo(trail, "top", { duration: 0.3, ease: "power2.out", onUpdate: apply });
+    const easeBottom = gsap.quickTo(trail, "bottom", { duration: 0.3, ease: "power2.out", onUpdate: apply });
     // The mark on the rail is the logo's triangle, pointing the way the page
     // is going: down to start with, turned up the moment the scroll turns
     // up, and back. Only a scroll fast enough to draw a trail turns it, so a
@@ -504,14 +508,8 @@ export function mountApproachStack(root, { lenis } = {}) {
         const length = speed > TRAIL.minSpeed ? Math.min(TRAIL.gain * speed * damp, TRAIL.max * damp) : 0;
         if (speed > TRAIL.minSpeed) turnMark(Math.sign(velocity));
         // Scrolling down, the line trails above the cube; up, below it.
-        gsap.to(trail, {
-          top: velocity > 0 ? length : 0,
-          bottom: velocity > 0 ? 0 : length,
-          duration: 0.3,
-          ease: "power2.out",
-          overwrite: "auto",
-          onUpdate: apply,
-        });
+        easeTop(velocity > 0 ? length : 0);
+        easeBottom(velocity > 0 ? 0 : length);
         clearTimeout(idle);
         idle = setTimeout(() => resetTrail(true), TRAIL.idle);
       },

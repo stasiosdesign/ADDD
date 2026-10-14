@@ -63,21 +63,29 @@ interface Props {
   /** The homepage: the one page the logo intro opens, since it plays out in
       the hero's own field (see ARRIVAL in src/scripts/site.js). */
   home?: boolean;
+  /** A page set on the site's near-black (its <main> carries .page--dark):
+      the bar opens dark (nav.css). Light otherwise. */
+  theme?: "light" | "dark";
   /** The Sanity document the page shows (src/sanity/content.ts): its ID and,
       for a collection item, its type. Named on the Barba container for the
       Studio's Visual editor (src/sanity/live-preview.ts). */
   doc?: { id: string; type?: string };
 }
 
-const { title, description, pageName, home = false, doc } = Astro.props;
+const { title, description, pageName, home = false, theme = "light", doc } = Astro.props;
 const docAttrs = doc ? { "data-page-doc": doc.id, "data-page-type": doc.type ?? doc.id } : {};
+// The page's name and theme on <html>, for the stylesheets that lay the
+// page out by them (the homepage's frame, page-grid.css; a dark page's bar,
+// nav.css): set here for the document's first page, and again by site.js
+// (markPage) for each page a navigation brings in.
+const page = pageName.toLowerCase().replace(/\s+/g, "-");
 // Staging and development render on request and are never indexed; a page in
 // draft mode says so to the person looking at it (DraftModeLabel)
 const staging = __DEPLOYMENT__ !== "production";
 const draftMode = staging && Astro.locals.draftMode;
 ---
 <!DOCTYPE html>
-<html lang="en-GB" data-draft={draftMode ? "" : undefined}>
+<html lang="en-GB" data-page={page} data-theme={theme} data-draft={draftMode ? "" : undefined}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

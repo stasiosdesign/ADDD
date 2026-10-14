@@ -64,14 +64,17 @@
    through to the field. The nav and the copy are held
    back until the script brings them in, and the band's own shading with
    them. Set here rather than by the script, so the first paint is already
-   this. Not with reduced motion, which plays the plain loader. */
+   this. Not with reduced motion, which plays the plain loader. (An
+   "intro" arrival is only ever the homepage's, BaseLayout.astro, so the
+   selector needs no :has() for the field, which the browser would evaluate
+   again on every change the intro makes to the document.) */
 @media (prefers-reduced-motion: no-preference) {
-  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .morph-loader { pointer-events: none; }
-  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .morph-loader__bg { display: none; }
-  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .morph-loader__letters:not(.is--on-disc) { fill: var(--c-text); }
+  [data-arrival="intro"] .morph-loader { pointer-events: none; }
+  [data-arrival="intro"] .morph-loader__bg { display: none; }
+  [data-arrival="intro"] .morph-loader__letters:not(.is--on-disc) { fill: var(--c-text); }
 
-  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .mega-nav,
-  [data-arrival="intro"]:has(.hero__media[data-slash-field]) .hero > .container { visibility: hidden; }
+  [data-arrival="intro"] .mega-nav,
+  [data-arrival="intro"] .hero > .container { visibility: hidden; }
 
   [data-arrival="intro"] .hero__media[data-slash-field] {
     --slash-extend: screen;

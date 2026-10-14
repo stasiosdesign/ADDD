@@ -35,9 +35,10 @@
    every column, the nav's blocks included, keeps its place in the frame
    while the bands' grounds still run the width of the screen. Above
    1600px the page is the 1600px page, centred. The homepage only, for
-   now. */
+   now: named on <html> (data-page, BaseLayout.astro, and site.js on a
+   navigation). */
 @media screen and (min-width: 992px) {
-  :root:has([data-barba="container"][data-page-name="Home"]) {
+  :root[data-page="home"] {
     --size-container-max: 1600px;
     --grid-frame: max(0px, (100vw - var(--size-container-max)) / 2);
   }
