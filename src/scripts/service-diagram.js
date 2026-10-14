@@ -1,6 +1,6 @@
 /* ============================================================
-   Service diagrams — the four services drawn on the homepage's
-   service stack, moving (src/components/ServiceDiagram.astro)
+   Service diagrams — the four services drawn in the homepage's
+   service tabs, moving (src/components/ServiceDiagram.astro)
    ------------------------------------------------------------
    Each drawing is its own idea, and each moves by it, one thing at a
    time, slowly, with a rest between:

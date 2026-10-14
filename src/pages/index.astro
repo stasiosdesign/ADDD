@@ -4,7 +4,7 @@ import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import CoinStack from "../components/CoinStack.astro";
-import ServiceDiagram from "../components/ServiceDiagram.astro";
+import ServiceTabs from "../components/ServiceTabs.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
@@ -152,27 +152,33 @@ const costIcons = [
   <!-- After the approach: why technology decisions matter. -->
   <section class="section" id="cost">
     <div class="container">
-      <!-- The heading alone, centred over the cards, with the coins
-           building the logo as the page scrolls past set into it
-           (CoinStack.astro): the coins stand behind the words, the red
-           one among the first line's, and the stack comes to rest under
-           them. The cards under it take the whole grid, four Grid
-           Columns each. -->
+      <!-- The heading alone, centred over the cards and still (no line
+           reveal), with the coins building the logo as the page scrolls
+           past set into it (CoinStack.astro): the coins stand between its
+           lines, the red one among the first line's, and the stack comes
+           to rest under them. The cards under it take the whole grid,
+           four Grid Columns each, set out by the scroll (data-problem-
+           parallax: initProblemParallax, site.js). -->
       <div class="problem-head">
-        <h2 class="problem-head__h" data-split="heading" data-page-field="cost.heading">{t("cost.heading")}</h2>
+        <h2 class="problem-head__h" data-page-field="cost.heading">{t("cost.heading")}</h2>
         <CoinStack />
       </div>
 
-      <div data-problem-grid-init class="problem-grid">
+      <div data-problem-parallax class="problem-grid">
         {costCards.map((card, i) => {
           const picture = img(`cost.cards.${i}.image`, 1200, D.cost.cards[i]?.image);
           return (
         <article class="problem-card">
+          <!-- the picture in a field of dots (styles.css, "industry problems") -->
           <div class="problem-card__media">
-            <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt={picture.alt} class="problem-card__image" data-page-field={`cost.cards.${i}.image`} data-page-width="1200">
-            <span class="problem-card__icon" aria-hidden="true" set:html={costIcons[i] ?? ""}></span>
+            <span class="problem-card__dots dot-grid" aria-hidden="true"></span>
+            <div class="problem-card__frame">
+              <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt={picture.alt} class="problem-card__image" data-page-field={`cost.cards.${i}.image`} data-page-width="1200">
+              <span class="problem-card__icon" aria-hidden="true" set:html={costIcons[i] ?? ""}></span>
+            </div>
           </div>
           <div class="problem-card__body">
+            <span class="label problem-card__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
             <h3 class="problem-card__h" data-page-field={`cost.cards.${i}.title`}>{card.title}</h3>
             <p class="problem-card__p" data-page-field={`cost.cards.${i}.text`}>{card.text}</p>
           </div>
@@ -193,43 +199,14 @@ const costIcons = [
         <h2 class="routes__h" data-split="heading" data-page-field="routes.heading">{t("routes.heading")}</h2>
       </div>
     </div>
+  </section>
 
-    <!-- The four routes as a stack of files (initServiceStack, site.js;
-         styles.css, "service stack"): each a full-width card with a
-         folder tab on its quarter of the grid, held at the one height, so
-         each new card covers the last and its tab joins the row; the
-         card behind draws back and dims. Once all four are in, the row of
-         tabs holds a moment before the stack leaves together; a tab
-         brings its card back to the top of the stack. -->
-    <div class="service-stack" data-service-stack style={`--stack-n:${routeCards.length}`}>
-      {routeCards.map((card, i) => (
-      <article class:list={["service-stack__item", { "is--active": i === 0 }]} id={`service-${i + 1}`} style={`--i:${i}`} data-service-stack-item>
-        <a class="service-stack__tab" href={`#service-${i + 1}`} data-service-stack-tab>
-          <!-- the tab's face, which fades over the section's ground -->
-          <span class="service-stack__face">
-            <span class="service-stack__num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
-            <h3 class="service-stack__name" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
-          </span>
-        </a>
-        <div class="service-stack__card">
-          <span class="service-stack__blur" data-service-stack-blur aria-hidden="true"></span>
-          <span class="service-stack__shade" data-service-stack-shade aria-hidden="true"></span>
-          <div class="service-stack__copy">
-            <p class="service-stack__p" data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
-            <!-- the call names its service: "View" and the card's title -->
-            <ActionButton href={routeHrefs[i] ?? "contact.html"}>View {card.title || "the service"}</ActionButton>
-          </div>
-          <div class="service-stack__media">
-            <!-- the drawing's ground, a dotted axonometric lattice, to the
-                 field's edges (dot-field.js) -->
-            <div class="service-stack__pattern" data-iso-field aria-hidden="true"></div>
-            <ServiceDiagram index={i} class="service-stack__diagram" animate />
-          </div>
-        </div>
-      </article>
-      ))}
-      <div class="service-stack__hold" aria-hidden="true"></div>
-    </div>
+  <!-- ========== 5b. WAYS TO WORK WITH ADDD ==========
+       The four routes as one panel that sticks while the scroll takes it
+       through them (ServiceTabs.astro), under its own heading, on a band
+       of the ink. -->
+  <section class="service-tabs-section">
+    <ServiceTabs cards={routeCards} hrefs={routeHrefs} label={t("routes.tagline")} />
   </section>
 
   <!-- ========== 6. TESTIMONIALS ========== -->

@@ -17,19 +17,31 @@
    reduced motion the stack is simply finished. GSAP and ScrollTrigger
    are the site's globals.
 
-   The moment the stack is finished, the drawing says so: it takes
-   data-coin-stack-settled and fires "coinstack:settle" (detail true),
-   which the cards under the heading come in on (initProblemGrid,
-   site.js). It says the opposite only once the stack is wholly back
-   where it started, scrolled back up, when those cards are below the
-   screen again, so nothing on screen goes away.
+   The joins are a sequence, a beat each: the scroll's way is shared
+   equally between them, and in each share the stack travels to the next
+   coin and slows into it (MOVE, eased in and out), then, in contact,
+   is pressed onto it a touch and comes back up (PRESS), a little seat as
+   the coin clicks on, before it sets off for the next. So the four
+   joins come evenly, one after another, rather than wherever an even
+   drift down happens to reach each coin.
+
+   The heading the coins are set into stands still (it has no line
+   reveal), but it is split into its lines here, without moving them, so
+   each line can take its own place about the coins (styles.css: the
+   first line under them, the second over), autoSplit keeping the lines
+   true as the width or the webfont changes. Not in the Studio's
+   preview, where the Visual editor writes into the heading.
    ============================================================ */
 
 // how far before a coin is reached its form starts to show on the red
 // face, in the drawing's units
 const SHOW = 12;
+// each join's share of the scroll: travelling to the coin, then seating
+// on it; how far the stack is pressed down as it seats (drawing units)
+const MOVE = 0.8;
+const PRESS = 5;
 
-export function mountCoinStack(el) {
+export function mountCoinStack(el, { still = false } = {}) {
   const drawing = el.querySelector(".coin-stack__drawing");
   // in the markup lowest first
   const coins = [...el.querySelectorAll("[data-coin]")];
@@ -46,11 +58,17 @@ export function mountCoinStack(el) {
     const i = coins.findIndex((coin) => coin.dataset.coin === `form-${Number(form.dataset.coinForm) + 1}`);
     return { form, reached: from[i] - under[i] };
   });
+  // the red face's heights at each join, in order down the column: the
+  // stops the sequence runs between, the last of them the rest
+  const reachedAt = coins.filter((coin) => coin !== red).map((coin) => from[coins.indexOf(coin)] - under[coins.indexOf(coin)]);
+  const stops = [start, ...reachedAt.sort((a, b) => a - b)];
+  // the lowest join is where the stack rests
+  stops[stops.length - 1] = rest;
   const saved = coins.map((coin) => coin.getAttribute("transform"));
 
-  // the drawing with the red face at height g
-  const draw = (g) => {
-    coins.forEach((coin, i) => coin.setAttribute("transform", `translate(${x} ${Math.max(from[i], g + under[i]).toFixed(2)})`));
+  // the drawing with the red face at height g, pressed down by press
+  const draw = (g, press = 0) => {
+    coins.forEach((coin, i) => coin.setAttribute("transform", `translate(${x} ${Math.max(from[i], g + press + under[i]).toFixed(2)})`));
     forms.forEach(({ form, reached }) => form.setAttribute("opacity", gsap.utils.clamp(0, 1, (g - reached + SHOW) / SHOW).toFixed(3)));
   };
   const undo = () => {
@@ -58,35 +76,36 @@ export function mountCoinStack(el) {
     forms.forEach(({ form }) => form.removeAttribute("opacity"));
   };
 
-  // finished, or wholly back at the start: said once each way
-  let settled = false;
-  const settle = (on) => {
-    if (on === settled) return;
-    settled = on;
-    el.toggleAttribute("data-coin-stack-settled", on);
-    el.dispatchEvent(new CustomEvent("coinstack:settle", { detail: on }));
+  // the scroll's way p (0–1) as the stack's height and press: each join an
+  // equal share, travelling then seating
+  const travel = gsap.parseEase("power2.inOut");
+  const at = (p) => {
+    const joins = stops.length - 1;
+    const k = Math.min(joins - 1, Math.floor(p * joins));
+    const t = p * joins - k;
+    if (t < MOVE) return { g: stops[k] + (stops[k + 1] - stops[k]) * travel(t / MOVE), press: 0 };
+    return { g: stops[k + 1], press: PRESS * Math.sin(Math.PI * ((t - MOVE) / (1 - MOVE))) };
   };
 
+  // the heading's lines, split in place, for the depth (not in the preview)
+  const heading = el.parentElement?.querySelector(".problem-head__h");
+  const split = heading && !still ? SplitText.create(heading, { type: "lines", linesClass: "problem-head__line", autoSplit: true }) : null;
+
   const mm = gsap.matchMedia();
-  mm.add({ motion: "(prefers-reduced-motion: no-preference)", still: "(prefers-reduced-motion: reduce)" }, (context) => {
-    if (context.conditions.still) {
+  mm.add({ motion: "(prefers-reduced-motion: no-preference)", reduced: "(prefers-reduced-motion: reduce)" }, (context) => {
+    if (context.conditions.reduced) {
       draw(rest);
-      settle(true);
       return undo;
     }
-    // the scroll's share of the way, eased in and out: from the
-    // drawing's top 70% of the way down the screen to its middle a
-    // little above the screen's, the heading having risen in just
-    // before (its line reveal starts at 72%)
+    // from the drawing's top 70% of the way down the screen to its middle
+    // a little above the screen's
     const along = { p: 0 };
-    const ease = gsap.parseEase("sine.inOut");
     const tween = gsap.to(along, {
       p: 1,
       ease: "none",
       onUpdate: () => {
-        draw(start + (rest - start) * ease(along.p));
-        if (along.p >= 0.985) settle(true);
-        else if (along.p <= 0.001) settle(false);
+        const { g, press } = at(along.p);
+        draw(g, press);
       },
       scrollTrigger: {
         trigger: drawing,
@@ -106,6 +125,7 @@ export function mountCoinStack(el) {
   return {
     destroy() {
       mm.revert();
+      split?.revert();
     },
   };
 }

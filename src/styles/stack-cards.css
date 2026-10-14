@@ -1,0 +1,135 @@
+/* ============================================================
+   Stack cards — the Stack Diagnostic hero's card wall
+   (src/components/StackCard.astro, initStackCards in site.js)
+   ------------------------------------------------------------
+   In the hero's band's place, straight under the hero: wide cards
+   three across, the whole grid between the page margins (Grid Columns
+   1–12), a narrow gap apart so they read as one wall, as the Reports
+   archive's do. The first rows stand in the first screen, under the
+   headline, as the band's picture did, and the rest run on down the
+   page, as many rows as there are cards. Two across below 992px, one
+   below 768px.
+
+   Each card in the research cards' language (styles.css): white on
+   the off-white page; a header row of the small square picture, the
+   title beside it and the square arrow at its end; the site's dotted
+   rule under the row (--dotted-rule); then the description, in the
+   research cards' grey. Hovered, the ground steps a shade further from
+   the page, the arrow turns red and its triangle edges on.
+   ============================================================ */
+.stack-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.625rem;
+  margin: 0;
+  padding: 0 var(--page-pad);
+  list-style: none;
+}
+/* each card fills its cell, so the cards of a row are one height */
+.stack-cards > li { display: flex; min-width: 0; }
+
+.stack-card {
+  --card-pad: 1.5rem;
+  --card-head: 2.75rem;
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--card-head) minmax(0, 1fr) var(--card-head);
+  grid-template-rows: var(--card-head) auto;
+  align-content: start;
+  column-gap: 0.875rem;
+  min-width: 0;
+  padding: var(--card-pad);
+  border-radius: var(--radius);
+  background: var(--c-white);
+  color: var(--c-text);
+  text-decoration: none;
+  outline: none;
+  transition: background-color .25s ease;
+}
+.stack-card:hover { background: var(--c-light-fg); }
+/* the keyboard's ring, inside the card, as the nav's cards have it */
+.stack-card:focus-visible { box-shadow: inset 0 0 0 2px var(--c-red); }
+
+/* the picture's square: a blank a step darker than the hovered ground,
+   so it holds on the white and on the grey */
+.stack-card__media {
+  grid-row: 1;
+  grid-column: 1;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: #e6e6e6;
+}
+.stack-card__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stack-card__title {
+  grid-row: 1;
+  grid-column: 2;
+  align-self: center;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 1.25rem;
+  line-height: 1.25;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  overflow-wrap: anywhere;
+}
+
+/* the square arrow at the row's end, the research cards' own */
+.stack-card__arrow {
+  grid-row: 1;
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--c-light-fg);
+  color: var(--c-text);
+  transition: background-color .25s ease, color .25s ease;
+}
+.stack-card__arrow svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform .4s var(--ease-osmo);
+}
+.stack-card:hover .stack-card__arrow { background: var(--c-red); color: var(--c-white); }
+.stack-card:hover .stack-card__arrow svg { transform: translateX(0.125rem); }
+
+/* the description, under the dotted rule along the top of its box */
+.stack-card__text {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  margin: var(--card-pad) 0 0;
+  padding-top: var(--card-pad);
+  background: var(--dotted-rule);
+  background-position: top;
+  background-repeat: round no-repeat;
+  color: #6b6b6b;
+  font-size: var(--t-md);
+  line-height: 1.35;
+  text-wrap: pretty;
+}
+
+/* Until the reveal has set the cards to rise (initStackCards), they are
+   held hidden from the first paint, as the headings are (styles.css),
+   with the same fallback should the script never run. Never with
+   reduced motion, nor in the Studio's preview. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-line-reveal]:not([data-draft]) [data-stack-cards]:not([data-stack-cards-ready]) .stack-card {
+    visibility: hidden;
+    animation: line-reveal-fallback 0s 3s forwards;
+  }
+}
+
+@media (max-width: 991px) {
+  .stack-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .stack-cards { grid-template-columns: minmax(0, 1fr); }
+  .stack-card { --card-pad: 1.25rem; }
+}

@@ -20,10 +20,11 @@ import { mountSlashField } from "./slash-field.js";
 import { mountApproachStack } from "./approach-stack.js";
 import { mountStickyTitle } from "./sticky-title.js";
 import { mountWordCycle } from "./word-cycle.js";
-import { mountIsoField } from "./dot-field.js";
+import { mountIsoField, mountDotGrid } from "./dot-field.js";
 import { mountServiceDiagram } from "./service-diagram.js";
 import { mountCoinStack } from "./coin-stack.js";
 import { mountTestimonialSlider } from "./testimonial-slider.js";
+import { mountServiceTabs } from "./service-tabs.js";
 
 gsap.registerPlugin(CustomEase, ScrollTrigger, SplitText, Draggable, InertiaPlugin, ScrambleTextPlugin);
 
@@ -424,14 +425,16 @@ const PAGE_COMPONENTS = [
   ["[data-sticky-title=\"wrap\"]", initStickyTitle],
   ["[data-approach-stack]", initApproachStack],
   ["[data-coin-stack]", initCoinStack],
-  ["[data-problem-grid-init]", initProblemGrid],
+  ["[data-problem-parallax]", initProblemParallax],
   ['[data-parallax="trigger"]', initGlobalParallax],
   ["[data-testimonial-slider]", initTestimonialSlider],
   ["[data-shutter-scroll-transition]", initShutterScrollTransition],
   ["[data-accordion-init]", initAccordions],
   ["[data-split=\"heading\"]", initLineReveal],
-  ["[data-service-stack]", initServiceStack],
+  ["[data-stack-cards]", initStackCards],
+  ["[data-service-tabs]", initServiceTabs],
   ["[data-iso-field]", initIsoFields],
+  [".dot-grid", initDotGrids],
   ["[data-service-diagram]", initServiceDiagrams],
   ["[data-enquiry-offer]", initEnquiryOffer],
   ["[data-slash-field]", initSlashField],
@@ -467,6 +470,49 @@ let pageCleanups = [];
 
 function registerPageCleanup(fn) {
   pageCleanups.push(fn);
+}
+
+// Every scroll position a page's components work from (where a sticky
+// panel takes up each of its routes, where a pin starts, where a click
+// scrolls to) is measured on a ScrollTrigger refresh, and ScrollTrigger refreshes
+// on its own only for a load or a resize. Anything that changes the page's
+// height after that, without a resize, left every position below it wrong
+// by the difference: the Studio's Visual editor rewriting a heading, an
+// accordion opening, a late picture, a filter emptying a grid, the
+// stylesheet hot-reloaded in development. A sticky section then changed
+// its card or its route before the scroll had reached it. So the page's
+// height is watched, and once a change in it has settled the page is
+// measured again. A change of width is a resize, which ScrollTrigger
+// already answers.
+function watchPageHeight(container) {
+  let width = container.offsetWidth;
+  let height = container.offsetHeight;
+  let timer = 0;
+  const observer = new ResizeObserver(() => {
+    const w = container.offsetWidth;
+    const h = container.offsetHeight;
+    if (w !== width) {
+      width = w;
+      height = h;
+      return;
+    }
+    if (Math.abs(h - height) < 1) return;
+    height = h;
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (!container.isConnected) return;
+      lenis.resize();
+      ScrollTrigger.refresh();
+      // a refresh puts its pins back as they were, so this is the settled
+      // height, and does not set the watch off again
+      height = container.offsetHeight;
+    }, 150);
+  });
+  observer.observe(container);
+  registerPageCleanup(() => {
+    observer.disconnect();
+    clearTimeout(timer);
+  });
 }
 
 function runPageCleanups() {
@@ -509,6 +555,7 @@ barba.hooks.beforeEnter(data => {
 
   lenis.resize();
   ScrollTrigger.refresh();
+  watchPageHeight(data.next.container);
 
   // A reload goes back to where the reader was (see ARRIVAL), once the page
   // has been built and measured from the top.
@@ -877,10 +924,18 @@ function initMegaNav() {
 
   if (!menuWrap || !navList || !dropWrapper) return;
 
-  // The Services cards' grounds, the service stack's lattice under each
-  // diagram (ServiceCard.astro, dot-field.js): mounted once, as the nav
-  // outlives every page, and redrawn by their own observer as they resize.
-  menuWrap.querySelectorAll("[data-iso-field]").forEach((field) => mountIsoField(field));
+  // The Services cards' dotted patterns (ServiceCard.astro, dot-field.js):
+  // mounted once, as the nav outlives every page, and redrawn by their own
+  // observer as they resize. Their ink is the nav's state, so they are
+  // drawn again in it each time it reaches the dropdown (initNavTheme).
+  const cardFields = [...menuWrap.querySelectorAll("[data-iso-field]")].map((el) => mountIsoField(el));
+  menuWrap.addEventListener("navthemechange", () => cardFields.forEach((f) => f.redraw()));
+  // The Workshop card's turning ending, the homepage hero's word cycle
+  // (word-cycle.js): mounted once too. It holds while the dropdown is
+  // closed (clipped out of sight, so its observer counts it off screen),
+  // and each time the dropdown opens the word stands a while before it
+  // turns.
+  menuWrap.querySelectorAll("[data-word-cycle]").forEach((el) => mountWordCycle(el));
 
   // State
   const state = {
@@ -1746,11 +1801,17 @@ function initNavTheme(nav) {
   // of each frame's cost (nav.css mixes the colours per part). The nav's
   // own value, which the dropdown takes, is set as the change settles. A
   // dropdown opened mid-change follows the bar frame by frame until then.
+  // Each time the dropdown's value is set, the nav says so ("navthemechange"),
+  // for what in the dropdown is drawn rather than styled: the Services
+  // cards' dots (initMegaNav).
+  const settle = () => {
+    nav.style.setProperty("--nav-dark", amount());
+    nav.dispatchEvent(new Event("navthemechange"));
+  };
   const draw = () => {
     bar.style.setProperty("--nav-dark", amount());
-    if (nav.getAttribute("data-menu-open") === "true") nav.style.setProperty("--nav-dark", amount());
+    if (nav.getAttribute("data-menu-open") === "true") settle();
   };
-  const settle = () => nav.style.setProperty("--nav-dark", amount());
 
   function apply(next) {
     wanted = next;
@@ -2028,7 +2089,7 @@ function initNavLinks(root) {
 // The coins closing up into the logo after the approach (coin-stack.js).
 function initCoinStack(container) {
   container.querySelectorAll("[data-coin-stack]").forEach((el) => {
-    const stack = mountCoinStack(el);
+    const stack = mountCoinStack(el, { still: document.documentElement.hasAttribute("data-draft") });
     registerPageCleanup(() => stack.destroy());
   });
 }
@@ -2199,6 +2260,25 @@ function initTestimonialSlider(container) {
       start: LINE_REVEAL.start,
     });
     registerPageCleanup(() => slider.destroy());
+  });
+}
+
+// The routes as one panel that sticks while the scroll takes it through
+// them (service-tabs.js). A position scrolls to its route on Lenis.
+function initServiceTabs(container) {
+  container.querySelectorAll("[data-service-tabs]").forEach((el) => {
+    const tabs = mountServiceTabs(el, {
+      reducedMotion,
+      scrollTo: (target) => {
+        if (reducedMotion) return lenis.scrollTo(target, { immediate: true });
+        const distance = Math.abs(target - window.scrollY);
+        lenis.scrollTo(target, {
+          duration: gsap.utils.clamp(1.2, 2.4, 0.9 + distance / 1800),
+          easing: STACK_EASE,
+        });
+      },
+    });
+    registerPageCleanup(() => tabs.destroy());
   });
 }
 
@@ -2397,41 +2477,52 @@ function initShutterScrollTransition(container) {
 
 
 /* ============================================================
-   Problem grid — three columns released as the row arrives
+   Problem parallax — the cost cards set out by the scroll
    ============================================================
-   The columns are held down by CSS until they are released; this
-   only flips the status attribute that releases them. Where the
-   section's heading carries the coin stack (CoinStack.astro), they
-   come in the moment its coins have all collapsed into the logo
-   ("coinstack:settle", coin-stack.js), and are held down again only
-   once the coins are wholly back at the start, the row below the
-   screen by then. Anywhere else, once the row is properly in view,
-   once. Scoped to the Barba container and undone on leave.
+   The three cards under the cost heading are never hidden; from 992px,
+   where they stand in one row, the scroll sets them out like three blocks
+   slotting together. As the row comes up the screen they stand as a
+   stair, each a step (PROBLEM_STAIR.step) lower than the one before it,
+   and close up into one level row as they rise, the last, lowest one
+   seating last; level by the time the row is a little short of the
+   screen's middle, they hold there, exactly on the grid (no offset at
+   all), for a good stretch of scroll either side of it (hold); and as
+   the row goes on up and out they part again into the stair reversed,
+   the last card in now the first to lift, each a step higher than the
+   one before it. Scrubbed with the scroll directly (no lag), so it runs
+   back exactly on the way up. A transform only. Not under reduced
+   motion, nor below 992px, where the cards stand one under another.
    ============================================================ */
-function initProblemGrid(container) {
-  const grids = container.querySelectorAll("[data-problem-grid-init]");
-  const release = (grid, on) => {
-    if (on) grid.setAttribute("data-problem-grid-status", "in");
-    else grid.removeAttribute("data-problem-grid-status");
-  };
+// the step between two cards (rem), and the shares of the row's way
+// across the screen spent closing up, held level, and parting
+const PROBLEM_STAIR = { step: 2.25, close: 0.36, hold: 0.28, part: 0.36 };
 
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      release(entry.target, true);
-      observer.unobserve(entry.target);
+function initProblemParallax(container) {
+  container.querySelectorAll("[data-problem-parallax]").forEach((grid) => {
+    const cards = [...grid.children];
+    const mm = gsap.matchMedia();
+    mm.add("(min-width: 992px) and (prefers-reduced-motion: no-preference)", () => {
+      const step = () => PROBLEM_STAIR.step * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: grid,
+          start: "top bottom",
+          end: "bottom top",
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      });
+      tl.fromTo(cards, { y: (i) => i * step() }, { y: 0, ease: "power2.out", duration: PROBLEM_STAIR.close })
+        .to({}, { duration: PROBLEM_STAIR.hold })
+        .to(cards, { y: (i) => -i * step(), ease: "power2.in", duration: PROBLEM_STAIR.part });
+      return () => {
+        tl.scrollTrigger?.kill();
+        tl.kill();
+        gsap.set(cards, { clearProps: "transform" });
+      };
     });
-  }, { threshold: 0.2 });
-
-  grids.forEach((grid) => {
-    const coins = grid.closest("section")?.querySelector("[data-coin-stack]");
-    if (!coins) return observer.observe(grid);
-    const follow = () => release(grid, coins.hasAttribute("data-coin-stack-settled"));
-    coins.addEventListener("coinstack:settle", follow);
-    follow();
-    registerPageCleanup(() => coins.removeEventListener("coinstack:settle", follow));
+    registerPageCleanup(() => mm.revert());
   });
-  registerPageCleanup(() => observer.disconnect());
 }
 
 /* ============================================================
@@ -2621,52 +2712,68 @@ function initLineReveal(container) {
 }
 
 /* ============================================================
-   Service stack — the homepage's routes as a stack of files
+   Stack cards — the Stack Diagnostic hero's card wall rising in
    ============================================================
-   The stacking itself is the stylesheet's (position: sticky,
-   styles.css "service stack"). Four things are added here:
-
-     - depth: as each card rises over the one before, that one draws
-       back, darkening under its shade (never shrinking, so every edge
-       stays on the grid), scrubbed with the scroll from the moment it
-       settles to the moment the next settles on it, so it runs back
-       exactly on the way up. The shade's opacity only. It softens too,
-       a slight blur once the next card's top is 15% of the way up the
-       screen, growing until that card settles on it: a layer in the
-       card blurring what is behind it, so the blur keeps to its edges,
-       faded in at one radius. Not with reduced motion, where the
-       stylesheet lets the cards simply follow one another;
-     - seating: each card slows into its place over the last stretch
-       before it sticks, rather than stopping dead (below). Not with
-       reduced motion either;
-     - which card is in front (is--active on its item) and which are
-       behind it (is--behind), which the stylesheet shows by the tabs'
-       strength: those behind at one same fade, the one in front and
-       those still to come at full, on an ease. A card takes over once
-       it has come halfway onto the one before it;
-     - bringing a card back: a card is on top of the stack at the
-       scroll where it has just come to rest, its place in the page's
-       flow less the height it sticks at. A tab goes there, on Lenis,
-       so every card after it slides back down and off it, the
-       reverse of how it was covered. Without the script the tab is a
-       plain link to its card.
-
-   Nothing else: a card arriving on the stack, scrolled to or brought
-   back by its tab, comes in as it is, its tab already at full strength,
-   with no flash or flicker as it seats.
-
-   The scroll positions are worked out from the stack, which does not
-   stick, and the cards' own heights, rather than measured off the
-   sticky cards, whose positions depend on the scroll they are read at.
+   The cards (StackCard.astro, stack-cards.css) rise a little and fade
+   into place as they come up the screen, a row at a time, each row left
+   to right: those in the first screen as the page is uncovered
+   (pageShown), the row peeking at its foot among them, and the rest as
+   each one's top edge comes up over the screen's foot. Each card once,
+   on the line reveal's ease and length. Only
+   their transform and opacity move, cleared once a card has arrived,
+   so its hover is its own; held by opacity alone, never visibility, so
+   the keyboard still reaches a card not yet risen (and scrolls it up,
+   which raises it). With reduced motion, or in the Studio's preview,
+   the cards are simply there.
    ============================================================ */
-// how dark a card behind goes; how far it blurs (px), from when the next
-// card's top is this share of the way up the screen; over what share of
-// the screen's height of scroll a card slows into its place
-const STACK_DEPTH = { shade: 0.6, blur: 4, blurFrom: 0.15, settle: 0.25 };
-// the scroll back to a card: ease in and out (cubic)
+const CARD_REVEAL = { rise: 1.5, duration: 0.9, stagger: 0.08, ease: "power3.out", start: "top bottom" };
+
+function initStackCards(container) {
+  if (reducedMotion || document.documentElement.hasAttribute("data-draft")) return;
+
+  container.querySelectorAll("[data-stack-cards]").forEach((wall) => {
+    // Each card's cell is what is watched, so where a card is waiting
+    // (lowered) never moves where it counts as having come up the screen.
+    const cells = [...wall.children].filter((cell) => cell.querySelector(".stack-card"));
+    const cards = cells.map((cell) => cell.querySelector(".stack-card"));
+    if (!cards.length) return;
+    // the rise, in rem, so it scales with the page (scaling.css)
+    const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    gsap.set(cards, { opacity: 0, y: CARD_REVEAL.rise * rem });
+    // set to rise: the stylesheet's hold on them lets go
+    wall.setAttribute("data-stack-cards-ready", "");
+
+    const triggers = ScrollTrigger.batch(cells, {
+      start: CARD_REVEAL.start,
+      once: true,
+      onEnter: (batch) => pageShown.then(() => gsap.to(batch.map((cell) => cell.querySelector(".stack-card")), {
+        opacity: 1,
+        y: 0,
+        duration: CARD_REVEAL.duration,
+        stagger: CARD_REVEAL.stagger,
+        ease: CARD_REVEAL.ease,
+        clearProps: "transform,opacity",
+      })),
+    });
+
+    registerPageCleanup(() => {
+      triggers.forEach((t) => t.kill());
+      gsap.killTweensOf(cards);
+      gsap.set(cards, { clearProps: "transform,opacity" });
+      wall.removeAttribute("data-stack-cards-ready");
+    });
+  });
+}
+
+/* ============================================================
+   Service drawings — the routes' drawings in the service tabs
+   ============================================================
+   The easing of a scroll to one of the service tabs' routes (initServiceTabs),
+   and the drawings' two parts, mounted per page and torn down with it. */
+// a scroll taken to a route: ease in and out (cubic)
 const STACK_EASE = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
-// The grounds behind the drawings, the service stack's diagrams and the
+// The grounds behind the drawings, the service tabs' diagrams and the
 // approach cards' schematics: each a dotted axonometric lattice on the
 // drawing's own axes (dot-field.js), mounted per page and torn down with it.
 function initIsoFields(container) {
@@ -2676,187 +2783,22 @@ function initIsoFields(container) {
   });
 }
 
-// The service stack's diagrams, each moving by its own idea
+// The site's fields of small square dots (.dot-grid: the approach band's,
+// the cost cards'), each drawn on a canvas, every dot snapped to the
+// screen's pixels (dot-field.js).
+function initDotGrids(container) {
+  container.querySelectorAll(".dot-grid").forEach((el) => {
+    const grid = mountDotGrid(el);
+    registerPageCleanup(() => grid.destroy());
+  });
+}
+
+// The service tabs' diagrams, each moving by its own idea
 // (service-diagram.js).
 function initServiceDiagrams(container) {
   container.querySelectorAll("[data-service-diagram]").forEach((el) => {
     const diagram = mountServiceDiagram(el);
     registerPageCleanup(() => diagram.destroy());
-  });
-}
-
-function initServiceStack(container) {
-  container.querySelectorAll("[data-service-stack]").forEach((stack) => {
-    const items = [...stack.querySelectorAll("[data-service-stack-item]")];
-    const part = (item, name) => item.querySelector(`[data-service-stack-${name}]`);
-    const stickAt = (item) => parseFloat(getComputedStyle(item).top);
-
-    // where card i rests on top: the stack's top in the page, the cards
-    // before it in the flow, less the height it sticks at
-    const restingAt = (i) => {
-      const top = stack.getBoundingClientRect().top + window.scrollY + parseFloat(getComputedStyle(stack).paddingTop);
-      const before = items.slice(0, i).reduce((sum, item) => sum + item.offsetHeight, 0);
-      return top + before - stickAt(items[i]);
-    };
-
-    const mm = gsap.matchMedia();
-    mm.add("(prefers-reduced-motion: no-preference)", () => {
-      items.slice(0, -1).forEach((item, i) => {
-        gsap.timeline({
-          defaults: { ease: "none" },
-          scrollTrigger: {
-            // from this card coming to rest, the next rising under it,
-            // to the next coming to rest on it
-            start: () => restingAt(i),
-            end: () => restingAt(i + 1),
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        })
-          .to(part(item, "shade"), { opacity: STACK_DEPTH.shade }, 0);
-      });
-
-      // and softens a little, from the moment the next card's top has come
-      // its share of the way up the screen to the moment it comes to rest
-      // on it: a layer over it blurring what is behind it at one fixed
-      // radius, faded in. Only its opacity moves, which costs nothing to
-      // draw; a radius changed every frame made the browser rebuild the
-      // blur's surface as it grew, and frames dropped. The layer only
-      // blurs while it shows: not before the next card reaches its mark,
-      // nor once that card has covered it, so the cards behind never go
-      // on costing a blur no one can see.
-      const blurs = items.slice(0, -1).map((item, i) => {
-        const layer = part(item, "blur");
-        const set = (amount) => {
-          if (!layer) return;
-          const on = amount > 0.005 && amount < 1;
-          const filter = on ? `blur(${STACK_DEPTH.blur}px)` : "";
-          if (layer.style.backdropFilter !== filter) {
-            layer.style.backdropFilter = filter;
-            layer.style.webkitBackdropFilter = filter;
-          }
-          layer.style.opacity = on ? amount.toFixed(3) : "";
-        };
-        ScrollTrigger.create({
-          start: () => restingAt(i + 1) + stickAt(items[i + 1]) - window.innerHeight * (1 - STACK_DEPTH.blurFrom),
-          end: () => restingAt(i + 1),
-          onUpdate: (self) => set(self.progress),
-          onRefresh: (self) => set(self.progress),
-        });
-        return set;
-      });
-
-      // Each card comes to rest gently rather than stopping dead where it
-      // sticks. Over the last stretch of scroll before it sticks (a
-      // STACK_DEPTH.settle share of the screen's height, D), it is drawn
-      // on ahead of the scroll and slows to a standstill in its place: t =
-      // the scroll still to go over D, and it is lifted by D·t·(1 − t)²,
-      // nothing at either end of the stretch, so it leaves the scroll's
-      // pace without a jolt and seats at the very scroll it always did,
-      // at rest, never past its place (at most 15% of D ahead). The depth,
-      // the card in front and the tabs' targets are all as before. A
-      // transform alone, written only while a card is in that stretch;
-      // backwards it lifts off the same way.
-      let rests = [];
-      const lifted = items.map(() => 0);
-      const settle = (scroll) => {
-        const reach = window.innerHeight * STACK_DEPTH.settle;
-        items.forEach((item, i) => {
-          const t = (rests[i] - scroll) / reach;
-          const lift = t > 0 && t < 1 ? -reach * t * (1 - t) * (1 - t) : 0;
-          if (lift === lifted[i] || (lift !== 0 && Math.abs(lift - lifted[i]) < 0.05)) return;
-          lifted[i] = lift;
-          item.style.transform = lift ? `translate3d(0, ${lift.toFixed(2)}px, 0)` : "";
-        });
-      };
-      ScrollTrigger.create({
-        trigger: stack,
-        start: "top bottom",
-        end: "bottom top",
-        onRefresh(self) {
-          rests = items.map((_, i) => restingAt(i));
-          settle(self.scroll());
-        },
-        onUpdate: (self) => settle(self.scroll()),
-      });
-
-      // The first blur the browser draws costs it a few frames to set up
-      // (measured: one ~120ms frame the first time, none after), which
-      // would land on the first card's rise. So it is drawn once ahead of
-      // time, out of sight: a 2px layer in the corner of the screen,
-      // blurring at the same radius, all but transparent, for a moment
-      // shortly after the page is in place.
-      const warm = document.createElement("span");
-      warm.setAttribute("aria-hidden", "true");
-      Object.assign(warm.style, {
-        position: "fixed", left: "0", top: "0", width: "2px", height: "2px",
-        opacity: "0.01", pointerEvents: "none", zIndex: "-1",
-        backdropFilter: `blur(${STACK_DEPTH.blur}px)`,
-        webkitBackdropFilter: `blur(${STACK_DEPTH.blur}px)`,
-      });
-      const warmUp = gsap.delayedCall(1, () => {
-        document.body.appendChild(warm);
-        gsap.delayedCall(0.3, () => warm.remove());
-      });
-
-      return () => {
-        warmUp.kill();
-        warm.remove();
-        blurs.forEach((set) => set(0));
-        items.forEach((item) => { item.style.transform = ""; });
-      };
-    });
-
-    // Which card is in front, told by the tabs' strength (styles.css,
-    // "service stack"): a card takes over once it has come halfway onto
-    // the one before it, the same share of the way for every card, and
-    // the cards under it are behind (is--behind), their tabs faded; a
-    // card still to come is not, so its tab arrives at full strength. The
-    // marks are measured on each refresh, never per frame.
-    let marks = [];
-    let active = -1;
-    const setActive = (scroll) => {
-      const now = marks.filter((mark) => scroll >= mark).length;
-      if (now === active) return;
-      active = now;
-      items.forEach((item, i) => {
-        item.classList.toggle("is--active", i === now);
-        item.classList.toggle("is--behind", i < now);
-      });
-    };
-    ScrollTrigger.create({
-      trigger: stack,
-      start: "top bottom",
-      end: "bottom top",
-      onRefresh(self) {
-        marks = items.slice(1).map((_, i) => (restingAt(i) + restingAt(i + 1)) / 2);
-        active = -1;
-        setActive(self.scroll());
-      },
-      onUpdate: (self) => setActive(self.scroll()),
-    });
-
-    const onClick = (e) => {
-      const tab = e.target.closest("[data-service-stack-tab]");
-      const i = tab ? items.indexOf(tab.closest("[data-service-stack-item]")) : -1;
-      if (i < 0) return;
-      e.preventDefault();
-      if (reducedMotion) return lenis.scrollTo(restingAt(i), { immediate: true });
-      // unhurried, and longer the further it has to go, easing in and out
-      // so the cards lift off and settle rather than snap
-      const target = restingAt(i);
-      const distance = Math.abs(target - window.scrollY);
-      lenis.scrollTo(target, {
-        duration: gsap.utils.clamp(1.2, 2.4, 0.9 + distance / 1800),
-        easing: STACK_EASE,
-      });
-    };
-
-    stack.addEventListener("click", onClick);
-    registerPageCleanup(() => {
-      stack.removeEventListener("click", onClick);
-      mm.revert();
-    });
   });
 }
 

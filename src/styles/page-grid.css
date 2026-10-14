@@ -90,7 +90,9 @@
      margin above them to a quarter of the hero's foot padding below, so it runs past
      both and touches neither the band nor the hero's foot. Set in from
      the line by two of --dotted-rule-bleed, the rule's own inset, and a grid item
-     of its own, so it moves with the grid. */
+     of its own, so it moves with the grid. Its dots a shade firmer than
+     the rule's own (40% of the ink against 30%), so it holds its own
+     beside the headline; otherwise --dotted-rule-vertical exactly. */
   .page--grid .hero:not(.hero--split) .hero__grid::before {
     content: "";
     grid-column: 6;
@@ -98,7 +100,7 @@
     justify-self: end;
     width: 2px;
     margin: -0.75rem calc(2 * var(--dotted-rule-bleed)) -0.75rem 0;
-    background: var(--dotted-rule-vertical);
+    background: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 40%, transparent) 5px 7px, transparent 7px) center / 2px 12px round;
     pointer-events: none;
   }
 
@@ -126,17 +128,17 @@
   .page--grid .compare .section-title__body { grid-column: 6 / 12; }
   .page--grid .compare .h2 { text-wrap: balance; }
 
-  /* --- Problems: the title on Grid Columns 2–11; the cards across the
-     whole grid, a row of its own twelve tracks (a subgrid), four Grid
-     Columns each: 1–4, 5–8 and 9–12, the grid's gutter between them */
+  /* --- Problems: the title on Grid Columns 2–11; the cards one strip
+     across the whole grid, three equal thirds meeting edge to edge
+     (styles.css), so each covers its four Grid Columns, 1–4, 5–8 and
+     9–12, and the two joins fall inside the gutters between them, a
+     third of a gutter off their middles, never across a column. Equal,
+     so the three fields are one size and the bands level. */
   .page--grid .problem-grid {
     grid-column: 1 / -1;
-    grid-template-columns: subgrid;
-    column-gap: normal;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 0;
   }
-  .page--grid .problem-card:nth-child(1) { grid-column: 1 / 5; }
-  .page--grid .problem-card:nth-child(2) { grid-column: 5 / 9; }
-  .page--grid .problem-card:nth-child(3) { grid-column: 9 / 13; }
 
   /* --- Credentials: the picture in Grid Columns 2–7, and the copy in
      Grid Columns 8–11, on the picture's foot ---------------------- */

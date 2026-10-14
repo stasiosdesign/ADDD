@@ -33,9 +33,9 @@ export const homePage = {
     tagline: 'The cost of standing still',
     heading: 'What actually costs you time',
     cards: keyed('card', [
-      { title: 'Tools accumulate without discipline', text: 'Each year brings new software, rarely any removal', image: { path: 'assets/images/conference-keynote.jpg', alt: '' } },
-      { title: 'Processes vary between projects', text: 'Teams work differently depending on the job', image: { path: 'assets/images/allister-keynote-stage.jpg', alt: '' } },
-      { title: 'Information lives in multiple places', text: 'Data gets re-entered, duplicated or lost between tools', image: { path: 'assets/images/allister-presenting.jpg', alt: '' } },
+      { title: 'Software keeps piling up.', text: 'New tools get added, old ones stay, and costs rise without anyone knowing what’s actually delivering value.', image: { path: 'assets/images/conference-keynote.jpg', alt: '' } },
+      { title: 'Every project works differently.', text: 'Without consistent workflows, teams keep solving the same problems, repeating mistakes and losing valuable time.', image: { path: 'assets/images/allister-keynote-stage.jpg', alt: '' } },
+      { title: 'Information gets lost.', text: 'Disconnected systems force teams to re-enter data, recreate information and waste time searching for what they need.', image: { path: 'assets/images/allister-presenting.jpg', alt: '' } },
     ]),
   },
   routes: {

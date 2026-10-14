@@ -17,6 +17,9 @@
    ============================================================ */
 .coin-stack {
   --coin-size: var(--head-size, 5rem);
+  /* the drawing's height, in the heading's size: a little larger than
+     the 2.55 it was drawn at */
+  --coin-height: calc(2.55 * 1.12);
   /* over the heading's first line, under its second */
   position: relative;
   z-index: 1;
@@ -24,14 +27,17 @@
   /* the top of the coins' column well down the first line's lower-case
      letters, so the red coin starts at that line's foot, over only the
      last quarter of their height (its face's top about 0.75em down the
-     heading, the first line's baseline at 0.88em) */
-  margin-top: calc(0.45 * var(--coin-size));
+     heading, the first line's baseline at 0.88em). The red face's centre
+     stands 130 of the drawing's 600 units down it, so at 2.55 the column
+     started 0.45 down; the larger drawing starts as much higher as keeps
+     that centre where it was. */
+  margin-top: calc((0.45 - 130 / 600 * (var(--coin-height) - 2.55)) * var(--coin-size));
   pointer-events: none;
 }
 .coin-stack__drawing {
   display: block;
   width: auto;
-  height: calc(2.55 * var(--coin-size));
+  height: calc(var(--coin-height) * var(--coin-size));
   overflow: visible;
 }
 

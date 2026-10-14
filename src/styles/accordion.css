@@ -8,8 +8,9 @@
    on the site's own ease, so the panel always opens to its content's
    height with nothing measured in script.
 
-   Items are bordered tiles on the site radius with a square chip
-   that turns the chevron. The one piece of colour is the red on an
+   Items are bordered tiles on the site radius (--radius) with a square
+   chip on the controls' (--radius-sm) that turns the chevron. The one
+   piece of colour is the red on an
    open item's chip — the same red the primary button takes on hover,
    the site's mark for "this is the one you are touching".
 
@@ -76,7 +77,7 @@
   align-items: center;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background-color: var(--c-light-fg);
   color: var(--c-text);
   transform: rotate(180deg);

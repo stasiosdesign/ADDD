@@ -1,0 +1,35 @@
+---
+/*
+  One card in the Stack Diagnostic hero's card wall (stack-diagnostic.astro;
+  src/styles/stack-cards.css), in the research cards' language: white on
+  the off-white page, a header row of a small square picture, the title
+  beside it and a square arrow at its end, the site's dotted rule under it,
+  then a line or two of description.
+
+  The whole card is the link. Without an href it is a placeholder link (an
+  <a> with no href: not focusable, goes nowhere) until its destination is
+  supplied; an href to another site opens in a new tab. Without a picture,
+  a blank square holds its place.
+*/
+import ArrowIcon from "./ArrowIcon.astro";
+
+export interface Props {
+  title: string;
+  text: string;
+  /** The small square picture, a path under public/ (e.g. /assets/logos/…). */
+  image?: string;
+  /** Where the card leads. */
+  href?: string;
+}
+
+const { title, text, image, href } = Astro.props;
+const external = href ? /^https?:\/\//.test(href) : false;
+---
+<a class="stack-card" href={href} target={external ? "_blank" : undefined} rel={external ? "noopener" : undefined}>
+  <span class="stack-card__media" aria-hidden="true">
+    {image && <img src={image} alt="" loading="lazy" decoding="async">}
+  </span>
+  <h2 class="stack-card__title">{title}</h2>
+  <span class="stack-card__arrow" aria-hidden="true"><ArrowIcon /></span>
+  <p class="stack-card__text">{text}</p>
+</a>

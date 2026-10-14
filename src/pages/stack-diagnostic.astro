@@ -2,6 +2,8 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import StackCard from "../components/StackCard.astro";
+import type { Props as StackCardData } from "../components/StackCard.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
 
@@ -24,6 +26,30 @@ const nextTiles = list<Tile>("next.tiles");
 // Where the outlined cards' and the closing cards' links lead, by position
 const alternativeHrefs = ["workshops-audits.html", "technology-blueprint.html"];
 const nextHrefs = ["workshops-audits.html", "technology-blueprint.html", "advisory.html"];
+
+// The hero's card wall (StackCard.astro, stack-cards.css), three across,
+// one card per entry, in order, left to right and row by row. Each card:
+//   title  its name
+//   text   a line or two describing it
+//   image  its small square picture, a path under public/ (e.g.
+//          /assets/logos/…); left out, a blank square holds its place
+//   href   where the whole card leads; left out, the card is not a link
+//          yet; another site's address opens in a new tab
+// Placeholders until the real cards are supplied.
+const cards: StackCardData[] = [
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
+];
 ---
 <BaseLayout
   title="Stack Diagnostic — ADDD"
@@ -50,7 +76,14 @@ const nextHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
       </div>
     </div>
   </section>
-  <div class="band band--wide"></div>
+  <!-- The card wall, in the hero's band's place: its first rows in the
+       first screen, the rest rising into place as they come up it
+       (initStackCards, site.js). -->
+  <ul class="stack-cards" role="list" data-stack-cards>
+    {cards.map((card) => (
+      <li><StackCard {...card} /></li>
+    ))}
+  </ul>
 
   <section class="section" id="who-its-for">
     <div class="container">

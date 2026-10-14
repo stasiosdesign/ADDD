@@ -25,7 +25,6 @@
    ============================================================ */
 .approach-stack {
   --stack-line: rgba(255, 255, 255, 0.14);
-  --stack-text: rgba(255, 255, 255, 0.7);
   --stack-dot: rgba(255, 255, 255, 0.55);
   /* one rung of the ladder the cards stand on. A card is about 29rem
      tall, so each starts just after the last ends, the two clear of
@@ -304,11 +303,16 @@
   padding: var(--card-pad);
   background: var(--tone-copy);
 }
+/* the copy in the middle of its block across as well, under the
+   schematic, which stands in the middle too: held to its measure,
+   centred, each line centred on the card, in white */
 .step-card__p {
   max-width: 28rem;
+  margin-inline: auto;
   font-size: var(--t-md);
   line-height: 1.4;
-  color: var(--stack-text);
+  text-align: center;
+  color: var(--c-white);
 }
 
 /* --- Schematics ----------------------------------------------

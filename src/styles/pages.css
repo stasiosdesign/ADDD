@@ -117,7 +117,7 @@
 .filters button {
   border: 1px solid var(--c-border);
   background: transparent;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   padding: 0.5rem 1rem;
   font-family: var(--font-body);
   font-size: var(--t-sm);
@@ -185,6 +185,9 @@
   min-height: 32rem;
   margin-top: 1.5rem;
   border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  /* the drawing's field, flush to the panel's edge, keeps to its corners */
+  overflow: hidden;
   background: var(--c-white);
 }
 .examine-panel__text {
@@ -293,7 +296,7 @@
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--c-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   padding: 0.125rem 0.5rem;
   font-size: var(--t-xs);
 }
@@ -312,7 +315,7 @@
 .field input:not([type="radio"]):not([type="checkbox"]), .field select, .field textarea {
   background: var(--c-white);
   border: 1px solid var(--c-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   padding: 0.75rem;
   width: 100%;
   font-family: var(--font-body);

@@ -35,7 +35,7 @@
   --action-button-hover-color-background: var(--action-button-accent);
   --action-button-color-focus: var(--c-text);
   --action-button-text-duplicate-distance: 1.5em;
-  --action-button-radius: var(--radius);
+  --action-button-radius: var(--radius-sm);
   --action-button-ease-hover: var(--ease-osmo);
   --action-button-ease-focus: cubic-bezier(0.32, 0.72, 0, 1);
 
@@ -212,13 +212,13 @@
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
-/* The homepage's service stack: a white button on the charcoal card, at
-   the site's own size. The label block white in ink capitals, the arrow
+/* The homepage's service tabs: a white button on the red panel, at the
+   site's own size. The label block white in ink capitals, the arrow
    block a light grey a step off it with the two triangles in ink, and
    the label sweeping to that grey on hover, so the whole button becomes
-   one colour, as every primary does; nothing on the cards is red. Its
-   focus ring is white, to read on the card. */
-.service-stack .action-button {
+   one colour, as every primary does; no red of its own on the red. Its
+   focus ring is white, to read on the panel. */
+.service-tabs .action-button {
   --action-button-color: var(--c-text);
   --action-button-color-background: var(--c-white);
   --action-button-accent: #e6e6e6;

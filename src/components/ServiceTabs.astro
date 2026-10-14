@@ -1,0 +1,91 @@
+---
+/*
+  The four routes as one panel that changes in place, on a band of the
+  ink. Under its own heading (the routes' label, set as "What actually
+  costs you time" is, in white), the
+  panel sticks under the nav while the page scrolls on past it, and the
+  scroll takes it through the four routes in turn, then lets it go
+  (service-tabs.js).
+
+  Two halves across Grid Columns 1–12, meeting on the page's centre line
+  (styles.css, "service tabs"): on the left, on the site's red, a small +
+  near each corner (.corner-marks), the route's title, its line and its
+  button in the middle, and at the foot the four positions, which show
+  where the scroll is and take it to a route; on the right, on the ink,
+  the route's drawing, its dotted lattice and its diagram
+  (ServiceDiagram.astro), moving.
+
+  The change, after Osmo's Sticky Features: the words going leave the way
+  the scroll runs and the next come in after them, one after another; a
+  drawing after the one shown opens over it from the middle, and one
+  before it is shown as the one over it closes to the middle. Without the
+  script the first route shows, as written here.
+*/
+import ActionButton from "./ActionButton.astro";
+import ServiceDiagram from "./ServiceDiagram.astro";
+
+interface Card {
+  title?: string;
+  text?: string;
+}
+interface Props {
+  cards: Card[];
+  hrefs: string[];
+  /** The routes' label, the heading over the panel. */
+  label: string;
+}
+const { cards, hrefs, label } = Astro.props;
+---
+<!-- the heading, set as the cost section's is, scrolling with the page -->
+<div class="problem-head service-tabs-head">
+  <h2 class="problem-head__h" data-split="heading" data-page-field="routes.tagline">{label}</h2>
+</div>
+
+<!-- the scroll the panel sticks for: a stretch for each route -->
+<div class="service-tabs" data-service-tabs style={`--st-count:${cards.length}`}>
+  <div class="service-tabs__panel" data-service-tabs-panel>
+    <div class="service-tabs__copy">
+      <span class="corner-marks service-tabs__marks" aria-hidden="true"></span>
+
+      <!-- every route in one cell, the cell the size of the largest -->
+      <div class="service-tabs__slides">
+        {cards.map((card, i) => (
+        <div class:list={["service-tabs__slide", { "is--active": i === 0 }]} id={`service-tabs-panel-${i + 1}`} role="tabpanel" aria-labelledby={`service-tabs-tab-${i + 1}`} data-service-tabs-item>
+          <h3 class="service-tabs__h" data-service-tabs-text data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
+          <p class="service-tabs__p" data-service-tabs-text data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
+          <div class="service-tabs__action" data-service-tabs-text>
+            <ActionButton href={hrefs[i] ?? "contact.html"}>View {card.title || "the service"}</ActionButton>
+          </div>
+        </div>
+        ))}
+      </div>
+
+      <div class="service-tabs__nav" role="tablist" aria-label={label}>
+        {cards.map((card, i) => (
+        <button
+          type="button"
+          class:list={["service-tabs__pos", { "is--active": i === 0 }]}
+          id={`service-tabs-tab-${i + 1}`}
+          role="tab"
+          aria-selected={i === 0 ? "true" : "false"}
+          aria-controls={`service-tabs-panel-${i + 1}`}
+          aria-label={card.title}
+          tabindex={i === 0 ? "0" : "-1"}
+          data-service-tabs-button
+        ><span class="service-tabs__pos-mark"><span class="service-tabs__pos-fill" data-service-tabs-progress></span></span></button>
+        ))}
+      </div>
+    </div>
+
+    <!-- each route's drawing: its lattice (dot-field.js) and its
+         diagram, side by side in one panel -->
+    <div class="service-tabs__media">
+      {cards.map((_, i) => (
+      <div class="service-tabs__visual" data-service-tabs-visual aria-hidden="true">
+        <div class="service-tabs__pattern" data-iso-field aria-hidden="true"></div>
+        <ServiceDiagram index={i} class="service-tabs__diagram" animate />
+      </div>
+      ))}
+    </div>
+  </div>
+</div>

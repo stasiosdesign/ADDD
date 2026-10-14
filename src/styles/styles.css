@@ -87,9 +87,16 @@
   --container: 80rem;
   --sec-lg: 7rem;
   --sec-md: 5rem;
-  /* corner radius — one value for cards, buttons, media and inputs;
-     the slightest softening of a square corner, never a rounded UI */
-  --radius: 1px;
+  /* Corner radius: two steps, softening a square corner and never
+     reading as a rounded UI. Fixed pixels, so they stay as slight
+     however large the page scales. --radius takes the surfaces (cards,
+     tiles, panels, pictures); --radius-sm the controls and the chips
+     that sit on them (buttons, inputs, pills, tags, arrow squares), a
+     step under the surface they sit in. Edge-to-edge bands and the
+     marks (the compare and examine squares) stay square, and the nav
+     keeps the corners it was drawn with: it redeclares both (nav.css). */
+  --radius: 2px;
+  --radius-sm: 1px;
   /* The site's motion curve — the same one GSAP is given as "osmo",
      so a CSS transition and a tween ease the same way. */
   --ease-osmo: cubic-bezier(0.625, 0.05, 0, 1);
@@ -276,7 +283,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: center;
   gap: 0.5rem;
   padding: 0.625rem 1.5rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font-weight: var(--fw-body);
   font-size: var(--t-rg);
@@ -293,8 +300,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    email signup — one control wherever the site asks for an email:
    the newsletter in the Resources dropdown, the footer and the
    newsletter page, and the report downloads. A white field and a
-   block of the accent red for the submit, square, inside one ink
-   border, so the two read as a single control on any ground. The
+   block of the accent red for the submit inside one ink border, on
+   the controls' radius (the two clipped to it), so the two read as a
+   single control on any ground. The
    field takes the row; where the row runs out of room the submit
    drops under it, full width, still inside the border. Typing in
    the field rings the control in the context's own text colour, as
@@ -308,6 +316,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   max-width: 28.75rem;
   background: var(--c-white);
   border: 1px solid var(--c-text);
+  border-radius: var(--radius-sm);
+  overflow: clip;
 }
 /* On a block of colour of its own — the footer's red, the field of the
    Resources dropdown's newsletter block — the ground already frames the
@@ -834,12 +844,19 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    behind the second as the page scrolls, the finished stack coming to
    rest under them.
 
-   The three cards below are the site's card — white panel, a
-   media area over a body — level in one row, each the same
-   width and height and a gutter apart, so the three read as one
-   set: on the 12-Column Grid, four Grid Columns each, 1–4, 5–8 and
-   9–12 (page-grid.css). They stand apart by their white on the
-   off-white alone, with no line drawn round or between them.
+   The three cards below are one strip from 992px: level, each the
+   same width and height, meeting edge to edge inside the gutters
+   between Grid Columns 4 and 5 and 8 and 9 (page-grid.css), so each
+   still covers its four Grid Columns. Each is a drawing
+   over a dark band of words. The drawing is a square field of the
+   site's dots (.dot-grid), seven steps across and seven down, the
+   card's picture standing in its middle five, so the field's edges
+   and the picture's each run midway between two lines of dots and a
+   ring of dots frames the picture. Each field has its own ground,
+   white, ink and a mid grey, and its dots their tint for it. Under
+   it the band, one for all three, a hairline where two cards meet:
+   the card's number, its title and its line, in white. Below 992px
+   the cards stand apart, one under another.
    ------------------------------------------------------------ */
 .problem-head {
   /* the heading's size, which the coin stack set into it is sized from */
@@ -870,18 +887,26 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   position: relative;
   align-self: start;
   margin: 0;
+  /* A 430, between the kit's 400 and 500, a weight it has no font for:
+     the 400 (from the rule above), every stroke thickened by an outline
+     in its own colour, 30% of the 500's extra stem (0.034em, measured),
+     and its letters set 30% of the 500's extra width further apart
+     (0.0085em a letter), so it stands and spaces as a 430 would. For
+     another weight w, scale both by (w - 400) / 100. */
+  -webkit-text-stroke: 0.010em currentColor;
+  letter-spacing: calc(var(--primary-tracking) - 0.0274em);
   font-size: var(--head-size);
   line-height: 0.9;
   text-wrap: balance;
 }
-/* The depth: the heading is no layer of its own, so its two lines (the
-   line reveal's masks, initLineReveal) each take their own place about
-   the coins (coin-stack.css, z-index 1): the first under them, the
-   second over them. Unsplit (reduced motion, the Studio's preview), the
+/* The depth: the heading is no layer of its own, so its two lines (split
+   in place, without moving, by the coin stack: coin-stack.js) each take
+   their own place about the coins (coin-stack.css, z-index 1): the first
+   under them, the second over them. Unsplit (the Studio's preview), the
    heading is one block, and stands in front of the coins whole. */
-.problem-head__h .line-mask { position: relative; z-index: 2; }
-.problem-head__h .line-mask:first-child { z-index: 0; }
-.problem-head__h:not(:has(.line-mask)) { z-index: 2; }
+.problem-head__h .problem-head__line { position: relative; z-index: 2; }
+.problem-head__h .problem-head__line:first-child { z-index: 0; }
+.problem-head__h:not(:has(.problem-head__line)) { z-index: 2; }
 
 /* The cards level, each stretched to the row's height, so every
    card's top, foot, picture and title stand on the same lines
@@ -898,17 +923,54 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 .problem-card {
+  /* the field's step: a seventh of the field's width, which is the
+     card's (the card is the container its parts measure from) */
+  --pc-step: calc(100cqw / 7);
+  /* the field's ground and its dots' tint */
+  --pc-field: var(--c-white);
+  --pc-dots: color-mix(in srgb, var(--c-text) 30%, transparent);
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--c-white);
+  /* the band the words stand on */
+  background: var(--c-dark-bg);
+  color: var(--c-white);
 }
+.problem-card:nth-child(2) {
+  --pc-field: var(--c-dark-fg);
+  --pc-dots: rgba(255, 255, 255, 0.3);
+}
+.problem-card:nth-child(3) {
+  --pc-field: #737373;
+  --pc-dots: color-mix(in srgb, var(--c-text) 55%, transparent);
+}
+/* landscape: seven steps across, five down */
 .problem-card__media {
   position: relative;
-  width: 100%;
-  aspect-ratio: 4 / 3;
+  flex: none;
+  aspect-ratio: 7 / 5;
+  background: var(--pc-field);
+}
+/* the dots, set out from the field's corner on its step, so its edges
+   run midway between two lines of them; few and far apart, so in the
+   dotted rule's tint (--dotted-rule) rather than a field's fainter one */
+.problem-card__dots {
+  position: absolute;
+  inset: 0;
+  --dot-grid-ink: var(--pc-dots);
+  --dot-pitch: var(--pc-step);
+  --dot-x: calc(var(--pc-step) / 2);
+  --dot-y: calc(var(--pc-step) / 2);
+}
+/* the picture, over the field's middle steps, five across and three
+   down, so it is landscape; the dots under it are covered */
+.problem-card__frame {
+  position: absolute;
+  inset: var(--pc-step);
   overflow: hidden;
+  border-radius: var(--radius-sm);
   background: var(--c-light-fg);
 }
 .problem-card__image {
@@ -930,7 +992,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: center;
   width: 2.5rem;
   height: 2.5rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   /* a hairline, so the chip still reads where the photograph behind
      it is pale */
   border: 1px solid var(--c-border);
@@ -939,11 +1001,20 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 .problem-card__icon svg { width: 1.375rem; height: 1.375rem; display: block; }
 
+/* The band of words under the field. It takes the row's slack, so
+   three cards of different words still end level. */
 .problem-card__body {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  padding: 1.5rem;
+  padding: 1.5rem 1.5rem 1.75rem;
+}
+/* the card's number, in the label face, a step over the title */
+.problem-card__num {
+  margin-bottom: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1;
 }
 .problem-card__h {
   margin: 0;
@@ -956,32 +1027,20 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .problem-card__p {
   margin: 0;
   font-size: var(--t-sm);
-  line-height: 1.35;
-  color: #6b6b6b;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.6);
 }
 
-/* Entrance — the cards are held down and faded until they are
-   released (initProblemGrid: under the cost heading, the moment its
-   coins have collapsed), then rise in left to right. */
+/* From 992px the three are one strip (its thirds: page-grid.css):
+   only its outer corners rounded, and a hairline down the band where
+   two cards meet; the fields part by their grounds alone. The scroll
+   sets the three out as it passes, a stair closing up into the level
+   row and parting again (initProblemParallax, site.js). */
 @media screen and (min-width: 992px) {
-  [data-problem-grid-init] .problem-card {
-    opacity: 0;
-    transform: translateY(32px);
-    transition: opacity .7s ease, transform .7s ease;
-  }
-  [data-problem-grid-init][data-problem-grid-status="in"] .problem-card {
-    opacity: 1;
-    transform: none;
-  }
-  [data-problem-grid-init] .problem-card:nth-child(2) { transition-delay: .12s; }
-  [data-problem-grid-init] .problem-card:nth-child(3) { transition-delay: .24s; }
-}
-@media (prefers-reduced-motion: reduce) {
-  [data-problem-grid-init] .problem-card {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
+  .problem-card:nth-child(1) { border-radius: var(--radius) 0 0 var(--radius); }
+  .problem-card:nth-child(2) { border-radius: 0; }
+  .problem-card:nth-child(3) { border-radius: 0 var(--radius) var(--radius) 0; }
+  .problem-card + .problem-card .problem-card__body { box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.1); }
 }
 
 /* Stacked: the cards one under another, the heading and its coins
@@ -991,7 +1050,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .problem-head { --head-size: 3.5rem; }
   .routes__h { margin-left: 0; max-width: none; }
   .problem-grid { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; margin-top: 2.5rem; }
-  .problem-card__media { aspect-ratio: 16 / 10; }
+}
+/* A tablet: each card on its side across the grid's six columns, the
+   field on Grid Columns 1–3 and the band beside it, its words from the
+   start of Grid Column 4, level with the picture's top. */
+@media screen and (min-width: 768px) and (max-width: 991px) {
+  .problem-card {
+    --pc-step: calc((100cqw - var(--grid-gutter)) / 14);
+    display: grid;
+    grid-template-columns: calc((100% - var(--grid-gutter)) / 2) minmax(0, 1fr);
+  }
+  .problem-card__body { padding: var(--pc-step) 1.5rem 1.5rem var(--grid-gutter); }
 }
 @media screen and (max-width: 767px) {
   .problem-head { --head-size: 2.75rem; }
@@ -1239,8 +1308,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    ============================================================ */
 /* A touch more room above the eyebrow than the section default, which
    is the separation from the white section before it. */
-/* The service stack sets its own margin, the grid's, so the section
-   drops its own side padding and the header keeps its container. */
+/* The section drops its own side padding and the header keeps its
+   container's. */
 .routes {
   padding-top: 7.375rem;
   padding-left: 0;
@@ -1306,7 +1375,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   top: 1rem;
   left: 1rem;
   padding: 0.3125rem 0.5rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--c-white);
 }
 /* The card's only affordance — the site's arrow, turned to point
@@ -1318,7 +1387,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--c-text);
   color: var(--c-white);
   transition: background-color .25s ease;
@@ -1563,7 +1632,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   gap: 1.25rem;
 }
 /* Square, as the research slider's arrows are (.arrows): a white block
-   on the off-white with the site's small radius and no outline, the
+   on the off-white with the controls' radius and no outline, the
    arrow in ink, and over it the fill and a white arrow the script runs
    in on hover and keyboard focus. */
 .testimonial-slider__button {
@@ -1576,7 +1645,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   padding: 0;
   overflow: hidden;
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   background: var(--c-white);
   color: var(--c-text);
   cursor: pointer;
@@ -1694,6 +1763,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   flex-direction: column;
   padding: 1.25rem;
   border: 1px dotted rgba(10, 10, 10, 0.3);
+  border-radius: var(--radius);
 }
 .compare__title {
   margin: 0;
@@ -1866,7 +1936,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto auto auto auto 1fr auto;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--radius);
   background: var(--c-white);
   color: var(--c-text);
 }
@@ -1895,7 +1965,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   height: 2.75rem;
   align-self: center;
   margin: 0 var(--card-pad) 0 0;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: var(--c-light-fg);
   color: var(--c-text);
   transition: background-color .25s ease, color .25s ease;
@@ -1941,6 +2011,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   height: auto;
   aspect-ratio: 4 / 3;
   margin: 0 var(--card-pad) var(--card-pad);
+  border-radius: var(--radius-sm);
   background: var(--c-light-fg);
   object-fit: cover;
 }
@@ -1980,7 +2051,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .arrows { display: flex; gap: 1rem; }
 .arrows button {
   width: 3rem; height: 3rem;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   border: 0;
   /* white on the off-white page */
   background: var(--c-white);
@@ -2192,6 +2263,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: center;
   width: max(2.25rem, 36px);
   aspect-ratio: 1;
+  border-radius: var(--radius-sm);
   background: rgba(0, 0, 0, 0.16);
   color: var(--c-white);
   transition: background-color .2s ease, color .2s ease;
@@ -2461,300 +2533,270 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    only a single bleed: every split heading stood a bleed looser per line
    than its leading (a 60px heading at 1.05 set its lines 73px apart, not
    63px). So the second of two lines draws back both itself, and the
-   collapsed margin between them is the whole overlap. */
+   collapsed margin between them is the whole overlap.
+
+   Across, the same: a line's box ends where its last letter's advance
+   does, but the headings' close tracking (down to -0.05em) draws that
+   advance in under the letter's ink, and a first letter can reach back
+   past the start (a quote's opening mark), so the clip cut the e of
+   "time" and the edges of other lines by a pixel or more. Each mask is
+   opened by a fifth of an em either side, more than any of that, and
+   drawn back by the same margin, so nothing moves. */
 .line-mask {
   --mask-bleed: max(0px, (1.4em - 1lh) / 2);
+  --mask-bleed-x: 0.2em;
   padding-block: var(--mask-bleed);
   margin-block: calc(-1 * var(--mask-bleed));
+  padding-inline: var(--mask-bleed-x);
+  margin-inline: calc(-1 * var(--mask-bleed-x));
 }
 .line-mask + .line-mask {
   margin-top: calc(-2 * var(--mask-bleed));
 }
 
 /* ============================================================
-   Service stack — the homepage's four routes as a stack of files
-   (index.astro, initServiceStack in src/scripts/site.js)
+   Service tabs — the routes as one panel that sticks while the scroll
+   takes it through them (ServiceTabs.astro, service-tabs.js)
    ------------------------------------------------------------
-   Each route is a card across the 12-Column Grid, from Grid Column 1
-   to the end of Grid Column 12, with a folder tab. The cards are
-   sticky, all at the one height, so as each arrives it covers the
-   last, and its tab rises with it into one row: the four tabs each a
-   quarter of the stack's width, edge to edge, filling left to right
-   like the dividers of a drawer of files. As a card comes over the one
-   before, that one draws back: it darkens, so what is behind reads as
-   behind, without ever leaving its lines (the script, scrubbed with the
-   scroll), while the tab in front stands at full strength, on its
-   card's own ground, and the others fade by how far they are from it. A
-   card comes in as it is: nothing flashes as it arrives. Once the last
-   is in, the full row holds a moment before the stack leaves together.
+   The homepage's routes, on a band of the ink the page's full width. Its
+   heading first, the routes' label set as "What actually costs you time"
+   is (.problem-head, and its line reveal), in white, scrolling with the
+   page; then the panel: two halves across Grid Columns 1–12, meeting on the page's
+   centre line (the middle of the gutter between Grid Columns 6 and 7),
+   only its outer corners rounded.
 
-   Inside a card the copy is set in from the card's top and its left
-   edge by the same step, the line the tab's name starts on, and the
-   diagram's darker field is the card's right half, starting where the
-   third tab does, on every card.
+   Where the screen is tall and wide enough (STICKY in service-tabs.js:
+   768px across, 540px down) the panel sticks a nav's height and the
+   grid's margin under the top, for a stretch
+   of scroll of --st-step for each route (.service-tabs is that stretch
+   and the panel's own height), and lets go after the last. It is as tall
+   as the screen leaves it, never taller than the right half's own
+   proportion (seven across to six down), so on a wide screen it keeps
+   its shape. Below that the panel sits in the flow.
 
-   The stack sticks a nav's height under the top, so the
-   nav has its room whenever it comes back down over it. No ancestor
-   may clip (overflow: hidden), or the sticking stops.
+   The left half, on the site's red, in white: the route's title, its
+   line and its button centred, the four positions at the foot, and a
+   small + near each corner (.corner-marks). Every route's words share
+   one cell, the size of the largest, so nothing moves as they change.
+   The positions: a small square each, in a block a step darker than the
+   red (as the footer's social marks are); the one in front a bar, filling
+   in white as the scroll crosses its route.
+
+   The right half, on the ink: each route's drawing, its dotted lattice (dot-field.js) and its diagram in
+   white, the faces in the ink, on a panel of its own, the four stacked
+   and opened over one another from the middle (service-tabs.js). Below
+   992px the two halves stand one over the other.
    ============================================================ */
-.service-stack {
-  /* The one gutter all round the held stack: the grid's margin, which
-     is also its room either side (Grid Columns 1–12), so it stands as
-     far below the nav's foot as it does in from the screen's sides and
-     up from its foot, at every width. */
-  --stack-gap: var(--grid-margin);
-  /* held that gutter under the nav, which is always in place over the
-     main content (initNavReveal, site.js) */
-  --stack-top: calc(var(--nav-h) + var(--stack-gap));
-  /* how much lower each card sticks than the last: none on a desktop,
-     where the tabs share a row; a tab's height on a phone */
-  --stack-step: 0px;
-  --stack-tab: 3.5rem;
-  --stack-tone: #222;
-  /* the stack's near-black: the tabs' number squares */
-  --stack-black: #0a0a0a;
-  /* a tab's width: a quarter of the stack, the four meeting edge to edge */
-  --stack-quarter: 25%;
-  /* the card's body: the rest of the screen under the top, the tab, any
-     steps and the gutter at the foot, so a card at rest fills it */
-  --stack-body: calc(100vh - var(--stack-top) - var(--stack-gap) - var(--stack-tab) - (var(--stack-n) - 1) * var(--stack-step));
-  --stack-body: calc(100svh - var(--stack-top) - var(--stack-gap) - var(--stack-tab) - (var(--stack-n) - 1) * var(--stack-step));
-  /* Grid Columns 1–12: in from the screen by the grid's margin, at
-     every width (6 and 4 columns below 992 and 768px) */
-  margin: 4.5rem var(--stack-gap) 0;
-}
-.service-stack__item {
-  position: sticky;
-  top: calc(var(--stack-top) + var(--i) * var(--stack-step));
+.service-tabs-section {
+  /* the band of the ink, the page's full width, its heading and panel on
+     Grid Columns 1–12 at every width, a section's step above and below */
+  padding: var(--sec-lg) var(--grid-margin);
+  background: var(--c-dark-fg);
   color: var(--c-white);
-  /* A card's box is the stack's full width, the empty three quarters of
-     the tab row beside its own tab included, and the newer card is on
-     top: left to take the pointer, that empty strip would catch the
-     clicks meant for the tabs of the cards behind. Only a card's tab
-     and its body take the pointer. */
-  pointer-events: none;
 }
-.service-stack__tab,
-.service-stack__card { pointer-events: auto; }
-
-/* The folder tab, on its quarter, its number on the stack's near-black
-   and its name in white. Which card is in front is told by the tabs'
-   strength (is--behind on the items under the one in front, the
-   script's, from the scroll). A tab is at full strength on its card's
-   own ground, so the two read as one piece: the one in front, and any
-   still to come, which so arrives as it will stay. Every tab behind the
-   one in front, however far, is on a ground a shade deeper and faded by
-   the one same amount, still plainly legible. The fade moves on one ease
-   whenever the card in front changes.
-
-   What fades is the tab's face (its ground, number and name together),
-   over a backing of the section's own off-white: on a desktop that is
-   the page round the tabs, so a tab fades into the page; on a phone,
-   where each strip lies over the card before it, it still fades into
-   the off-white and never lets that card's words show through. The
-   face's ground runs a pixel on under its card (its shadow, in its own
-   colour), so where the card's top edge falls between two pixels it
-   blends into the tab rather than letting the page through: the tab and
-   its card are one piece at every width. */
-.service-stack__tab {
-  --tab-ground: var(--stack-tone);
-  --tab-strength: 1;
-  display: block;
-  width: var(--stack-quarter);
-  height: var(--stack-tab);
-  margin-left: calc(var(--i) * var(--stack-quarter));
-  background: var(--c-light-bg);
-  color: var(--c-white);
-  text-decoration: none;
-}
-.service-stack__face {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  background: var(--tab-ground);
-  box-shadow: 0 1px 0 var(--tab-ground);
-  opacity: var(--tab-strength);
-  transition: background-color .35s ease, box-shadow .35s ease, opacity .45s ease;
-}
-/* a tab behind the one in front, at this strength */
-.service-stack__item.is--behind .service-stack__tab {
-  --tab-ground: #1a1a1a;
-  --tab-strength: 0.6;
-}
-/* Pointed at or focused, a tab lifts a little off its ground, and one
-   behind comes halfway to full strength, so it reads as something to
-   press; pressed, it goes a step deeper. It never moves or changes
-   size. Focused from the keyboard it is ringed too. */
-.service-stack__item.is--behind .service-stack__tab:is(:hover, :focus-visible) { --tab-strength: 0.8; }
-.service-stack__tab:is(:hover, :focus-visible) .service-stack__face { background: color-mix(in srgb, var(--tab-ground), #fff 7%); }
-.service-stack__tab:active .service-stack__face { background: color-mix(in srgb, var(--tab-ground), #000 30%); }
-/* the ring over the face, which, fading, is a layer of its own */
-.service-stack__tab { position: relative; }
-.service-stack__tab:focus-visible { outline: none; }
-.service-stack__tab:focus-visible::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  box-shadow: inset 0 0 0 2px var(--c-red);
-  pointer-events: none;
-}
-/* the number in a square the tab's height */
-.service-stack__num {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--stack-tab);
-  height: 100%;
-  background: var(--stack-black);
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  letter-spacing: 0;
-}
-.service-stack__name {
-  min-width: 0;
-  margin: 0;
-  padding: 0 1.25rem 0 1rem;
-  overflow: hidden;
-  font-family: var(--font-display);
-  font-weight: 400;
-  font-size: 1.125rem;
-  line-height: 1.2;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+/* the heading's room under it, as the cost section's cards have */
+.service-tabs-head { margin-bottom: 4.5rem; }
+@media screen and (max-width: 991px) {
+  .service-tabs-head { margin-bottom: 2.5rem; }
 }
 
-/* the card, in two halves under the four tabs: the copy under the first
-   two, the diagram's field under the last two, flush to the card's
-   edge; taller by any steps still to come, so every card's foot is
-   level */
-.service-stack__card {
+.service-tabs {
+  /* where the panel sticks, and the room it leaves at the foot */
+  --st-top: calc(var(--nav-h) + var(--grid-margin));
+  --st-gap: var(--grid-margin);
+  /* the scroll each route has while the panel is stuck */
+  --st-step: 75vh;
+  --st-step: 75svh;
   position: relative;
+}
+.service-tabs__panel {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  height: calc(var(--stack-body) + (var(--stack-n) - 1 - var(--i)) * var(--stack-step));
-  background: var(--stack-tone);
+  color: var(--c-white);
 }
-/* The blur that softens a card as the next comes up over it (the
-   script): a layer blurring what is behind it, so the blur keeps to the
-   card's edges and never spreads onto the page round it, faded in at
-   one fixed radius. It has no filter at all until the script gives it
-   one. Under the shade. */
-.service-stack__blur {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-/* the shade that darkens a card as it draws back (the script) */
-.service-stack__shade {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background: #000;
-  opacity: 0;
-  pointer-events: none;
-}
-/* The copy, centred in its half both ways, its lines centred too, so it
-   stands level with the diagram centred in the other half; a tab's
-   height of room all round it. */
-.service-stack__copy {
-  grid-column: 1;
+
+.service-tabs__copy {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2rem;
+  min-width: 0;
+  min-height: 0;
+  padding: 3rem 3rem 2.5rem;
   text-align: center;
-  --copy-inset: var(--stack-tab);
-  /* the copy's measure */
-  --copy-measure: 28rem;
-  padding: var(--copy-inset);
+  background: var(--c-red);
+  border-radius: var(--radius) 0 0 var(--radius);
 }
-/* The call to the service: the site's button, white on the card
-   (action-button.css), as long as its label, centred under the copy.
-   Pressed, it goes a step deeper. */
-.service-stack__copy > .action-button:active :is(.action-button__body, .action-button__arrow-block) { filter: brightness(0.86); }
-.service-stack__p {
-  max-width: var(--copy-measure);
+/* in from each corner by half the old tab's height, in a firmer stroke
+   than the utility's hairline */
+.service-tabs__marks { --mark-inset: 1.75rem; --mark-stroke: 2px; }
+.service-tabs__slides {
+  flex: 1;
+  display: grid;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+.service-tabs__slide {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+/* until the script takes them over, only the first shows */
+.service-tabs__slide:not(.is--active) { visibility: hidden; opacity: 0; }
+.service-tabs__h {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1.25;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  font-weight: var(--fw-heading-bold);
+  font-size: 3.25rem;
+  line-height: 1.05;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   text-wrap: balance;
 }
-.service-stack__media {
-  /* the diagram draws in the field's ink: white here (set on the field
-     alone, so the card's button keeps its own dark label) */
-  --c-text: var(--c-white);
-  grid-column: 2;
+.service-tabs__p {
+  max-width: 26rem;
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.85);
+  text-wrap: balance;
+}
+.service-tabs__action { margin-top: 0.75rem; }
+
+/* the four positions, in a block a step darker than the red */
+.service-tabs__nav {
+  display: flex;
+  align-items: center;
+  padding: 0 0.375rem;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.16);
+}
+.service-tabs__pos {
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 1.875rem;
+  padding: 0 0.3125rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.service-tabs__pos:focus-visible { outline: 1px solid var(--c-white); outline-offset: -2px; }
+.service-tabs__pos-mark {
   position: relative;
+  display: block;
+  width: 0.375rem;
+  height: 0.375rem;
   overflow: hidden;
-  min-height: 0;
-  /* a step darker than the card; the diagram's faces take it too */
-  --diagram-ground: color-mix(in srgb, var(--stack-tone), #000 25%);
-  background: var(--diagram-ground);
+  background: rgba(255, 255, 255, 0.45);
+  transition: width 0.45s var(--ease-osmo), background-color 0.25s ease;
+}
+.service-tabs__pos:hover .service-tabs__pos-mark { background: rgba(255, 255, 255, 0.8); }
+/* the one in front: a bar, its track quiet, filling in white */
+.service-tabs__pos.is--active .service-tabs__pos-mark {
+  width: 2.75rem;
+  background: rgba(255, 255, 255, 0.3);
+}
+.service-tabs__pos-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--c-white);
+  transform: scaleX(0);
+  transform-origin: 0% 50%;
 }
 
-/* The field's backdrop: the drawing's own ground, a faint dotted
-   axonometric lattice on its two plan axes, centred on its setting-out
-   cross and run out to the field's edges, and still (dot-field.js draws
-   it on a canvas that fills this layer). Under the drawing, whose solid
-   faces hide the lattice behind them, so the forms stand on it. */
-.service-stack__pattern {
+/* the right half, on the ink, its drawings stacked in it */
+.service-tabs__media {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  aspect-ratio: 7 / 6;
+  overflow: hidden;
+  background: var(--c-dark-fg);
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+/* each route's drawing, on the ink */
+.service-tabs__visual {
+  /* the drawing in white, its faces in the ink they stand on */
+  --c-text: var(--c-white);
+  --diagram-ground: var(--c-dark-fg);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--c-dark-fg);
+}
+/* until the script takes them over, only the first shows */
+.service-tabs__visual + .service-tabs__visual { clip-path: inset(50% 50% 50% 50%); }
+/* the drawing's lattice, to the panel's edges (dot-field.js) */
+.service-tabs__pattern {
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
-.service-stack__pattern > canvas { display: block; }
-
-/* the drawing (ServiceDiagram.astro) carries its own margin in its
-   viewBox, so it can take nearly all of the field and still stand well
-   clear of its dots */
-.service-stack__diagram {
+.service-tabs__pattern > canvas { display: block; }
+/* the drawing, nearly the whole of its field */
+.service-tabs__diagram {
   position: relative;
   display: block;
   width: min(94%, 41rem);
   height: auto;
   max-height: 94%;
 }
-/* the spacer that holds the full stack before it leaves */
-.service-stack__hold { height: 35vh; height: 35svh; }
 
-/* A phone: the tabs are full-width strips, each card a whole tab lower
-   than the last, so the stack reads as a column of labelled strips over
-   the card on top; the copy over a shorter diagram. */
-@media (max-width: 767px) {
-  .service-stack {
-    --stack-tab: 3rem;
-    --stack-step: var(--stack-tab);
-    --stack-quarter: 100%;
+/* Stuck: the panel a nav's height and the margin under the top, as tall as
+   the screen leaves it and never taller than the right half's proportion
+   (half the grid's width, seven across to six down); the stretch it
+   sticks for, a step of scroll for each route after it. */
+@media screen and (min-width: 768px) and (min-height: 540px) {
+  .service-tabs {
+    --st-panel-h: min(100vh - var(--st-top) - var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
+    --st-panel-h: min(100svh - var(--st-top) - var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
+    height: calc(var(--st-panel-h) + var(--st-count, 4) * var(--st-step));
   }
-  .service-stack__tab { margin-left: 0; }
-  .service-stack__name { font-size: 1rem; }
-  .service-stack__card {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
+  .service-tabs__panel {
+    position: sticky;
+    top: var(--st-top);
+    height: var(--st-panel-h);
   }
-  .service-stack__copy,
-  .service-stack__media { grid-column: 1; }
-  .service-stack__copy { gap: 1rem; --copy-inset: 2rem; }
-  .service-stack__p { font-size: 1.125rem; }
-  .service-stack__diagram { width: min(96%, 25rem); }
+  .service-tabs__media { aspect-ratio: auto; }
 }
 
-/* Without motion the cards simply follow one another, each with its
-   tab on its quarter. */
-@media (prefers-reduced-motion: reduce) {
-  .service-stack__item { position: static; }
-  .service-stack__item + .service-stack__item { margin-top: 1.5rem; }
-  .service-stack__card { height: auto; min-height: 28rem; }
-  .service-stack__hold { display: none; }
+/* Below 992px the halves stand one over the other: the words, then the
+   drawing. Stuck (a tablet), they share the panel's height, the drawing
+   taking what the words leave; in the flow (a phone), the drawing nine
+   across to six down. */
+@media screen and (max-width: 991px) {
+  .service-tabs__panel { grid-template-columns: minmax(0, 1fr); }
+  .service-tabs__copy {
+    padding: 2.5rem 1.5rem 2rem;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .service-tabs__marks { --mark-inset: 1.25rem; }
+  .service-tabs__slides { margin-bottom: 1.75rem; }
+  .service-tabs__h { font-size: 2.5rem; }
+  .service-tabs__media {
+    aspect-ratio: 9 / 6;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+}
+@media screen and (min-width: 768px) and (max-width: 991px) and (min-height: 540px) {
+  .service-tabs {
+    --st-panel-h: calc(100vh - var(--st-top) - var(--st-gap));
+    --st-panel-h: calc(100svh - var(--st-top) - var(--st-gap));
+  }
+  .service-tabs__panel { grid-template-rows: auto minmax(0, 1fr); }
+  .service-tabs__copy { flex: none; }
+  .service-tabs__media { aspect-ratio: auto; }
+}
+@media screen and (max-width: 767px) {
+  .service-tabs__h { font-size: 2rem; }
+  .service-tabs__p { font-size: 1rem; }
 }
 
 /* ============================================================
@@ -2763,18 +2805,16 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    of three weights over a dashed setting-out cross, the faces of a
    solid in the ground of the field it is on, the red only ever a
    line. The ink is the field's text colour and the ground its
-   --diagram-ground (the nav cards' light grey unless a field says
-   otherwise), so the one drawing serves the dark service stack and
-   the light nav cards alike; every line keeps one pixel's weight
-   however large or small the drawing is shown.
+   --diagram-ground (a light grey unless a field says otherwise), so
+   the one drawing serves a dark field and a light one alike; every line keeps one pixel's weight however
+   large or small the drawing is shown.
    ============================================================ */
 .service-diagram {
   --sd-ink: var(--c-text);
   --sd-ground: var(--diagram-ground, var(--c-light-fg));
   --sd-accent: var(--diagram-accent, var(--c-red));
   /* the lines' weight in screen pixels, and the dashes' rhythm: a field
-     that shows the drawing small draws it finer (the nav's Services
-     cards) */
+     that shows the drawing small may draw it finer */
   --sd-stroke: 1;
   --sd-dash: 3 3;
   overflow: visible;
@@ -2852,25 +2892,29 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* ============================================================
    Dot grid — the site's field of small square dots, as a layer
    ------------------------------------------------------------
-   2px squares on a square pitch, drawn as the intersection of two
-   repeating stripes (a mask over the layer's own colour), so the pitch
-   can be any length, a fraction of a pixel included, and the dots keep
-   their 2px however it is set: each dot is placed on its own, never a
-   tile repeated and rounded, so a grid a few thousand pixels across
-   ends exactly where it was set out to.
+   2px squares on a square pitch, the pitch any length, a fraction of a
+   pixel included, each dot placed on its own, never a tile repeated and
+   rounded, so a grid a few thousand pixels across ends exactly where it
+   was set out to. Drawn on a canvas in the layer (mountDotGrid,
+   dot-field.js), every dot snapped to the screen's pixels, so each is
+   the same whole number of device pixels square wherever it falls: as
+   CSS gradients, as it was first drawn, a dot whose edge fell between
+   two device pixels was smeared over three, and the dots came out
+   square, oblong and near double by turns. The layer itself draws
+   nothing; it is the dots' colour (color) and box.
 
    Set out by three lengths: --dot-pitch, and --dot-x and --dot-y, the
    middle of one column of dots and of one row, in the layer's own box
-   (any one: the stripes run on both ways). A layer that has to fit
-   something works them out from it: the approach band's from its cards
-   and rail (approach-stack.js), the nav's dropdowns from the
-   12-Column Grid (nav.css). Without them, an 18px grid from the
-   layer's top-left corner.
+   (any one: the grid runs on both ways), in any unit (px, %, cqw). A
+   layer that has to fit something works them out from it: the approach
+   band's from its cards and rail (approach-stack.js), the cost cards'
+   from their own width (styles.css). Without them, an 18px grid from the
+   layer's top-left corner. The layer is positioned by its user.
 
    Two variants, the one pattern in two inks: .is--on-dark, white dots
    for a black or dark-grey ground, and .is--on-light, ink dots for a
-   white or light-grey one. A layer over something that changes
-   (the nav, light or dark) sets --dot-grid-ink itself.
+   white or light-grey one. A layer over something that changes sets
+   --dot-grid-ink itself.
    ============================================================ */
 :root {
   --dot-grid-on-dark: rgba(255, 255, 255, 0.13);
@@ -2878,19 +2922,52 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 .dot-grid {
   --dot-size: 2px;
-  --dot-grid-x0: calc(var(--dot-x, 1px) - var(--dot-size) / 2);
-  --dot-grid-y0: calc(var(--dot-y, 1px) - var(--dot-size) / 2);
-  --dot-grid-cols: repeating-linear-gradient(to right, #000 var(--dot-grid-x0) calc(var(--dot-grid-x0) + var(--dot-size)), transparent calc(var(--dot-grid-x0) + var(--dot-size)) calc(var(--dot-grid-x0) + var(--dot-pitch, 18px)));
-  --dot-grid-rows: repeating-linear-gradient(to bottom, #000 var(--dot-grid-y0) calc(var(--dot-grid-y0) + var(--dot-size)), transparent calc(var(--dot-grid-y0) + var(--dot-size)) calc(var(--dot-grid-y0) + var(--dot-pitch, 18px)));
-  background-color: var(--dot-grid-ink, var(--dot-grid-on-dark));
-  -webkit-mask-image: var(--dot-grid-cols), var(--dot-grid-rows);
-  -webkit-mask-composite: source-in;
-  mask-image: var(--dot-grid-cols), var(--dot-grid-rows);
-  mask-composite: intersect;
+  color: var(--dot-grid-ink, var(--dot-grid-on-dark));
+  overflow: hidden;
   pointer-events: none;
 }
 .dot-grid.is--on-dark { --dot-grid-ink: var(--dot-grid-on-dark); }
 .dot-grid.is--on-light { --dot-grid-ink: var(--dot-grid-on-light); }
+
+/* ============================================================
+   Corner marks — a small + near each corner of a panel, as a layer
+   ------------------------------------------------------------
+   Registration marks: one layer over its panel (position it relative)
+   drawing four +, each two hairline bars, as background images, so one
+   element and no markup per corner. Set by --mark-inset, from each
+   corner to its + 's centre, --mark-size, the + arm to arm, and
+   --mark-stroke, its weight, a fixed hairline; --mark-ink is its
+   colour, by default the panel's text, held back. Each has its default
+   here, so a panel sets only what it changes, wherever its rule is.
+   Under anything the panel lays over itself. Used on the service tabs'
+   red panel.
+   ============================================================ */
+.corner-marks {
+  --mark-bar: linear-gradient(var(--mark-ink, color-mix(in srgb, currentColor 50%, transparent)) 0 0);
+  --mark-s: var(--mark-size, 0.8125rem);
+  --mark-w: var(--mark-stroke, 1px);
+  /* where each bar starts: its centre on the + 's */
+  --mark-a: calc(var(--mark-inset, 1.5rem) - var(--mark-s) / 2);
+  --mark-b: calc(var(--mark-inset, 1.5rem) - var(--mark-w) / 2);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    var(--mark-bar), var(--mark-bar), var(--mark-bar), var(--mark-bar),
+    var(--mark-bar), var(--mark-bar), var(--mark-bar), var(--mark-bar);
+  background-repeat: no-repeat;
+  /* each corner's across bar, then its upright one */
+  background-size:
+    var(--mark-s) var(--mark-w), var(--mark-w) var(--mark-s),
+    var(--mark-s) var(--mark-w), var(--mark-w) var(--mark-s),
+    var(--mark-s) var(--mark-w), var(--mark-w) var(--mark-s),
+    var(--mark-s) var(--mark-w), var(--mark-w) var(--mark-s);
+  background-position:
+    left var(--mark-a) top var(--mark-b), left var(--mark-b) top var(--mark-a),
+    right var(--mark-a) top var(--mark-b), right var(--mark-b) top var(--mark-a),
+    left var(--mark-a) bottom var(--mark-b), left var(--mark-b) bottom var(--mark-a),
+    right var(--mark-a) bottom var(--mark-b), right var(--mark-b) bottom var(--mark-a);
+}
 
 /* A dot of a grid lighting red (mountDotFlicker, dot-field.js): a square
    the grid's dots' size, switched on and off by the script. */

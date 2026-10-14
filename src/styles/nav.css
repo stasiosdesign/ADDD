@@ -31,8 +31,9 @@
    visited links follow like everything else.
 
    The dropdown is the bar continued downwards: in the drawer its surface
-   is the bar's own --nav-bg, and its blocks — the Services cards and the
-   Resources blocks — keep their own grounds in either state. */
+   is the bar's own --nav-bg; the Services cards take the state too, the
+   bar's own ground and ink, and the Resources blocks keep their own
+   grounds in either state. */
 .mega-nav {
   --nav-height: 3.9em;
 
@@ -49,6 +50,12 @@
   --nav-text-size: .9375em;
   --nav-text-weight: 400;
   --nav-text-leading: 1.5;
+
+  /* The nav keeps the corners it was drawn with, whatever the page's
+     radius (styles.css): its blocks the hairline softening, and the
+     controls inside it (the Resources dropdown's signup) square. */
+  --radius: 1px;
+  --radius-sm: 0px;
 
   z-index: 100;
   position: fixed;
@@ -104,6 +111,11 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   /* the drawer's dropdown panels: the page's off-white, which the white
      cards and blocks stand off, as they do on the page; dark, the bar's */
   --nav-panel-bg: color-mix(in oklab, var(--c-light-bg), var(--c-dark-fg) var(--nav-dark));
+  /* the Services cards' dotted patterns (ServiceCard.astro): the site's
+     ink dots on the white (--dot-grid-on-light, styles.css, a touch
+     fainter, as these are lines of dots, not a field of them); on the
+     near-black, the drawings' grounds' white (dot-field.js) */
+  --nav-card-dots: color-mix(in oklab, rgba(10, 10, 10, .14), rgba(255, 255, 255, .11) var(--nav-dark));
 }
 
 /* No rule along the bottom: the bar meets the page directly, with
@@ -341,11 +353,13 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
    but the dimmed page: from 992px each group an equal column of the
    screen's width — the four Services cards a quarter each, the three
    Resources blocks a third — from the bar's foot down the dropdown's
-   full height, the columns parted by a hairline of the dimmed page
-   between them. Every row inside a group is a whole number of one step
-   (--sc-step), and the groups of a panel share their rows, so each part
-   stands level across them. Below 992px, in the drawer, the groups
-   stand one under another, the grid's full width, a step apart. */
+   full height. The Resources columns are parted by a hairline of the
+   dimmed page between them; the Services cards stand flush, one ground
+   from end to end, told apart by their patterns alone. Every row inside
+   a group is a whole number of one step (--sc-step), and the groups of
+   a panel share their rows, so each part stands level across them.
+   Below 992px, in the drawer, the groups stand one under another, the
+   grid's full width, a step apart, the Services cards again flush. */
 .mega-nav__dropdown-container { container-type: inline-size; }
 .mega-nav__dropdown-inner {
   --sc-step: 1.125rem;
@@ -362,26 +376,35 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
     padding: 0;
   }
 }
+.mega-nav__dropdown-inner.is--services { gap: 0; }
 
 /* --- Services cards (ServiceCard.astro) -----------------------------
-   The homepage's service stack in the dropdown's own terms: each card a
-   set of blocks fitted edge to edge and told apart by tone. Along the
-   top, the header the stack's tabs have, the number in a compact square
-   and the name in the block beside it; under them the diagram, on a
-   field a step off the card's ground; under that the description, hung
-   from the name's line. A step more compact than the stack: the type a
-   size down, the header three steps (--sc-step).
+   Minimal and typographic: each card one block, the service's name
+   large in its middle, both ways, a line on the service small under it,
+   its number small in the top corner in the label face, and behind it a
+   pattern of its own, faint, stopping
+   round the name: the hero's linework (the Slash Field's upright
+   strokes, drawn at build in ServiceCard.astro) or the site's dotted
+   line (the drawings' grounds' dots, dot-field.js). The four share the
+   strokes' weight and tints and the dots' size and spacing, so they
+   read as one set with four characters.
 
-   Every card is on the one white ground, the number's square a light
-   grey and the diagram's field a step off the white, so the four read
-   as one set and the dropdown as one surface of blocks, the diagram's
-   red signal the only colour. The rows are whole steps, and from 992px
-   the four share their rows (subgrid), so each part stands level across
-   the four whatever its words.
+   The card takes the nav's state, as the bar does: the bar's own ground
+   and ink (--nav-bg, --nav-fg), so light it is white with the name in
+   ink, dark near-black with the name in white, and the strokes, the
+   number and the hover's shade are all the card's ink (currentColor),
+   the dots theirs (--nav-card-dots). The dots are drawn on a canvas,
+   which the menu redraws when the state reaches the dropdown
+   (initMegaNav).
+
+   From 992px a quarter of the screen each and sixteen steps tall
+   (--sc-step), the height the cards have always had; in the drawer the
+   grid's full width, one under another, nine steps tall.
 
    Their movement is the menu script's alone (on open they drop in from
-   under the bar one after the next, initMegaNav). The hover is a shade laid over the card, an opacity
-   change only, so nothing is laid out again under the pointer. */
+   under the bar one after the next, initMegaNav). The hover lifts the
+   card a little, a light laid over it, an opacity change only, so
+   nothing is laid out again under the pointer. */
 
 /* the cards' palette and steps, which the Resources blocks share */
 .service-card,
@@ -399,12 +422,34 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   --sc-pad: var(--sc-step);
 }
 .service-card {
+  /* the hover's shade, the card's ink laid over its ground: a light over
+     the near-black, a shadow over the white */
+  --sc-shade: currentColor;
+  /* the patterns faded out round the number in the corner, measured from
+     the card's own corner, so it holds however a pattern is cropped to
+     the card */
+  --sc-num-fade: radial-gradient(circle at calc(var(--sc-pad) + 0.5rem) calc(var(--sc-pad) + 0.375rem), transparent 1.75rem, #000 3.25rem);
+  /* The cards stand flush, one ground, but a quarter of the screen is
+     seldom a whole number of device pixels (1366px at 1.5x puts an edge
+     at 1024.5): there the two cards' edges each half cover the pixel
+     they share, and together leave a quarter of the dimmed page showing,
+     a hairline down the seam. So each card carries its ground a pixel on
+     past its edge, under the card after it — along the row from 992px,
+     down the column in the drawer — and the seam always has the ground
+     beneath it. */
+  --sc-bleed: 1px 0 0 var(--nav-bg);
   position: relative;
   display: grid;
-  grid-template-columns: var(--sc-head) minmax(0, 1fr);
-  grid-template-rows: var(--sc-head) calc(var(--sc-media-steps, 9) * var(--sc-step)) minmax(calc(4 * var(--sc-step)), auto);
-  background: var(--sc-ground);
-  color: var(--sc-ink);
+  place-items: center;
+  /* the name and the line under it, together in the middle */
+  align-content: center;
+  row-gap: .75rem;
+  min-height: calc(9 * var(--sc-step));
+  padding: calc(2 * var(--sc-step)) var(--sc-pad);
+  overflow: hidden;
+  background: var(--nav-bg);
+  box-shadow: var(--sc-bleed);
+  color: var(--nav-fg);
   text-decoration: none;
   outline: none;
 }
@@ -417,97 +462,120 @@ body:has(.page--dark) .mega-nav:not([data-nav-theme]),
   pointer-events: none;
   transition: opacity .25s ease;
 }
-.service-card:hover::after { opacity: .07; }
-.service-card:active::after { opacity: .14; }
-.service-card:focus-visible::after { opacity: .07; }
+.service-card:hover::after { opacity: .05; }
+.service-card:active::after { opacity: .09; }
+.service-card:focus-visible::after { opacity: .05; }
 /* the keyboard's ring, inside the card, in a colour that reads on its
    ground */
-.service-card:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
+.service-card:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring), var(--sc-bleed); }
 
+/* the strokes, to the card's edges, a pixel's weight, in the card's ink */
+.service-card__pattern {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: currentColor;
+  pointer-events: none;
+  -webkit-mask-image: var(--sc-num-fade);
+  mask-image: var(--sc-num-fade);
+}
+.service-card__pattern path {
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+/* the dots, to the card's edges, on their canvas (dot-field.js), in the
+   state's dot ink; open round the name by the clearing the strokes take
+   (--sc-clear, ServiceCard.astro), and faded round the number as they are */
+.service-card__dots {
+  --iso-line: var(--nav-card-dots);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-mask-image: var(--sc-clear), var(--sc-num-fade);
+  mask-image: var(--sc-clear), var(--sc-num-fade);
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+}
+.service-card__dots > canvas { display: block; }
+/* the number, small, in the top corner, in the label face, in the
+   card's ink, held back */
 .service-card__num {
-  grid-area: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--sc-num);
+  position: absolute;
+  top: var(--sc-pad);
+  left: var(--sc-pad);
+  z-index: 1;
   font-family: var(--font-mono);
   font-size: .75rem;
   line-height: 1;
   letter-spacing: 0;
+  color: color-mix(in srgb, currentColor 55%, transparent);
 }
+/* the name, large, on one line where it fits (the dropdown's short
+   names all do), evened out where it must wrap */
 .service-card__title {
-  grid-area: 1 / 2;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding: 0 var(--sc-pad);
-  overflow: hidden;
+  position: relative;
+  z-index: 1;
   font-family: var(--font-display);
-  font-size: 1.125rem;
-  line-height: 1.2;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  font-weight: var(--fw-heading-bold);
+  font-size: 2.25rem;
+  line-height: 1.05;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  text-align: center;
+  text-wrap: balance;
 }
-/* The diagram's field: the drawing in its middle, in the field's ink on
-   the field's ground (ServiceDiagram.astro), its lines drawn at a little
-   over half the stack's weight, which reads as thin and exact at this
-   size rather than heavy. Behind it, the service stack's ground: the
-   dotted axonometric lattice on the drawing's own plan axes, at the
-   drawing's own scale, so its forms stand on it and their faces hide it
-   (dot-field.js). The field follows the nav's state, as every nav colour
-   does (--nav-dark): light, a grey a step off the card's white with the
-   lattice and the drawing in the ink; dark, the stack's own deep field
-   with both in white. The lattice is drawn once, in the ink, and turned
-   to white by the same amount. The card's white, its header and its
-   words stay as they are in either state. */
-.service-card__media {
-  --sc-field-now: color-mix(in oklab, var(--sc-field), #1a1a1a var(--nav-dark));
-  grid-area: 2 / 1 / 3 / -1;
+/* the line on the service, under the name: the body face, well under the
+   name's size, in the card's ink held back as the number is, on a
+   measure that sets each line on two, evened out */
+.service-card__text {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 0;
-  overflow: hidden;
-  padding: calc(var(--sc-step) / 2) var(--sc-pad);
-  background: var(--sc-field-now);
-  --c-text: color-mix(in oklab, var(--sc-ink), var(--c-white) var(--nav-dark));
-  --diagram-ground: var(--sc-field-now);
-  --diagram-accent: var(--sc-accent);
-}
-.service-card__pattern {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  --iso-line: rgba(0, 0, 0, 0.13);
-}
-.service-card__pattern > canvas {
-  display: block;
-  filter: invert(var(--nav-dark));
-}
-.service-card__diagram {
-  --sd-stroke: .6;
-  --sd-dash: 2 2.5;
-  position: relative;
-  display: block;
-  width: auto;
-  height: 100%;
-  max-width: 100%;
-}
-/* the description, from the name's own line */
-.service-card__body {
-  grid-area: 3 / 2;
-  padding: calc(.75 * var(--sc-step)) var(--sc-pad) var(--sc-step);
-}
-.service-card__p {
-  display: block;
-  max-width: 17em;
+  z-index: 1;
+  max-width: 19em;
   font-size: .875rem;
-  line-height: 1.35;
-  color: var(--sc-text);
-  text-wrap: pretty;
+  line-height: 1.4;
+  text-align: center;
+  text-wrap: balance;
+  color: color-mix(in srgb, currentColor 66%, transparent);
 }
+/* the name as it is written, for screen readers only, where what is
+   drawn is a word that turns (below) */
+.service-card__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+/* The Workshop's turning ending (word-cycle.js, the homepage hero's word,
+   mounted by initMegaNav): every ending stood unseen in one cell, so the
+   box is the widest ending's width, and the word laid over them from the
+   box's start, against the stem, out of the flow, so its own easing width
+   never reaches the box: the name never moves as the word changes. The
+   word itself as the hero's (.hero__cycle, styles.css): one piece, held to
+   its own easing width across, and its letters still scrambling in the
+   decoding red, here mixed with the card's ink so it holds in either
+   state. */
+.service-card__cycle {
+  position: relative;
+  display: inline-grid;
+}
+.service-card__cycle-ghost {
+  grid-area: 1 / 1;
+  visibility: hidden;
+}
+.service-card__cycle-word {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-block;
+  white-space: pre;
+  clip-path: inset(-0.5em -0.08em);
+}
+.service-card__cycle-word .is--scrambling { color: color-mix(in srgb, var(--c-red) 76%, color-mix(in srgb, currentColor 60%, transparent)); }
 
 /* --- Resources blocks (Nav.astro) ----------------------------------
    The three Resources columns in the Services cards' language, set out
@@ -721,14 +789,13 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   }
 
   /* The dropdowns' columns (above): the four Services cards a quarter of
-     the screen each, the three Resources blocks a third, their rows
-     shared. */
+     the screen each, sixteen steps tall, the height they have always had;
+     the three Resources blocks a third, their rows shared. */
   .mega-nav__dropdown-inner.is--services {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: calc(3 * var(--sc-step)) calc(9 * var(--sc-step)) minmax(calc(4 * var(--sc-step)), auto);
+    grid-template-rows: calc(16 * var(--sc-step));
     row-gap: 0;
   }
-  .is--services > .service-card { grid-row: 1 / span 3; grid-template-rows: subgrid; }
   .mega-nav__dropdown-inner.is--resources {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: calc(3 * var(--sc-step)) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), auto);
@@ -886,9 +953,11 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   .mega-nav__dropdown-panel { background-color: var(--nav-panel-bg); bottom: 0; overflow: auto; overscroll-behavior: contain; }
 
   /* Stacked, one card or block under the next, each the grid's full
-     width: a card's diagram field a little shorter, so more of the four
-     is in view. */
-  .service-card { --sc-media-steps: 7; }
+     width (a card nine steps tall, its own minimum), the name a size
+     down, on one line where it fits. */
+  .service-card__title { font-size: 1.5rem; }
+  .service-card { row-gap: .5rem; }
+  .service-card { --sc-bleed: 0 1px 0 var(--nav-bg); }
 }
 
 @media screen and (max-width: 479px) {

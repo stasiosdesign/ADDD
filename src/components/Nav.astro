@@ -28,29 +28,16 @@ import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 
 // The Services cards (ServiceCard.astro), four across on the 12-Column
-// Grid, all on the one white ground. The descriptions are the service pages' own
-// claims, held to about the same length so each sets on two lines.
-const services: { href: string; name: string; desc: string }[] = [
-  {
-    href: "/workshops-audits.html",
-    name: "Workflow Workshop",
-    desc: "A half-day diagnostic on a live project, with a written report.",
-  },
-  {
-    href: "/before-revit.html",
-    name: "Before Revit",
-    desc: "A review of early-stage design, before Revit or Archicad.",
-  },
-  {
-    href: "/technology-blueprint.html",
-    name: "Technology Blueprint",
-    desc: "An eight-week practice-wide strategy and sequenced roadmap.",
-  },
-  {
-    href: "/advisory.html",
-    name: "Ongoing Advisory",
-    desc: "Monthly guidance on AI, BIM, software and digital priorities.",
-  },
+// Grid: each service's name and a line on it, on a card with a pattern of
+// its own. The names here are the dropdown's own short forms; the services'
+// names everywhere else stay as they are. The first ends in a word that
+// turns between "shop" and "flow", as the homepage hero's word does: Work,
+// then shop or flow.
+const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string }[] = [
+  { href: "/workshops-audits.html", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: "A half-day diagnostic on a live project, with a written report." },
+  { href: "/before-revit.html", name: "Before Revit", text: "A review of early-stage design, before Revit or Archicad." },
+  { href: "/technology-blueprint.html", name: "Tech - Blueprint", text: "An eight-week practice-wide strategy and sequenced roadmap." },
+  { href: "/advisory.html", name: "ADDD Advisory", text: "Monthly guidance on AI, BIM, software and digital priorities." },
 ];
 ---
 <nav data-menu-open="false" data-menu-wrap class="mega-nav">
@@ -147,7 +134,7 @@ const services: { href: string; name: string; desc: string }[] = [
       <div data-nav-content="services" id="mega-nav-services" role="region" aria-label="Services" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner is--services">
           {services.map((s, i) => (
-            <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} text={s.desc} />
+            <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} cycle={s.cycle} text={s.text} />
           ))}
         </div>
       </div>
