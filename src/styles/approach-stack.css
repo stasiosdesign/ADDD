@@ -94,17 +94,17 @@
 }
 
 /* --- The stack -------------------------------------------------- */
-/* The heading over the steps (approach.heading): centred, set as the cost
-   section's heading is (styles.css, .problem-head__h: the display face,
-   its 430 stroke and tracking, 5.25rem, 3.5rem under 992px, 2.75rem
-   under 768px), a section's step over the first card */
+/* The heading over the steps (approach.heading): centred, in the cost
+   section's heading's face (styles.css, .problem-head__h: the display
+   face, its 430 stroke and tracking), a step smaller (4rem, 3rem under
+   992px, 2.25rem under 768px), a section's step over the first card */
 .approach-stack__head {
   position: relative;
   z-index: 1;
   margin: 0 0 var(--sec-md);
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 5.25rem;
+  font-size: 4rem;
   line-height: 0.9;
   letter-spacing: calc(var(--primary-tracking) - 0.0274em);
   -webkit-text-stroke: 0.010em currentColor;
@@ -113,10 +113,10 @@
   color: var(--c-white);
 }
 @media screen and (max-width: 991px) {
-  .approach-stack__head { font-size: 3.5rem; }
+  .approach-stack__head { font-size: 3rem; }
 }
 @media screen and (max-width: 767px) {
-  .approach-stack__head { font-size: 2.75rem; }
+  .approach-stack__head { font-size: 2.25rem; }
 }
 .approach-stack__grid { position: relative; }
 /* A rung per card, and a last row that only takes what the last card

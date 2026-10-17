@@ -59,6 +59,10 @@ const MARKS = [
   [[50.7, 42.7], [66.4, 50.7], [50.7, 58.7]],
   [[66.8, 42.7], [82.4, 50.7], [66.8, 58.7]],
 ];
+// One tile carries a tool's mark, flat on its top: Rhino's
+// (public/assets/logos/software/rhino.svg, a 1200-unit box), on the first
+// tile, the one just past the hub on the right. The others stay blank.
+const BADGE = { tile: 0, src: "/assets/logos/software/rhino.svg", box: 1200, size: 13 };
 
 /** A solid from two rings: its silhouette with its top's front edge, and its top's inner ring (settle's slab). */
 function slab(P, front, ring, inner, z0, z1) {
@@ -134,7 +138,23 @@ function draw({ stage, svg }) {
     if (key === tl.key) return;
     tl.key = key;
     put(tl.el, slab(P, front, turned(p.x, p.y, HALF, TILE_R, p.a), turned(p.x, p.y, HALF - 1, Math.max(0.3, TILE_R - 1), p.a), p.z, p.z + TH));
+    if (tl.badge) tl.badge.setAttribute("transform", onTile(p));
   }
+  // The mark laid on a tile's top as it stands: the logo's box mapped
+  // onto the ground (read along the screen's level, as the hub's is),
+  // turned with the tile, then projected, which is affine, so one matrix.
+  function onTile(p) {
+    const c = Math.cos(rad(p.a)), s = Math.sin(rad(p.a)), z = p.z + TH;
+    const at = (lx, ly) => {
+      const u = (lx / BADGE.box - 0.5) * BADGE.size, v = (ly / BADGE.box - 0.5) * BADGE.size;
+      const x = (u + v) / Math.SQRT2, y = (v - u) / Math.SQRT2;
+      return P(p.x + x * c - y * s, p.y + x * s + y * c, z);
+    };
+    const o = at(0, 0), ex = at(BADGE.box, 0), ey = at(0, BADGE.box), n = BADGE.box;
+    return `matrix(${[(ex[0] - o[0]) / n, (ex[1] - o[1]) / n, (ey[0] - o[0]) / n, (ey[1] - o[1]) / n, o[0], o[1]].map((v) => v.toFixed(4)).join(" ")})`;
+  }
+  const badged = tiles[BADGE.tile];
+  badged.badge = mk("image", { href: BADGE.src, width: BADGE.box, height: BADGE.box }, badged.el.g);
   // back to front: the tiles by depth, the hub among them where it stands
   let order = "";
   function paintOrder() {
