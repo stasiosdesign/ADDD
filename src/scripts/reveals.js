@@ -44,6 +44,13 @@ export function initLineReveal(container) {
   if (motion.reduced || document.documentElement.hasAttribute("data-draft")) return;
 
   container.querySelectorAll('[data-split="heading"]').forEach((heading) => {
+    // a hero a card has opened into, whose heading has risen already
+    // (service-sheet.js): shown as it is
+    if (heading.closest("[data-hero-shown]")) {
+      gsap.set(heading, { visibility: "visible" });
+      registerPageCleanup(() => gsap.set(heading, { clearProps: "visibility" }));
+      return;
+    }
     let trigger = null;
     const split = SplitText.create(heading, {
       type: "lines",
@@ -83,6 +90,47 @@ export function initLineReveal(container) {
       split.revert();
       gsap.set(heading, { clearProps: "visibility" });
     });
+  });
+}
+
+/* ============================================================
+   Hero rise — a service hero's lede and buttons coming in
+   ============================================================
+   A service page's hero (ServiceHero.astro) opens on the card's own
+   parts, and what the card does not have comes in once the page is in
+   view (pageShown): the heading's lines rise (the line reveal above),
+   and a beat behind them each [data-hero-rise] rises a little and fades
+   up, in turn, on the line reveal's ease. The same on every arrival: a
+   card opened into the page (service-sheet.js) hands over to the hero
+   with these still out, and the wipe uncovers it with them still out.
+   Only transform and opacity, cleared once they are in; with reduced
+   motion, or in the Studio's preview, they are simply there.
+   ============================================================ */
+const HERO_RISE = { rise: 1.25, delay: 0.3, duration: 0.9, stagger: 0.1 };
+
+export function initHeroRise(container) {
+  if (motion.reduced || document.documentElement.hasAttribute("data-draft")) return;
+  // (not in a hero a card has opened into: there they are in already)
+  const items = [...container.querySelectorAll("[data-hero-rise]")].filter((el) => !el.closest("[data-hero-shown]"));
+  if (!items.length) return;
+  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+  gsap.set(items, { opacity: 0, y: HERO_RISE.rise * rem });
+  let tween = null;
+  pageShown().then(() => {
+    if (!items[0].isConnected) return;
+    tween = gsap.to(items, {
+      opacity: 1,
+      y: 0,
+      delay: HERO_RISE.delay,
+      duration: HERO_RISE.duration,
+      stagger: HERO_RISE.stagger,
+      ease: LINE_REVEAL.ease,
+      clearProps: "transform,opacity",
+    });
+  });
+  registerPageCleanup(() => {
+    tween?.kill();
+    gsap.set(items, { clearProps: "transform,opacity" });
   });
 }
 

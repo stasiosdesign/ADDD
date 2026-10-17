@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
+import ServiceHero from "../components/ServiceHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { advisoryPage as D } from "../sanity/defaults/advisory";
@@ -49,24 +50,15 @@ const blueprint = card(1);
 >
 <main class="page--dark page--grid">
 
-  <section class="pg-hero pg-hero--dark">
-    <div class="container">
-      <div class="pg-hero__grid">
-        <div class="pg-hero__col">
-          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h1" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
-        </div>
-        <div class="pg-hero__col">
-          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
-          <div class="actions actions--pair">
-            <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
-            <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <div class="band band--wide"></div>
+  <!-- The deck's card for this service at the screen's size
+       (ServiceHero.astro): the homepage's card opens into it. -->
+  <ServiceHero index={3} name={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+    <Fragment slot="actions">
+      <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+      <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
+    </Fragment>
+  </ServiceHero>
+  <div class="band band--wide" id="overview"></div>
 
   <section class="section section--dark">
     <div class="container">

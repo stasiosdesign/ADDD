@@ -94,15 +94,24 @@
      of its own, so it moves with the grid. Its dots a shade firmer than
      the rule's own (40% of the ink against 30%), so it holds its own
      beside the headline; otherwise --dotted-rule-vertical exactly. */
-  .page--grid .hero:not(.hero--split) .hero__grid::before {
-    content: "";
+  /* Drawn on a canvas (.dot-grid, dot-field.js) rather than as a gradient:
+     each dot is then a whole number of the screen's pixels square, where a
+     2px gradient stripe starting between two pixels smeared into an
+     oblong. Its dots a shade firmer than the rule's own (45% of the ink
+     against 30%), so it holds its own beside the headline. */
+  .page--grid .hero:not(.hero--split) .hero__rule {
+    display: block;
+    position: relative;
     grid-column: 6;
     grid-row: 1;
     justify-self: end;
     width: 2px;
     margin: -0.75rem calc(2 * var(--dotted-rule-bleed)) -0.75rem 0;
-    background: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 40%, transparent) 5px 7px, transparent 7px) center / 2px 12px round;
-    pointer-events: none;
+    --dot-pitch: 12px;
+    --dot-size: 2px;
+    --dot-x: 1px;
+    --dot-y: 6px;
+    --dot-grid-ink: color-mix(in srgb, currentColor 45%, transparent);
   }
 
   /* --- Logo strip: the title in Grid Columns 1–4. The strip is
@@ -125,8 +134,6 @@
      Column 2 (approach-stack.css), and the problems' title is centred
      on the page's centre line, over its cards (styles.css). */
   .page--grid .section-title__body { grid-column: 7 / 12; margin: 0; }
-  .page--grid .compare .section-title__body { grid-column: 6 / 12; }
-  .page--grid .compare .h2 { text-wrap: balance; }
 
   /* --- Problems: the title on Grid Columns 2–11; the cards one strip
      across the whole grid, three equal thirds meeting edge to edge
@@ -145,17 +152,10 @@
   .page--grid .creds__media { grid-column: 2 / 8; }
   .page--grid .creds__text { grid-column: 8 / 12; align-self: end; }
 
-  /* --- Fit: the two sides split the grid, Grid Columns 1–6 and
-     7–12, so they meet on the page's centre line, a gutter apart -- */
-  .page--grid .compare__grid {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: subgrid;
-    column-gap: normal;
-    margin: 5rem 0 0;
-  }
-  .page--grid .compare__side:first-child { grid-column: 1 / 7; }
-  .page--grid .compare__side:last-child { grid-column: 7 / -1; }
+  /* --- FAQ: the heading on Grid Columns 1–5, the questions on Grid
+     Columns 7–12, their tops on one line -- */
+  .page--grid .faq-home__h { grid-column: 1 / 6; align-self: start; margin: 0; }
+  .page--grid .faq-home__list { grid-column: 7 / -1; }
 
   /* --- Research: the cards three Grid Columns wide and a gutter
      apart. The list takes the slider's width, which is a whole number
@@ -197,6 +197,10 @@
      Grid Column 7 left open between them. */
   .page--grid .pg-hero__grid > .pg-hero__col:first-child { grid-column: 2 / 7; }
   .page--grid .pg-hero__grid > .pg-hero__col:last-child { grid-column: 8 / 12; }
+  /* The Contact page: the enquiry box wider, from Grid Column 6, and the
+     words beside it on Grid Columns 2–4, Grid Column 5 left open */
+  .page--grid .pg-hero__grid.is--contact > .pg-hero__col:first-child { grid-column: 2 / 5; }
+  .page--grid .pg-hero__grid.is--contact > .pg-hero__col:last-child { grid-column: 6 / 12; }
   .page--grid .pg-hero__col .h1,
   .page--grid .pg-hero__col .h2 { max-width: none; text-wrap: balance; }
   /* the homepage headline's size and setting */

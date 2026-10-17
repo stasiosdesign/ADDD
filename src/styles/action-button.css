@@ -186,7 +186,8 @@
 /* The AEC Tech Firms accent */
 :is(.hero--blue, .cta--blue) .action-button { --action-button-accent: var(--c-blue); }
 
-/* On a dark ground — a dark page, section, hero or price card — the pair
+/* On a dark ground — a dark page, section, hero or price card, or the
+   statements held on the band (StickyTitle, always on the dark) — the pair
    inverts, as the nav's Contact button does on a dark page, so the lead
    stays the strongest thing on its
    ground: the primary's label block turns white with ink text (white text
@@ -194,30 +195,29 @@
    hairline round it. The closing CTA is always on the off-white, a dark
    page's included, so its pair never inverts (:where keeps the
    exception from outweighing the hover below). */
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)) {
   --action-button-color-focus: var(--c-white);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)):not(.is--secondary) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)):not(.is--secondary) {
   /* black would vanish into a dark ground, so the arrow block keeps the red */
   --action-button-accent: var(--c-red);
   --action-button-color: var(--c-text);
   --action-button-color-background: var(--c-white);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)).is--secondary {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)).is--secondary {
   --action-button-color: var(--c-white);
   --action-button-color-background: rgba(255, 255, 255, 0.1);
   --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .price-card--dark) .action-button:where(:not(.cta *)).is--secondary .action-button__bg {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)).is--secondary .action-button__bg {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
-/* The homepage's service tabs: a white button on the red panel, at the
-   site's own size. The label block white in ink capitals, the arrow
-   block a light grey a step off it with the two triangles in ink, and
-   the label sweeping to that grey on hover, so the whole button becomes
-   one colour, as every primary does; no red of its own on the red. Its
-   focus ring is white, to read on the panel. */
+/* The service tabs' button: a white button on the blue panel, at the
+   site's own size. The label block white in ink capitals, the arrow block
+   a light grey a step off it with the two triangles in ink, and the label
+   sweeping to that grey on hover, so the whole button becomes one colour,
+   as every primary does. Its focus ring is white, to read on the panel. */
 .service-tabs .action-button {
   --action-button-color: var(--c-text);
   --action-button-color-background: var(--c-white);
@@ -225,6 +225,34 @@
   --action-button-accent-color: var(--c-text);
   --action-button-color-focus: var(--c-white);
 }
+/* The button under the homepage's approach statement: red on the band,
+   white capitals on the site's red, the arrow block a deeper red, and
+   the label sweeping to that deeper red on hover, so the whole button
+   becomes one colour, as every primary does. */
+.sticky-title .action-button:not(.is--secondary) {
+  --action-button-color: var(--c-white);
+  --action-button-color-background: var(--c-red);
+  --action-button-accent: #a00000;
+  --action-button-accent-color: var(--c-white);
+  /* its label a step up: the button is fitted to the band's dots
+     (dot-fit.js), a touch taller than a button's own height, and the
+     site's size of label looked small in it */
+  font-size: 0.75rem;
+}
+
+/* Fitted to a field of dots (dot-fit.js): its height a whole number of
+   the dots' pitch (the arrow block, square, follows), its label block
+   widened so the whole button is too, and moved (less than half a
+   pitch) so every edge runs midway between two lines of dots. Its room
+   in the layout stays its own height's (--dot-fit-trim makes up the
+   difference), so fitting it moves nothing round it, and nothing the
+   dots are fitted to: a block (flex), so no line box adds to that. */
+.action-button[data-dot-fit] {
+  display: flex;
+  margin-bottom: var(--dot-fit-trim, 0px);
+  translate: var(--dot-fit-x, 0px) var(--dot-fit-y, 0px);
+}
+.action-button[data-dot-fit] .action-button__body { min-width: var(--dot-fit-body, auto); }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .action-button:is(:hover, :focus-visible) .action-button__bg-hover {

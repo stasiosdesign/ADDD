@@ -1,0 +1,102 @@
+---
+/*
+  Stacks of flat plates, drawn in isometric, standing on the AEC Tech
+  Partners hero's dotted lattice (Hero.astro, "centred"; styles.css
+  "Centred"), after the supplied reference. The lattice and the plates are
+  one drawing: the lattice is set out from the hero's middle a cell
+  (--cell) apart (its ground, the hidden .hero__ground, and dot-field.js),
+  and every plate is exactly one cell, square on the lattice's axes,
+  each stack's bottom plate lying in a cell of it, its corners on the
+  lattice's lines, the plates over it lifted straight up out of the same
+  cell. The outer plates are outlined in the page's blue and filled with
+  the ground (so each hides the lattice under it), the inner ones a smaller
+  or a filled step between, joined by dotted guides up their sides and
+  their middle. Both are drawn in a flatter view than the site's other
+  drawings (ANGLE: the 2:1 of the reference, each square a diamond twice
+  as wide as tall, its sides at about 26.57° to the level, where their
+  isometric is 30°), so the plates read as more of a scene in depth.
+  Decoration only, still, hidden from assistive tech.
+
+  Each stack is its plates from the bottom up (size: a share of the cell;
+  fill: a faint blue) and the lattice crossing its bottom plate's back
+  corner stands on (at: [i, j], cells along the lattice's two axes from
+  the hero's middle; i runs down to the right, j down to the left), and
+  below 992px and 768px its own crossing, in the bands over and under the
+  words, or none (tablet, phone).
+*/
+import { plane, path } from "../scripts/iso.js";
+
+interface Props {
+  class?: string;
+}
+const { class: className } = Astro.props;
+
+type Plate = { size: number; fill?: boolean };
+type Cell = [number, number];
+type Stack = { plates: Plate[]; at: Cell; tablet: Cell | null; phone: Cell | null };
+const STACKS: Stack[] = [
+  // top, left of the middle, behind the bar, its lower plates showing under it
+  { plates: [{ size: 1 }, { size: 0.86, fill: true }, { size: 1 }], at: [-4, -3], tablet: null, phone: null },
+  // left, a little under the middle
+  { plates: [{ size: 1 }, { size: 0.86, fill: true }, { size: 1 }], at: [-1, 3], tablet: [2, 5], phone: [4, 6] },
+  // right, high
+  { plates: [{ size: 1 }, { size: 0.92, fill: true }, { size: 0.7, fill: true }, { size: 1 }], at: [1, -3], tablet: [-2, -5], phone: [-4, -6] },
+  // right, low
+  { plates: [{ size: 1, fill: true }, { size: 1 }], at: [3, 0], tablet: [5, 3], phone: null },
+];
+
+// the cell's side in the drawing's units (a plate the full cell), the rise
+// between plates, and the room round each drawing
+const S = 100;
+const RISE = 46;
+const PAD = 2;
+// the view: 2:1, each axis at atan(1/2) to the level (with the lattice's
+// data-iso-angle, Hero.astro, and --cos-a/--sin-a, styles.css)
+const ANGLE = Math.atan(0.5);
+const COS = Math.cos(ANGLE);
+const SIN = Math.sin(ANGLE);
+// a point (x, y on the plan, z up) on the screen, from the origin (ox, oy)
+const projector = (ox: number, oy: number) => (x: number, y: number, z = 0): [number, number] => [ox + (x - y) * COS, oy + (x + y) * SIN - z];
+
+const draw = (stack: Stack) => {
+  const n = stack.plates.length;
+  const width = 2 * S * COS + 2 * PAD;
+  const height = 2 * S * SIN + (n - 1) * RISE + 2 * PAD;
+  // the bottom plate's back corner, the point that stands on the crossing
+  const ax = PAD + S * COS;
+  const ay = PAD + (n - 1) * RISE;
+  const P = projector(ax, ay);
+  const plates = stack.plates.map((plate, i) => {
+    const s = S * plate.size;
+    const o = (S - s) / 2;
+    return { d: plane(P, o, o, s, s, i * RISE), fill: plate.fill };
+  });
+  // the guides: the outer corners and the middle, from the bottom plate to the top
+  const top = (n - 1) * RISE;
+  const guides = [
+    [P(0, S, 0), P(0, S, top)],
+    [P(S, 0, 0), P(S, 0, top)],
+    [P(S, S, 0), P(S, S, top)],
+    [P(S / 2, S / 2, 0), P(S / 2, S / 2, top)],
+  ].map((pts) => path(pts, false));
+  const place = [
+    `--i:${stack.at[0]};--j:${stack.at[1]}`,
+    stack.tablet && `--i-t:${stack.tablet[0]};--j-t:${stack.tablet[1]}`,
+    stack.phone && `--i-m:${stack.phone[0]};--j-m:${stack.phone[1]}`,
+    // the drawing's width in cells, and where its anchor is in it
+    `--span:${(width / S).toFixed(4)};--ax:${((ax / width) * 100).toFixed(3)}%;--ay:${((ay / height) * 100).toFixed(3)}%`,
+  ].filter(Boolean).join(";");
+  return { viewBox: `0 0 ${width.toFixed(2)} ${height.toFixed(2)}`, plates, guides, place };
+};
+---
+<div class:list={["iso-stacks", className]} aria-hidden="true">
+  {STACKS.map((stack) => {
+    const { viewBox, plates, guides, place } = draw(stack);
+    return (
+      <svg class:list={["iso-stacks__stack", { "is--no-tablet": !stack.tablet, "is--no-phone": !stack.phone }]} viewBox={viewBox} style={place} fill="none">
+        {guides.map((d) => <path class="iso-stacks__guide" d={d} />)}
+        {plates.map((plate) => <path class:list={["iso-stacks__plate", { "is--fill": plate.fill }]} d={plate.d} />)}
+      </svg>
+    );
+  })}
+</div>

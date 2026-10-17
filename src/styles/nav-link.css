@@ -1,57 +1,31 @@
 /* ============================================================
-   Sliding-box link — the site's navigation links, in the nav and
-   the footer
+   Text links — the nav's, the footer's and the pages' (.nav-link,
+   NavLinkLabel.astro, text-scramble.js)
    ============================================================
-   On hover a block in the link's ink slides into a small box round
-   its label and the label shows in the ground's colour on it, so the
-   link inverts; on the way out the block slides on out of the box.
-   --fg is the block (the ink) and --bg the label on it (the ground),
-   set for each context at the end of this file, so the one rule
-   inverts on the light bar, the dark bar and the dark footer alike.
+   One hover for every link set in text: the label decodes through
+   itself, left to right, and a dotted line of the site's square dots
+   draws in under it with the band, and leaves dot by dot as the pointer
+   goes (text-scramble.js). (The footer's links had a sliding box that
+   inverted the label; it is gone, so no link carries two hovers.)
 
-   The supplied structure, with one step between: the link
-   (.nav-link — an <a>, or a dropdown toggle in the bar) keeps its own
-   size, so the bar's full-height hit areas and its hover-to-open
-   toggles stay as they were, and the box (.nav-link__box,
-   NavLinkLabel.astro) is drawn round the label alone, clipping the
-   block (.nav-link__bg) that slides into it. The box reaches a little
-   past the glyphs and gives that back in negative margin, so no label
-   moves.
-
-   The inversion is not a change of colour. The block carries its own
-   copy of the label (.nav-link__ink) in --bg, moved the other way as
-   the block moves, so it stays exactly over the label: the label is
-   white wherever the block covers it and ink everywhere else, on the
-   block's own frames. A colour fade alongside the slide ran on its own
-   curve and lagged it — dark text on the dark block for a quarter of a
-   second — and restarted with every frame of the nav's theme change.
-   Nothing here transitions a colour, so both follow exactly.
-
-   CSS alone is the fallback: the block rises in from below and drops
-   out the same way. initNavLinks() in site.js makes it follow a mouse
-   — in through the edge the pointer came in by, out through the edge
-   it leaves by. Hover only where there is one to follow.
-
-   Only hover and keyboard focus invert a link — the link to the page
-   being viewed rests like any other. Focus takes a ring round the box
-   as well, so it never rests on colour alone.
+   The link (.nav-link — an <a>, or a dropdown toggle in the bar) keeps
+   its own size, so the bar's full-height hit areas and its
+   hover-to-open toggles stay as they were; the box (.nav-link__box) is
+   drawn round the label alone and holds the line, reaching a little
+   past the glyphs and giving that back in negative margin, so no label
+   moves. Keyboard focus takes a ring round the box, so it never rests
+   on the line alone.
    ============================================================ */
 .nav-link {
-  --fg: var(--c-text);
-  --bg: var(--c-white);
-  /* the block reaches this far past the glyphs: across, and above and
+  /* the box reaches this far past the glyphs: across, and above and
      below the line's own leading */
   --nav-link-pad-x: 0.25em;
   --nav-link-pad-y: 0.125em;
   /* The box centred on the letters rather than on the line. Parabolica
      sits low in its line, so with even padding a label's capitals stood
-     further from the box's top than its baseline did from the foot (8.75
-     to 7.75px at 1920px, measured on the rendered pixels), and the word
-     looked dropped. This much comes off the top and goes on the foot:
-     the ink then stands a touch above the box's middle, as a word set
-     mostly in lower case needs to look centred, its weight being in the
-     x-height on the baseline. The label itself never moves; only the box
-     is drawn lower round it. */
+     further from the box's top than its baseline did from the foot; this
+     much comes off the top and goes on the foot. The label itself never
+     moves; only the box is drawn lower round it. */
   --nav-link-optical: 0.045em;
   text-decoration: none;
 }
@@ -61,7 +35,6 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  overflow: hidden;
   padding:
     calc(var(--nav-link-pad-y) - var(--nav-link-optical)) var(--nav-link-pad-x)
     calc(var(--nav-link-pad-y) + var(--nav-link-optical));
@@ -69,58 +42,75 @@
     calc(var(--nav-link-optical) - var(--nav-link-pad-y)) calc(-1 * var(--nav-link-pad-x))
     calc(-1 * var(--nav-link-pad-y) - var(--nav-link-optical));
 }
-/* At rest the block waits just below the box — the extra pixel keeps a
-   sub-pixel hairline of it from showing along the bottom edge. */
-.nav-link__bg {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  /* over the label, which it covers with its own copy */
-  z-index: 1;
-  /* the box's own layout, handed on to the copy inside */
-  padding: inherit;
-  align-items: inherit;
-  justify-content: inherit;
-  background-color: var(--fg);
-  pointer-events: none;
-  transform: translateY(calc(100% + 1px));
-  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-/* The block's copy of the label: laid out as the box lays out its own
-   (the same padding and alignment, the same class for the type), and
-   always the block's move undone, on the block's own transition — so
-   whenever the block is taken off its transition, the copy is too. */
-.nav-link__ink {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  padding: inherit;
-  align-items: inherit;
-  justify-content: inherit;
-  color: var(--bg);
-  white-space: nowrap;
-  user-select: none;
-  transform: translateY(calc(-100% - 1px));
-  transition: inherit;
-}
-
-@media (hover: hover) {
-  .nav-link:hover :is(.nav-link__bg, .nav-link__ink) { transform: translateY(0); }
-}
 .nav-link:focus-visible .nav-link__box {
-  outline: 1px solid var(--fg);
+  outline: 1px solid currentColor;
   outline-offset: 2px;
 }
-.nav-link:focus-visible :is(.nav-link__bg, .nav-link__ink) { transform: translateY(0); }
+.nav-link__text { white-space: nowrap; }
+/* the few letters in the scramble's band in the site's red, eased well
+   into the link's ink, a hint of it on either ground (on the footer's
+   red, the ink held back instead); the dots under them take the same
+   tint while the band is over them */
+.nav-link :is(.nav-link__text, .nav-link__dots) .is--scrambling { color: color-mix(in srgb, var(--c-red) 60%, currentColor); }
+.site-footer .nav-link :is(.nav-link__text, .nav-link__dots) .is--scrambling { color: color-mix(in srgb, currentColor 55%, transparent); }
 
-@media (prefers-reduced-motion: reduce) {
-  .nav-link__bg { transition: none; }
+/* while it scrambles, each letter in a box of its own advance, so the
+   word keeps its length and place: the letter itself at its own pen
+   position, overhanging as kerning has it at rest; a stand-in character
+   (always narrower, initNavScramble) centred in it and cut to it as a
+   backstop (clip-path, which leaves the baseline where it is, as
+   overflow on an inline-block would not) */
+.nav-scramble__char {
+  display: inline-block;
+  white-space: pre;
 }
-
-/* contexts: the nav's own ink and ground, which swap in its dark state,
-   and the footer's */
-.mega-nav .nav-link { --fg: var(--nav-fg); --bg: var(--nav-bg); }
-.site-footer .nav-link { --fg: var(--c-white); --bg: var(--c-red); }
-/* For AEC Tech Firms takes its page's accent: its box is the blue, with
-   the label in white, on every ground the bar has. */
-.mega-nav .mega-nav__feature.nav-link { --fg: var(--c-blue); --bg: var(--c-white); }
+.nav-scramble__char.is--swapped {
+  text-align: center;
+  clip-path: inset(-0.5em 0);
+}
+/* The dotted underline the scramble draws (initNavScramble): a row of
+   the site's square dots under the label, from its first letter's edge
+   to its last's, inside the box (so it never changes the link's size).
+   Each dot shows as the band passes over the letter above it,
+   flickering with the letters while it is in it and settling once it
+   has passed, and the row leaves from its start, dot by dot, as the
+   pointer leaves. The script sets each dot's place and its size
+   (NAV_DOTS.size, rounded to whole device pixels); here, only how it
+   shows: small square dots, close set, a little off the word, in the
+   label's own ink, so the line is as dark as the word it is under. Not
+   in the nav's drawer: its rows already stand on a dotted rule. */
+.nav-link__dots {
+  --nav-dot: 2px;
+  /* the dots' top this far above the foot of the label's line: clear of
+     the descenders by a little air, still close enough to read as the
+     word's own */
+  --nav-dots-rise: 0.02em;
+  position: absolute;
+  left: var(--nav-link-pad-x);
+  right: var(--nav-link-pad-x);
+  bottom: calc(var(--nav-link-pad-y) + var(--nav-link-optical) + var(--nav-dots-rise) - var(--nav-dot));
+  height: var(--nav-dot);
+  pointer-events: none;
+}
+.nav-link__dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--nav-dot);
+  height: var(--nav-dot);
+  background-color: currentColor;
+  opacity: 0;
+  transition: opacity 0.14s ease var(--nav-dot-delay, 0s);
+}
+.nav-link__dot.is--on { opacity: 1; }
+/* while it draws, a dot in the band shows and goes at once, as the
+   letters change; one the band has passed settles on with a short fade,
+   so the line arrives a little broken and smooths out behind the word */
+.nav-link__dots.is--drawing .nav-link__dot { transition-delay: 0s; }
+.nav-link__dots.is--drawing .nav-link__dot.is--scrambling { transition: none; }
+@media (max-width: 991px) {
+  .mega-nav .nav-link__dots { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-link__dot { transition: none; }
+}

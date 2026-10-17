@@ -145,3 +145,71 @@
   .accordion__content { padding: 0 1rem 1rem; }
   .accordion__heading { font-size: var(--t-rg); }
 }
+
+/* Boxed (variant "boxed": the homepage's FAQ): each question in a white
+   box of its own, no border, a little apart from the next, the question
+   in the display face a step under the section headings, the chevron in a
+   plain square that turns red when its answer is open. The answer opens
+   to its height on the site's curve (above), the boxes under it moving
+   down with it. */
+.accordion.is--boxed { max-width: none; margin-top: 0; }
+.is--boxed .accordion__list { gap: 0.625rem; }
+.is--boxed .accordion__item {
+  background: var(--c-white);
+  border: 0;
+  border-radius: var(--radius);
+}
+.is--boxed .accordion__heading {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.is--boxed .accordion__toggle { padding: 1.5rem 1.5rem 1.5rem 1.75rem; }
+.is--boxed .accordion__icon { background-color: transparent; box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.18); }
+.is--boxed .accordion__content { padding: 0 1.75rem 1.75rem; }
+
+/* an answer that is a list of points: each a row with a small square
+   before it, filled in the red on the side the practice belongs to,
+   drawn open on the other (the comparison's marks) */
+.accordion__points {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-md);
+  line-height: 1.35;
+}
+.accordion__points li {
+  position: relative;
+  padding-left: 1.75rem;
+}
+.accordion__points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--c-red);
+}
+.accordion__points.is--open li::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.45);
+}
+
+@media screen and (max-width: 767px) {
+  .is--boxed .accordion__heading { font-size: var(--t-md); }
+  .is--boxed .accordion__toggle { padding: 1.25rem 1.25rem 1.25rem 1.5rem; }
+  .is--boxed .accordion__content { padding: 0 1.5rem 1.5rem; }
+  .accordion__points { font-size: var(--t-rg); }
+}
+
+/* With reduced motion the answer is simply there, and the chevron turns
+   at once. */
+@media (prefers-reduced-motion: reduce) {
+  .accordion__panel,
+  .accordion__icon { transition: none; }
+}

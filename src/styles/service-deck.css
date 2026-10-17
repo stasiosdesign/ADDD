@@ -1,0 +1,470 @@
+/* ============================================================
+   Service deck — the four routes as cards that stack as the page
+   scrolls (src/components/ServiceDeck.astro)
+   ------------------------------------------------------------
+   Four bands, the page's full width, all one charcoal, each after the
+   first parted from the one before by the site's dotted rule. Each card is
+   sticky under the nav, its top a head lower than the card before
+   (--deck-head × its index), and every card the one height: as tall as
+   leaves the last, stuck lowest under the heads of the three before it,
+   its foot on the screen's foot. As the page scrolls the next card
+   slides up over the one below and the heads of the cards passed stand
+   in a pile at the top, each showing its number and name, with the card
+   in front whole under them. The deck's own height is the four cards in
+   flow and nothing more, so the moment the last card lands the pile is
+   let go and the page scrolls on as normal. CSS alone (position: sticky): nothing is measured or moved
+   by a script, so it follows the scroll exactly and runs back exactly.
+
+   Inside a card, on the 12-Column Grid, two left edges only: Grid
+   Column 1 for the number and Grid Column 2 for everything else, and one
+   right edge before the panel, the end of Grid Column 7.
+
+     - The head row is the name's line: the number in the label face on
+       Grid Column 1, centred on it (as the approach cards carry theirs);
+       the name from Grid Column 2, in the section headings' setting a
+       step down; and the square way on at the end of Grid Column 7, so
+       the four squares stand in one column down the pile whatever the
+       names' lengths, each against its panel.
+     - Under it, high in the card (what is read before the next card
+       comes up over it), two cells on one level: the line on Grid
+       Columns 2–4 and a tight list of what it covers on Grid Columns
+       5–7, without labels or rules. Both start on one line.
+     - The diagram's panel on Grid Columns 8–12, from the name's line to
+       the card's foot, black on every card, on the drawing's lattice
+       (data-iso-field, dot-field.js).
+
+   The head (--deck-head) is the strip of a stacked card that stays in
+   view: the card's top inset, the name's line and the same inset again
+   under it, so a piled name never touches the card over it.
+
+   Each card opens into its service page, whose hero is the card at the
+   screen's size (ServiceHero.astro, "Service hero" below), on the same
+   measures: the tokens are the card's, the hero's and the opening
+   sheet's alike (service-sheet.js, "Service sheet" below).
+   ============================================================ */
+.service-deck,
+.service-hero,
+.service-sheet {
+  /* the name's line box; the head row's height */
+  --deck-line: 2.25rem;
+  /* the air over the name (the card's top inset) and under it */
+  --deck-inset: 1.625rem;
+  /* whole pixels, so every stuck card (and the dotted rule along its
+     top) sits on the pixel grid rather than between two pixels */
+  --deck-head: round(calc(2 * var(--deck-inset) + var(--deck-line)), 1px);
+  /* where the pile begins: under the nav, with the room the floating bar
+     stands down from the top (nav.css, --nav-float-top) and a little more
+     of its own, so the first head never crowds the bar */
+  --deck-top: round(calc(var(--nav-h) + 2.5rem), 1px);
+  /* the dotted rule between the cards: small square dots, close set,
+     drawn from the rule's own left edge so every dot lands whole */
+  --deck-dot: 2px;
+  --deck-rule: linear-gradient(to right, rgba(255, 255, 255, 0.42) 0 var(--deck-dot), transparent var(--deck-dot)) 0 0 / 7px var(--deck-dot) repeat-x;
+  --deck-pad: var(--grid-margin);
+  /* how many heads pile above the last card (set from the card count) */
+  --deck-steps: 3;
+  position: relative;
+
+  color: var(--c-white);
+}
+/* Every card shows the one size, but runs on under the cards after it by
+   the heads still to pile under it (--deck-tail), so that once the last
+   card lands all four end on one line, the deck's foot: the pile then
+   leaves as one with the page, every head still in its place. (With
+   equal boxes, the deck's foot would push each earlier card down behind
+   the last one in turn.) The next card's negative top margin, as long as
+   the card before's tail, keeps the cards' places in the flow, and so the
+   scroll, as before; it has to be the next card's, since a sticky box is
+   held to its parent by its own margin box. The tail is padding, always
+   under the next card. */
+.service-deck__card {
+  --deck-tail: calc((var(--deck-steps) - var(--i, 0)) * var(--deck-head));
+  position: sticky;
+  top: calc(var(--deck-top) + var(--i, 0) * var(--deck-head));
+  box-sizing: border-box;
+  height: calc(100vh - var(--deck-top) - var(--deck-steps) * var(--deck-head) + var(--deck-tail));
+  height: calc(100svh - var(--deck-top) - var(--deck-steps) * var(--deck-head) + var(--deck-tail));
+  padding: var(--deck-inset) var(--deck-pad) calc(var(--deck-pad) + var(--deck-tail));
+  background: var(--deck-ground);
+}
+/* every card the one charcoal; from the second on, the dotted rule along
+   its top, inside the page's margins, is what parts it from the card
+   before (and each piled head from the next) */
+.service-deck, .service-hero, .service-sheet { --deck-ground: #161616; }
+.service-deck__card + .service-deck__card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: round(var(--deck-pad), 1px);
+  right: round(var(--deck-pad), 1px);
+  height: var(--deck-dot);
+  background: var(--deck-rule);
+}
+/* each card starts over the card before's tail, and a pixel more, so no
+   hairline of the page shows between two while they stack ("Seams",
+   styles.css) */
+.service-deck__card + .service-deck__card { margin-top: calc(-1px - (var(--deck-steps) - var(--i) + 1) * var(--deck-head)); }
+
+/* the grid: the head row the name's line, the body under it after the
+   same air the name has over it */
+.service-deck__inner {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: var(--deck-line) minmax(0, 1fr);
+  column-gap: var(--grid-gutter);
+  height: 100%;
+}
+
+/* --- The head row ----------------------------------------------- */
+/* the number: the label face, on Grid Column 1, centred on the name's
+   line */
+.service-deck__n {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: center;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  line-height: 1;
+  color: var(--label-ink);
+}
+/* the name: from Grid Column 2, the section headings' setting a step
+   down (--t-h3), on one line */
+.service-deck__h {
+  grid-column: 2 / 7;
+  grid-row: 1;
+  align-self: center;
+  margin: 0;
+  min-width: 0;
+  white-space: nowrap;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h4);
+  line-height: 1;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+}
+/* the way on: at the end of Grid Column 7, centred on the name's line,
+   a solid square a few steps lighter than the card's charcoal, its
+   corners the barest round (a pixel), with a plain arrow in white,
+   pointing on (LineArrow.astro). The whole card is its link (the ::after
+   stretched over the card), so pointing anywhere on the card lights the
+   square white, the arrow in the ink turning to point up and on, and a click
+   anywhere on it opens the route's page. */
+.service-deck__card { cursor: pointer; }
+.service-deck__card .service-deck__go::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.service-deck__go {
+  grid-column: 7;
+  grid-row: 1;
+  justify-self: end;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 1px;
+  background: #2a2a2a;
+  color: var(--c-white);
+  transition: background-color 0.4s var(--ease-osmo), color 0.4s var(--ease-osmo);
+}
+.service-deck__arrow {
+  display: block;
+  width: 0.875rem;
+  height: auto;
+  transition: transform 0.5s var(--ease-osmo);
+}
+@media (hover: hover) {
+  .service-deck__card:hover .service-deck__go { background: var(--c-white); color: var(--c-text); }
+  .service-deck__card:hover .service-deck__arrow { transform: rotate(-45deg); }
+}
+/* clicked, while its page is still on its way (service-sheet.js): held
+   lit, as under the pointer, so a tap is answered at once */
+.service-deck__card[data-sheet-opening] .service-deck__go { background: var(--c-white); color: var(--c-text); }
+.service-deck__card[data-sheet-opening] .service-deck__arrow { transform: rotate(-45deg); }
+.service-deck__go:focus-visible { outline: 1px solid var(--c-white); outline-offset: 3px; background: var(--c-white); color: var(--c-text); }
+
+/* --- The two cells ---------------------------------------------- */
+/* each from the body row's top, a step more than the head's own air
+   under the name, so the labels stand clear of it */
+.service-deck__cell {
+  grid-row: 2;
+  align-self: start;
+  min-width: 0;
+  padding-top: calc(var(--deck-inset) + 0.75rem);
+}
+.service-deck__copy { grid-column: 2 / 5; }
+.service-deck__covers { grid-column: 5 / 8; }
+/* the line: the body size, on a measure a little short of the cell, so
+   its ragged edge stays clear of the list beside it */
+.service-deck__p {
+  margin: 0;
+  padding: 0 1.5rem 0 0;
+  font-size: var(--t-rg);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+/* what the route covers: a tight list, a step smaller, no rules between
+   the lines */
+.service-deck__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-sm);
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.78);
+}
+.service-deck__list li + li { margin-top: 0.375rem; }
+
+/* --- The panel ---------------------------------------------------- */
+/* Grid Columns 8–12, from the name's line to the card's foot, the
+   drawing centred in it over the lattice, as the tabs' is, on black */
+.service-deck__media {
+  --c-text: var(--c-white);
+  --diagram-ground: #000;
+  --iso-line: rgba(255, 255, 255, 0.16);
+  --sd-line: 76%;
+  --sd-layer: 46%;
+  --sd-setout: 32%;
+  grid-column: 8 / -1;
+  grid-row: 1 / 3;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  overflow: hidden;
+  background: #000;
+  border-radius: var(--radius);
+}
+.service-deck__pattern { position: absolute; inset: 0; pointer-events: none; }
+.service-deck__pattern > canvas { display: block; }
+.service-deck__diagram {
+  position: relative;
+  display: block;
+  width: min(80%, 34rem);
+  height: auto;
+  max-height: 80%;
+}
+
+/* Below 992px, six columns: the number on Grid Column 1, the name on
+   Grid Columns 2–5 and the square at the end of Grid Column 6; under
+   them the two cells one over the other on Grid Columns 2–3 and the
+   panel on Grid Columns 4–6, from the body's top to the foot. Below
+   768px, one column, the cards in the flow rather than stacked (a
+   phone's screen is too short for the pile): the number, the name and
+   the square on one line, then the cells and the panel the full width. */
+@media screen and (max-width: 991px) {
+  :is(.service-deck, .service-hero, .service-sheet) { --deck-line: 2.25rem; --deck-inset: 1rem; }
+  .service-deck__inner { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: var(--deck-line) auto minmax(0, 1fr); }
+  .service-deck__h { grid-column: 2 / 6; font-size: 1.875rem; }
+  .service-deck__go { grid-column: 6; width: 2rem; height: 2rem; }
+  .service-deck__copy { grid-column: 2 / 4; grid-row: 2; }
+  .service-deck__covers { grid-column: 2 / 4; grid-row: 3; padding-top: 1.5rem; }
+  .service-deck__p { font-size: var(--t-sm); }
+  .service-deck__list { font-size: 0.8125rem; }
+  .service-deck__media { grid-column: 4 / 7; grid-row: 2 / 4; margin-top: var(--deck-inset); }
+}
+@media screen and (max-width: 767px) {
+  .service-deck__card { --deck-tail: 0px; position: relative; top: auto; height: auto; padding-block: 2rem; }
+  .service-deck__inner { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; row-gap: 1.5rem; height: auto; }
+  .service-deck__n { grid-column: 1; grid-row: 1; margin-right: 1rem; }
+  .service-deck__h { grid-column: 2; grid-row: 1; font-size: 1.5rem; white-space: normal; }
+  .service-deck__go { grid-column: 3; grid-row: 1; margin-left: 1rem; }
+  .service-deck__copy, .service-deck__covers, .service-deck__media { grid-column: 1 / -1; grid-row: auto; padding-top: 0; margin-top: 0; }
+  .service-deck__media { aspect-ratio: 4 / 3; }
+}
+
+/* ============================================================
+   Service hero — a service page's opening: the deck's card at the
+   screen's size (ServiceHero.astro)
+   ------------------------------------------------------------
+   The card's own parts on the card's own measures, so the card opened
+   (service-sheet.js) is this, part for part: the one charcoal, the head
+   row (the number on Grid Column 1, the name from Grid Column 2 at the
+   card's size, the square at the end of Grid Column 7), the list on
+   Grid Columns 5–7, the panel on Grid Columns 8–12 from the name's line
+   to the foot, the drawing in it at the card's size. Its head row
+   stands where the head of the card at the top of the deck's pile
+   stands, --deck-top under the screen's top and the card's inset in.
+   Under the head, where the card has its line, the page's heading, and
+   under that its lede and buttons on Grid Columns 2–4 beside the list.
+   At least the screen's height; the page goes on under it.
+
+   Narrower, as the card goes: below 992px six columns (the heading on
+   Grid Columns 2–6, the lede and the list on 2–3 one over the other, the
+   panel on 4–6), below 768px one (each in turn, the panel last).
+   ============================================================ */
+.service-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: calc(var(--deck-top) + var(--deck-inset)) var(--deck-pad) var(--deck-pad);
+  background: var(--deck-ground);
+  color: var(--c-white);
+}
+.service-hero__inner {
+  flex: 1 1 auto;
+  height: auto;
+  grid-template-rows: var(--deck-line) auto minmax(0, 1fr);
+}
+.service-hero .service-deck__h { margin: 0; }
+/* the square leads on down the page: its arrow turned down, and lit
+   as the card's is, pointed at */
+.service-hero .service-deck__arrow { transform: rotate(90deg); }
+@media (hover: hover) {
+  .service-hero .service-deck__go:hover { background: var(--c-white); color: var(--c-text); }
+}
+/* the heading, where the card has its line: from Grid Column 2 to the
+   panel, at the card's own air under the name */
+.service-hero__head {
+  grid-column: 2 / 8;
+  grid-row: 2;
+  min-width: 0;
+  padding-top: calc(var(--deck-inset) + 0.75rem);
+}
+.service-hero__heading {
+  margin: 0;
+  max-width: 14em;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h2);
+  line-height: 1.05;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-wrap: balance;
+}
+/* the lede and the buttons beside the list, on one level under the
+   heading, as the card's two cells are under its name */
+.service-hero .service-deck__cell { grid-row: 3; padding-top: 2.5rem; }
+.service-hero__copy { grid-column: 2 / 5; }
+.service-hero__lede {
+  margin: 0;
+  padding-right: 1.5rem;
+  font-size: var(--t-rg);
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+.service-hero__actions { margin-top: 2rem; flex-wrap: wrap; }
+/* a text link's chevron, drawn black, in the hero's white */
+.service-hero .btn--link .icon { filter: invert(1); }
+.service-hero .service-deck__media { grid-row: 1 / -1; }
+/* the drawing and its lattice, one layer, so the two move as one as a
+   card opens (service-sheet.js) */
+.service-deck__art {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* the drawing at the card's size: the card's panel is the screen less
+   the pile over the last card and the card's insets */
+@media screen and (min-width: 992px) {
+  .service-hero .service-deck__diagram {
+    max-height: min(80%, calc(0.8 * (100svh - var(--deck-top) - var(--deck-steps) * var(--deck-head) - var(--deck-inset) - var(--deck-pad))));
+  }
+}
+@media screen and (max-width: 991px) {
+  .service-hero__inner { grid-template-rows: var(--deck-line) auto auto minmax(0, 1fr); }
+  .service-hero__head { grid-column: 2 / 7; }
+  .service-hero__heading { font-size: var(--t-h3); }
+  .service-hero .service-deck__cell { padding-top: 1.5rem; }
+  .service-hero__copy { grid-column: 2 / 4; grid-row: 3; }
+  .service-hero .service-deck__covers { grid-column: 2 / 4; grid-row: 4; }
+  .service-hero__lede { font-size: var(--t-sm); }
+  .service-hero .service-deck__media { grid-column: 4 / 7; grid-row: 3 / 5; margin-top: 1.5rem; min-height: 22rem; }
+}
+@media screen and (max-width: 767px) {
+  .service-hero__inner { grid-template-rows: none; }
+  .service-hero__head { grid-column: 1 / -1; grid-row: auto; padding-top: 0; }
+  .service-hero__heading { font-size: var(--t-h2); }
+  .service-hero .service-deck__cell { padding-top: 0; }
+  .service-hero__copy,
+  .service-hero .service-deck__covers,
+  .service-hero .service-deck__media { grid-column: 1 / -1; grid-row: auto; }
+  .service-hero .service-deck__media { margin-top: 0; min-height: 0; }
+}
+
+/* ============================================================
+   Service sheet — a card opening into its page (service-sheet.js)
+   ------------------------------------------------------------
+   For the length of the opening, a layer over everything, the nav
+   included: the stack dimmed under it (__shade), a soft shadow under
+   its foot (__edge) as it lifts off the cards in front, and the page's
+   hero, as fetched, cut to the card's shape and opened to the screen's
+   (__page, in a window: __win), with the card's own line over it for as long as it
+   fades and the dotted rule along its top edge (from the deck's second
+   card on). What the card does not have is laid out but not shown
+   (data-sheet-hide); the lattice runs past the panel on every side, so
+   that, drawn as small as the card's, it still fills it.
+   ============================================================ */
+.service-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  overflow: clip;
+  color: var(--c-white);
+  /* nothing under it is to be clicked while it opens */
+  pointer-events: auto;
+}
+.service-sheet__shade {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+}
+.service-sheet__edge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6rem;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.18) 35%, transparent);
+  opacity: 0;
+}
+.service-sheet__page {
+  position: absolute;
+  inset: 0;
+}
+.service-sheet__page > .service-hero {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+/* a window (service-sheet.js, windowed): each box clips, and moves only by
+   a transform */
+.service-sheet__win {
+  position: absolute;
+  inset: 0;
+  overflow: clip;
+}
+/* the panel in its own window, at its place on the hero */
+.service-sheet__panel { position: absolute; }
+/* what fades or moves while the sheet opens, each on a layer of its own
+   for the length of it (the sheet is taken out after), so a frame of the
+   opening is the compositor's alone */
+.service-sheet__shade,
+.service-sheet__line { will-change: opacity; }
+.service-sheet__edge,
+.service-sheet__rule { will-change: transform, opacity; }
+.service-sheet .is--sheet-panel { position: absolute; inset: 0; margin: 0; }
+.service-sheet [data-sheet-hide] { visibility: hidden; }
+.service-sheet .service-deck__pattern { inset: -15%; }
+.service-sheet__line { position: absolute; margin: 0; }
+.service-sheet__rule {
+  position: absolute;
+  top: 0;
+  left: round(var(--deck-pad), 1px);
+  right: round(var(--deck-pad), 1px);
+  height: var(--deck-dot);
+  background: var(--deck-rule);
+}

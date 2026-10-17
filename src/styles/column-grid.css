@@ -66,27 +66,30 @@
   min-height: 100%;
   /* The number sits just under the nav bar, clear of its links. */
   padding-top: calc(var(--nav-h) + 1.5em);
-  /* #d9d9d9 at 20%, as a fill rather than the element's opacity, so
-     the number on the column keeps its own. */
-  background: rgba(217, 217, 217, 0.2);
+  /* A light fill, faint (#d9d9d9 at 9%), as a fill rather than the
+     element's opacity, so the number on the column keeps its own: enough
+     to read the columns against a light page or a dark one, not enough
+     to cover what is under them. */
+  background: rgba(217, 217, 217, 0.09);
   text-align: center;
 }
 /* The edge lines: one hairline each side, --grid-edge in from the
-   viewport, in the labels' mid-grey so they read on light pages and
-   dark ones alike. */
+   viewport, in the labels' mid-grey, held back, so they read on light
+   pages and dark ones alike without standing out. */
 .column-grid__edge {
   position: absolute;
   top: 0;
   bottom: 0;
   width: 1px;
-  background: #8c8c8c;
+  background: rgba(140, 140, 140, 0.5);
 }
 .column-grid__edge.is--left { left: calc(var(--grid-frame) + var(--grid-edge)); }
 .column-grid__edge.is--right { right: calc(var(--grid-frame) + var(--grid-edge)); }
-/* Mid-grey, so it reads on the light pages and the dark ones alike. */
+/* Mid-grey, held back, so it reads on the light pages and the dark ones
+   alike. */
 .column-grid__label {
   display: block;
-  color: #8c8c8c;
+  color: rgba(140, 140, 140, 0.75);
   font-family: var(--font-mono);
   font-size: var(--t-xs);
   font-weight: var(--fw-label);

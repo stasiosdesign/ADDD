@@ -13,7 +13,7 @@
 
      - from 992px, the zig-zag: the first and third steps on Grid
        Columns 2–5, the second on Grid Columns 8–11, the rail between
-       them, on the left edge of Grid Column 7;
+       them, on the page's centre line;
      - 768–991px, one column: the steps on Grid Columns 2–6 of the
        six, the rail down the middle of Grid Column 1;
      - below 768px, one column and no rail.
@@ -25,14 +25,23 @@
    ============================================================ */
 .approach-stack {
   /* its top set so the room under the statement before it is the room
-     over it and --gap-more besides (a section's step and a half;
+     over it and --gap-more besides (two of a section's steps;
      approach-stack.js, matchGap): taken off its own top padding, or
      added to it, so the room is inside the stack, on its field of dots
      (as a margin it was bare band, no dots); only past the whole
      padding does the stack draw up over the section before it */
-  --gap-more: calc(var(--sec-lg) * 1.5);
+  --gap-more: calc(var(--sec-lg) * 2);
   --stack-top: calc(var(--sec-lg) - var(--stack-pull, 0px));
   margin-top: min(0px, var(--stack-top));
+}
+/* Not led by the statement's line (no rule on the StickyTitle before
+   it: the script never matches the rooms, and never pulls the stack up),
+   the room under the statement is the step and --gap-more outright, so
+   the first card comes up well clear of the held statement. */
+.approach-stack:not(.is--led) {
+  --stack-top: calc(var(--sec-lg) + var(--gap-more));
+}
+.approach-stack {
   --stack-line: rgba(255, 255, 255, 0.14);
   --stack-dot: rgba(255, 255, 255, 0.55);
   /* one rung of the ladder the cards stand on. A card is about 29rem
@@ -85,6 +94,30 @@
 }
 
 /* --- The stack -------------------------------------------------- */
+/* The heading over the steps (approach.heading): centred, set as the cost
+   section's heading is (styles.css, .problem-head__h: the display face,
+   its 430 stroke and tracking, 5.25rem, 3.5rem under 992px, 2.75rem
+   under 768px), a section's step over the first card */
+.approach-stack__head {
+  position: relative;
+  z-index: 1;
+  margin: 0 0 var(--sec-md);
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 5.25rem;
+  line-height: 0.9;
+  letter-spacing: calc(var(--primary-tracking) - 0.0274em);
+  -webkit-text-stroke: 0.010em currentColor;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--c-white);
+}
+@media screen and (max-width: 991px) {
+  .approach-stack__head { font-size: 3.5rem; }
+}
+@media screen and (max-width: 767px) {
+  .approach-stack__head { font-size: 2.75rem; }
+}
 .approach-stack__grid { position: relative; }
 /* A rung per card, and a last row that only takes what the last card
    needs past its rung, so the stack ends with it. */
@@ -108,21 +141,21 @@
 .approach-stack__slot.is--right { grid-column: 8 / 12; }
 
 /* --- Rail ----------------------------------------------------
-   The left edge of Grid Column 7, the page's heading line, between the
-   two columns of cards, the length of the stack: a column of the field's
-   dots stands on it (the field fits a card's width in whole steps, and
-   from that edge to the right-hand cards is half a step more than a
-   whole number), so the mark on the rail stands on a line of dots. The
-   script moves it onto the nearest column to the fraction of a pixel
-   (--rail-snap, approach-stack.js). Only the window shows: it rides at
-   the middle of the viewport, and the script moves the dots inside it
-   against the scroll, so they are fixed to the page and run past the
-   cube. */
+   The page's centre line, between the two columns of cards (which stand
+   symmetrically about it: Grid Columns 2–5 and 8–11), the length of the
+   stack. The field is set out so that a column of its dots stands on
+   the centre as well as its lines running midway between the cards'
+   sides (fitColumns, approach-stack.js), so the mark on the rail stands
+   on a line of dots, in the middle of the screen; the script keeps the
+   rail on that column to the fraction of a pixel (--rail-snap). Only
+   the window shows: it rides at the middle of the viewport, and the
+   script moves the dots inside it against the scroll, so they are fixed
+   to the page and run past the cube. */
 .approach-stack__rail {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(50% + var(--grid-gutter) / 2);
+  left: 50%;
   width: 1rem;
   margin-left: -0.5rem;
   translate: var(--rail-snap, 0px) 0;
@@ -139,6 +172,8 @@
 /* The snake from the statement's line into the rail (approach-stack.js):
    drawn in the rail's own coordinates, from its top and its centre line,
    and shown only while it runs. */
+/* its dots in the rail's white, as the line's lit dots and the window's */
+.approach-stack__snake > path { stroke: var(--stack-dot); }
 .approach-stack__snake {
   position: absolute;
   top: 0;
@@ -151,9 +186,11 @@
 }
 .approach-stack__window {
   position: sticky;
-  top: calc(50vh - 9.5rem);
-  top: calc(50svh - 9.5rem);
-  height: 19rem;
+  /* its middle at the screen's; led in, as long as the statement's
+     line it grows out of (--rail-win, approach-stack.js) */
+  top: calc(50vh - var(--rail-win, 19rem) / 2);
+  top: calc(50svh - var(--rail-win, 19rem) / 2);
+  height: var(--rail-win, 19rem);
   /* Both ends fade out, into the field's own column of dots: faded by a
      mask rather than painted over with the band's colour, which would
      blot out the field's dots under them. How far they fade is set by
@@ -301,10 +338,16 @@
   pointer-events: none;
 }
 .step-card__pattern > canvas { display: block; }
-.step-card__media > .schematic { position: relative; }
 
 /* the copy's block */
 .step-card__foot {
+  /* more room round the copy than the card's own padding, and the copy
+     set a little high in it: a line box has more air over its capitals
+     than under its baseline, so copy centred by its box looks dropped;
+     this much of the room comes off the top and goes on the foot
+     (--foot-optical), and the ink then stands in the middle */
+  --foot-pad: 2rem;
+  --foot-optical: 0.1em;
   grid-column: 1 / -1;
   /* at least its copy, made up to a whole number of the field's steps
      (the script), the copy in the middle of it */
@@ -312,9 +355,15 @@
   flex-direction: column;
   justify-content: center;
   min-height: var(--foot-min, 0px);
-  padding: var(--card-pad);
+  padding: calc(var(--foot-pad) - var(--foot-optical)) var(--foot-pad) calc(var(--foot-pad) + var(--foot-optical));
   background: var(--tone-copy);
 }
+/* Fitted to the field (approach-stack.js, placeCards): the copy as far
+   in from the sides as its block's whole steps leave it from the top and
+   foot (--foot-pad-x), filling the width between, so the room round it is
+   the same on all four sides. */
+.step-card.is--even .step-card__foot { padding-inline: var(--foot-pad-x, var(--foot-pad)); }
+.step-card.is--even .step-card__p { width: auto; max-width: none; margin-inline: 0; }
 /* the copy in the middle of its block across as well, under the
    schematic, which stands in the middle too: held to its measure, the
    block centred on the card and its lines set left in it, in white */
@@ -328,89 +377,45 @@
   color: var(--c-white);
 }
 
-/* --- Schematics ----------------------------------------------
-   Isometric wireframes (src/scripts/iso.js), one family: hairlines
-   in three weights — the main edges, the quieter ones, the dashed
-   setting-out with a small ring at each end — centred on the card
-   and symmetric about its middle. A form that has to hide what is
-   behind it is filled with the card's own ground, so it still
-   reads as lines; the site's red is the one signal, and it only
-   ever draws a line, never a fill. Sized by the viewBox, so they
-   scale with the card. */
-.schematic {
-  display: block;
+/* The steps' Hairline figures (understand-figure.js, approach-figures.js):
+   the kernel's own palette (vendor/hairline-kernel.js) set to the card's —
+   its plates the card's ground, its edges in whites of three weights, its
+   one bright stroke the site's red. The frame is Hairline's 400 × 320;
+   the box shows the middle 400 × 256 and crops the rest (paint and the
+   pointer alike), so the card keeps its height. */
+.step-card__figure {
+  position: relative;
   width: 100%;
   max-width: 28rem;
-  height: auto;
   aspect-ratio: 400 / 256;
-  overflow: visible;
+  overflow: hidden;
 }
-.schematic__line {
+.step-card__stage {
+  --hairline-plate: var(--tone-media);
+  --hairline-hi: var(--c-red);
+  --hairline-edge: rgba(255, 255, 255, 0.55);
+  --hairline-mid: rgba(255, 255, 255, 0.34);
+  --hairline-lo: rgba(255, 255, 255, 0.14);
+  --hairline-stroke: 1;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  /* 32 of the frame's 320 off the top and the foot */
+  top: -12.5%;
+  height: 125%;
+  aspect-ratio: auto;
+}
+/* Understand's hub is the ADDD logo (understand-figure.js): a thin disc
+   in solid red, the edge of its top a fine dark line so it still reads
+   as a disc, and the logo's triangles on it in white */
+.step-card__stage .logo .sil { fill: var(--c-red); }
+.step-card__stage .logo .rim {
   fill: none;
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1;
-  stroke-linejoin: round;
+  stroke: rgba(0, 0, 0, 0.35);
 }
-.schematic__line.is--soft { stroke: rgba(255, 255, 255, 0.3); }
-.schematic__line.is--dash {
-  stroke: rgba(255, 255, 255, 0.2);
-  stroke-dasharray: 3 3;
-}
-.schematic__ring {
-  fill: var(--tone-media);
-  stroke: rgba(255, 255, 255, 0.3);
-  stroke-width: 1;
-}
-/* A solid: its edges are the group's stroke, which its faces inherit,
-   so the scan and the ranking light a whole form with one tween; its
-   faces are the card's ground. */
-.schematic__solid {
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1;
-  stroke-linejoin: round;
-}
-.schematic__face { fill: var(--tone-media); }
-/* the lower layers of an exploded stack, a weight quieter than the top */
-.schematic__solid.is--soft { stroke: rgba(255, 255, 255, 0.34); }
-/* a tower's floor lines, well under its edges, in their colour, so the
-   towers read as massing first and storeys second */
-.schematic__floors { fill: none; stroke-opacity: 0.28; }
-/* the block that leads, before the script takes the ranking over */
-.schematic__solid.is--first { stroke: var(--c-red); }
-
-.schematic__route {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.4);
-  stroke-width: 1;
-  stroke-linejoin: round;
-}
-.schematic__route.is--intended {
-  stroke: rgba(255, 255, 255, 0.28);
-  stroke-dasharray: 3 4;
-}
-/* the chevrons that close in on the cause */
-.schematic__frame {
-  fill: none;
-  stroke: var(--c-red);
-  stroke-width: 1.25;
-  stroke-linejoin: miter;
-}
-/* the cause's outline sent out from it, dashed */
-.schematic__ping {
-  fill: none;
-  stroke: var(--c-red);
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
-  opacity: 0;
-}
-/* A short dash run along a path from end to end (pathLength="1"). */
-.schematic__pulse {
-  fill: none;
-  stroke: var(--c-red);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-dasharray: 0.08 1;
-  stroke-dashoffset: 0.08;
+.step-card__stage .logo .mark {
+  fill: #fff;
+  stroke: none;
 }
 
 /* --- Tablet: one column, the rail down Grid Column 1 ----------- */
@@ -441,5 +446,6 @@
     --card-pad: 1.25rem;
     --card-top: 3.75rem;
   }
-  .schematic { max-width: none; }
+  .step-card__foot { --foot-pad: 1.625rem; }
+  .step-card__figure { max-width: none; }
 }

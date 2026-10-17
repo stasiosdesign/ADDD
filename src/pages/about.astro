@@ -4,6 +4,7 @@ import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { aboutPage as D } from "../sanity/defaults/about";
+import NavLinkLabel from "../components/NavLinkLabel.astro";
 
 // Every section's words come from the About page document in Sanity
 // (studio/schemaTypes/pages/about.ts), each element falling back to its own
@@ -71,7 +72,7 @@ const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
         <article class="tile" style="background:var(--c-white)" data-page-item={tile._key}>
           <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
           <p data-page-item-field="text">{tile.text}</p>
-          <a class="btn btn--link" href={tileHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{tile.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href={tileHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{tile.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
         ))}
       </div>

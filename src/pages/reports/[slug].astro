@@ -10,6 +10,7 @@ import { sanityClient } from "../../sanity/client";
 import { hasImage, urlFor } from "../../sanity/image";
 import { cardOf, type Card, type Insight } from "../../sanity/insights";
 import { REPORT_QUERY, REPORTS_QUERY } from "../../sanity/queries";
+import NavLinkLabel from "../../components/NavLinkLabel.astro";
 
 /* One page per report in Sanity (studio/schemaTypes/documents/insights.ts),
    at /reports/<slug>.html, set as report-template.astro is. Production
@@ -122,7 +123,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
             <p data-page-field="highlightText">{highlightText}</p>
             <div class="actions">
               <ActionButton href="#download" variant="secondary">Read</ActionButton>
-              <a class="btn btn--link" href="/reports.html">Explore <img class="icon" src="/assets/icons/chevron_right.svg" alt=""></a>
+              <a class="btn btn--link nav-link" href="/reports.html"><NavLinkLabel>Explore</NavLinkLabel> <img class="icon" src="/assets/icons/chevron_right.svg" alt=""></a>
             </div>
           </div>
         </div>

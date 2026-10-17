@@ -62,6 +62,20 @@ export const techFirmsPage = {
       },
     ]),
   },
+  services: {
+    tagline: 'Ways to work with ADDD',
+    statements: [
+      'Reach the architecture professionals your technology was built for.',
+      'Show your technology in action, through real architectural projects.',
+      'Understand what architecture practices really need, and where the industry is heading.',
+    ],
+    cards: keyed('route', [
+      { title: 'Workflow Workshop', text: 'A half-day diagnostic on a live project: map how work moves through the practice, find where tools and workflows create friction, and leave with a written report of priorities.' },
+      { title: 'Before Revit', text: 'A review of the early stages of design, before work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.' },
+      { title: 'Technology Blueprint', text: 'An eight-week, practice-wide strategy across workflows, software and licensing costs, infrastructure, data and AI readiness, ending in a sequenced roadmap.' },
+      { title: 'Ongoing Advisory', text: 'Regular strategic guidance for practice leaders on AI, BIM, software and digital priorities, before isolated decisions add more complexity.' },
+    ]),
+  },
   example: {
     lede: 'Every featured episode starts from a piece of architectural work, not from a product. This is the format an episode follows; it describes the structure, not a completed project.',
     tagline: 'Illustrative format',

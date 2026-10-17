@@ -1,97 +1,62 @@
 ---
 /*
-  The four routes as one panel that changes in place, on a charcoal
-  band. Under its own heading (the routes' label, set as "What actually
-  costs you time" is, in white), the
-  panel sticks under the nav while the page scrolls on past it, and the
-  scroll takes it through the four routes in turn, then lets it go
+  The AEC Tech Partners page's statements as one panel that changes in
+  place, on a band of the ink. Under its own heading (the section's
+  tagline, set as "What actually costs you time" is, in white), the panel
+  sticks under the nav while the page scrolls on past it, and the scroll
+  takes it through the statements in turn, then lets it go
   (service-tabs.js).
 
-  Two halves across Grid Columns 1–12, meeting on the page's centre line
-  (styles.css, "service tabs"): on the left, on the site's red, a small +
-  near each corner (.corner-marks), the route's name, its line and its
-  button in the middle, and at the foot the four routes' numbers, 01 to
-  04, each a square of its own that fills white as the scroll goes
-  through its route, which say there are four, which one is shown, and
-  take the scroll to any of them; on the right, on the ink, one dotted
-  lattice (dot-field.js) for the whole panel, and over it the four
-  drawings (ServiceDiagram.astro), moving, set one under another in a
-  tall strip that the scroll carries up through the panel.
+  Two halves across Grid Columns 1–12 (styles.css, "service tabs"): on the
+  left, Grid Columns 1–6, a square of the page's blue, a small + near each corner
+  (.corner-marks), and one statement at a time in its middle, large and
+  centred, with nothing else, and at its foot the statements' numbers,
+  01 on, each a square of its own that fills white as the scroll goes
+  through its statement, which say how many there are, which one is
+  shown, and take the scroll to any of them; on the right, Grid Columns
+  7–12, on the ink, one dotted lattice (dot-field.js) for the whole
+  panel, and over it a drawing for each statement (ServiceDiagram.astro,
+  by position), moving, set one under another in a tall strip that the
+  scroll carries up through the panel.
 
-  The names are the Services dropdown's short forms (Nav.astro), the
-  Workshop's ending turning between "shop" and "flow" as the dropdown's
-  does (word-cycle.js); each name is read as the route's full title
-  (from the Studio), which the button and the number keep too.
-
-  The words and the strip move together, both with the scroll: never
-  locked, slowest round each route so its words can be read. Without the
-  script the first route shows, as written here.
+  The strip moves with the scroll, never locked, slowest round each
+  statement so it can be read; the statements change by a fade, one out
+  and the next in. Without the script the first shows, as written here.
 */
-import ActionButton from "./ActionButton.astro";
 import ServiceDiagram from "./ServiceDiagram.astro";
 
-interface Card {
-  title?: string;
-  text?: string;
-}
 interface Props {
-  cards: Card[];
-  hrefs: string[];
-  /** The routes' label, the heading over the panel. */
+  /** The statements, one shown at a time. */
+  statements: string[];
+  /** The section's tagline, the heading over the panel. */
   label: string;
+  /** The page document's section the words are bound to. */
+  field?: string;
 }
-const { cards, hrefs, label } = Astro.props;
-
-// the dropdown's short names, by position (Nav.astro), the first with its
-// turning ending
-const NAMES: { name: string; cycle?: { stem: string; words: string[] } }[] = [
-  { name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] } },
-  { name: "Before Revit" },
-  { name: "Tech Blueprint" },
-  { name: "ADDD Advisory" },
-];
+const { statements, label, field = "services" } = Astro.props;
 ---
 <!-- the heading, set as the cost section's is, scrolling with the page -->
 <div class="problem-head service-tabs-head">
-  <h2 class="problem-head__h" data-split="heading" data-page-field="routes.tagline">{label}</h2>
+  <h2 class="problem-head__h" data-split="heading" data-page-field={`${field}.tagline`}>{label}</h2>
 </div>
 
-<!-- the scroll the panel sticks for: a stretch for each route -->
-<div class="service-tabs" data-service-tabs style={`--st-count:${cards.length}`}>
+<!-- the scroll the panel sticks for: a stretch for each statement -->
+<div class="service-tabs" data-service-tabs style={`--st-count:${statements.length}`}>
   <div class="service-tabs__panel" data-service-tabs-panel>
     <div class="service-tabs__copy">
       <span class="corner-marks service-tabs__marks" aria-hidden="true"></span>
 
-      <!-- every route in one cell, the cell the size of the largest -->
+      <!-- every statement in one cell, the cell the size of the largest -->
       <div class="service-tabs__slides">
-        {cards.map((card, i) => {
-          const short = NAMES[i];
-          const title = card.title || short?.name || "";
-          return (
+        {statements.map((statement, i) => (
         <div class:list={["service-tabs__slide", { "is--active": i === 0 }]} id={`service-tabs-panel-${i + 1}`} role="tabpanel" aria-labelledby={`service-tabs-tab-${i + 1}`} data-service-tabs-item>
-          <!-- the name and the button each one line in a mask of its own;
-               the line under the name split into masked lines by the
-               script (service-tabs.js) -->
-          <div class="service-tabs__mask">
-            <h3 class="service-tabs__h" aria-label={title} data-service-tabs-text>
-              {short?.cycle ? (
-                <Fragment>{short.cycle.stem}<span class="service-tabs__cycle"><span class="service-tabs__cycle-word" data-word-cycle={short.cycle.words.join("|")}>{short.cycle.words[0]}</span>{short.cycle.words.map((word) => <span class="service-tabs__cycle-ghost">{word}</span>)}</span></Fragment>
-              ) : (short?.name ?? title)}
-            </h3>
-          </div>
-          <p class="service-tabs__p" data-service-tabs-text data-service-tabs-split data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
-          <div class="service-tabs__mask is--action">
-            <div class="service-tabs__action" data-service-tabs-text>
-              <ActionButton href={hrefs[i] ?? "contact.html"}>View {title || "the service"}</ActionButton>
-            </div>
-          </div>
+          <p class="service-tabs__statement" data-page-field={`${field}.statements.${i}`}>{statement}</p>
         </div>
-          );
-        })}
+        ))}
       </div>
 
       <div class="service-tabs__nav" role="tablist" aria-label={label}>
-        {cards.map((card, i) => (
+        {statements.map((statement, i) => (
         <button
           type="button"
           class:list={["service-tabs__pos", { "is--active": i === 0 }]}
@@ -99,7 +64,7 @@ const NAMES: { name: string; cycle?: { stem: string; words: string[] } }[] = [
           role="tab"
           aria-selected={i === 0 ? "true" : "false"}
           aria-controls={`service-tabs-panel-${i + 1}`}
-          aria-label={card.title || NAMES[i]?.name}
+          aria-label={statement}
           tabindex={i === 0 ? "0" : "-1"}
           data-service-tabs-button
         ><span aria-hidden="true">{String(i + 1).padStart(2, "0")}</span><span class="service-tabs__pos-fill" data-service-tabs-fill aria-hidden="true">{String(i + 1).padStart(2, "0")}</span></button>
@@ -115,9 +80,9 @@ const NAMES: { name: string; cycle?: { stem: string; words: string[] } }[] = [
     <div class="service-tabs__media">
       <div class="service-tabs__pattern" data-iso-field data-iso-ground=".service-tabs__diagram" aria-hidden="true"></div>
       <div class="service-tabs__track" data-service-tabs-track>
-        {cards.map((_, i) => (
+        {statements.map((_, i) => (
         <div class="service-tabs__visual" style={`--st-i:${i}`} data-service-tabs-visual data-iso-frame aria-hidden="true">
-          <ServiceDiagram index={i} class="service-tabs__diagram" animate />
+          <ServiceDiagram index={i} class="service-tabs__diagram" />
         </div>
         ))}
       </div>

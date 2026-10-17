@@ -11,12 +11,14 @@
   In the drawer the feature block leads the list.
 
   For Tech Firms, the two toggles, AEC Jobs, About and Sign in are the
-  site's sliding-box links (.nav-link, NavLinkLabel.astro): each keeps its
+  site's text links (.nav-link, NavLinkLabel.astro: the label decodes and a
+  dotted line draws under it, text-scramble.js): each keeps its
   full-height block as its hit area, and the box is drawn round its label.
   The logo and the Contact button keep their own treatments: hovered, the
   logo's four forms are drawn back into the name, A D D D, by the intro's
   own morph (src/scripts/logo-morph.js, initNavLogo() in site.js), and
-  drawn into the forms again as the pointer leaves.
+  drawn into the forms again as the pointer leaves; Contact is one solid
+  block that only deepens a little (contact-button.css).
 */
 import ArrowIcon from "./ArrowIcon.astro";
 import NavLinkLabel from "./NavLinkLabel.astro";
@@ -46,10 +48,11 @@ const services: { href: string; name: string; cycle?: { stem: string; words: str
   <div class="mega-nav__bar">
     <div class="mega-nav__container">
       <div class="mega-nav__bar-start">
-        <!-- Barba leaves this link to the browser: going home by the logo
-             is a document load that opens on the intro (initHomeLink,
+        <!-- Home by the wipe, like any link round the site; on the
+             homepage itself it glides back to the top (isSamePage, page.js;
+             nav.js). The intro is for genuine loads alone (ARRIVAL,
              site.js). -->
-        <a data-menu-logo data-barba-prevent href="/index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
+        <a data-menu-logo href="/index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
           <!-- The ADDD triangles from assets/logo.svg, without the circle,
                cropped to their own bounds and drawn in currentColor; each
                one a letter of the morph at rest. The stroke, in the same
@@ -89,15 +92,7 @@ const services: { href: string; name: string; cycle?: { stem: string; words: str
             </li>
             <li class="mega-nav__bar-action">
               <a href="/contact.html" class="contact-button">
-                <span class="contact-button__block"></span>
-                <span data-contact-button-element class="contact-button__element is--default">
-                  <span data-contact-button-text class="contact-button__text">Contact</span>
-                </span>
-                <span class="contact-button__block"></span>
-                <span data-contact-button-element aria-hidden="true" class="contact-button__element is--hover">
-                  <span data-contact-button-text class="contact-button__text">Contact</span>
-                </span>
-                <span class="contact-button__block"></span>
+                <span class="contact-button__text">Contact</span>
               </a>
             </li>
           </ul>

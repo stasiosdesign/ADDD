@@ -55,6 +55,7 @@ import "../styles/approach-stack.css";
 import "../styles/coin-stack.css";
 import "../styles/sticky-title.css";
 import "../styles/stack-cards.css";
+import "../styles/service-deck.css";
 
 interface Props {
   /** The document <title>. */
@@ -98,33 +99,27 @@ const draftMode = staging && Astro.locals.draftMode;
 {staging && <meta name="robots" content="noindex, nofollow">}
 {/* How this document load arrives — the logo intro or the wipe's reveal —
     decided before the first paint, so a loader that is not going to play is
-    never shown. The intro is the homepage's: it opens the session's first
-    visit to it, every visit made by the nav's logo, and every reload of the
-    homepage, which starts again from the top. Every other load reveals, a
-    reload of any other page included, which keeps its place. Ahead of the
-    stylesheets, which an inline script would otherwise wait on. See ARRIVAL
-    in src/scripts/site.js. */}
+    never shown. The intro is the homepage's, and only a genuine load of it
+    plays it: opened from outside the site (a typed or pasted address, a
+    bookmark, a link from elsewhere) or reloaded, which starts again from
+    the top. Everything else reveals: a history step (Back or Forward, even
+    when the browser has to load the page again), a load that came from one
+    of the site's own pages (Barba's fallback to a full load, a link opened
+    in a new tab), and any load of any other page, a reload included, which
+    keeps its place. Moving round the site is Barba's and never a load at
+    all. Ahead of the stylesheets, which an inline script would otherwise
+    wait on. See ARRIVAL in src/scripts/site.js. */}
 <script is:inline define:vars={{ home }}>
   (function () {
     var nav = performance.getEntriesByType && performance.getEntriesByType("navigation")[0];
-    var reload = nav ? nav.type === "reload" : (performance.navigation || {}).type === 1;
-    var seen = false;
-    var requested = false;
+    var legacy = (performance.navigation || {}).type;
+    var type = nav ? nav.type : legacy === 1 ? "reload" : legacy === 2 ? "back_forward" : "navigate";
+    var fromSite = false;
     try {
-      // "played" after the session's first load; "requested" when the nav's
-      // logo was clicked to come here (initHomeLink in site.js).
-      var intro = sessionStorage.getItem("addd:intro");
-      seen = !!intro;
-      requested = intro === "requested";
-      sessionStorage.setItem("addd:intro", "played");
+      fromSite = new URL(document.referrer).origin === location.origin;
     } catch (err) {}
-    // Arriving from one of the site's own pages is a move within the site,
-    // even when sessionStorage holds no record of the intro: a link opened
-    // in a new tab can start without it, and storage can be blocked outright.
-    try {
-      seen = seen || new URL(document.referrer).origin === location.origin;
-    } catch (err) {}
-    document.documentElement.dataset.arrival = home && (requested || reload || !seen) ? "intro" : "reveal";
+    var fresh = type === "reload" || (type !== "back_forward" && !fromSite);
+    document.documentElement.dataset.arrival = home && fresh ? "intro" : "reveal";
     // The line reveal (initLineReveal in site.js) takes the marked headings
     // in hand: hidden until it does, so none is seen whole first.
     document.documentElement.setAttribute("data-line-reveal", "");

@@ -7,33 +7,39 @@
   short window of the rail's dotted line rides at the middle of the viewport
   with the logo's triangle on it, pointing the way the page is scrolling,
   passing each card in turn. Every card is open, with its
-  step drawn as a small live schematic that draws in as the card comes into
+  step drawn as a small live figure that comes alive as the card comes into
   view.
 
   Styles: src/styles/approach-stack.css. Behaviour: src/scripts/
   approach-stack.js, mounted by the page registry in src/scripts/site.js.
-  Without the script the schematics show their static drawing.
+  The script draws every step's figure.
 
   The steps are data, so the copy, the layout and the script all read the
-  same list. Each step's schematic is an isometric line drawing in a
-  400 × 256 viewBox (src/scripts/iso.js): hairlines, dashed setting-out
-  and solid forms, with one red element:
+  same list. Each step's drawing is a Hairline figure, an isometric line
+  drawing in a 400 × 320 frame of which the card shows the middle
+  400 × 256: rounded solids in hairlines, dashed setting-out, one bright
+  stroke in red, and an unseen pointer walking it while the card is on
+  screen, which a real one takes over:
 
-    - map    Understand: the practice in plan, a floor of four rooms, the
-             signal running the long way round them against the straight
-             line it is meant to take — a drawing that reads across;
-    - trace  Diagnose: the practice as a tall stack of slabs, scanned down
-             through until the one the trouble starts in is found — a
-             drawing that reads down;
-    - rank   Prioritise: findings as blocks of impact, the tallest in red,
-             re-ranking as the picture changes.
+    - map    Understand ("settle", after Hairline's, the ADDD mark on its hub,
+             src/scripts/understand-figure.js): twelve tiles lie crooked
+             round a hub; as the pointer nears it they slide into a tree
+             and the links draw in — what actually connects to what;
+    - trace  Diagnose ("Strata", src/scripts/approach-figures.js): the
+             practice as a tall stack of slabs; the pointer picks a layer
+             and the slabs above lift off to open it up, the layer the
+             trouble starts in open at rest — a drawing that reads down;
+    - rank   Prioritise ("Massing", the same file): findings as towers of
+             impact on a plinth; they rise where the pointer puts the
+             effort, the tallest in red.
 */
 import ArrowIcon from "./ArrowIcon.astro";
-import { boxFaces, floorLines, path, plane, projector } from "../scripts/iso.js";
 
 interface Props {
   /** The three steps' words, from the Home page's Approach section (src/pages/index.astro): title and text, in order. */
   steps: { title: string; text: string }[];
+  /** The heading over the steps, centred, at the cost heading's size (approach.heading). */
+  heading?: string;
 }
 
 // The steps are data, so the copy (from Sanity, or the page's own words),
@@ -47,138 +53,31 @@ const steps = SCHEMATICS.map((schematic, i) => ({
   schematic,
 }));
 
-// The schematics are exploded isometric drawings, one family: forms
-// built of layers, stood apart one over the next with fine dashed guides
-// at their corners, each form filled with the card's own ground so it
-// reads as solid and hides what is behind it, edged in hairlines of two
-// weights; under each, the same dashed cross of setting-out lines with a
-// ring at each end; all centred on the card and symmetric about its
-// middle. The site's red only ever draws a line. Coordinates are in the
-// 400 × 256 viewBox, projected by src/scripts/iso.js, which the script
-// shares.
-type Projector = (x: number, y: number, z?: number) => number[];
-const ring = (P: Projector, x: number, y: number, z = 0) => {
-  const [cx, cy] = P(x, y, z);
-  return { cx: +cx.toFixed(1), cy: +cy.toFixed(1) };
-};
-// the setting-out: the dashed cross through the origin, ringed at its ends
-const cross = (P: Projector, reach: number) => ({
-  lines: [path([P(-reach, 0), P(reach, 0)], false), path([P(0, -reach), P(0, reach)], false)],
-  rings: [ring(P, -reach, 0), ring(P, reach, 0), ring(P, 0, -reach), ring(P, 0, reach)],
-});
-// a square slab centred on the vertical axis
-const slab = (P: Projector, half: number, z: number, t: number) => boxFaces(P, -half, -half, z, 2 * half, 2 * half, t);
-// the guides of an exploded stack: dashed verticals up its left and right
-// corners, from one height to another
-const guides = (P: Projector, half: number, from: number, to: number) =>
-  [[-half, half], [half, -half]].map(([x, y]) => path([P(x, y, from), P(x, y, to)], false));
+// Understand: Hairline's "settle", brought in from the package
+// (@lucasmarkes/hairline 0.5.1) with the ADDD mark on its hub, drawn
+// by the script (src/scripts/understand-figure.js). The page gives the
+// panel's lattice its ground: settle's camera (Cam(45, 0.5, 1.9), fitted
+// to its tiles) puts the ground's origin, the hub's middle, at this point
+// of its 400 × 320 frame, one ground unit 1.5021 frame units long either
+// way, at the 2:1 view's 26.565°; a cell of 25 units runs the lattice
+// through the hub and the tiles nearest it. Worked out from settle's
+// camera; change them with it.
+const U_GROUND = "200.67 163.98";
+const U_ANGLE = 26.565;
+const U_MODULE = 37.55;
 
-// Understand: the practice laid out in plan, the one drawing of the three
-// that reads across rather than down — a floor in four rooms, one for each
-// of what moves through it: work, tools, information, decisions, a small
-// block standing in each. The dashed line straight from the first room to
-// the last is the way it is meant to go; the route work actually takes
-// goes round by the other two, across the floor and back. "at" is how far
-// along the route each block stands (its share of the route's drawn
-// length).
-const U_ORIGIN = [200, 130];
-const uP = projector(U_ORIGIN[0], U_ORIGIN[1]);
-const U_HALF = 78;
-const U_T = 4;
-const U_ROOM = 31;
-const U_AT = 39;
-const U_PAD = 3;
-const uFloor = U_T + U_PAD;
-const U_NODE = 12;
-// the rooms by their places: back, left, right, front
-const U_BACK = [-U_AT, -U_AT];
-const U_LEFT = [-U_AT, U_AT];
-const U_RIGHT = [U_AT, -U_AT];
-const U_FRONT = [U_AT, U_AT];
-const U_ROOMS = [U_BACK, U_LEFT, U_RIGHT, U_FRONT];
-// the way it actually goes: from the back over to the right, all the way
-// across to the left, then on to the front
-const U_ROUTE = [U_BACK, U_RIGHT, U_LEFT, U_FRONT];
-const uScreen = U_ROUTE.map(([x, y]) => uP(x, y, uFloor + 1));
-const uLengths = uScreen.slice(1).map(([x, y], i) => Math.hypot(x - uScreen[i][0], y - uScreen[i][1]));
-const uTotal = uLengths.reduce((a, b) => a + b, 0);
-const uAt = (k: number) => uLengths.slice(0, k).reduce((a, b) => a + b, 0) / uTotal;
-const understand = {
-  cross: cross(uP, 106),
-  floor: slab(uP, U_HALF, 0, U_T),
-  // the rooms, back to front, so each hides what is behind it
-  rooms: U_ROOMS.map(([x, y]) => boxFaces(uP, x - U_ROOM, y - U_ROOM, U_T, 2 * U_ROOM, 2 * U_ROOM, U_PAD)),
-  route: path(uScreen, false),
-  intended: path([uScreen[0], uScreen[uScreen.length - 1]], false),
-  // a block in each room, back to front, each with its place on the route
-  nodes: U_ROOMS.map((room) => ({
-    at: +uAt(U_ROUTE.indexOf(room)).toFixed(3),
-    ...boxFaces(uP, room[0] - U_NODE / 2, room[1] - U_NODE / 2, uFloor, U_NODE, U_NODE, U_NODE),
-  })),
-};
-
-// Diagnose: the practice taken down through its layers rather than across
-// its floor — five thin slabs stood apart, a tall, narrow stack: workflows,
-// software, information, infrastructure, people. A scan runs down through
-// them, finds the one the trouble starts in, and the slabs above lift off
-// it while four red chevrons close in on its corners. Listed top first;
-// drawn bottom first, so each slab hides what is under it.
-const D_ORIGIN = [200, 184];
-const dP = projector(D_ORIGIN[0], D_ORIGIN[1]);
-const TRACE_CAUSE = 3;
-const D_HALF = 40;
-const D_T = 4;
-const D_GAP = 25;
-const D_LAYERS = 5;
-const dFoot = (i: number) => (D_LAYERS - 1 - i) * D_GAP;
-const dCause = dFoot(TRACE_CAUSE);
-// the chevrons: one at each corner of a square a little outside the
-// cause's footprint, halfway up the slab, each two short arms along its
-// sides
-const dReach = D_HALF + 12;
-const dZ = dCause + D_T / 2;
-const D_ARM = 14;
-const diagnose = {
-  cross: cross(dP, 86),
-  guides: guides(dP, D_HALF, D_T, dFoot(0) + D_T),
-  slabs: Array.from({ length: D_LAYERS }, (_, i) => ({ i, ...slab(dP, D_HALF, dFoot(i), D_T) })).reverse(),
-  frame: [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
-    const x = sx * dReach, y = sy * dReach;
-    return path([dP(x - sx * D_ARM, y, dZ), dP(x, y, dZ), dP(x, y - sy * D_ARM, dZ)], false);
-  }).join(""),
-  ping: plane(dP, -D_HALF - 4, -D_HALF - 4, 2 * D_HALF + 8, 2 * D_HALF + 8, dZ),
-};
-
-// Prioritise: the findings as a massing model, nine towers on a three by
-// three grid standing on a plinth over the setting-out, their heights the
-// impact each would have, floor lines on their sides; the tallest, what
-// should change first, drawn in red. At rest the heights mirror about the
-// card's middle, the tallest in the centre; the script runs its own
-// figures, coming back to these, and redraws the towers from the same
-// projection (src/scripts/iso.js). Drawn back to front, so each tower
-// hides what is behind it.
-const R_ORIGIN = [200, 152];
-const rP = projector(R_ORIGIN[0], R_ORIGIN[1]);
-const R_SIZE = 30;
-const R_PITCH = 44;
-const R_PLINTH = 6;
-const R_FLOOR = 12;
-// heights by row (x) then column (y)
-const rRest = [36, 52, 28, 52, 84, 44, 28, 44, 20];
-const rFirst = rRest.indexOf(Math.max(...rRest));
-const rCells = rRest.map((h, k) => {
-  const x0 = (Math.floor(k / 3) - 1) * R_PITCH - R_SIZE / 2;
-  const y0 = ((k % 3) - 1) * R_PITCH - R_SIZE / 2;
-  return {
-    k, x0, y0,
-    ...boxFaces(rP, x0, y0, R_PLINTH, R_SIZE, R_SIZE, h),
-    floors: floorLines(rP, x0, y0, R_PLINTH, R_SIZE, R_SIZE, h, R_FLOOR),
-  };
-});
-const prioritise = {
-  cross: cross(rP, 100),
-  plinth: slab(rP, 76, 0, R_PLINTH),
-  bars: [...rCells].sort((a, b) => a.x0 + a.y0 - (b.x0 + b.y0)),
+// Diagnose and Prioritise: Hairline figures too (src/scripts/
+// approach-figures.js), on the site's own 30° isometric, one world unit a
+// frame unit, so their lattice keeps the 54-unit cell (dot-field.js), and
+// the figures are drawn on it: Diagnose's slabs two cells square on its
+// lines, Prioritise's towers one to a cell with its lines for streets.
+// Each ground is a point of the 400 × 320 frame the lattice runs through:
+// Diagnose's origin, and the corner of Prioritise's middle cell (its
+// origin, 200 196, moved half a cell, 27, along both axes). Change them
+// with the figures' cameras and cells.
+const FIGURES = {
+  trace: { name: "strata", ground: "200 216" },
+  rank: { name: "massing", ground: "200 223" },
 };
 
 // Each step's parallax, [start, end] in percent of its card's height: the
@@ -196,6 +95,7 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
   <div class="approach-stack__field" data-approach-stack-field aria-hidden="true">
     <span class="approach-stack__field-dots dot-grid band-field" data-approach-stack-field-dots></span>
   </div>
+  {Astro.props.heading && <h2 class="approach-stack__head" data-page-field="approach.heading">{Astro.props.heading}</h2>}
   <div class="approach-stack__grid">
     <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
       <div class="approach-stack__window" data-approach-stack-window>
@@ -224,77 +124,35 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
               <div class="step-card__media">
                 <!-- the drawing's ground: a dotted axonometric lattice
                      (dot-field.js), the panel's alone, not the band's -->
-                <div class="step-card__pattern" data-iso-field aria-hidden="true"></div>
-                {step.schematic === "map" && (
-                  <svg class="schematic" data-schematic="map" data-ground={U_ORIGIN.join(" ")} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
-                    <g data-s="ground">
-                      {understand.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
-                      {understand.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
-                    </g>
-                    <g class="schematic__solid" data-s="plate">
-                      <path class="schematic__face" d={understand.floor.left} /><path class="schematic__face" d={understand.floor.right} /><path class="schematic__face" d={understand.floor.top} />
-                    </g>
-                    {understand.rooms.map((room) => (
-                      <g class="schematic__solid is--soft" data-s="plate">
-                        <path class="schematic__face" d={room.left} /><path class="schematic__face" d={room.right} /><path class="schematic__face" d={room.top} />
-                      </g>
-                    ))}
-                    <path class="schematic__route is--intended" data-s="intended" d={understand.intended} />
-                    <path class="schematic__route" data-s="route" d={understand.route} pathLength="1" />
-                    <path class="schematic__pulse" data-s="pulse" d={understand.route} pathLength="1" />
-                    {understand.nodes.map((node) => (
-                      <g class="schematic__solid" data-s="node" data-at={node.at}>
-                        <path class="schematic__face" d={node.left} /><path class="schematic__face" d={node.right} /><path class="schematic__face" d={node.top} />
-                      </g>
-                    ))}
-                  </svg>
-                )}
-
-                {step.schematic === "trace" && (
-                  <svg class="schematic" data-schematic="trace" data-cause={TRACE_CAUSE} data-ground={D_ORIGIN.join(" ")} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
-                    <g data-s="ground">
-                      {diagnose.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
-                      {diagnose.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
-                      {diagnose.guides.map((d) => <path class="schematic__line is--dash" d={d} />)}
-                    </g>
-                    <!-- bottom first, the chevrons and their ping just over the
-                         cause, so the slabs above it hide what is behind them -->
-                    {diagnose.slabs.map((slab) => (
-                      <Fragment>
-                        <g class:list={["schematic__solid", { "is--soft": slab.i > 0 }]} data-s="layer" data-i={slab.i}>
-                          <path class="schematic__face" d={slab.left} />
-                          <path class="schematic__face" d={slab.right} />
-                          <path class="schematic__face" d={slab.top} />
-                        </g>
-                        {slab.i === TRACE_CAUSE && (
-                          <Fragment>
-                            <path class="schematic__ping" data-s="ping" d={diagnose.ping} />
-                            <path class="schematic__frame" data-s="marker" d={diagnose.frame} />
-                          </Fragment>
-                        )}
-                      </Fragment>
-                    ))}
-                  </svg>
-                )}
-
-                {step.schematic === "rank" && (
-                  <svg class="schematic" data-schematic="rank" data-origin={R_ORIGIN.join(",")} data-ground={R_ORIGIN.join(" ")} data-size={R_SIZE} data-plinth={R_PLINTH} data-floor={R_FLOOR} viewBox="0 0 400 256" fill="none" aria-hidden="true" focusable="false">
-                    <g data-s="base">
-                      {prioritise.cross.lines.map((d) => <path class="schematic__line is--dash" d={d} />)}
-                      {prioritise.cross.rings.map((r) => <circle class="schematic__ring" cx={r.cx} cy={r.cy} r="2.5" />)}
-                      <g class="schematic__solid is--soft">
-                        <path class="schematic__face" d={prioritise.plinth.left} /><path class="schematic__face" d={prioritise.plinth.right} /><path class="schematic__face" d={prioritise.plinth.top} />
-                      </g>
-                    </g>
-                    {prioritise.bars.map((bar) => (
-                      <g class:list={["schematic__solid", { "is--first": bar.k === rFirst }]} data-s="bar" data-k={bar.k} data-x0={bar.x0} data-y0={bar.y0}>
-                        <path class="schematic__face" data-face="left" d={bar.left} />
-                        <path class="schematic__face" data-face="right" d={bar.right} />
-                        <path class="schematic__face" data-face="top" d={bar.top} />
-                        <path class="schematic__floors" data-face="floors" d={bar.floors} />
-                      </g>
-                    ))}
-                  </svg>
+                {step.schematic === "map" ? (
+                  <Fragment>
+                    <!-- the lattice on the figure's own ground: its 2:1 angle,
+                         a cell every 25 of its units (through the hub and
+                         the tiles nearest it), from its origin -->
+                    <div class="step-card__pattern" data-iso-field data-iso-ground="[data-understand-figure] > svg"
+                      data-iso-angle={U_ANGLE} data-iso-module={U_MODULE} aria-hidden="true"></div>
+                    <!-- settle (understand-figure.js) draws into this svg,
+                         its frame 400 × 320, of which the card shows the
+                         middle 400 × 256 -->
+                    <div class="step-card__figure">
+                      <div class="step-card__stage" data-understand-figure data-hairline="settle" aria-hidden="true">
+                        <svg viewBox="0 0 400 320" data-ground={U_GROUND} fill="none" focusable="false"></svg>
+                      </div>
+                    </div>
+                  </Fragment>
+                ) : (
+                  <Fragment>
+                    <!-- the lattice at the site's 30° and 54-unit cell, from
+                         the figure's origin -->
+                    <div class="step-card__pattern" data-iso-field data-iso-ground="[data-approach-figure] > svg" aria-hidden="true"></div>
+                    <!-- the Hairline figure (approach-figures.js) draws into
+                         this svg, as Understand's does -->
+                    <div class="step-card__figure">
+                      <div class="step-card__stage" data-approach-figure={FIGURES[step.schematic].name} data-hairline={FIGURES[step.schematic].name} aria-hidden="true">
+                        <svg viewBox="0 0 400 320" data-ground={FIGURES[step.schematic].ground} fill="none" focusable="false"></svg>
+                      </div>
+                    </div>
+                  </Fragment>
                 )}
               </div>
             </div>

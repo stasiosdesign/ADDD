@@ -343,7 +343,8 @@
 /* contact details list */
 .contact-list { display: flex; flex-direction: column; gap: 1rem; }
 .contact-list li { display: flex; gap: 0.75rem; align-items: center; }
-.contact-list a { text-decoration: underline; }
+/* each a text link (.nav-link): no rule at rest, the dotted line on hover */
+.contact-list a { text-decoration: none; }
 
 /* report cover */
 .cover { aspect-ratio: 3 / 4; background: var(--c-placeholder); border-radius: var(--radius); }

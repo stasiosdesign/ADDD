@@ -213,6 +213,8 @@ const WAVE = {
   clump: 0.6,
   clumpGrain: 90,
   strength: [0.85, 1.1],
+  // how long the first front, out of the intro's pulse, takes to rise in (s)
+  rise: 0.45,
   ink: 1.45,
   flash: 1.8,
 };
@@ -648,6 +650,12 @@ export function mountSlashField(el) {
   // stroke the band shows changes — the field just stops drawing the screen
   // the band no longer shows.
   function crop() {
+    // whatever the intro left under way in its cues is done at once: the
+    // field's clock allows a frame no more than a tenth of a second, so on
+    // a slow first load it falls behind the intro's own timeline, and the
+    // clearing's last strokes could still be waiting to come back (a ring
+    // left open in the field) when the intro has already handed over
+    flushCues();
     if (!above && !below) return;
     const shift = above * cols;
     const kept = (rows - above - below) * cols;
@@ -1257,7 +1265,7 @@ export function mountSlashField(el) {
   // crosses flashing as it does. A word sets off as the front comes within
   // its decode's hold of it, so the word's burst lands just as the front
   // gets there.
-  function send() {
+  function send({ enter = false } = {}) {
     const f = {
       seed: (Math.random() * 997) | 0,
       phase: Math.random() * Math.PI * 2,
@@ -1279,7 +1287,14 @@ export function mountSlashField(el) {
     // on until the last of it is past the right
     f.reach = (Math.abs(f.lean) * height) / 2 + f.amplitude + WAVE.step + WAVE.wobble + f.surge;
     f.start = -f.reach;
-    f.end = (cols * cellW + 2 * f.reach) / f.speed;
+    // the first, out of the intro's pulse: its line already at the edge the
+    // pulse has just reached, its light rising in over its first moment,
+    // rather than its leading edge feeling its way in from off the field
+    if (enter) {
+      f.start = 0;
+      f.rise = WAVE.rise;
+    }
+    f.end = (cols * cellW + f.reach - f.start) / f.speed;
     fronts.push(f);
     wake();
   }
@@ -1309,6 +1324,7 @@ export function mountSlashField(el) {
   function advanceFronts(dt) {
     fronts = fronts.filter((f) => {
       f.t += dt;
+      const strength = f.strength * (f.rise ? Math.min(1, f.t / f.rise) : 1);
       // how far ahead of a word the front is when it sets the word off
       const lead = f.speed * DECODE.major.hold;
       for (let r = 0; r < rows; r++) {
@@ -1329,7 +1345,7 @@ export function mountSlashField(el) {
           if (hash(c, r, f.seed + 2) > WAVE.pick * thick) continue;
           const behind = (x - (c + 0.5) * cellW) / WAVE.depth;
           const crossed = (c + 0.5) * cellW > from;
-          light(i, WAVE.ink * f.strength * (1 - behind) ** WAVE.ease * (0.7 + 0.3 * thick), 0, crossed ? WAVE.flash * f.strength * (0.8 + 0.2 * thick) : 0);
+          light(i, WAVE.ink * strength * (1 - behind) ** WAVE.ease * (0.7 + 0.3 * thick), 0, crossed ? WAVE.flash * strength * (0.8 + 0.2 * thick) : 0);
         }
       }
       words.forEach((word) => {
@@ -1391,7 +1407,8 @@ export function mountSlashField(el) {
   // again can cut them again) and the cells it holds, each with how far
   // through its sweep it is; the strokes turned to lie along a shape's edge,
   // each with the stroke it had; the words it covers; and whether the wave
-  // runs while the page is arriving
+  // has taken over from the pulse (it then runs while the page is still
+  // arriving)
   let hole = [];
   let holeCells = new Map();
   let turned = new Map();
@@ -1418,6 +1435,15 @@ export function mountSlashField(el) {
     cues = cues.slice(cueAt).concat(list).sort((a, b) => a.at - b.at);
     cueAt = 0;
     wake();
+  }
+
+  // every cue still waiting, applied now, whatever its moment
+  function flushCues() {
+    if (cueAt >= cues.length) return;
+    const now = clock;
+    clock = Math.max(clock, cues[cues.length - 1].at);
+    advanceCues();
+    clock = now;
   }
 
   function advanceCues() {
@@ -1646,6 +1672,17 @@ export function mountSlashField(el) {
     const midY = cells.reduce((sum, i) => sum + ((i / cols) | 0), 0) / cells.length;
     const out = (i) => Math.hypot(((i % cols) - midX) * cellW, (((i / cols) | 0) - midY) * cellH);
     const far = Math.max(...cells.map(out)) || 1;
+    // The clearing's own cues still waiting go with it. The intro closes it
+    // a fixed moment after opening it on its own clock, and the field's
+    // clock can be behind that (it takes at most a tenth of a second a
+    // frame, so a slow first load holds it back), so the last of the
+    // opening's strokes could still be due to go after the close had
+    // brought them back: gone for good, a ring left open in the field. A
+    // stroke the close brings back is never taken or turned again by the
+    // opening, whatever the clocks do.
+    const closing = new Set(cells);
+    cues = cues.slice(cueAt).filter((q) => !((q.op === VANISH || q.op === TURN) && closing.has(q.i)));
+    cueAt = 0;
     schedule(cells.map((i) => ({
       at: (1 - out(i) / far) * time * (0.8 + 0.4 * hash(i % cols, (i / cols) | 0, 14)),
       i,
@@ -1690,12 +1727,8 @@ export function mountSlashField(el) {
   // the work of it can be done in a quiet moment rather than on the frame
   // the logo's disc opens; strokes cleared away meanwhile are passed over.
   function pulse(x, y, { inner = 0, time = 1.5, delay = 0 } = {}) {
-    const [fx, fy] = toField(x, y);
-    const far = Math.max(
-      Math.hypot(fx, fy), Math.hypot(cols * cellW - fx, fy),
-      Math.hypot(fx, rows * cellH - fy), Math.hypot(cols * cellW - fx, rows * cellH - fy));
-    const out = (d) => Math.min(1, Math.max(0, (d - inner) / (far - inner)));
-    const when = (u) => delay + time * u ** 0.8;
+    const { fx, fy, far, out, at } = spread(x, y, inner, time);
+    const when = (u) => delay + at(u);
     // the strokes, as one wave rather than a cue each: a whole screen of them
     // costs next to nothing to keep in order as the words born behind it add
     // cues of their own. Worked out a band of rows a frame, so no one frame
@@ -1761,6 +1794,27 @@ export function mountSlashField(el) {
       list.push({ at: when(out(Math.hypot(word.x - fx, word.y - fy))) + 0.06, op: BEAR, word, travel: word.x >= fx ? 1 : -1 });
     });
     schedule(list);
+  }
+
+  // How the pulse spreads from (x, y, in the viewport): where that is in the
+  // field, how far it has to go to reach the field's furthest corner, how
+  // far out a distance is (0 at inner, 1 at the corner), and when (s, from
+  // its start) it gets that far out.
+  function spread(x, y, inner, time) {
+    const [fx, fy] = toField(x, y);
+    const far = Math.max(
+      Math.hypot(fx, fy), Math.hypot(cols * cellW - fx, fy),
+      Math.hypot(fx, rows * cellH - fy), Math.hypot(cols * cellW - fx, rows * cellH - fy));
+    const out = (d) => Math.min(1, Math.max(0, (d - inner) / (far - inner)));
+    return { fx, fy, far, out, at: (u) => time * u ** 0.8 };
+  }
+
+  // When (s, from its start) a pulse from (x, y) reaches the field's left
+  // edge, level with where it set off: the moment the wave takes over from
+  // it (handover), for the intro to set on its own timeline.
+  function edge(x, y, { inner = 0, time = 1.5 } = {}) {
+    const { fx, out, at } = spread(x, y, inner, time);
+    return at(out(fx));
   }
 
   // A trace flung out ahead of the pulse: a few strokes straight on from
@@ -1863,9 +1917,10 @@ export function mountSlashField(el) {
     next = null;
     if (!running()) return;
     // hold off while the page is still arriving or a page transition is
-    // still running, and a moment after — but for the homepage intro, once
-    // its pulse has brought the field to life (introLive)
-    if ((document.documentElement.dataset.arrival && !introLive) || window.barba?.transitions?.isRunning) {
+    // still running, and a moment after — but not once the homepage intro's
+    // pulse has handed over to the wave (introLive): from there the wave is
+    // the field's, the intro's tail (and Barba's once()) running on round it
+    if (!introLive && (document.documentElement.dataset.arrival || window.barba?.transitions?.isRunning)) {
       held = true;
       plan(0.1);
       return;
@@ -1876,7 +1931,26 @@ export function mountSlashField(el) {
       return;
     }
     send();
-    plan(Math.max(WAVE.least, (between(WAVE.every) * cols * cellW) / fronts[fronts.length - 1].speed));
+    planNext();
+  }
+
+  // the front after the last one sent: once that is a share of the way
+  // across (WAVE.every, drawn afresh), and never sooner than WAVE.least
+  const planNext = () => plan(Math.max(WAVE.least, (between(WAVE.every) * cols * cellW) / fronts[fronts.length - 1].speed));
+
+  // The intro's pulse has reached the field's left edge (edge(), on the
+  // intro's timeline): the wave takes over there and then, its first front setting off from
+  // that edge as the pulse dies at it, and the sequence runs on from that
+  // front. Whatever was waiting to start the sequence is dropped, so there
+  // is one first front, not a second on its heels.
+  function handover() {
+    introLive = true;
+    held = false;
+    next?.kill();
+    next = null;
+    if (!running()) return;
+    send({ enter: true });
+    planNext();
   }
 
   // A word comes online as the wave reaches it: it starts to decode, bursts
@@ -2043,7 +2117,11 @@ export function mountSlashField(el) {
   };
   reducedMotion.addEventListener("change", onMotionChange);
 
-  const resizeObserver = new ResizeObserver(() => layout());
+  // laid out again when its size changes — not on the observer's first
+  // call, which only reports the size it was just laid out at
+  const resizeObserver = new ResizeObserver(() => {
+    if (el.clientWidth !== width || el.clientHeight !== height) layout();
+  });
   resizeObserver.observe(el);
   layout();
 
@@ -2052,12 +2130,13 @@ export function mountSlashField(el) {
     // the words brought back in as the page comes in (site.js)
     enter,
     // the homepage's first-load intro (logo-morph-loader.js): the grid, to
-    // set the name in; the wave while the page is still arriving; the
-    // clearing, the pulse and the close; and the field cut back to the band
-    // once it is over
+    // set the name in; the clearing, the pulse, the moment it reaches the
+    // field's edge and the wave taking over there, and the close; and the
+    // field cut back to the band once it is over
     intro: {
       grid,
-      live: () => (introLive = true),
+      edge,
+      handover,
       open,
       close,
       pulse,
@@ -2078,7 +2157,9 @@ export function mountSlashField(el) {
     },
   };
   el.slashField = instance;
-  // the words' widths change once their face has loaded
-  document.fonts?.ready.then(() => instance.refresh());
+  // the words' widths change once their face has loaded: laid out again
+  // then, if it was still loading (laid out with it already there, the
+  // field is right as it is, and a second layout would draw it all again)
+  if (document.fonts?.status === "loading") document.fonts.ready.then(() => instance.refresh());
   return instance;
 }

@@ -6,6 +6,7 @@ import StackCard from "../components/StackCard.astro";
 import type { Props as StackCardData } from "../components/StackCard.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
+import NavLinkLabel from "../components/NavLinkLabel.astro";
 
 // Every section's words come from the Stack Diagnostic page document in
 // Sanity (studio/schemaTypes/pages/stack-diagnostic.ts), each element falling
@@ -70,7 +71,7 @@ const cards: StackCardData[] = [
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions">
             <ActionButton href="https://app.addd.io/sign-up" target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
-            <a class="btn btn--link" href="#how-it-works"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+            <a class="btn btn--link nav-link" href="#how-it-works"><NavLinkLabel data-page-field="hero.linkLabel">{t("hero.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
       </div>
@@ -109,7 +110,7 @@ const cards: StackCardData[] = [
         <article class="tile tile--outline" data-page-item={item._key}>
           <h3 class="h4" data-page-item-field="title">{item.title}</h3>
           <p data-page-item-field="text">{item.text}</p>
-          <a class="btn btn--link" href={alternativeHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{item.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href={alternativeHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
         ))}
       </div>
@@ -140,7 +141,7 @@ const cards: StackCardData[] = [
 
       <div class="actions" style="margin-top:3rem">
         <ActionButton href="contact.html"><span data-page-field="method.button">{t("method.button")}</span></ActionButton>
-        <a class="btn btn--link" href="technology-blueprint.html"><span data-page-field="method.linkLabel">{t("method.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+        <a class="btn btn--link nav-link" href="technology-blueprint.html"><NavLinkLabel data-page-field="method.linkLabel">{t("method.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
       </div>
     </div>
   </section>
@@ -158,7 +159,7 @@ const cards: StackCardData[] = [
         <article class="tile" data-page-item={item._key}>
           <h3 class="h4" data-page-item-field="title">{item.title}</h3>
           <p data-page-item-field="text">{item.text}</p>
-          <a class="btn btn--link" href={nextHrefs[i] ?? "contact.html"}><span data-page-item-field="linkLabel">{item.linkLabel}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href={nextHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
         ))}
       </div>

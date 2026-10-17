@@ -2,10 +2,12 @@
 // ADDD — the scroll-scrubbed moves
 // -----------------------------------------
 //
-// Every parallax on the site is the one scrubbed tween (scrubTween): the
-// hero's exit and the footer's reveal (initParallaxCover), the global
-// [data-parallax] blocks, and the cost cards' stair. Mounted per page from
-// the registry in site.js. gsap and ScrollTrigger are the site's globals.
+// Every parallax on the site is scrubbed straight off the scroll: the
+// hero's exit (initParallaxCover), the two depth transitions — the
+// testimonials over the routes, the footer from under the page
+// (initDepthTransitions) — the global [data-parallax] blocks, the band's
+// steps and the cost cards' stair. Mounted per page from the registry in
+// site.js. gsap and ScrollTrigger are the site's globals.
 
 import { registerPageCleanup } from "./page.js";
 
@@ -126,47 +128,17 @@ export function initGlobalParallax(container) {
 }
 
 /* ============================================================
-   FOOTER PARALLAX
-   ------------------------------------------------------------
-   The footer sits in a clipping wrap and is revealed at a
-   different rate to the page above it: the panel starts a
-   quarter of its own height high inside the wrap and is scrubbed
-   down to rest as the wrap travels from the bottom of the
-   viewport to the top of it. A black scrim over the panel clears
-   off on the same scrub, so the footer lifts out of shadow
-   rather than simply sliding in.
-
-   clamp() on the ScrollTrigger bounds keeps the reveal honest on
-   a page short enough that the footer is already on screen at
-   load — the start is pinned to the current scroll position
-   instead of a point above it, so the panel is never caught
-   mid-animation with nowhere left to scroll.
-
-   The travel is a quarter of the panel, which on desktop — where
-   the panel stands a viewport tall — is a quarter of the screen.
-   Stacked on a phone or tablet the panel runs to two viewports or
-   more, and a quarter of it would drag the newsletter several
-   hundred pixels behind the scroll; there it travels the same
-   quarter of the screen instead.
-   ============================================================ */
-export function initFooterParallax(container) {
-  initParallaxCover(container, "footer");
-}
-
-/* ============================================================
-   HERO PARALLAX — the footer's effect in reverse, on the way out
+   HERO PARALLAX — the page's way out of the hero
    ------------------------------------------------------------
    The homepage hero sits in a clipping wrap of its own
    ([data-hero-parallax], index.astro) and leaves at a different
    rate to the page below it: as the wrap travels from the top of
    the viewport until its bottom has left it, the hero is scrubbed
-   down a quarter of its height inside the wrap and a black scrim
-   over it comes on. The logos section keeps the scroll's own
-   speed, so it closes over the hero, which falls back into shadow
-   underneath it. The same travel and the same rules for a stacked
-   layout as the footer, run backwards. The scrim stops at 25%
-   rather than the footer's 50%: over the ink panel 50% black
-   barely registers, but over the white hero it would end mid-grey.
+   down a quarter of its height inside the wrap (parallaxTravel)
+   and a black scrim over it comes on. The logos section keeps the
+   scroll's own speed, so it closes over the hero, which falls back
+   into shadow underneath it. The scrim stops at 25%: over the
+   white hero more would end mid-grey.
    ============================================================ */
 export function initHeroParallax(container) {
   initParallaxCover(container, "hero", { leaving: true, shade: 0.25 });
@@ -180,32 +152,35 @@ export function initHeroParallax(container) {
    pieces, one per two Grid Columns ([data-band-steps], index.astro;
    styles.css "band steps"). At rest, with the page at the top, the edge
    is one line and nothing shows. From the first of the scroll each piece
-   comes up faster than the band, on a curve of its own (BAND_STEPS: the
-   left quick to start, the right late), so each column moves at its own
-   rate and the steps keep changing shape, staying stepped the whole way
-   and never closing up again; the set follows the scroll a moment
-   behind, so it settles softly. Scrolled back, all of it runs back. One
-   scrubbed timeline on one ScrollTrigger, a linear transform each,
-   nothing measured per frame. Below 992px the grid has fewer
-   columns, so fewer pieces (the stylesheet hides the rest; only the
-   shown are moved). Not under reduced motion.
+   comes up a little faster than the band, on a curve of its own
+   (BAND_STEPS), so each column moves at its own rate and the steps keep
+   changing shape the whole way up the screen, staying stepped and never
+   closing up again; the set follows the scroll a moment behind, so it
+   settles softly. Scrolled back, all of it runs back. One scrubbed
+   timeline on one ScrollTrigger, a linear transform each, nothing
+   measured per frame. Below 992px the grid has fewer columns, so fewer
+   pieces (the stylesheet hides the rest; only the shown are moved). Not
+   under reduced motion.
    ============================================================ */
 // Per piece, left to right: how far it has gained on the band by the end
 // of the way (a share of the screen's height; the way runs from the
 // band's edge at the foot of the screen, the page at its top, to the
-// edge at the top), and the curve it gains it on: the left pieces quick
-// off the mark and easing in, the right ones slow to start and catching
-// up late, so each column moves at a rate of its own and the steps keep
-// changing shape as the scroll goes, rather than one shape growing.
-// The first five step down from the left, both in what they gain and in
-// how early they gain it, so none ever passes the one to its left; the
-// last is left free to break the staircase.
+// edge at the top), and the curve it gains it on. The leads are small
+// (a seventh of the screen at most) and step down gently from the left,
+// and the curves are near even — the left pieces a little quicker to
+// start, the right a little later — so no piece shoots up and then
+// stands still while the rest catch up: every column is still moving as
+// the band reaches the top, and the silhouette develops across the whole
+// of the way rather than forming in the first part of it. The first five
+// step down from the left, both in what they gain and in how early they
+// gain it, so none ever passes the one to its left; the last rises again
+// a little, to break the staircase.
 const BAND_STEPS = {
-  lead: [0.22, 0.18, 0.14, 0.085, 0.05, 0.1],
-  ease: ["power1.out", "sine.out", "none", "power1.inOut", "power1.in", "sine.inOut"],
+  lead: [0.14, 0.12, 0.1, 0.075, 0.05, 0.07],
+  ease: ["sine.out", "sine.out", "sine.inOut", "none", "sine.in", "sine.inOut"],
   // how far behind the scroll the whole set follows (s): one lag for all,
   // so the pieces settle softly and still never pass one another
-  lag: 0.6,
+  lag: 0.7,
 };
 export function initBandSteps(container) {
   container.querySelectorAll("[data-band-steps]").forEach((steps) => {
@@ -243,40 +218,160 @@ export function initBandSteps(container) {
 }
 
 /* ============================================================
-   REVEAL PARALLAX — the footer's effect between two sections
+   DEPTH TRANSITIONS — one section over another
    ------------------------------------------------------------
-   The homepage's testimonials ([data-reveal-parallax], index.astro)
-   come out from under the service tabs' band as the footer comes out
-   from under the page: in a clipping wrap, from higher up and in
-   shadow, settling as the wrap rises from the foot of the screen to
-   its top. Plainer to see than the footer's: the section travels
-   0.9 of a quarter of the screen (REVEAL.reach) and the scrim
-   starts darker for the light ground it is over than the hero's.
+   Two meetings between sections share one language: every surface
+   stays the screen's full width, edge to edge, at every point of
+   the way, and the depth is in how things move — what stands on a
+   section follows its edge a little behind, what lies underneath
+   falls back and into shadow, and the layers inside a section part
+   and meet again. The relationship is one of two:
+
+     over   ([data-depth="over"]: none at present; the homepage's
+            testimonials used it until 2026-10-16) the
+            section comes up over the one before it. The section
+            before ([data-depth-recede]) is held back as the edge
+            climbs over it, its contents ([data-depth-recede-body])
+            sinking a little smaller and all of it darkening, its
+            ground staying whole; the testimonials' quotes follow
+            their edge up from lower down.
+     under  ([data-depth="under"]: the footer, and the homepage's
+            testimonials under the service deck) the section is
+            revealed from under the page. The page above keeps the
+            scroll's own speed and uncovers it; the footer's contents
+            settle out of a higher offset, the mark across its foot
+            ([data-depth-layer]) from higher still, so it seems
+            further down, and the shadow over it clears.
+
+   The parts: the content ([data-depth-content]), which moves inside
+   its section's clipping wrap, so the section's ground and edge stay
+   put while what stands on them lags; any layer inside the content
+   with a lag of its own ([data-depth-layer="<share of the screen>"]);
+   and a shadow ([data-depth-shade]), over the footer, or over the
+   section the testimonials come up over. How far the quotes lag is
+   the wrap's --depth-lag (a share of the screen's height), which the
+   stylesheet reads too: the testimonials' dotted rule runs up past
+   the section's top by as much, into the wrap's clip, so it meets
+   the section's edge at every point of the lag.
+
+   One timeline on one ScrollTrigger per meeting, scrubbed straight off
+   the scroll (Lenis smooths the scroll itself, so nothing lags in time
+   and everything runs back exactly on the way up): from the wrap's top
+   at the foot of the screen to its top at the top. Transforms and
+   opacity only, every distance a share of the screen read on refresh
+   and never per frame. The moving parts get a layer of their own only
+   while the meeting is near (a second, bare ScrollTrigger a screen
+   either side), not for the life of the page. A refresh measures the
+   page with the section underneath at rest (refreshInit), so the
+   routes' own triggers inside it are measured where they are, and the
+   meeting is put back where the scroll has it once it is done. Not
+   under reduced motion: everything stays at rest.
    ============================================================ */
-// (its travel measured off the screen, not the section: the testimonials
-// change height as their quotes change, and a share of their own height
-// would move them, controls and all, with every change)
-const REVEAL = { reach: 0.9, shade: 0.24, screen: true };
-export function initRevealParallax(container) {
-  initParallaxCover(container, "reveal", REVEAL);
+// over: how far the section underneath is held back by the time it is
+// covered (a share of the screen's height), what its contents shrink to,
+// and how dark its shadow ends. under: the footer's shadow at the start;
+// its contents start a quarter of the panel high (parallaxTravel), as the
+// hero leaves.
+const DEPTH = {
+  over: { recede: 0.22, scale: 0.955, shade: 0.6 },
+  under: { shade: 0.5 },
+};
+
+export function initDepthTransitions(container) {
+  container.querySelectorAll("[data-depth]").forEach((wrap) => {
+    const over = wrap.dataset.depth === "over";
+    const content = wrap.querySelector(":scope > [data-depth-content]");
+    const layers = content ? [...content.querySelectorAll("[data-depth-layer]")] : [];
+    const below = over ? wrap.previousElementSibling : null;
+    const under = below?.hasAttribute("data-depth-recede") ? below : null;
+    // what sinks: the section's contents, its ground left whole behind
+    // them (each body it names, the homepage deck's front card's; or the
+    // section itself)
+    const bodies = under ? [...under.querySelectorAll("[data-depth-recede-body]")] : [];
+    const sinking = under ? (bodies.length ? bodies : [under]) : [];
+    const shade = (over ? under : wrap)?.querySelector(":scope > [data-depth-shade]");
+    const moving = [content, ...layers, ...sinking].filter(Boolean);
+
+    const mm = gsap.matchMedia();
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      const screen = () => window.innerHeight;
+      const lag = () => parseFloat(getComputedStyle(wrap).getPropertyValue("--depth-lag")) || 0;
+      const tl = gsap.timeline({
+        defaults: { ease: "none", duration: 1 },
+        scrollTrigger: {
+          trigger: wrap,
+          // clamped, so on a page short enough to show the footer at load
+          // the reveal starts where the page is, never part-way through
+          start: over ? "top bottom" : "clamp(top bottom)",
+          end: over ? "top top" : "clamp(top top)",
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      });
+      if (over) {
+        if (content) tl.fromTo(content, { y: () => lag() * screen() }, { y: 0 }, 0);
+        if (sinking.length) tl.fromTo(sinking, { y: 0, scale: 1 }, { y: () => DEPTH.over.recede * screen(), scale: DEPTH.over.scale }, 0);
+        if (shade) tl.fromTo(shade, { opacity: 0 }, { opacity: DEPTH.over.shade }, 0);
+      } else {
+        if (content) tl.fromTo(content, { yPercent: () => -parallaxTravel(content) }, { yPercent: 0 }, 0);
+        if (shade) tl.fromTo(shade, { opacity: DEPTH.under.shade }, { opacity: 0 }, 0);
+      }
+      // each deeper layer from further back, the way its section moves
+      layers.forEach((layer) => {
+        const share = parseFloat(layer.dataset.depthLayer) || 0;
+        tl.fromTo(layer, { y: () => share * screen() * (over ? 1 : -1) }, { y: 0 }, 0);
+      });
+
+      // a layer of its own for each moving part only while the meeting is
+      // near; released (and the transforms' own layers with it) after
+      const layered = (on) => {
+        gsap.set(moving, { willChange: on ? "transform" : "auto" });
+        if (shade) gsap.set(shade, { willChange: on ? "opacity" : "auto" });
+      };
+      const near = ScrollTrigger.create({
+        trigger: wrap,
+        start: over ? "top 200%" : "clamp(top 200%)",
+        end: over ? "top -100%" : "clamp(top -100%)",
+        onToggle: (self) => layered(self.isActive),
+      });
+
+      // measured at rest, put back after
+      const rest = () => tl.progress(0);
+      const resume = () => tl.progress(tl.scrollTrigger?.progress ?? 0);
+      ScrollTrigger.addEventListener("refreshInit", rest);
+      ScrollTrigger.addEventListener("refresh", resume);
+
+      return () => {
+        ScrollTrigger.removeEventListener("refreshInit", rest);
+        ScrollTrigger.removeEventListener("refresh", resume);
+        near.kill();
+        tl.scrollTrigger?.kill();
+        tl.kill();
+        layered(false);
+        gsap.set([...moving, shade].filter(Boolean), { clearProps: "transform,opacity,willChange" });
+      };
+    });
+    registerPageCleanup(() => mm.revert());
+  });
 }
 
-// The footer's reveal, and with leaving its reverse. name picks the
-// attributes: [data-<name>-parallax] on the clipping wrap, -inner on the
-// panel that travels inside it and -dark on the scrim over it; shade is the
-// scrim's opacity at the far end from rest, and reach how many times the
-// usual travel the panel goes; screen measures it in screen heights (a
-// quarter of the screen, times reach) rather than the panel's own.
 // How far a parallax panel travels inside its wrap, in percent of its own
 // height: a quarter of it, or, stacked on a phone or tablet, where the
 // panel runs to two screens or more, the same quarter of the screen. The
-// nav reads it too, to leave the homepage at the hero's pace
-// (initNavReveal). Read on each refresh, never per frame.
+// hero and the footer's contents travel it; the nav reads it too, to
+// leave the homepage at the hero's pace (initNavReveal). Read on each
+// refresh, never per frame.
 export function parallaxTravel(inner) {
   const stacked = window.matchMedia("(max-width: 991px)").matches;
   return stacked && inner.offsetHeight ? 25 * window.innerHeight / inner.offsetHeight : 25;
 }
 
+// The hero's exit. name picks the attributes: [data-<name>-parallax] on the
+// clipping wrap, -inner on the panel that travels inside it and -dark on
+// the scrim over it; shade is the scrim's opacity at the far end from
+// rest, and reach how many times the usual travel the panel goes; screen
+// measures it in screen heights (a quarter of the screen, times reach)
+// rather than the panel's own.
 function initParallaxCover(container, name, { leaving = false, shade = 0.5, reach = 1, screen = false } = {}) {
   const wraps = container.querySelectorAll(`[data-${name}-parallax]`);
 
@@ -326,8 +421,7 @@ function initParallaxCover(container, name, { leaving = false, shade = 0.5, reac
   });
 }
 
-// The one scroll-scrubbed tween every parallax on the site is made of —
-// the footer's reveal, the hero's exit and the global [data-parallax]
+// A scroll-scrubbed tween — the hero's exit and the global [data-parallax]
 // blocks: from one set of values to another, linear, over a ScrollTrigger.
 export function scrubTween(target, from, to, scrollTrigger) {
   return gsap.fromTo(target, from, { ...to, ease: "none", scrollTrigger });

@@ -1,0 +1,19 @@
+---
+/*
+  A plain directional arrow — a shaft and an open head, drawn in
+  currentColor on a 16 box, pointing right, centred on the box both ways —
+  for the deck's and the service heroes' square (ServiceDeck.astro,
+  ServiceHero.astro), where the logo's solid triangle read as a play
+  button. Each place sizes it and turns it to point where it leads
+  (service-deck.css): -45deg up and on, 90deg down.
+*/
+interface Props {
+  class?: string;
+  [attr: string]: unknown;
+}
+const { class: className, ...attrs } = Astro.props;
+---
+<svg class={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter" {...attrs}>
+  <path d="M2.5 8h10.5" />
+  <path d="M9 4l4 4-4 4" />
+</svg>

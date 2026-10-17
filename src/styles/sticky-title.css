@@ -40,16 +40,32 @@
 @media screen and (min-width: 992px) {
   .sticky-title.logos:not(.is--static) .sticky-title__track {
     height: auto;
-    margin-top: 2rem;
+    /* with the logos' own padding under the wall (--sec-md), the room
+       between the wall and the statement: a section's step, or, where
+       that is less, enough that the wall has left the top of the screen
+       (and a rem besides, for the wall's place on the dots) by the time
+       the statement is held (its sticky top: 50svh less --st-half), so
+       the statement and the band's dots are held from the same moment
+       (sticky-title.js, holdDots: the dots wait for the wall) and the
+       words never stand still over dots still moving */
+    margin-top: max(var(--sec-lg), calc(50svh - var(--st-half, 8rem) - var(--sec-md) + 1rem));
   }
   .sticky-title.logos:not(.is--static) .sticky-title__track::after {
     content: "";
     display: block;
     height: calc(var(--headings) * 100vh);
     height: calc(var(--headings) * 100svh);
+    /* a whole number of the band's pitches (--dot-pitch, approach-stack.js),
+       so the band's dots, held still with the frame through the run
+       (sticky-title.js, holdDots), stand on the page's own rows again as
+       the frame lets go */
+    height: round(nearest, calc(var(--headings) * 100svh), var(--dot-pitch, 0.875rem));
   }
   .sticky-title.logos:not(.is--static) .sticky-title__container {
-    top: calc(50svh - 8rem);
+    /* held with the block's middle on the screen's: half the block's
+       height (--st-half, measured by sticky-title.js on every refresh;
+       8rem, a three-line statement's, until it has) above the middle */
+    top: calc(50svh - var(--st-half, 8rem));
     height: auto;
   }
   .sticky-title.logos:not(.is--static) .sticky-title__stage {
@@ -63,6 +79,15 @@
      bring it in (and take it out), unhurried */
   height: calc(100vh + var(--headings) * 100vh);
   height: calc(100svh + var(--headings) * 100svh);
+}
+/* The logo strip's, narrower than 992px: the run a whole number of the
+   band's pitches, as from 992px (below), so the dots held with the frame
+   are held from the moment it takes hold and stand on the page's own
+   rows again as it lets go */
+@media screen and (max-width: 991px) {
+  .sticky-title.logos:not(.is--static) .sticky-title__track {
+    height: calc(100svh + round(nearest, calc(var(--headings) * 100svh), var(--dot-pitch, 0.875rem)));
+  }
 }
 
 .sticky-title__container {
@@ -151,7 +176,9 @@
 .sticky-title__rule-lit {
   position: absolute;
   inset: 0;
-  color: rgba(255, 255, 255, 0.55);
+  /* the rail's white (0.55) where it lies over the track's dots (0.07):
+     0.516 over 0.07 comes to 0.55, as the snake's and the window's dots */
+  color: rgba(255, 255, 255, 0.516);
   background: var(--lead-dots);
   transform: translate3d(0, 100%, 0);
   will-change: transform;
@@ -181,28 +208,289 @@
   .sticky-title__el { text-wrap: balance; }
 }
 
-/* Wide (.is--wide): on Grid Columns 2–11, flowing rather than balanced
-   (balancing would pull the indented line in). The first line indented
-   two columns (--st-indent; 0px for none), so it starts on Grid Column
-   4. The dotted line stands in the gutter before Column 2, as it does
-   beside the block. */
+/* Wide (.is--wide): across Grid Columns 2–11, the statement set large
+   and close, as a poster line: the heading size, the letters drawn in
+   tight, the lines a bare leading apart, each centred and left to its
+   own length (flowing, not balanced: the long and short lines are the
+   shape), so the block reads as one tight centred form with the
+   pictures sitting in it (--st-indent, 0px: a first-line indent is
+   kept for a ranged-left setting, where it started the statement on
+   Grid Column 4). The dotted line stands in the gutter before Column
+   2, as it does beside the block. */
 @media (min-width: 992px) {
   .sticky-title__inner.is--wide {
+    /* the statement is few words to the line (breaks, index.astro), so
+       the lines' lengths show as the block's shape at the section size */
     --st-size: var(--t-h2);
     grid-column: 2 / 12;
     justify-self: stretch;
+    align-items: center;
   }
   .is--wide .sticky-title__el {
     --st-col: calc((100% - 9 * var(--grid-gutter)) / 10);
+    --st-indent: 0px;
     max-width: none;
-    --st-indent: calc(2 * (var(--st-col) + var(--grid-gutter)));
     text-indent: var(--st-indent);
+    text-align: center;
     text-wrap: pretty;
-    letter-spacing: calc(var(--primary-tracking) - 0.02em);
+    line-height: 1.05;
+    letter-spacing: calc(var(--primary-tracking) - 0.045em);
   }
   /* the indent is the statement's first line's alone: the split's word
      and letter boxes (inline blocks) would each inherit it */
   .is--wide .sticky-title__el * { text-indent: 0; }
+}
+/* What stands over the statements (StickyTitle.astro, "above": the
+   homepage's mark, the four forms in the statement's white, a nav bar's
+   worth wide) and under them ("after": the button), each centred on the
+   block a heading's line off it; the mark switched on with the first
+   words and the button once the last statement is whole
+   (sticky-title.js) */
+.sticky-title__above {
+  align-self: center;
+  width: 4.5rem;
+  margin-bottom: 2.5rem;
+  color: var(--c-white);
+}
+.sticky-title__above svg { display: block; width: 100%; height: auto; }
+.sticky-title__after {
+  align-self: center;
+  margin-top: 2.5rem;
+}
+/* Round the statements (StickyTitle.astro, "around"): a layer a screen
+   tall centred on the block, so while the frame is held it is the
+   screen, and whatever is set in it stands where the screen is empty.
+   The homepage's are four photographs (index.astro, PHOTOS), each a
+   small card set straight: the picture on the dark in a grey hairline
+   frame, and under it a white strip with its caption (the name of who
+   is pictured). Each is one Grid Column wide, and never more than
+   5.75rem (--photo-max: on a desktop the two are all but one; narrower,
+   a column is wider than a card should be), its left edge on the start
+   of Grid Column --col and its top at --top (a share of the screen's
+   height), and is then fitted to the band's dots (dot-fit.js,
+   data-dot-fit-frame): its width and height whole pitches and every
+   edge midway between two lines of dots, as the button's are. Below
+   992px each takes its tablet column and top (--col-t, --top-t), and
+   below 768px its phone ones (--col-m…), or stands down (.is--no-tablet,
+   .is--no-phone), as the words take more of the screen. That is where
+   each stands with reduced motion; while the statement is held, each
+   takes the cell of the grid behind it nearest that place and lights up
+   in it (cell-grid.js; .is--placed, below). */
+/* the layer runs past the held frame's own box, under the section after
+   it, which would paint over its lower marks: the frame stands over
+   what follows while it has one */
+.sticky-title.has--around .sticky-title__container { z-index: 1; }
+.sticky-title__around {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 100vh;
+  height: 100svh;
+  transform: translateY(-50%);
+  pointer-events: none;
+  /* nothing in it ever widens the page, however a print is turned */
+  overflow: clip;
+}
+/* the photographs fill the layer, each placed in it on the grid: the
+   layer is the screen's width, so a share of it is a share of the
+   grid's (column-grid.css: one Grid Column, and where Grid Column N
+   starts) */
+.sticky-title__photos { position: absolute; inset: 0; }
+/* Each card is a cell (.sticky-title__cell): placed here on the grid as
+   above, or, while the statement is held, in a cell of the grid the dots
+   are drawn as behind it (.is--placed, below; cell-grid.js) */
+.sticky-title__cell {
+  --photo-col: calc((100% - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns));
+  --photo-max: 5.75rem;
+  position: absolute;
+  left: calc(var(--grid-margin) + (var(--col) - 1) * (var(--photo-col) + var(--grid-gutter)));
+  top: var(--top);
+  width: var(--dot-fit-w, min(var(--photo-col), var(--photo-max)));
+  height: var(--dot-fit-h, auto);
+  /* moved onto the dots (dot-fit.js), under half a pitch */
+  translate: var(--dot-fit-x, 0px) var(--dot-fit-y, 0px);
+}
+.sticky-title__cell-win { height: 100%; }
+.sticky-title__cell-lines,
+.sticky-title__cell-fill { display: none; }
+/* In its cell, the box the mark stands in: as dark as still reads as a
+   box on the band's black (#0a0a0a), covering the cell to and over its
+   lines of dots, so no ring of dots shows round it once the red has gone
+   (2px past each line: a dot is 1.5px, and snapped to the screen's
+   pixels it can sit a fraction off the line; faded in as the outline
+   closes: cell-grid.js) */
+.is--placed .sticky-title__cell-fill {
+  display: block;
+  position: absolute;
+  inset: -2px;
+  background: #101010;
+}
+.sticky-title__photo {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  overflow: clip;
+  background: #0b0b0b;
+}
+/* In a cell of the grid (cell-grid.js): its box from line to line of
+   dots (--cell-x, --cell-y and --cell-size, in the around layer, the
+   screen while held), the card filling it to half a pitch inside its
+   lines (--cell-inset), so every edge of the card runs midway between
+   two lines of dots. Over the
+   lines, the outline the cell lights up with: four bars of the site's
+   red, each centred on its line of dots, drawn out from the top left
+   corner (scaled from their starts, transform-origin) and faded, the
+   picture brought in by a window wiped down over it (transforms
+   alone). */
+.sticky-title__cell.is--placed {
+  /* a hairline (cell-grid.js puts it on whole device pixels: OUTLINE) */
+  --cell-line: 1px;
+  left: var(--cell-x);
+  top: var(--cell-y);
+  width: var(--cell-size);
+  height: var(--cell-size);
+  translate: none;
+}
+.is--placed .sticky-title__cell-win {
+  position: absolute;
+  inset: var(--cell-inset);
+  height: auto;
+  overflow: hidden;
+}
+.is--placed .sticky-title__photo-pic { aspect-ratio: auto; }
+/* in its cell the card is the picture alone: the cell is too small for
+   the caption beside it */
+.is--placed .sticky-title__photo-cap { display: none; }
+/* A software mark (index.astro, PHOTOS, mark): the vendor's own file,
+   raw, small in the middle of its cell, whole (contain): no frame or
+   ground of its own, the cell's red outline the only line round it */
+.sticky-title__photo.is--mark {
+  border: 0;
+  background: none;
+}
+.sticky-title__photo.is--mark .sticky-title__photo-pic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sticky-title__photo.is--mark img {
+  width: 58%;
+  height: 58%;
+  object-fit: contain;
+}
+.is--placed .sticky-title__cell-lines {
+  display: block;
+  position: absolute;
+  inset: 0;
+}
+.sticky-title__cell-line {
+  position: absolute;
+  background: var(--c-red);
+}
+.sticky-title__cell-line.is--top,
+.sticky-title__cell-line.is--bottom {
+  left: calc(var(--cell-line) / -2);
+  width: calc(100% + var(--cell-line));
+  height: var(--cell-line);
+  transform-origin: 0 50%;
+}
+.sticky-title__cell-line.is--left,
+.sticky-title__cell-line.is--right {
+  top: calc(var(--cell-line) / -2);
+  width: var(--cell-line);
+  height: calc(100% + var(--cell-line));
+  transform-origin: 50% 0;
+}
+.sticky-title__cell-line.is--top { top: calc(var(--cell-line) / -2); }
+.sticky-title__cell-line.is--bottom { bottom: calc(var(--cell-line) / -2); }
+.sticky-title__cell-line.is--left { left: calc(var(--cell-line) / -2); }
+.sticky-title__cell-line.is--right { right: calc(var(--cell-line) / -2); }
+/* drawn clockwise from the top left corner: the foot grows from the
+   right, the left side from the foot */
+.sticky-title__cell-line.is--bottom { transform-origin: 100% 50%; }
+.sticky-title__cell-line.is--left { transform-origin: 50% 100%; }
+/* the picture takes what the caption leaves, cropped to fill it */
+.sticky-title__photo-pic {
+  flex: 1 1 auto;
+  min-height: 0;
+  aspect-ratio: var(--ar);
+}
+.sticky-title__photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* the caption: a white strip, the name at its left in the label face */
+.sticky-title__photo-cap {
+  padding: 0.3125rem 0.375rem 0.375rem;
+  background: var(--c-white);
+  color: var(--c-text);
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  line-height: 1.2;
+  letter-spacing: var(--label-tracking);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+}
+/* Narrower, the words run the grid's width, so the cards keep to the
+   bands over and under them, near the screen's top and foot; on a short
+   screen (a tablet on its side) those bands are thin, so no card is
+   wider than a share of the screen's height (--photo-cap), which keeps
+   it in its band. */
+@media (max-width: 991px) {
+  .sticky-title__cell {
+    --photo-cap: 11svh;
+    left: calc(var(--grid-margin) + (var(--col-t, var(--col)) - 1) * (var(--photo-col) + var(--grid-gutter)));
+    top: var(--top-t, var(--top));
+    width: var(--dot-fit-w, min(var(--photo-col), var(--photo-max), var(--photo-cap)));
+  }
+  .sticky-title__cell.is--no-tablet { display: none; }
+}
+@media (max-width: 767px) {
+  .sticky-title__cell {
+    left: calc(var(--grid-margin) + (var(--col-m, var(--col-t, var(--col))) - 1) * (var(--photo-col) + var(--grid-gutter)));
+    top: var(--top-m, var(--top-t, var(--top)));
+  }
+  .sticky-title__cell.is--no-phone { display: none; }
+  /* a phone's column is narrower than the name: it goes onto two lines */
+  .sticky-title__photo-cap { padding: 0.25rem 0.3125rem 0.3125rem; white-space: normal; }
+}
+/* A line's end (StickyTitle.astro, breaks): the statement's lines cut
+   where its shape wants them on a desktop, the block's form being the
+   lines' lengths; narrower, the lines are left to flow. */
+.sticky-title__br { display: none; }
+@media (min-width: 992px) {
+  .sticky-title__br { display: block; height: 0; }
+}
+/* A picture in the line (StickyTitle.astro, pictures): a small landscape
+   set as a word among the words, a shade wider than it is tall, its foot
+   a little under the baseline and its head about the x-height's, so it
+   sits in the line's body rather than standing up to the ascenders, a
+   word space from the words either side (it stands between two spaces
+   in the markup, so SplitText gives it a word box of its own and it
+   comes in as a word, in its turn). */
+.sticky-title__pic {
+  display: inline-block;
+  width: 1.05em;
+  height: 0.78em;
+  margin: 0 0.06em;
+  vertical-align: -0.1em;
+  border-radius: 0.06em;
+  overflow: hidden;
+  background: var(--c-dark-fg, #1a1a1a);
+}
+.sticky-title__pic img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 /* A marked phrase (StickyTitle.astro): a white chip with the lens in red,
    then the words on the red, the ground running the line's full height.

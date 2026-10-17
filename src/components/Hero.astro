@@ -15,6 +15,7 @@
 */
 import ActionButton from "./ActionButton.astro";
 import ArrowIcon from "./ArrowIcon.astro";
+import IsoStacks from "./IsoStacks.astro";
 
 interface Props {
   /** The scroll cue's in-page target, e.g. "#approach". */
@@ -24,8 +25,13 @@ interface Props {
   /** "band" (the homepage): the pattern runs across the top, the copy
       under it. "split" (For AEC Tech Firms): the pattern takes the left of
       the viewport, to the end of Grid Column 7, and the copy stands in
-      Grid Columns 9–12 beside it. Below 992px both are the band. */
-  layout?: "band" | "split";
+      Grid Columns 9–12 beside it. Below 992px both are the band.
+      "centred" (AEC Tech Partners): the screen in the ink, on a large
+      dotted isometric lattice (dot-field.js) with stacks of blue plates
+      round the words (IsoStacks.astro), and the tagline, the headline,
+      the lede, the buttons and the scroll cue one under another on the
+      page's centre line. */
+  layout?: "band" | "split" | "centred";
   /** The pattern's accent: the site's red, or the AEC Tech Firms blue. */
   accent?: "red" | "blue";
   /** The copy: the page's Opening section in Sanity, or its own words (src/sanity/defaults/). */
@@ -103,6 +109,29 @@ const screenWords = [
   { text: "Cloud", spot: [0.93, 0.94], from: 740 },
 ];
 ---
+{layout === "centred" ? (
+<section class:list={["hero", "hero--centred", { "hero--blue": accent === "blue" }]}>
+  {/* the lattice's ground: a hidden square a cell (--cell) wide at the
+      hero's middle, which sets the lattice out from that point, a cell
+      apart (data-iso-module, in its units: dot-field.js), so the plates
+      placed by the same cell (IsoStacks.astro) lie in its cells; its lines
+      drawn as a draughtsman's dash-dot line, a dot on every crossing
+      (data-iso-line="dash") */}
+  <svg class="hero__ground" data-ground="0 0" viewBox="0 0 100 100" aria-hidden="true"></svg>
+  <div class="hero__lattice" data-iso-field data-iso-module="100" data-iso-angle="26.5650512" data-iso-line="dash" aria-hidden="true"></div>
+  <IsoStacks class="hero__stacks" />
+  <div class="hero__centre">
+    <p class="tagline tagline--sm hero__tagline" data-page-field={`${field}.tagline`}>{tagline}</p>
+    <h1 class="h1 hero__heading" data-split="heading" data-page-field={`${field}.heading`}>{heading}</h1>
+    <p class="text-md hero__lede" data-page-field={`${field}.lede`}>{lede}</p>
+    <div class="actions actions--pair">
+      <ActionButton href={primaryCta.href}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
+      <ActionButton href={secondaryCta.href} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
+    </div>
+  </div>
+  <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>
+</section>
+) : (
 <section class:list={["hero", { "hero--split": layout === "split", "hero--blue": accent === "blue" }]}>
   <div class="hero__media" data-slash-field>
     <ul class="hero__labels">
@@ -117,6 +146,9 @@ const screenWords = [
 
   <div class="container">
     <div class="hero__grid">
+      {/* the dotted rule beside the headline (page-grid.css, .hero__rule): a
+          field of the site's dots, one column wide */}
+      <span class="hero__rule dot-grid" aria-hidden="true"></span>
       <div class="hero__col hero__col--lede">
         <p class="text-md" data-page-field={`${field}.lede`}>{lede}</p>
         <p class="tagline tagline--sm" data-page-field={`${field}.tagline`}>{tagline}</p>
@@ -137,3 +169,4 @@ const screenWords = [
     </div>
   </div>
 </section>
+)}

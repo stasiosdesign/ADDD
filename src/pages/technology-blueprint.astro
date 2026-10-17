@@ -2,10 +2,12 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
+import ServiceHero from "../components/ServiceHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import LayersDiagram from "../components/LayersDiagram.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { blueprintPage as D } from "../sanity/defaults/blueprint";
+import NavLinkLabel from "../components/NavLinkLabel.astro";
 
 // Every section's words come from the Technology Blueprint page document in
 // Sanity (studio/schemaTypes/pages/blueprint.ts), each element falling back
@@ -28,24 +30,15 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
 >
 <main class="page--grid">
 
-  <section class="pg-hero">
-    <div class="container">
-      <div class="pg-hero__grid">
-        <div class="pg-hero__col">
-          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h1" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
-        </div>
-        <div class="pg-hero__col">
-          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
-          <div class="actions">
-            <ActionButton href="contact.html"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
-            <a class="btn btn--link" href="#delivery"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <div class="band band--wide"></div>
+  <!-- The deck's card for this service at the screen's size
+       (ServiceHero.astro): the homepage's card opens into it. -->
+  <ServiceHero index={2} name={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+    <Fragment slot="actions">
+      <ActionButton href="contact.html"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+      <a class="btn btn--link nav-link" href="#delivery"><NavLinkLabel data-page-field="hero.linkLabel">{t("hero.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+    </Fragment>
+  </ServiceHero>
+  <div class="band band--wide" id="overview"></div>
 
   <section class="section">
     <div class="container">
@@ -108,7 +101,7 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         <h2 class="h2" data-split="heading" style="max-width:16ch" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
         <div class="actions">
           <ActionButton href="contact.html" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
-          <a class="btn btn--link" href="about.html"><span data-page-field="delivery.linkLabel">{t("delivery.linkLabel")}</span> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href="about.html"><NavLinkLabel data-page-field="delivery.linkLabel">{t("delivery.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </div>
       </div>
 
@@ -153,8 +146,8 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
           <h2 class="h2" data-split="heading" data-page-field="enquiry.heading">{t("enquiry.heading")}</h2>
           <p class="text-md" data-page-field="enquiry.lede">{t("enquiry.lede")}</p>
           <ul class="contact-list">
-            <li><a href="mailto:hello@addd.studio" data-page-field="enquiry.email">{t("enquiry.email")}</a></li>
-            <li><a href="tel:+442071833675" data-page-field="enquiry.phone">{t("enquiry.phone")}</a></li>
+            <li><a class="nav-link" href="mailto:hello@addd.studio"><NavLinkLabel data-page-field="enquiry.email">{t("enquiry.email")}</NavLinkLabel></a></li>
+            <li><a class="nav-link" href="tel:+442071833675"><NavLinkLabel data-page-field="enquiry.phone">{t("enquiry.phone")}</NavLinkLabel></a></li>
             <li data-page-field="enquiry.address">{t("enquiry.address")}</li>
           </ul>
         </div>

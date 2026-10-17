@@ -4,6 +4,7 @@ import ActionButton from "../components/ActionButton.astro";
 import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
+import ServiceTabs from "../components/ServiceTabs.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 
@@ -23,6 +24,8 @@ const formatSteps = list<{ _key: string; label?: string; title?: string; text?: 
 const processTiles = list<{ _key: string; number?: string; title?: string; text?: string }>("process.tiles");
 const offers = list<Offer>("options.cards");
 const placements = list<Offer>("more.cards");
+// the blue panel's statements, one at a time (ServiceTabs.astro)
+const statements = lines("services.statements");
 
 // The three objectives, one pinned card each (initApproachSlides, site.js),
 // the last closed over by the shutter. Bound by position, since the pinning
@@ -47,13 +50,14 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
 >
 <main class="page--grid">
 
-  <!-- The homepage hero for the AEC technology market: the same Slash
-       Field, with the AEC Tech Firms blue as its accent, on the left of
-       the viewport and the copy beside it (Hero.astro, "split"). -->
+  <!-- The hero for the AEC technology market: the first screen in the
+       ink, its words on the page's centre line, the AEC Tech Firms blue as
+       the buttons' accent (Hero.astro, "centred"), running on into the
+       ink band of the statements under it. -->
   <Hero
     arrowHref="#why"
     arrowLabel="Scroll to why ADDD"
-    layout="split"
+    layout="centred"
     accent="blue"
     tagline={t("hero.tagline")}
     lede={t("hero.lede")}
@@ -61,6 +65,17 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
     primaryCta={{ href: enquire(), label: t("hero.primaryButton") }}
     secondaryCta={{ href: "#options", label: t("hero.secondaryButton") }}
   />
+
+  <!-- ========== WAYS TO WORK WITH ADDD ==========
+       One panel that sticks while the scroll takes it through the
+       statements, one large statement at a time on a blue square, its
+       number under it (ServiceTabs.astro, service-tabs.js), on a band of
+       the ink. -->
+  <section class="service-tabs-section">
+    <div class="service-tabs-section__body">
+      <ServiceTabs statements={statements} label={t("services.tagline")} field="services" />
+    </div>
+  </section>
 
   <!-- ========== WHY ADDD ========== -->
   <section class="section" id="why">

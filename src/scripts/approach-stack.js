@@ -8,9 +8,10 @@
    the rest:
 
      - each card rises into place as it comes up the screen, and its
-       schematic draws in the first time the card is properly in
-       view, then loops while the card is on screen and pauses while
-       it is not;
+       figure comes alive the first time the card is properly in
+       view, then runs while the card is on screen and holds while it
+       is not: each is a Hairline figure (understand-figure.js,
+       approach-figures.js), walked by an unseen pointer meanwhile;
      - the rail's dotted line shows only through a window held at
        the middle of the viewport. The dots are drawn inside the
        window and moved against the scroll, which reads exactly as
@@ -29,7 +30,8 @@
    supplies the trail's speed.
    ============================================================ */
 
-import { boxFaces, floorLines, projector } from "./iso.js";
+import { mountApproachFigure } from "./approach-figures.js";
+import { mountUnderstandFigure } from "./understand-figure.js";
 
 // The velocity trail, as the spec sets it: lengths are shares (%) of the
 // window's half, and the line fades out over the last 15% of the rail.
@@ -73,16 +75,20 @@ export function mountApproachStack(root, { lenis } = {}) {
   const px = (v) => `${+v.toFixed(3)}px`;
 
   // The pitch and the columns from the lines they have to clear: every
-  // card's sides where the grid puts them. The pitch fits a whole number
-  // of steps across the first card, near 0.875rem (14px at the ideal
-  // width, so it scales with the page as the grid does and the count
-  // holds at every width in a range: the band's one dot field, between
-  // the approach's old 18px and the logos' old 12px); for each count
-  // either side of the nearest, one pitch and one offset are fitted to
-  // all the lines at once (least squares), and the count that leaves no
-  // line further off midway wins, the nearest on a tie. Every line then
-  // runs midway between two columns to a fraction of a pixel. Returns the
-  // pitch and one of those midway lines, in the field's own box.
+  // card's sides where the grid puts them, and, where the rail runs down
+  // the page's centre (from 992px: the cards either side of it), the
+  // centre itself, which a column has to stand on — half a step off the
+  // lines, between two of them. The pitch fits a whole number of steps
+  // across the first card, near 0.875rem (14px at the ideal width, so it
+  // scales with the page as the grid does and the count holds at every
+  // width in a range: the band's one dot field, between the approach's
+  // old 18px and the logos' old 12px); for each count near the nearest,
+  // one pitch and one offset are fitted to all the lines at once (least
+  // squares), the offset then set so the centre's column is exact, and
+  // the count that leaves no card's side further off midway wins, the
+  // nearest on a tie. Every side then runs midway between two columns
+  // to a fraction of a pixel, and the centre is on one exactly. Returns
+  // the pitch and one of those midway lines, in the field's own box.
   function fitColumns() {
     const box = field.getBoundingClientRect();
     const lines = cards.flatMap(({ slot }) => {
@@ -90,23 +96,31 @@ export function mountApproachStack(root, { lenis } = {}) {
       return [r.left - box.left, r.right - box.left];
     });
     const [a, b] = lines;
+    // the centre, where the rail is (the stack's middle, which is the
+    // page's: the stack runs the page's width); null below 992px, where
+    // the rail runs down Grid Column 1 and the cards all stand to its right
+    const centred = window.matchMedia("(min-width: 992px)").matches;
+    const mid = centred ? box.width / 2 : null;
     const target = 0.875 * parseFloat(getComputedStyle(document.documentElement).fontSize);
     const nearest = Math.max(1, Math.round((b - a) / target));
     const fit = (count) => {
       const rough = (b - a) / count;
-      const ks = lines.map((v) => Math.round((v - a) / rough));
-      const n = lines.length;
-      const sum = (f) => lines.reduce((s, v, i) => s + f(v, ks[i]), 0);
+      const pts = lines.map((v) => [v, Math.round((v - a) / rough)]);
+      const kc = mid === null ? null : Math.round((mid - a) / rough - 0.5) + 0.5;
+      if (kc !== null) pts.push([mid, kc]);
+      const n = pts.length;
+      const sum = (f) => pts.reduce((s, [v, k]) => s + f(v, k), 0);
       const sk = sum((_, k) => k);
       const sv = sum((v) => v);
       const skk = sum((_, k) => k * k);
       const skv = sum((v, k) => k * v);
       const pitch = (n * skv - sk * sv) / (n * skk - sk * sk) || rough;
-      const line = (sv - pitch * sk) / n;
-      const off = Math.max(...lines.map((v, i) => Math.abs(v - line - ks[i] * pitch)));
+      const line = kc === null ? (sv - pitch * sk) / n : mid - kc * pitch;
+      const off = Math.max(...lines.map((v, i) => Math.abs(v - line - pts[i][1] * pitch)));
       return { pitch, line, off };
     };
-    return [nearest - 1, nearest + 1]
+    const counts = centred ? [nearest - 2, nearest - 1, nearest + 1, nearest + 2] : [nearest - 1, nearest + 1];
+    return counts
       .filter((count) => count > 0)
       .map(fit)
       .reduce((best, next) => (next.off < best.off - 0.25 ? next : best), fit(nearest));
@@ -151,10 +165,52 @@ export function mountApproachStack(root, { lenis } = {}) {
     band.querySelectorAll(".band-field:not(.band-steps__dots)").forEach((el) => {
       if (el !== fieldDots) el.style.setProperty("--dot-y", px(mod(row - (el.getBoundingClientRect().top + window.scrollY))));
     });
+    placeWall(pitch, phase);
     placeCards();
+  };
+  // The logo wall centred on the band, on the dots. Its cards are a whole
+  // number of pitches each, a column of dots down the middle of every gap
+  // (styles.css, .logo-wall, which rounds the step to the pitch and then
+  // the wall down onto a column, as near centred as that allows: up to a
+  // pitch off). Five steps from a column land the wall's middle on a
+  // column when the step is an even number of pitches and midway between
+  // two when it is odd; the band's middle is one or the other (the field
+  // is fitted to the 12-Column Grid, which is symmetrical about it). So
+  // the step is the nearest whole number of pitches to a fifth of the
+  // grid's width WITH the parity the middle asks for, and the wall is
+  // then centred exactly, its gaps on the columns. Set on the wall in px
+  // (over the stylesheet's own formulas, which stand without it); the
+  // lattice itself is never moved, so the approach's cards stay on it.
+  const wall = band.querySelector(".logo-wall");
+  const placeWall = (pitch, phase) => {
+    if (!wall) return;
+    const host = wall.closest(".logos__field") ?? band;
+    const wrap = wall.parentElement;
+    const W = host.getBoundingClientRect().width;
+    const margin = parseFloat(getComputedStyle(wrap).paddingLeft) || 0;
+    const gap = parseFloat(getComputedStyle(wall).getPropertyValue("--wall-gap")) || 0;
+    const avail = W - 2 * margin + gap;
+    if (!(avail > 0) || !(pitch > 1)) return;
+    // the band's middle on the lattice: 0 on a column, 0.5 midway
+    const middle = ((((W / 2 - phase) % pitch) + pitch) % pitch) / pitch;
+    const odd = Math.abs(middle - 0.5) < Math.abs(((middle + 0.5) % 1) - 0.5) ? 1 : 0;
+    const ideal = avail / 5 / pitch;
+    let steps = Math.round(ideal);
+    if (steps % 2 !== odd) steps += ideal > steps ? 1 : -1;
+    if (steps * 5 * pitch > avail + 0.5) steps -= 2;
+    if (steps < 1) return;
+    const step = steps * pitch;
+    const width = 5 * step - gap;
+    // centred, then the first gap's middle put exactly on its column
+    const first = (W - width) / 2 - gap / 2;
+    const x = phase + Math.round((first - phase) / pitch) * pitch + gap / 2;
+    wall.style.setProperty("--wall-step", px(step));
+    wall.style.setProperty("--wall-x", px(x));
   };
   const unplaceField = () => {
     grid = null;
+    wall?.style.removeProperty("--wall-step");
+    wall?.style.removeProperty("--wall-x");
     band.style.removeProperty("--dot-pitch");
     band.querySelectorAll(".band-field").forEach((el) => el.style.removeProperty("--dot-pitch"));
     fieldDots?.style.removeProperty("--dot-x");
@@ -169,8 +225,9 @@ export function mountApproachStack(root, { lenis } = {}) {
   };
 
   // The rail on the field: from the line the stylesheet gives it (the
-  // left edge of Grid Column 7 from 992px, where a column of dots already
-  // stands, or the middle of Grid Column 1 below), moved across onto the
+  // page's centre from 992px, where the field is set out with a column of
+  // dots standing exactly, so this moves it by a fraction of a pixel at
+  // most; the middle of Grid Column 1 below), moved across onto the
   // nearest column of dots (--rail-snap, half a step at most), so the mark
   // on it stands on a line of dots rather than between two.
   const snapRail = ({ pitch, line }) => {
@@ -209,7 +266,7 @@ export function mountApproachStack(root, { lenis } = {}) {
   // change that moves the page under it asks for one more, so the
   // triggers below the stack measure the page as it now stands.
   const SNAP = ["--snap-top"];
-  const SIZE = ["--card-top", "--card-pad", "--media-pad", "--foot-min"];
+  const SIZE = ["--card-top", "--card-pad", "--media-pad", "--foot-min", "--foot-pad-x"];
   let placed = "";
   function placeCards() {
     if (!grid || !cards?.length) return;
@@ -223,6 +280,7 @@ export function mountApproachStack(root, { lenis } = {}) {
     cards.forEach(({ slot, el }) => {
       SNAP.forEach((p) => slot.style.removeProperty(p));
       SIZE.forEach((p) => el.style.removeProperty(p));
+      el.classList.remove("is--even");
     });
     const sides = cards.map(({ el }) => ({
       head: el.querySelector(".step-card__head").offsetHeight,
@@ -239,13 +297,41 @@ export function mountApproachStack(root, { lenis } = {}) {
     // in its own
     const blocks = cards.map(({ el }) => ({
       media: el.querySelector(".step-card__media").offsetHeight,
-      drawing: el.querySelector("[data-schematic]")?.getBoundingClientRect().height ?? 0,
+      drawing: el.querySelector(".step-card__figure")?.getBoundingClientRect().height ?? 0,
       foot: el.querySelector(".step-card__foot").offsetHeight,
     }));
     cards.forEach(({ el }, i) => {
       const { media, drawing, foot } = blocks[i];
       el.style.setProperty("--media-pad", px((steps(media) - drawing) / 2));
       el.style.setProperty("--foot-min", px(Math.ceil(foot / pitch) * pitch));
+    });
+    // the copy as far in from the card's sides as it stands from the top
+    // and foot of its block: the block stays the whole steps nearest what
+    // it is (never with less room than the padding over and under the
+    // copy), and the room is what copy and room twice over fill it with
+    // exactly, set on all four sides, the copy filling the width between.
+    // At that measure the copy may break into more or fewer lines, so it is
+    // read again and the room found again, a few times at most; once a
+    // narrower measure has made it taller, the room never comes back under
+    // what did that, so it cannot go back and forth between the two.
+    cards.forEach(({ el }) => {
+      const foot = el.querySelector(".step-card__foot");
+      const copy = foot.querySelector(".step-card__p");
+      const pad = parseFloat(getComputedStyle(foot).paddingTop) || 0;
+      let copyH = copy.offsetHeight;
+      const block = foot.offsetHeight;
+      let least = pad;
+      el.classList.add("is--even");
+      for (let pass = 0; pass < 6; pass++) {
+        const k = Math.max(Math.round(block / pitch), Math.ceil((copyH + 2 * least - 0.01) / pitch));
+        const room = (k * pitch - copyH) / 2;
+        el.style.setProperty("--foot-pad-x", px(room));
+        el.style.setProperty("--foot-min", px(k * pitch));
+        const now = copy.offsetHeight;
+        if (Math.abs(now - copyH) < 0.5) break;
+        if (now > copyH) least = Math.max(least, room);
+        copyH = now;
+      }
     });
     // and last each card's top on a row, in order: where the cards run
     // one under another (one column), each stands where those above it
@@ -264,12 +350,17 @@ export function mountApproachStack(root, { lenis } = {}) {
     cards.forEach(({ slot, el }) => {
       SNAP.forEach((p) => slot.style.removeProperty(p));
       SIZE.forEach((p) => el.style.removeProperty(p));
+      el.classList.remove("is--even");
     });
   };
 
   const cards = [...root.querySelectorAll("[data-approach-stack-slot]")].map((slot) => {
     const el = slot.querySelector("[data-step-card]");
-    return { slot, el, schematic: mountSchematic(el.querySelector("[data-schematic]")), started: false };
+    // each card's Hairline figure: Understand's (understand-figure.js),
+    // or Diagnose's and Prioritise's (approach-figures.js); the same
+    // start/hold/stop either way
+    const schematic = mountUnderstandFigure(el.querySelector("[data-understand-figure]")) ?? mountApproachFigure(el.querySelector("[data-approach-figure]"));
+    return { slot, el, schematic, started: false };
   });
 
   const mm = gsap.matchMedia();
@@ -365,12 +456,18 @@ export function mountApproachStack(root, { lenis } = {}) {
       const fit = field ? fitColumns() : null;
       if (fit) snapRail(fit);
       if (fit && lead) snapLead(fit);
+      // led in, the window as long as the statement's line, so the line,
+      // the snake and the window are one length (approach-stack.css)
+      if (lead) root.style.setProperty("--rail-win", px(parseFloat(getComputedStyle(lead).height)));
       const box = rail.getBoundingClientRect();
       geo = {
         top: box.top + window.scrollY,
         height: box.height,
         sticky: parseFloat(getComputedStyle(win).top) || 0,
-        win: win.offsetHeight,
+        // to the sub-pixel: the snake lands the window's length exactly, and
+        // a rounded height cut or added a dot at its ends (19rem is rarely a
+        // whole number of pixels)
+        win: win.getBoundingClientRect().height,
         pitch: fit?.pitch ?? 18,
       };
       if (lead) {
@@ -502,9 +599,17 @@ export function mountApproachStack(root, { lenis } = {}) {
     // transform of the line's dots, -pitch to 0), from where the frame is
     // held to the release; before it the frame moves with the page.
     const leadDots = lead?.querySelector(".sticky-title__rule-dots") ?? null;
+    // Where the band's dots are held still with the frame (sticky-title.js,
+    // data-sticky-title-still), the line's dots stand with them: with the
+    // page up to where the hold begins (the section's dotsHeldFrom), still
+    // from there, which is where the release has them too (the hold is a
+    // whole number of pitches, sticky-title.css).
+    const leadWrap = leadTrack?.closest('[data-sticky-title="wrap"]') ?? null;
+    const heldDots = !!leadWrap?.hasAttribute("data-sticky-title-still");
     const syncLead = (scroll) => {
       if (!geo || !leadDots || !grid) return;
-      const at = Math.min(Math.max(scroll, geo.hold), geo.release) + geo.lineTop;
+      const upTo = heldDots ? Math.min(geo.release, leadWrap.dotsHeldFrom ?? geo.release) : geo.release;
+      const at = Math.min(Math.max(scroll, geo.hold), upTo) + geo.lineTop;
       const shift = (((geo.rowEdge - at) % grid.pitch) + grid.pitch) % grid.pitch - grid.pitch;
       leadDots.style.transform = `translate3d(0, ${shift.toFixed(3)}px, 0)`;
       // the statement's progress lights the line's dots (sticky-title.js)
@@ -556,24 +661,30 @@ export function mountApproachStack(root, { lenis } = {}) {
         onToggle: (self) => { state.landed = self.isActive; show(); },
       });
 
-      // Over the morph's scroll the snake runs along its path, its dots
-      // brighten to the rail's, the window's ends fade into the band and
-      // the cube comes up.
+      // Over the morph's scroll the snake runs along its path, straight off
+      // the scroll (no smoothing: it must meet the line and the window
+      // exactly at either end).
+      ScrollTrigger.create({
+        start: () => geo.release,
+        end: () => geo.release + geo.morph,
+        onUpdate: (self) => snake.at(self.scroll() - geo.release, geo),
+        onRefresh: (self) => snake.at(self.scroll() - geo.release, geo),
+      });
+      // The window keeps the snake's hard ends (no fade, led in: the line
+      // looks the same all the way). The mark comes up on it gently, from
+      // part way along the snake's run (SNAKE.cubeFrom) to a little after
+      // the landing (SNAKE.settleScroll): faded in as it grows from a
+      // little under its size, eased out with no overshoot.
+      win.style.setProperty("--rail-ends", "0");
       morph = gsap.timeline({
         scrollTrigger: {
-          start: () => geo.release,
-          end: () => geo.release + geo.morph,
+          start: () => geo.release + geo.morph * SNAKE.cubeFrom,
+          end: () => geo.release + geo.morph + window.innerHeight * SNAKE.settleScroll,
           scrub: true,
           invalidateOnRefresh: true,
-          onUpdate: (self) => snake.at(self.scroll() - geo.release, geo),
-          onRefresh: (self) => snake.at(self.scroll() - geo.release, geo),
         },
       });
-      morph
-        // the statement's line, all lit, in the rail's white already
-        .fromTo(snake.dots, { attr: { "stroke-opacity": 0.55 } }, { attr: { "stroke-opacity": 0.55 }, duration: 0.7, ease: "none" }, 0.15)
-        .fromTo(win, { "--rail-ends": 0 }, { "--rail-ends": 1, duration: 0.2, ease: "none" }, 0.8)
-        .fromTo(cube, { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(2)" }, 0.7);
+      morph.fromTo(cube, { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 1, ease: "power2.out" }, 0);
     } else {
       gsap.fromTo(rail, { opacity: 0 }, {
         opacity: 1,
@@ -593,18 +704,19 @@ export function mountApproachStack(root, { lenis } = {}) {
     // scroll: one tween each, retargeted, rather than a new tween a frame
     const easeTop = gsap.quickTo(trail, "top", { duration: 0.3, ease: "power2.out", onUpdate: apply });
     const easeBottom = gsap.quickTo(trail, "bottom", { duration: 0.3, ease: "power2.out", onUpdate: apply });
-    // The mark on the rail is the logo's triangle, pointing the way the page
-    // is going: down to start with, turned up the moment the scroll turns
-    // up, and back. Only a scroll fast enough to draw a trail turns it, so a
-    // trackpad's jitter at rest never does; the turn swings through the
-    // right, the way the logo's forms point.
-    let heading = 1;
+    // The mark on the rail is the logo's triangle. It comes up pointing up,
+    // and from then on points the way the page is going: down the moment
+    // the scroll goes down, up the moment it turns up, and back. Only a
+    // scroll fast enough to draw a trail turns it, so a trackpad's jitter
+    // at rest never does; the turn swings through the right, the way the
+    // logo's forms point.
+    let heading = -1;
     const turnMark = (dir) => {
       if (!mark || dir === heading) return;
       heading = dir;
       gsap.to(mark, { rotation: dir > 0 ? 90 : -90, duration: 0.6, ease: "power3.inOut", overwrite: true });
     };
-    if (mark) gsap.set(mark, { rotation: 90 });
+    if (mark) gsap.set(mark, { rotation: -90 });
 
     // The trail drawn back in once the scroll rests, by the same two eased
     // tweens that draw it out, retargeted to nothing. (It used to kill every
@@ -620,11 +732,13 @@ export function mountApproachStack(root, { lenis } = {}) {
     // From the moment the window settles at the middle of the viewport to
     // the moment it leaves the bottom of the rail. Measured off the rail:
     // the window is sticky, so where it sits depends on the scroll.
-    // Led in, from the end of the morph, once the cube is up.
+    // Led in, from the moment the mark starts to come up on the window
+    // (SNAKE.cubeFrom), so it points the way the page is going as soon as
+    // it can be seen.
     const half = () => win.offsetHeight / 2;
     ScrollTrigger.create({
       trigger: rail,
-      start: () => (lead ? geo.release + geo.morph : `top center-=${half()}`),
+      start: () => (lead ? geo.release + geo.morph * SNAKE.cubeFrom : `top center-=${half()}`),
       end: () => `bottom center+=${half()}`,
       invalidateOnRefresh: true,
       onUpdate(self) {
@@ -659,6 +773,7 @@ export function mountApproachStack(root, { lenis } = {}) {
       dots.style.removeProperty("--rail-y");
       rail.style.removeProperty("--rail-snap");
       root.style.removeProperty("--stack-pull");
+      root.style.removeProperty("--rail-win");
       if (lead) {
         morph.scrollTrigger?.kill();
         morph.kill();
@@ -685,19 +800,6 @@ export function mountApproachStack(root, { lenis } = {}) {
 }
 
 
-/* ============================================================
-   Schematics — the step drawn in each card's panel
-   ============================================================
-   Small flat drawings, each one paused
-   GSAP timeline: a draw-in, then a light loop with no end. start()
-   plays it from the top, stop() takes it back to the undrawn state
-   (when a breakpoint change sets the stack up again), rest() shows
-   a representative frame and holds it (reduced motion), hold()
-   pauses and resumes it while it runs. Every element starts from
-   a state set here, so seeking back to 0 always returns the
-   drawing to blank. The loops are slow and few: one signal at a
-   time, in the site's red, on hairlines that otherwise hold still.
-   ============================================================ */
 /* The snake: the statement's dotted line running into the rail.
 
    A path fixed to the page, in the rail's own coordinates (from its top,
@@ -706,16 +808,20 @@ export function mountApproachStack(root, { lenis } = {}) {
    on down the rail. Its dots are drawn along the whole path and fixed to
    it, and only a stretch of it shows, through a mask: the snake, which
    slides along the path as the page scrolls, its body following its head
-   round each corner, and closes in from the line's length to the
-   window's on the way.
+   round each corner.
 
-   How far along it is (at) is worked out so it joins on at both ends: it
-   leaves as the line stood, still on the screen while the statement
-   scrolls away (moving down its path as fast as the page goes up), and
-   it arrives as the window stands, held at the middle of the screen with
-   its dots running with the page, so the rail takes over dot for dot
-   (origin, the page position the rail's dots are counted from). In
-   between it runs the extra length of the way, on an S-curve. */
+   It is one line from end to end: the same length (the statement's
+   line's, which the window is made too), the same dots in the same white
+   (--stack-dot, as the line's lit dots and the window's). Where it is
+   (at) is worked out so it joins on at both ends with nothing changing
+   but its place: at the release it is the statement's line exactly and
+   sets off from rest with its words, and it arrives as the window
+   stands, held at the middle of the screen, running down the path as
+   fast as the page goes up, so the window takes over dot for dot
+   (origin, the page position the rail's dots are counted from), hard
+   ends to hard ends. Between, a cubic eases it from the one speed to the
+   other, and its ends stand in the gaps between dots, so a dot comes on
+   whole at the head as one goes at the tail, never sliced. */
 const SNAKE = {
   // the scroll it runs over, in screens
   scroll: 1,
@@ -726,7 +832,21 @@ const SNAKE = {
   // runs behind it; the rest of the way it drops down the rail's line,
   // between the cards
   turn: 2,
+  // the share of the run at either end over which its ends ease from the
+  // true ends to the gaps between dots
+  settle: 0.12,
+  // the mark comes up from this share of the run, as the snake's head
+  // reaches the window's middle (never ahead of the line), and is whole this
+  // much scroll after the landing, in screens
+  cubeFrom: 0.8,
+  settleScroll: 0.1,
 };
+
+// A cubic from 0 to 1 over k, setting off at speed a and arriving at speed
+// b (speeds against an even run, 1); in range for speeds up to 3.
+function ease(k, a, b) {
+  return (k * k * k - 2 * k * k + k) * a + (3 * k * k - 2 * k * k * k) + (k * k * k - k * k) * b;
+}
 
 function makeSnake(rail) {
   const NS = "http://www.w3.org/2000/svg";
@@ -788,232 +908,30 @@ function makeSnake(rail) {
       dots.setAttribute("stroke-dasharray", `2 ${(geo.pitch - 2).toFixed(3)}`);
       snake.origin = geo.top + land - into;
     },
-    // the snake's place q px of scroll after the release
+    // the snake's two ends q px of scroll after the release, as lengths
+    // along the path from the line's top
     at(q, geo) {
       const run = geo.morph;
       const k = gsap.utils.clamp(0, 1, q / run);
-      const s = k * k * (3 - 2 * k);
-      const start = k * run + (into - run) * s;
-      const length = geo.lineHeight + (geo.win - geo.lineHeight) * s;
-      reach.style.strokeDasharray = `${length} 1000000`;
-      reach.style.strokeDashoffset = `${-start}`;
+      const p = geo.pitch;
+      // One length all the way: the line's, which the window is made too
+      // (--rail-win). The tail runs from the line's top (at rest on the
+      // page, so the line sets off with its words) to the window's top,
+      // arriving at the page's speed (a px of path a px of scroll).
+      let tail = into * ease(k, 0, Math.min(3, run / into));
+      let length = geo.lineHeight;
+      // On the way, the tail in a gap between dots and the length a whole
+      // number of them, so the same dots show the whole way, each coming
+      // on whole at the head as one goes at the tail; eased back to the
+      // true ends over the first and last stretch, where the line's and
+      // the window's boxes are.
+      const gap = (v) => Math.round((v - p / 2 - 1) / p) * p + p / 2 + 1;
+      const w = gsap.utils.clamp(0, 1, Math.min(k, 1 - k) / SNAKE.settle);
+      tail += (gap(tail) - tail) * w;
+      length += (Math.max(1, Math.round(length / p)) * p - length) * w;
+      reach.style.strokeDasharray = `${length.toFixed(2)} 1000000`;
+      reach.style.strokeDashoffset = `${(-tail).toFixed(2)}`;
     },
   };
   return snake;
 }
-
-function mountSchematic(svg) {
-  const build = svg && SCHEMATICS[svg.dataset.schematic];
-  if (!build) return null;
-
-  const css = getComputedStyle(svg);
-  const colors = {
-    red: css.getPropertyValue("--c-red").trim() || "#c40000",
-  };
-  const parts = (name) => [...svg.querySelectorAll(`[data-s="${name}"]`)];
-  const tl = build(parts, colors, svg);
-  let running = false;
-
-  return {
-    start() {
-      running = true;
-      tl.restart();
-    },
-    stop() {
-      running = false;
-      tl.pause(0);
-    },
-    rest() {
-      running = false;
-      tl.pause("rest");
-    },
-    hold(paused) {
-      if (running) tl.paused(paused);
-    },
-    destroy() {
-      tl.kill();
-    },
-  };
-}
-
-// The stylesheet's own fill or stroke for a face, so a tween can hand it
-// back exactly.
-const paint = (el, prop) => getComputedStyle(el)[prop];
-
-const SCHEMATICS = {
-  // Understand — the practice in plan, four rooms: work, tools,
-  // information, decisions. The setting-out, the floor and its rooms come
-  // in, then the route work actually takes draws in, the long way round
-  // the rooms, and the block in each appears; then a red signal runs the
-  // route, each block's edges catching it as it passes, while the dashed
-  // line straight from the first room to the last shows the way it was
-  // meant to go.
-  map(parts, colors) {
-    const [ground] = parts("ground");
-    const plates = parts("plate");
-    const [intended] = parts("intended");
-    const [route] = parts("route");
-    const [pulse] = parts("pulse");
-    const nodes = parts("node");
-    const stroke = paint(nodes[0], "stroke");
-
-    gsap.set([ground, intended, ...nodes], { opacity: 0 });
-    gsap.set(plates, { opacity: 0, y: 6 });
-    gsap.set(nodes, { scale: 0.6, transformOrigin: "50% 50%" });
-    // unrounded (autoRound: false): the route and the pulse are measured in
-    // shares of their own length (pathLength="1"), which whole pixels would
-    // only ever jump from end to end
-    gsap.set(route, { strokeDasharray: "1 1", strokeDashoffset: 1, autoRound: false });
-
-    const tl = gsap.timeline({ paused: true });
-    tl.to(ground, { opacity: 1, duration: 0.5, ease: "none" }, 0.1)
-      .to(plates, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: 0.1 }, 0.15)
-      .to(route, { strokeDashoffset: 0, duration: 1.2, ease: "power1.inOut", autoRound: false }, 0.6)
-      .to(nodes, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out", stagger: 0.12 }, 0.7)
-      .to(intended, { opacity: 1, duration: 0.5, ease: "none" }, 1.5);
-    tl.add("rest", 2);
-
-    // The pulse's head runs 0 → 1.08 of the route as its offset runs from
-    // the dash's length to -1, so a cube at share s of the route is reached
-    // at s / 1.08 of the run.
-    const travel = 3.2;
-    const loop = gsap.timeline({ repeat: -1, repeatDelay: 1.4 });
-    loop.fromTo(pulse, { strokeDashoffset: 0.08 }, { strokeDashoffset: -1, duration: travel, ease: "none", immediateRender: false, autoRound: false }, 0);
-    nodes.forEach((node) => {
-      const at = (parseFloat(node.dataset.at) / 1.08) * travel;
-      loop.to(node, { stroke: colors.red, duration: 0.12, ease: "none" }, at)
-        .to(node, { stroke, duration: 0.9, ease: "power1.in" }, at + 0.3);
-    });
-    tl.add(loop, "rest");
-    return tl;
-  },
-
-  // Diagnose — the practice as a stack of slabs. A scan runs down through
-  // them one by one until it reaches the slab the trouble starts in, whose
-  // edges turn red, while the slabs above lift off it and four red
-  // chevrons close in on its corners; then it all settles for the next pass.
-  trace(parts, colors, svg) {
-    const cause = Number(svg.dataset.cause);
-    const [ground] = parts("ground");
-    // listed in the markup bottom first, so each hides what is under it
-    const layers = parts("layer").sort((a, b) => a.dataset.i - b.dataset.i);
-    const [marker] = parts("marker");
-    const [ping] = parts("ping");
-    const above = layers.slice(0, cause);
-    const line = paint(layers[0], "stroke");
-    const bright = "rgba(255, 255, 255, 0.95)";
-
-    gsap.set(ground, { opacity: 0 });
-    gsap.set(layers, { opacity: 0, y: 8 });
-    gsap.set(marker, { opacity: 0, scale: 1.25, transformOrigin: "50% 50%" });
-    gsap.set(ping, { opacity: 0, transformOrigin: "50% 50%" });
-
-    const tl = gsap.timeline({ paused: true });
-    // the setting-out, then the stack built from the ground up
-    tl.to(ground, { opacity: 1, duration: 0.5, ease: "none" }, 0.05)
-      .to(layers, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out", stagger: { each: 0.08, from: "end" } }, 0.1);
-    const introEnd = 0.9;
-
-    const loop = gsap.timeline({ repeat: -1 });
-    // the scan, top down: each slab it passes brightens and lets go, until
-    // the cause, which turns red and holds
-    for (let i = 0; i < cause; i++) {
-      loop.to(layers[i], { stroke: bright, duration: 0.12, ease: "none" }, i * 0.22)
-        .to(layers[i], { stroke: line, duration: 0.5, ease: "power1.in" }, i * 0.22 + 0.2);
-    }
-    const found = cause * 0.22;
-    loop.to(layers[cause], { stroke: colors.red, duration: 0.15, ease: "none" }, found);
-    // the slabs above lift off it, opening it up
-    const open = found + 0.3;
-    loop.to(above, { y: -12, duration: 0.8, ease: "power3.inOut", stagger: 0.05 }, open);
-    const shown = open + 0.4;
-    loop.to(marker, { opacity: 1, scale: 1, duration: 0.5, ease: "power3.out" }, shown)
-      .fromTo(ping, { scale: 1, opacity: 0.9 }, { scale: 1.3, opacity: 0, duration: 1.1, ease: "power2.out", immediateRender: false }, shown + 0.15);
-    // a beat to read it, then everything settles back
-    const close = shown + 1.8;
-    loop.to(marker, { opacity: 0, scale: 1.15, duration: 0.35, ease: "power1.in" }, close)
-      .to(above, { y: 0, duration: 0.8, ease: "power3.inOut", stagger: { each: 0.05, from: "end" } }, close + 0.15)
-      .to(layers[cause], { stroke: line, duration: 0.6, ease: "none" }, close + 0.6);
-    loop.set({}, {}, close + 2);
-
-    tl.add(loop, introEnd);
-    // found and opened, the chevrons on it
-    tl.add("rest", introEnd + shown + 0.5);
-    return tl;
-  },
-
-  // Prioritise — the findings as a massing model, nine blocks on a three
-  // by three grid. They rise into a ranking and the tallest, what should
-  // change first, is drawn in red; then the figures move, the blocks find
-  // their new heights and the red passes to whichever now leads, the last
-  // set coming back to the first, which mirrors about the card's middle.
-  // Each block is redrawn from its height on every frame of a change, from
-  // the projection the page drew it with (src/scripts/iso.js).
-  rank(parts, colors, svg) {
-    const [base] = parts("base");
-    const [ox, oy] = svg.dataset.origin.split(",").map(Number);
-    const P = projector(ox, oy);
-    const size = Number(svg.dataset.size);
-    // the towers stand on the plinth, their floor lines every so far up
-    const plinth = Number(svg.dataset.plinth) || 0;
-    const floor = Number(svg.dataset.floor) || 12;
-    // in the markup back to front; here by their place on the grid, which
-    // the figures below are listed in (row by row)
-    const bars = parts("bar").sort((a, b) => a.dataset.k - b.dataset.k);
-    // the stylesheet marks the resting leader; from here the script does
-    bars.forEach((bar) => bar.classList.remove("is--first"));
-    const stroke = paint(bars[0], "stroke");
-    const blocks = bars.map((bar) => ({
-      bar,
-      x0: Number(bar.dataset.x0),
-      y0: Number(bar.dataset.y0),
-      h: 0,
-      faces: Object.fromEntries([...bar.querySelectorAll("[data-face]")].map((face) => [face.dataset.face, face])),
-    }));
-    const draw = (block) => {
-      const f = boxFaces(P, block.x0, block.y0, plinth, size, size, block.h);
-      block.faces.floors.setAttribute("d", floorLines(P, block.x0, block.y0, plinth, size, size, block.h, floor));
-      block.faces.top.setAttribute("d", f.top);
-      block.faces.left.setAttribute("d", f.left);
-      block.faces.right.setAttribute("d", f.right);
-    };
-    const grow = (block, h, vars) => ({ h, onUpdate: () => draw(block), ...vars });
-    // heights by row then column; the first mirrors about the card's
-    // middle with the tallest in the centre, and the loop comes back to it
-    const sets = [
-      [36, 52, 28, 52, 84, 44, 28, 44, 20],
-      [60, 30, 44, 38, 48, 72, 24, 56, 32],
-      [30, 64, 40, 80, 42, 36, 50, 28, 54],
-      [44, 38, 68, 34, 58, 40, 76, 30, 26],
-    ];
-    const lead = (values) => values.indexOf(Math.max(...values));
-
-    gsap.set(base, { opacity: 0 });
-    gsap.set(bars, { opacity: 0, stroke });
-    blocks.forEach(draw);
-
-    const tl = gsap.timeline({ paused: true });
-    tl.to(base, { opacity: 1, duration: 0.5, ease: "none" }, 0.1)
-      .to(bars, { opacity: 1, duration: 0.2, ease: "none", stagger: 0.04 }, 0.35);
-    blocks.forEach((block, i) => {
-      tl.to(block, grow(block, sets[0][i], { duration: 0.9, ease: "power3.out" }), 0.4 + i * 0.05);
-    });
-    tl.to(blocks[lead(sets[0])].bar, { stroke: colors.red, duration: 0.3, ease: "none" }, 1.5);
-    tl.add("rest", 1.9);
-
-    const cycle = 3.6;
-    const loop = gsap.timeline({ repeat: -1 });
-    sets.forEach((values, k) => {
-      const next = sets[(k + 1) % sets.length];
-      const t = k * cycle;
-      loop.to(blocks[lead(values)].bar, { stroke, duration: 0.4, ease: "none" }, t + 2);
-      blocks.forEach((block, i) => {
-        loop.to(block, grow(block, next[i], { duration: 1, ease: "power3.inOut" }), t + 2);
-      });
-      loop.to(blocks[lead(next)].bar, { stroke: colors.red, duration: 0.3, ease: "none" }, t + 3);
-    });
-    loop.set({}, {}, sets.length * cycle);
-    tl.add(loop, "rest");
-    return tl;
-  },
-};

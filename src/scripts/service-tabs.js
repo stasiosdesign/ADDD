@@ -22,13 +22,12 @@
        the middle of a hand-over (SWITCH: a tolerance either way, so a
        scroll that stops near the middle, or turns there, never flickers
        between two routes), and then as a change of their own, timed
-       rather than scrolled: the route's lines (its name, its line split
-       into lines, its button) rise out through their masks, top line
-       first, the way the scroll runs, and the next route's rise in
-       after them from the other side. Words are never left half-split
-       where the scroll stops. A change caught by the next is taken up
-       from where it is; the scroll may skip several routes, and the
-       words go straight to the one it lands on;
+       rather than scrolled: the route's words (its name, its line and
+       its button, as one block) fade out, and once they have gone the
+       next route's fade in, the same way forwards and back, nothing
+       moving and the two never over each other. A change caught by the
+       next is taken up from where it is; the scroll may skip several
+       routes, and the words go straight to the one it lands on;
      - the route in front is the one whose words show: its number's
        state, and the one a reader and the keyboard reach.
 
@@ -55,18 +54,18 @@ const SMOOTH = { duration: 0.6, ease: "power3.out" };
 // how far past the route shown the strip must go (in routes) before the
 // words change: past the hand-over's middle by a margin either way
 const SWITCH = 0.6;
-// the words' change: the lines going, then the lines coming, each a
-// line's height through its mask, one after another; the coming start
-// as the going are nearly gone (at)
+// the words' change: the shown route's words fading out, then, once they
+// have gone (at: the out's length, so the two never overlap), the next
+// route's fading in, a little slower
 const WORDS = {
-  out: { duration: 0.42, stagger: 0.045, ease: "power2.in" },
-  in: { duration: 0.75, stagger: 0.07, ease: "power3.out" },
-  at: 0.32,
+  out: { duration: 0.28, ease: "power1.in" },
+  in: { duration: 0.5, ease: "power1.out" },
+  at: 0.28,
 };
 // a pressed route's move, in the flow
 const SLIDE = { duration: 0.9, ease: "power3.inOut" };
 
-export function mountServiceTabs(root, { reducedMotion = false, still = false, scrollTo = (y) => window.scrollTo(0, y) } = {}) {
+export function mountServiceTabs(root, { reducedMotion = false, scrollTo = (y) => window.scrollTo(0, y) } = {}) {
   const panel = root.querySelector("[data-service-tabs-panel]");
   const items = [...root.querySelectorAll("[data-service-tabs-item]")];
   const track = root.querySelector("[data-service-tabs-track]");
@@ -76,7 +75,6 @@ export function mountServiceTabs(root, { reducedMotion = false, still = false, s
   const count = Math.min(items.length, visuals.length, buttons.length);
   if (!panel || !track || count < 1) return { destroy() {} };
 
-  const texts = items.map((item) => [...item.querySelectorAll("[data-service-tabs-text]")]);
   const clamp = gsap.utils.clamp;
   const state = { s: 0 };
   // the route whose words show, and their change under way
@@ -87,34 +85,6 @@ export function mountServiceTabs(root, { reducedMotion = false, still = false, s
   // the numbers are filled again when the route in front changes
   let press = () => {};
   let refill = () => {};
-
-  // Each route's lines, top to bottom: the name and the button whole (each
-  // one line, in a mask of its own: ServiceTabs.astro), the line under the
-  // name split into its lines, each in a mask (SplitText, as the headings'
-  // line reveal; split again as its width changes or the webfont arrives,
-  // and set where they stand). Unsplit in the Studio's preview, where the
-  // words fade instead.
-  const lines = texts.map((pieces) => pieces);
-  const splits = [];
-  if (!still) {
-    texts.forEach((pieces, i) => {
-      pieces.forEach((el) => {
-        if (!el.hasAttribute("data-service-tabs-split")) return;
-        splits.push(SplitText.create(el, {
-          type: "lines",
-          mask: "lines",
-          linesClass: "line",
-          aria: "none",
-          autoSplit: true,
-          onSplit(self) {
-            lines[i] = pieces.flatMap((piece) => (piece === el ? self.lines : [piece]));
-            words?.progress(1);
-            gsap.set(lines[i], { yPercent: i === shown ? 0 : 100 });
-          },
-        }));
-      });
-    });
-  }
 
   // the route in front: its number, and the one a reader and the
   // keyboard reach
@@ -131,13 +101,12 @@ export function mountServiceTabs(root, { reducedMotion = false, still = false, s
     });
   }
 
-  // The words to route next: the shown route's lines out the way the
-  // change runs (dir 1, on down the page: up and out; -1, back: down and
-  // out), then the next route's in from the other side. Every other
-  // route's put away, out of sight below.
+  // The words to route next: the shown route's fade out, then the next
+  // route's fade in, the same whichever way the change runs. Every other
+  // route's put away, out of sight. A change caught part-way is killed
+  // where it is, so the going route is faded on from wherever it was.
   function showWords(next, { instant = false } = {}) {
     const from = shown;
-    const dir = next >= from ? 1 : -1;
     shown = next;
     select(next);
     refill();
@@ -146,29 +115,20 @@ export function mountServiceTabs(root, { reducedMotion = false, still = false, s
     items.forEach((item, i) => {
       if (i === next || (i === from && !instant)) return;
       item.style.visibility = "hidden";
-      if (still) item.style.opacity = "0";
-      else gsap.set(lines[i], { yPercent: 100 });
+      item.style.opacity = "0";
     });
     if (instant || reducedMotion || from === next) {
       items[from].style.visibility = from === next ? "visible" : "hidden";
+      if (from !== next) items[from].style.opacity = "0";
       items[next].style.visibility = "visible";
-      if (still) items[next].style.opacity = "1";
-      else gsap.set(lines[next], { yPercent: 0 });
+      items[next].style.opacity = "1";
       return;
     }
     words = gsap.timeline();
-    if (still) {
-      words.to(items[from], { opacity: 0, duration: WORDS.out.duration, ease: "power1.inOut" }, 0);
-    } else {
-      words.to(lines[from], { yPercent: -100 * dir, ...WORDS.out }, 0);
-    }
+    words.to(items[from], { opacity: 0, ...WORDS.out }, 0);
     words.set(items[from], { visibility: "hidden" });
     words.set(items[next], { visibility: "visible" }, WORDS.at);
-    if (still) {
-      words.fromTo(items[next], { opacity: 0 }, { opacity: 1, duration: WORDS.in.duration, ease: "power1.inOut" }, WORDS.at);
-    } else {
-      words.fromTo(lines[next], { yPercent: 100 * dir }, { yPercent: 0, ...WORDS.in }, WORDS.at);
-    }
+    words.fromTo(items[next], { opacity: 0 }, { opacity: 1, ...WORDS.in }, WORDS.at);
   }
 
   // The numbers' fills: the route in front's, amount (0–1) of its block
@@ -200,10 +160,7 @@ export function mountServiceTabs(root, { reducedMotion = false, still = false, s
     return clamp(0, count - 1, x - (k * Math.sin(2 * Math.PI * x)) / (2 * Math.PI));
   };
 
-  // at rest: the first route. Split, the masks alone hide the words, so
-  // every route is held at full opacity (the stylesheet fades all but the
-  // one in front, for the page without the script)
-  if (!still) items.forEach((item) => { item.style.opacity = "1"; });
+  // at rest: the first route
   showWords(0, { instant: true });
   draw(0);
   fillTo(0, 1);
@@ -303,8 +260,6 @@ export function mountServiceTabs(root, { reducedMotion = false, still = false, s
         item.style.removeProperty("visibility");
         item.style.removeProperty("opacity");
       });
-      splits.forEach((split) => split.revert());
-      gsap.set(texts.flat(), { clearProps: "transform" });
       fills.forEach((el) => {
         el.style.removeProperty("clip-path");
         el.style.removeProperty("opacity");

@@ -184,8 +184,8 @@ export function initInsightSlider(container) {
 
     measure();
     // The card width is set in em against the webfont's metrics on the
-    // body; re-measure once it has actually loaded.
-    document.fonts.ready.then(measure);
+    // body; re-measure once it has actually loaded, if it had not yet.
+    if (document.fonts.status === "loading") document.fonts.ready.then(measure);
 
     registerPageCleanup(() => {
       if (moveTween) moveTween.kill();

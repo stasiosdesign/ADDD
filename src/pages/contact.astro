@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { contactPage as D } from "../sanity/defaults/contact";
+import NavLinkLabel from "../components/NavLinkLabel.astro";
 
 // The words beside the form come from the Contact page document in Sanity
 // (studio/schemaTypes/pages/contact.ts), each element falling back to its
@@ -23,14 +24,14 @@ const { t } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
 
   <section class="pg-hero">
     <div class="container">
-      <div class="pg-hero__grid">
+      <div class="pg-hero__grid is--contact">
         <div class="pg-hero__col">
           <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
           <h1 class="h2" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <ul class="contact-list">
-            <li><a href="mailto:allister@addd.io" data-page-field="hero.email">{t("hero.email")}</a></li>
-            <li><a href="tel:+15550000000" data-page-field="hero.phone">{t("hero.phone")}</a></li>
+            <li><a class="nav-link" href="mailto:allister@addd.io"><NavLinkLabel data-page-field="hero.email">{t("hero.email")}</NavLinkLabel></a></li>
+            <li><a class="nav-link" href="tel:+15550000000"><NavLinkLabel data-page-field="hero.phone">{t("hero.phone")}</NavLinkLabel></a></li>
             <li data-page-field="hero.address">{t("hero.address")}</li>
           </ul>
         </div>

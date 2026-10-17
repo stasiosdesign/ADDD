@@ -1,22 +1,19 @@
 ---
 /*
-  The inside of a sliding-box link (src/styles/nav-link.css, initNavLinks()
-  in src/scripts/site.js): the box drawn round the label, the block that
-  slides into it, and the label over the block. The link around it — an <a>,
-  or a dropdown toggle in the bar, carrying .nav-link — keeps its own size
-  and hit area, and an icon beside the label stays outside the box. class
-  goes on the label.
-
-  The block carries its own copy of the label in the ground's colour (the
-  ink), held still while the block slides, so the label turns over exactly
-  where the block covers it, frame by frame, from whichever edge it comes
-  in. Hidden from assistive tech; the label itself is the one read.
+  The inside of a text link (src/styles/nav-link.css, text-scramble.js):
+  the label in a box of its own, which holds the dotted underline the
+  hover draws under it. The link around it — an <a>, or a dropdown toggle
+  in the bar, carrying .nav-link — keeps its own size and hit area, and an
+  icon beside the label stays outside the box. class goes on the label,
+  and any other attribute too (a data-page-field, so the Studio's Visual
+  editor can write into the label itself).
 */
 interface Props {
   class?: string;
+  [attr: string]: unknown;
 }
 
-const { class: className } = Astro.props;
+const { class: className, ...attrs } = Astro.props;
 const label = await Astro.slots.render("default");
 ---
-<span class="nav-link__box"><span class="nav-link__bg" aria-hidden="true"><span class:list={["nav-link__ink", className]} set:html={label} /></span><span class:list={["nav-link__text", className]} set:html={label} /></span>
+<span class="nav-link__box"><span class:list={["nav-link__text", className]} {...attrs} set:html={label} /></span>

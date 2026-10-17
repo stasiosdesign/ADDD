@@ -111,7 +111,9 @@ export function initApproachSlides(container) {
   const refreshIfLive = () => {
     if (root.isConnected) ScrollTrigger.refresh();
   };
-  document.fonts?.ready.then(refreshIfLive);
+  // (only while a font is still on its way: a promise already kept would
+  // measure the whole page again inside the page's own build)
+  if (document.fonts?.status === "loading") document.fonts.ready.then(refreshIfLive);
   if (document.readyState !== "complete") {
     window.addEventListener("load", refreshIfLive, { once: true });
     registerPageCleanup(() => window.removeEventListener("load", refreshIfLive));

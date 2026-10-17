@@ -64,3 +64,20 @@ export function runPageCleanups() {
     }
   });
 }
+
+// Whether a link goes to the page already open: the same address, the
+// homepage's "/" and "/index.html" taken as one, with no #fragment (a
+// fragment is a place on the page, the browser's to go to). Such a link
+// takes no navigation at all: Barba leaves it (site.js, prevent) and the
+// nav scrolls the page back to its top (nav.js).
+const pagePath = (url) => url.pathname.replace(/\/index\.html$/, "/");
+
+export function isSamePage(href) {
+  let url;
+  try {
+    url = new URL(href, location.href);
+  } catch (err) {
+    return false;
+  }
+  return url.origin === location.origin && !url.hash && url.search === location.search && pagePath(url) === pagePath(location);
+}

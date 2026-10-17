@@ -2,32 +2,31 @@
 // ADDD — the navigation
 // -----------------------------------------
 //
-// The mega nav, its reveal and its theme, the logo's morph, the Contact
-// button and the sliding-box links. The nav lives outside the Barba
-// container, so initNav() runs once per document load; initNavLinks() is
-// also on the page registry, for the footer's links, which arrive with each
-// page. gsap and its plugins are the site's globals.
+// The mega nav, its reveal and its theme, and the logo's morph. The nav
+// lives outside the Barba container, so initNav() runs once per document
+// load. Its links' scramble and dotted underline are the site's one text-
+// link hover (text-scramble.js), bound here for the bar's links and with
+// each page for the page's own. gsap and its plugins are the site's
+// globals.
 
 import "./gsap-setup.js";
-import { motion } from "./page.js";
-import { lenis } from "./scroll.js";
+import { motion, isSamePage } from "./page.js";
+import { lenis, glideTo } from "./scroll.js";
 import { parallaxTravel } from "./parallax.js";
 import { mountIsoField } from "./dot-field.js";
 import { mountWordCycle } from "./word-cycle.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
+import { initTextScramble } from "./text-scramble.js";
 
 // the nav's change between its light and dark states (initNavTheme)
 CustomEase.create("navTheme", "0.45, 0, 0.25, 1");
 
-/** The nav, the Contact button and the logo, wired up once per document. */
+/** The nav and the logo, wired up once per document. */
 export function initNav() {
   initMegaNav();
   initNavReveal();
   initNavLogo();
-  initNavLinks(document.querySelector("[data-menu-wrap]"));
-  // The width measurement waits on the webfont so the label is not measured
-  // against the fallback face.
-  document.fonts.ready.then(initContactButton);
+  initTextScramble(document.querySelector("[data-menu-wrap]"));
 }
 
 /* ============================================================
@@ -346,6 +345,23 @@ function initMegaNav() {
     if (!e.target.closest("[data-menu-wrap]")) closeDropdown();
   }
 
+  // A link to the page already open — the logo on the homepage, above all —
+  // is no navigation (Barba leaves it: isSamePage, page.js): the menu
+  // closes if it is open and the page glides back to its top, at a pace
+  // that grows with the way it has to go. A click meant for elsewhere (a
+  // new tab or window, a download) is left to the browser.
+  function handleSamePageClick(e) {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const link = e.target.closest("a[href]");
+    if (!link || (link.target && link.target !== "_self") || link.hasAttribute("download") || !isSamePage(link.href)) return;
+    e.preventDefault();
+    // the site's one glide (scroll.js)
+    const toTop = () => glideTo(0, { force: true });
+    if (state.mobileMenuOpen) return closeMobileMenu().then(toTop);
+    if (state.isOpen) closeDropdown();
+    toTop();
+  }
+
   // DESKTOP — keyboard navigation
   function focusFirstLink(panelName) {
     setTimeout(() => {
@@ -495,6 +511,7 @@ function initMegaNav() {
     }
 
     tl.to(navList, { autoAlpha: 0, duration: 0.3, ease: "power2.inOut" }, 0.05);
+    return tl;
   }
 
   // MOBILE — slide-over panels
@@ -687,6 +704,7 @@ function initMegaNav() {
 
   document.addEventListener("keydown", handleEscape);
   document.addEventListener("click", handleDocClick);
+  document.addEventListener("click", handleSamePageClick);
 
   burger.addEventListener("click", () => state.mobileMenuOpen ? closeMobileMenu() : openMobileMenu());
 
@@ -719,10 +737,20 @@ function initMegaNav() {
        page without one, the section's top coming up the screen) to the
        moment the section's foot has passed the bar's, so its
        statements play out with nothing over them and the bar comes
-       back as the next section takes the screen;
-     - the closing call to action (.cta), from the moment its top
-       reaches the bar's foot to the end of the page, the footer under
-       it included.
+       back as the next section takes the screen; or, where the section
+       names something further on (data-nav-hold-until, a selector: the
+       homepage's Diagnose card), until that is just short of the middle
+       of the screen (NAV_HOLD_PAST, a share of the screen; negative is
+       short of it);
+     - the end of the page: the footer's entrance (its top coming up
+       over the screen's foot) and everything after it. The bar stays
+       until the last stretch of scroll before the footer comes
+       (NAV_FOOTER_AHEAD, a quarter of the screen) and over that stretch
+       goes up with the scroll itself, as the hero takes it, so it is
+       wholly gone the moment the entrance begins, however fast the
+       page is scrolled. Never at the very top of a page: where the
+       footer is in view from the start (a short page), the bar goes
+       over the first stretch of scroll instead.
 
    It is always in place while a menu is open or keyboard focus is in
    it. Scroll direction plays no part.
@@ -750,6 +778,20 @@ function initMegaNav() {
    fixed drawer and backdrop inside it.
    ============================================================ */
 const NAV_REVEAL = { duration: 0.6, ease: "osmo", catchUp: 0.2 };
+// The morph between the full bar and the floating one (initNavReveal): each
+// half this long, the second this far behind the first, on a curve that
+// carries a hair past and settles back, so it lands rather than stops.
+CustomEase.create("navFloat", "M0,0 C0.18,0.6 0.32,1.06 0.56,1.035 0.74,1.016 0.86,1 1,1");
+const NAV_FLOAT = { duration: 0.7, lag: 0.09, ease: "navFloat" };
+// how far past the middle of the screen a data-nav-hold-until element's
+// middle goes before the bar comes back, as a share of the screen: a
+// little short of it, so the bar is back as the card comes to the middle
+const NAV_HOLD_PAST = -0.06;
+// the stretch of scroll before the footer's entrance (its top at the
+// screen's foot) over which the bar goes up with the scroll, as a share of
+// the screen: short, so it stays as long as it can, long enough to read as
+// a movement rather than a snap
+const NAV_FOOTER_AHEAD = 0.25;
 
 function initNavReveal() {
   const nav = document.querySelector("[data-menu-wrap]");
@@ -762,11 +804,89 @@ function initNavReveal() {
   let watcher = null;
   let easing = null;
   let goal = 0;
+  // Past the page's hero the bar floats (nav.css, .is--floating: from
+  // 992px, inset to the grid's width a little below the top, shorter).
+  // Out of view (the homepage's bar leaves with its hero) it simply
+  // changes. In view it morphs (NAV_FLOAT): it drops off the top edge and
+  // shortens, then a beat later its sides draw in to the grid, its blocks
+  // narrowing onto the columns as they go, each settling with a little
+  // give, so the bar seems to be lifted off the page and set down over
+  // it. The morph moves the bar's own box (its top, sides and height, and
+  // the grid's margin its blocks are measured from), set inline on the
+  // nav and the bar alone, a small fixed box laid out on its own, and
+  // hands back to the stylesheet's rule as it settles; a turn part-way
+  // goes back from where it is. The way out (distance) is each state's
+  // own, and the morph's two ends, measured on refresh.
+  let floating = false;
+  const ways = { full: 0, floating: 0 };
+  const geo = { top: 0, side: 0, margin: 0, fullH: 0, floatH: 0, radius: 0 };
+  const barEl = nav.querySelector(".mega-nav__bar");
+  const morph = { y: 0, x: 0 };
+  let morphing = null;
 
+  // how far up the bar goes to be out of view: its foot, from the top of
+  // the screen, rounded up to whole device pixels
   const outOfView = () => {
     const dpr = window.devicePixelRatio || 1;
-    return Math.ceil(nav.getBoundingClientRect().height * dpr) / dpr;
+    const foot = (parseFloat(getComputedStyle(nav).top) || 0) + nav.offsetHeight;
+    return Math.ceil(foot * dpr) / dpr;
   };
+
+  // the bar part-way between the two: y the drop and the height, x the
+  // sides, the blocks' margin and the corners, each 0 (full) to 1
+  // (floating)
+  const lerp = (a, b, t) => a + (b - a) * t;
+  function paintMorph() {
+    nav.style.top = `${(morph.y * geo.top).toFixed(2)}px`;
+    nav.style.left = nav.style.right = `${(morph.x * geo.side).toFixed(2)}px`;
+    barEl?.style.setProperty("--nav-height", `${lerp(geo.fullH, geo.floatH, morph.y).toFixed(2)}px`);
+    barEl?.style.setProperty("--grid-margin", `${((1 - morph.x) * geo.margin).toFixed(2)}px`);
+    barEl?.style.setProperty("--nav-bar-radius", `${(morph.x * geo.radius).toFixed(2)}px`);
+  }
+  function clearMorph() {
+    nav.style.removeProperty("top");
+    nav.style.removeProperty("left");
+    nav.style.removeProperty("right");
+    barEl?.style.removeProperty("--nav-height");
+    barEl?.style.removeProperty("--grid-margin");
+    barEl?.style.removeProperty("--nav-bar-radius");
+  }
+
+  // at once: out of view, as a page opens, or with reduced motion
+  function setFloating(on) {
+    morphing?.kill();
+    morphing = null;
+    clearMorph();
+    floating = on;
+    morph.x = morph.y = on ? 1 : 0;
+    nav.classList.toggle("is--floating", on);
+    distance = on ? ways.floating : ways.full;
+    // drawn again at the new way out, where it is
+    drawn = NaN;
+    draw();
+  }
+
+  // in view: the morph, from wherever the bar is
+  function morphTo(on) {
+    floating = on;
+    morphing?.kill();
+    nav.classList.remove("is--floating");
+    paintMorph();
+    const to = on ? 1 : 0;
+    // floating, the drop leads and the sides follow; back, the reverse
+    const [first, second] = on ? ["y", "x"] : ["x", "y"];
+    morphing = gsap.timeline({
+      onUpdate: paintMorph,
+      onComplete: () => {
+        morphing = null;
+        clearMorph();
+        nav.classList.toggle("is--floating", on);
+        distance = on ? ways.floating : ways.full;
+      },
+    })
+      .to(morph, { [first]: to, duration: NAV_FLOAT.duration, ease: NAV_FLOAT.ease }, 0)
+      .to(morph, { [second]: to, duration: NAV_FLOAT.duration, ease: NAV_FLOAT.ease }, NAV_FLOAT.lag);
+  }
 
   function draw() {
     const y = state.out > 0 ? -state.out * distance : 0;
@@ -780,8 +900,22 @@ function initNavReveal() {
   // container: the hero's run, if it has one, and the held stretches.
   function measure(container) {
     const page = (el) => el.getBoundingClientRect().top + window.scrollY;
+    // each state's way out and the morph's two ends, read with the bar in
+    // each (and nothing of a morph under way set on it meanwhile)
+    morphing?.progress(1);
+    nav.classList.toggle("is--floating", true);
+    ways.floating = outOfView();
+    const css = getComputedStyle(nav);
+    geo.top = parseFloat(css.top) || 0;
+    geo.side = geo.margin = parseFloat(css.left) || 0;
+    geo.floatH = barEl?.offsetHeight || 0;
+    geo.radius = barEl ? parseFloat(getComputedStyle(barEl).borderTopLeftRadius) || 0 : 0;
+    nav.classList.toggle("is--floating", false);
+    ways.full = outOfView();
+    geo.fullH = barEl?.offsetHeight || 0;
+    nav.classList.toggle("is--floating", floating);
     const bar = nav.offsetHeight;
-    distance = outOfView();
+    distance = ways.full;
     let hero = null;
     const wrap = container.querySelector("[data-hero-parallax]");
     const inner = wrap?.querySelector("[data-hero-parallax-inner]");
@@ -797,12 +931,42 @@ function initNavReveal() {
     const holds = [...container.querySelectorAll("[data-nav-hold]")].map((section) => {
       const top = page(section);
       const afterHero = hero && top <= hero.foot + 1;
-      return [afterHero ? hero.end : top - window.innerHeight, top + section.offsetHeight - bar];
+      // held to the section's foot, or to an element further on coming to
+      // the screen's middle (its layout box: a drift is a transform)
+      const until = section.dataset.navHoldUntil && container.querySelector(section.dataset.navHoldUntil);
+      const end = until
+        ? page(until) + until.offsetHeight / 2 - window.innerHeight * (0.5 - NAV_HOLD_PAST)
+        : top + section.offsetHeight - bar;
+      return [afterHero ? hero.end : top - window.innerHeight, end];
     });
-    const cta = container.querySelector(".cta");
-    if (cta) holds.push([page(cta) - bar, Infinity]);
-    zones = { hero, holds };
+    // the end of the page: gone with the scroll over the stretch before
+    // the footer's entrance, and held out from the entrance on (never at
+    // the very top: a page opens with its bar)
+    const footer = container.querySelector(".footer-wrap");
+    const footerIn = footer ? page(footer) - window.innerHeight : Infinity;
+    let foot = null;
+    if (footerIn < Infinity) {
+      const stretch = window.innerHeight * NAV_FOOTER_AHEAD;
+      const end = Math.max(footerIn, 1 + stretch);
+      foot = { start: end - stretch, end };
+      holds.push([end, Infinity]);
+    }
+    // where the bar starts to float: as the page's hero (its first
+    // section, whichever kind) has gone up under the full bar, or, on a
+    // hero that names the moment (data-nav-float-from: a service page's,
+    // whose head row stands where the floating bar leaves room for it), as
+    // that element's top comes up to the full bar's foot
+    const at = container.querySelector("[data-nav-float-from]");
+    const first = at ? null : container.querySelector("[data-hero-parallax], .pg-hero, .hero") || container.firstElementChild;
+    const floatFrom = at ? Math.max(1, page(at) - ways.full) : first ? page(first) + first.offsetHeight - ways.full : Infinity;
+    zones = { hero, holds, floatFrom, foot };
+    distance = floating ? ways.floating : ways.full;
   }
+
+  // whether the bar floats at scroll y: past the hero, and only where the
+  // stylesheet has a floating bar (from 992px)
+  const floats = (y) => !!zones && wide.matches && y >= zones.floatFrom;
+  const wide = window.matchMedia("(min-width: 992px)");
 
   // Where the bar should be at scroll y: how far out, and whether it
   // follows the scroll (the hero) or eases there. Keyboard focus in the
@@ -812,8 +976,13 @@ function initNavReveal() {
   function wanted(y) {
     if (nav.getAttribute("data-menu-open") === "true" || focused) return [0, false];
     if (!zones) return [0, false];
-    const { hero, holds } = zones;
+    const { hero, holds, foot } = zones;
     if (hero && y > hero.start && y < hero.end) return [(y - hero.start) / (hero.end - hero.start), true];
+    // nearing the footer, the bar follows the scroll out, unless a hold
+    // already has it out
+    if (foot && y > foot.start && y < foot.end && !holds.some(([from, to]) => y >= from && y < to)) {
+      return [(y - foot.start) / (foot.end - foot.start), true];
+    }
     return [holds.some(([from, to]) => y >= from && y < to) ? 1 : 0, false];
   }
 
@@ -821,6 +990,12 @@ function initNavReveal() {
   // window.scrollY would have the layout brought up to date first, on
   // every frame, after the frame's other writes)
   function update(immediate = false, y = window.scrollY) {
+    // floating or full: at once out of view (or as a page opens, or with
+    // reduced motion), a morph in view
+    if (floats(y) !== floating) {
+      if (immediate || motion.reduced || state.out >= 1) setFloating(floats(y));
+      else morphTo(floats(y));
+    }
     const [out, follows] = wanted(y);
     if (immediate || (follows && !easing?.isActive())) {
       easing?.kill();
@@ -976,10 +1151,10 @@ function initNavTheme(nav) {
     if (nav.getAttribute("data-menu-open") === "true") settle();
   };
 
-  function apply(next) {
+  function apply(next, instant = false) {
     wanted = next;
     if (next === theme || nav.getAttribute("data-menu-open") === "true") return;
-    const first = theme === null;
+    const first = theme === null || instant;
     theme = next;
     nav.setAttribute("data-nav-theme", next);
     const target = next === "dark" ? 1 : 0;
@@ -999,15 +1174,22 @@ function initNavTheme(nav) {
     });
   }
 
+  // A new page's first reading is taken while the page is still covered
+  // (the wipe, or a card opening over everything), so the bar takes its
+  // state at once there: eased, it was still part-way from the last
+  // page's (a light bar going dark) as the cover lifted.
+  let covered = false;
   function decide() {
     let top = null;
     onLine.forEach((el) => {
       if (!top || top.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) top = el;
     });
-    apply(top ? grounds.get(top) : "light");
+    apply(top ? grounds.get(top) : "light", covered);
+    covered = false;
   }
 
-  function watch() {
+  function watch(underCover = false) {
+    covered = underCover;
     observer?.disconnect();
     grounds.clear();
     onLine.clear();
@@ -1037,7 +1219,7 @@ function initNavTheme(nav) {
   watch();
   // each new page, once its components are built and before the wipe
   // uncovers it (the lifecycle's own beforeEnter runs first)
-  barba.hooks.beforeEnter(watch);
+  barba.hooks.beforeEnter(() => watch(true));
   let resizing = 0;
   window.addEventListener("resize", () => {
     clearTimeout(resizing);
@@ -1121,123 +1303,5 @@ function initNavLogo() {
   });
   link.addEventListener("blur", () => {
     if (!link.matches(":hover")) morphTo(1);
-  });
-}
-
-/* ============================================================
-   Contact button — the nav's block-swap button. Each label is
-   measured so the two halves can trade widths on hover; the CSS
-   reads the measurement back from --contact-button-width.
-   ============================================================ */
-function initContactButton() {
-  const elements = document.querySelectorAll("[data-contact-button-element]");
-  if (!elements.length) return;
-
-  const measure = () => elements.forEach((el) => {
-    const text = el.querySelector("[data-contact-button-text]");
-    el.style.setProperty("--contact-button-width", `${text.offsetWidth}px`);
-  });
-
-  measure();
-
-  let resizeTimer;
-  window.addEventListener("resize", () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(measure, 60);
-  });
-}
-
-/* ============================================================
-   Sliding-box links — the nav's and the footer's links
-   ============================================================
-   nav-link.css slides the block in from below and out the same way.
-   For a mouse, this makes it follow the pointer: in through the edge
-   it came in by, out through the edge it leaves by, judged against
-   the link's vertical midpoint. As supplied, the move is set inline —
-   the transition taken off, the block put at the entry edge, a
-   reflow, the transition back, and the block brought to rest, its
-   copy of the label moved the opposite way with it each time — and
-   once the block is out it is handed back to the stylesheet, so a
-   link that takes keyboard focus shows its block at once. A link
-   already showing its block for keyboard focus is left as it is. Only
-   hover and focus ever show it: the link to the page being viewed
-   rests like any other. On touch there is no hover to follow, and the
-   stylesheet's states are all there is.
-
-   The nav's links are bound once, since the nav outlives every page,
-   and the footer's with each page through the registry; a link is
-   never bound twice. Their listeners live on the links themselves, so
-   they leave with the footer.
-   ============================================================ */
-export function initNavLinks(root) {
-  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)");
-  // where the block waits off each edge, and its copy of the label the
-  // same distance the other way, so the copy never moves off the label
-  const out = {
-    top: ["translateY(calc(-100% - 1px))", "translateY(calc(100% + 1px))"],
-    bottom: ["translateY(calc(100% + 1px))", "translateY(calc(-100% - 1px))"],
-    in: ["translateY(0)", "translateY(0)"],
-    rest: ["", ""],
-  };
-
-  root.querySelectorAll(".nav-link").forEach((link) => {
-    const bg = link.querySelector(".nav-link__bg");
-    const ink = link.querySelector(".nav-link__ink");
-    if (!bg || !ink || link.navLinkBound) return;
-    link.navLinkBound = true;
-
-    // The block and its copy always move together, in one style change,
-    // so their transitions start on the same frame. The copy inherits the
-    // block's transition, so taking the block off it takes both.
-    const place = (where) => {
-      [bg.style.transform, ink.style.transform] = out[where];
-    };
-    const jump = (where) => {
-      bg.style.transition = "none";
-      place(where);
-      void bg.offsetWidth;
-      bg.style.transition = "";
-    };
-
-    let leaving = 0;
-    const edge = (event) => {
-      const box = link.getBoundingClientRect();
-      return event.clientY < box.top + box.height / 2 ? "top" : "bottom";
-    };
-    const held = () => link.matches(":focus-visible");
-    // back to the stylesheet's own state, without a move
-    const handBack = () => {
-      clearTimeout(leaving);
-      leaving = 0;
-      jump("rest");
-    };
-
-    link.addEventListener("mouseenter", (event) => {
-      if (!finePointer.matches) return;
-      if (held()) return handBack();
-      if (leaving) {
-        // caught on its way out: it turns round from where it is
-        clearTimeout(leaving);
-        leaving = 0;
-      } else {
-        jump(edge(event));
-      }
-      place("in");
-    });
-
-    link.addEventListener("mouseleave", (event) => {
-      if (!finePointer.matches) return;
-      if (held()) return handBack();
-      place(edge(event));
-      clearTimeout(leaving);
-      leaving = setTimeout(handBack, 650);
-    });
-
-    // keyboard focus brings the block in from wherever it is
-    link.addEventListener("focus", () => {
-      clearTimeout(leaving);
-      leaving = 0;
-      place("rest");
-    });
   });
 }

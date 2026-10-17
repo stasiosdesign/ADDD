@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import InsightSlider from "../components/InsightSlider.astro";
+import NavLinkLabel from "../components/NavLinkLabel.astro";
 
 const related = [
   { href: "report-template.html", image: "assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Building a software strategy", meta: ["7 min read"] },
@@ -67,7 +68,7 @@ const related = [
             <p>A detailed look at the tools reshaping how architecture practices work with data and design.</p>
             <div class="actions">
               <ActionButton href="#download" variant="secondary">Read</ActionButton>
-              <a class="btn btn--link" href="reports.html">Explore <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+              <a class="btn btn--link nav-link" href="reports.html"><NavLinkLabel>Explore</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
             </div>
           </div>
         </div>

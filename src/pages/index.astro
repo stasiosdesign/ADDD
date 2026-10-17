@@ -1,10 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import CoinStack from "../components/CoinStack.astro";
-import ServiceTabs from "../components/ServiceTabs.astro";
+import ServiceDeck from "../components/ServiceDeck.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
@@ -32,6 +33,83 @@ const [doc, clients, insights] = await Promise.all([
   sanity.fetch<Insight[]>(INSIGHTS_QUERY),
 ]);
 const { t, list, lines, img } = reader(doc, D);
+
+// The photographs round the approach statement: four small cards set
+// straight, each the picture in a hairline frame over a white caption
+// strip, supporting the words rather than vying with them. Each is a crop
+// of the library's own photography, cut small for this
+// (public/assets/images/*-crop.webp, from the originals beside them).
+// While the statement is held (desktop, tablet and phone alike) each card
+// fills a cell of the grid the dots are drawn as behind it, the cell
+// nearest the place given here (cell-grid.js); the place below is where
+// it stands otherwise (reduced motion).
+// Every card is one Grid Column wide and stands on the 12-Column Grid: its
+// left edge on the start of Grid Column `col`, its top at `top` (a share of
+// the screen's height), then fitted to the band's dots, whole pitches
+// across and down with every edge midway between two lines of dots
+// (sticky-title.css, "around"; dot-fit.js). From 992px the four keep to
+// Grid Columns 1–3 and 10–12, either side of the words (which take 4–9),
+// two high and two low, no two on one column or one level; below, the
+// words take the width, so the cards keep to the bands over and under
+// them, each with its own column and top (tablet: six columns; phone:
+// four), or none.
+type Photo = {
+  src: string;
+  width: number;
+  height: number;
+  col: number; top: number;
+  /** the caption: the name of who is pictured (shown only where the card
+      stands outside the grid, with reduced motion) */
+  caption?: string;
+  /** a software mark rather than a photograph: src is its path in the
+      library (public/assets/logos/software/, the vendors' own files),
+      set small in the middle of a dark square, no caption */
+  mark?: boolean;
+  /** its cell while held, from 992px and narrower: shares across and
+      down the grid's inner cells (cell-grid.js) */
+  at?: [number, number];
+  atNarrow?: [number, number];
+  /** below 768px, where it differs from atNarrow (a phone's grid has
+      only three inner cells across) */
+  atPhone?: [number, number];
+  /** below 992px: Grid Column and top, or null for none */
+  tablet: [number, number] | null;
+  /** below 768px: Grid Column and top, or null for none */
+  phone: [number, number] | null;
+};
+// Now the software marks alone (the photographs were taken out at the
+// user's request, 2026-10-16), the two the library has (the vendors' own
+// files), alternating round the words, three over them and three under.
+// A new mark is its file in public/assets/logos/software/ and a line here.
+// While held, each takes a cell of the grid by `at` (from 992px) or
+// `atNarrow` (narrower): where it stands among the grid's inner cells
+// (never the outer ring), as shares across and down them, 0 to 1
+// (cell-grid.js). From 992px the words fill the grid's middle, so three
+// marks stand either side in a loose zig-zag, the right side the left
+// turned half round (top left answering bottom right), the two brands
+// alternating; narrower, the words take the width and the marks the
+// bands over and under them. col/top place each otherwise (reduced
+// motion).
+const RHINO = { src: "/assets/logos/software/rhino.svg", width: 1200, height: 1200, mark: true };
+const BLUEBEAM = { src: "/assets/logos/software/bluebeam.png", width: 576, height: 376, mark: true };
+const PHOTOS: Photo[] = [
+  { ...BLUEBEAM, at: [0.12, 0], atNarrow: [0, 0], col: 2, top: 22, tablet: [1, 20], phone: [1, 12] },
+  { ...RHINO, at: [0, 0.4], atNarrow: [0.5, 0.15], atPhone: [1, 0.12], col: 1, top: 48, tablet: [3, 24], phone: [3, 14] },
+  { ...BLUEBEAM, at: [0.06, 1], atNarrow: [1, 0], col: 2, top: 74, tablet: [6, 18], phone: null },
+  { ...RHINO, at: [0.94, 0], atNarrow: [0, 0.85], col: 11, top: 22, tablet: [1, 82], phone: null },
+  { ...BLUEBEAM, at: [1, 0.6], atNarrow: [0.5, 1], atPhone: [0, 1], col: 12, top: 56, tablet: [3, 88], phone: [2, 86] },
+  { ...RHINO, at: [0.88, 1], atNarrow: [1, 0.85], col: 11, top: 74, tablet: [6, 82], phone: [4, 82] },
+];
+const photoStyle = (p: Photo) =>
+  [
+    `--col:${p.col};--top:${p.top}%;--ar:${p.mark ? "1 / 1" : `${p.width} / ${p.height}`}`,
+    p.tablet && `--col-t:${p.tablet[0]};--top-t:${p.tablet[1]}%`,
+    p.phone && `--col-m:${p.phone[0]};--top-m:${p.phone[1]}%`,
+  ].filter(Boolean).join(";");
+
+// The homepage FAQ's temporary placeholders, to see a longer list: six
+// items that say "FAQ Test". Remove once the real questions are written.
+const FAQ_PLACEHOLDERS = Array.from({ length: 6 }, () => ({ question: "FAQ Test", answer: "FAQ Test" }));
 
 // The strip's logos: the clients in the Studio, each with its mark, or the
 // ten files the strip has always shown. Each is sized to balance the others
@@ -111,8 +189,9 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        (.ink-band, styles.css), so where the two sections meet the page's
        white can never show between them. -->
   <div class="ink-band band-steps-host">
-    <!-- the band's top edge in pieces, two Grid Columns each, rising as
-         the scroll starts and settling flush as the band reaches the top
+    <!-- the band's top edge in pieces, two Grid Columns each, rising
+         gently from flush as the scroll starts, each at its own rate, so
+         the edge keeps changing shape the whole way up the screen
          (initBandSteps, parallax.js; styles.css "band steps") -->
     <div class="band-steps" data-band-steps aria-hidden="true">
       {Array.from({ length: 6 }, (_, i) => <span class="band-steps__seg" style={`--i:${i}`}><span class="band-steps__dots dot-grid band-field"></span></span>)}
@@ -123,14 +202,42 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        ahead of the statement's held frame. Every client at once, each on a
        card of its own, in one even grid. The marks are the clients in the Studio (Home
        page → Logo strip), in their order. -->
-  <StickyTitle id="approach" class="logos" navHold rule headings={[t("approach.statement")]} field="approach.statement" dots wide>
+  <!-- The statement stands on the band's dots drawn as a grid of cells,
+       from under the wall to over the approach's heading (cells;
+       cell-grid.js) -->
+  <StickyTitle id="approach" class="logos" navHold navHoldUntil=".approach-stack__slot:nth-child(2)" headings={[t("approach.statement")]} field="approach.statement" dots still wide cells=".approach-stack__head" breaks={["decisions", "software. They", "practice works,"]}>
+    <!-- The software marks where the screen is empty round the statement
+         (PHOTOS, above), each in a cell of the grid behind it, lit in its
+         turn while the statement is held: a red outline drawn round the
+         cell, the mark wiped in inside it (cell-grid.js,
+         data-cell-photo); decoration, so the layer is hidden from screen
+         readers. -->
+    <div class="sticky-title__photos" slot="around">
+      {PHOTOS.map((p) => (
+        <div class:list={["sticky-title__cell", { "is--no-tablet": !p.tablet, "is--no-phone": !p.phone }]} data-cell-photo data-cell-at={p.at?.join(" ")} data-cell-at-narrow={p.atNarrow?.join(" ")} data-cell-at-phone={p.atPhone?.join(" ")} data-dot-fit=".sticky-title__dots" data-dot-fit-frame style={photoStyle(p)}>
+          <span class="sticky-title__cell-fill"></span>
+          <span class="sticky-title__cell-lines"><span class="sticky-title__cell-line is--top"></span><span class="sticky-title__cell-line is--right"></span><span class="sticky-title__cell-line is--bottom"></span><span class="sticky-title__cell-line is--left"></span></span>
+          <div class="sticky-title__cell-win">
+            <figure class:list={["sticky-title__photo", { "is--mark": p.mark }]}>
+              <span class="sticky-title__photo-pic"><img src={p.src.startsWith("/") ? p.src : `/assets/images/${p.src}`} width={p.width} height={p.height} alt="" loading="lazy" decoding="async" draggable="false"></span>
+              {p.caption && <figcaption class="sticky-title__photo-cap">{p.caption}</figcaption>}
+            </figure>
+          </div>
+        </div>
+      ))}
+    </div>
+    <!-- the button fitted to the band's dots (dot-fit.js), and the dots
+         round it lifted a little (dot-lift.js), as they are round the
+         logos above, so the eye is drawn to it without anything drawn
+         round it -->
+    <ActionButton href="/stack-diagnostic.html" slot="after" data-dot-fit=".sticky-title__dots" data-dot-lift=".sticky-title__dots" data-dot-lift-reach="8" data-dot-lift-amount="0.7"><span data-page-field="approach.button">{t("approach.button")}</span></ActionButton>
     <div class="logos__field" slot="before">
       <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
       <div class="logo-wall-wrap">
         <!-- Osmo's Logo Wall Cycle (logo-wall-cycle.js): the first cards
              show, and one at a time a card's logo slides out for one of
              the rest. How many show is CSS (styles.css, "Logo Wall Cycle"). -->
-        <ul class="logo-wall" role="list" data-logo-wall-cycle-init data-logo-wall-shuffle="false" data-logo-wall-list data-dot-snap=".sticky-title__dots" data-statement-above>
+        <ul class="logo-wall" role="list" data-logo-wall-cycle-init data-logo-wall-shuffle="false" data-logo-wall-list data-dot-snap=".sticky-title__dots" data-dot-lift=".sticky-title__dots" data-statement-above>
           {logos.map((logo) => (
           <li class="logo-wall__card" data-logo-wall-item><div class="logo-wall__logo" data-logo-wall-target-parent><div class="logo-wall__logo-target" data-logo-wall-target><img src={logo.src} width={logo.width} height={logo.height} alt={logo.name} style={logo.style} loading="lazy" draggable="false"></div></div></li>
           ))}
@@ -140,7 +247,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
   </StickyTitle>
 
   <!-- ========== 4. APPROACH STEPS ========== -->
-  <ApproachStack steps={steps} />
+  <ApproachStack steps={steps} heading={t("approach.heading")} />
 
   </div>
 
@@ -161,49 +268,49 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
       </div>
 
       <div data-problem-parallax class="problem-grid">
-        {costCards.map((card, i) => {
-          const picture = img(`cost.cards.${i}.image`, 1200, D.cost.cards[i]?.image);
-          return (
+        {costCards.map((card, i) => (
         <article class="problem-card">
-          <!-- the picture in a field of dots (styles.css, "industry problems") -->
+          <!-- the picture's place in a field of dots (styles.css, "industry
+               problems"), held empty for now: the frame keeps its size and
+               its light ground, and stands in for the picture. To bring the
+               pictures back, put an img.problem-card__image in the frame again,
+               from img("cost.cards.N.image", 1200, the default), bound with
+               data-page-field="cost.cards.N.image" and data-page-width="1200"
+               (the Studio still holds each card's picture, and the defaults
+               theirs) -->
           <div class="problem-card__media">
             <span class="problem-card__dots dot-grid" aria-hidden="true"></span>
-            <div class="problem-card__frame">
-              <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt={picture.alt} class="problem-card__image" data-page-field={`cost.cards.${i}.image`} data-page-width="1200">
-            </div>
+            <div class="problem-card__frame"></div>
           </div>
           <div class="problem-card__body">
             <h3 class="problem-card__h" data-page-field={`cost.cards.${i}.title`}>{card.title}</h3>
             <p class="problem-card__p" data-page-field={`cost.cards.${i}.text`}>{card.text}</p>
           </div>
         </article>
-          );
-        })}
+        ))}
       </div>
     </div>
   </section>
 
   <!-- ========== 5b. WAYS TO WORK WITH ADDD ==========
-       The four routes as one panel that sticks while the scroll takes it
-       through them (ServiceTabs.astro), under its own heading, on a band
-       of the ink. -->
-  <section class="service-tabs-section">
-    <ServiceTabs cards={routeCards} hrefs={routeHrefs} label={t("routes.tagline")} />
-  </section>
+       The four routes as cards that stack as the page scrolls
+       (ServiceDeck.astro). The panel that takes the routes in turn
+       (ServiceTabs.astro) now lives on the AEC Tech Partners page. -->
+  <ServiceDeck cards={routeCards} hrefs={routeHrefs} />
 
   <!-- ========== 6. TESTIMONIALS ========== -->
   <!-- The slider alone (TestimonialSlider.astro): the quotes stacked in
        one place, changed line by line, its dotted rule the section's
        full height -->
-  <!-- revealed from under the band above, as the footer is from under
-       the page: in a clipping wrap, the section settling out of a
-       higher offset and a shadow as the wrap comes up the screen
-       (initRevealParallax, parallax.js) -->
-  <div data-reveal-parallax class="reveal-wrap">
-    <section class="testimonials" aria-label="Testimonials" data-reveal-parallax-inner>
+  <!-- uncovered from under the service deck as it scrolls away, as the
+       footer is from under the page: the quotes settle out of a higher
+       place inside a clipping wrap and their shadow clears
+       (data-depth="under", initDepthTransitions, parallax.js) -->
+  <div data-depth="under" class="reveal-wrap">
+    <section class="testimonials" aria-label="Testimonials" data-depth-content>
       <TestimonialSlider items={testimonials} field="testimonials.items" />
     </section>
-    <div data-reveal-parallax-dark class="reveal-wrap__dark"></div>
+    <div class="depth-shade" data-depth-shade aria-hidden="true"></div>
   </div>
 
   <!-- ========== 7. CREDENTIALS ========== -->
@@ -229,36 +336,23 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
     </div>
   </section>
 
-  <!-- ========== 8. FIT / COMPARISON ========== -->
-  <section class="section section--light compare">
+  <!-- ========== 8. FAQ ==========
+       Who ADDD is for and who it is not, as questions (the fit section's
+       own lists, fit.forItems and fit.notItems, as the answers): the
+       heading on Grid Columns 1–5, the questions on Grid Columns 7–12,
+       each opening to its answer (Accordion.astro, "boxed"). The six "FAQ
+       Test" items after them are temporary placeholders, to see a longer
+       list: take them out (FAQ_PLACEHOLDERS) once the real questions are
+       written. -->
+  <section class="section section--light faq-home" id="faq">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="fit.lede">{t("fit.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline--plain" data-page-field="fit.tagline">{t("fit.tagline")}</p>
-          <h2 class="h2" data-split="heading" style="max-width:45.625rem" data-page-field="fit.heading">{t("fit.heading")}</h2>
-        </div>
-      </div>
-
-      <!-- Two sides, set against each other: who ADDD is for and who it is
-           not, each a large title over a run of rows. -->
-      <div class="compare__grid">
-        <div class="compare__side">
-          <h3 class="compare__title" data-page-field="fit.forTitle">{t("fit.forTitle")}</h3>
-          <ul class="compare__list">
-            {lines("fit.forItems").map((item, i) => (
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p data-page-field={`fit.forItems.${i}`}>{item}</p></li>
-            ))}
-          </ul>
-        </div>
-        <div class="compare__side is--not">
-          <h3 class="compare__title" data-page-field="fit.notTitle">{t("fit.notTitle")}</h3>
-          <ul class="compare__list">
-            {lines("fit.notItems").map((item, i) => (
-            <li class="compare__row"><span class="compare__mark" aria-hidden="true"></span><p data-page-field={`fit.notItems.${i}`}>{item}</p></li>
-            ))}
-          </ul>
-        </div>
+      <h2 class="h2 faq-home__h" data-split="heading" data-page-field="fit.faqHeading">{t("fit.faqHeading")}</h2>
+      <div class="faq-home__list">
+        <Accordion id="home-faq" variant="boxed" items={[
+          { question: t("fit.forQuestion"), questionField: "fit.forQuestion", points: lines("fit.forItems"), pointsField: "fit.forItems", mark: "fill" },
+          { question: t("fit.notQuestion"), questionField: "fit.notQuestion", points: lines("fit.notItems"), pointsField: "fit.notItems", mark: "open" },
+          ...FAQ_PLACEHOLDERS,
+        ]} />
       </div>
     </div>
   </section>

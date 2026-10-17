@@ -24,6 +24,11 @@ export const techFirmsPage = defineType({
     pageSection('routes', 'Objectives', 'The three cards that pin in turn as the page scrolls. Each card’s colour, the crop of its picture and the offer its link leads to stay in the code, by position.', [
       itemsField('items', 'Objectives', 'tile', 'The three cards, in order: the title, the text, the link label and the picture. There are always three.'),
     ]),
+    pageSection('services', 'Ways to work with ADDD', 'The heading over the blue panel that takes its statements in turn as the page scrolls, one large statement at a time, each with its number under it. The drawings beside them stay in the code, by position.', [
+      taglineField('The heading over the panel.', 'tagline', 'Heading'),
+      linesField('statements', 'Statements', 'One statement per line, in order: each is shown on its own in the panel, large, with nothing else. Three reads best.'),
+      itemsField('cards', 'Routes (no longer shown)', 'tile', 'The four routes the panel used to take in turn. No longer shown on this page; kept while the live site still reads them.'),
+    ]),
     pageSection('example', 'Episode format', 'The heading row and the steps of a featured workflow episode, labelled as an illustrative format.', [
       ...sectionHead(),
       itemsField('steps', 'Steps', 'step', 'One step per row: the small label, the title and the text.'),

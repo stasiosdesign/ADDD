@@ -31,9 +31,8 @@
    visited links follow like everything else.
 
    The dropdown is the bar continued downwards: in the drawer its surface
-   is the bar's own --nav-bg; the Services cards take the state too, the
-   bar's own ground and ink, and the Resources blocks keep their own
-   grounds in either state. */
+   is the bar's own --nav-bg; the Services cards and the Resources blocks
+   take the state too, the bar's own greys and ink. */
 .mega-nav {
   --nav-height: 3.9em;
 
@@ -63,10 +62,47 @@
   left: 0;
   right: 0;
 }
+/* AEC Tech Partners' scramble (text-scramble.js; the site's red tint in
+   nav-link.css) in its page's blue, its dots too while the band is over
+   them. */
+.mega-nav .mega-nav__feature :is(.nav-link__text, .nav-link__dots) .is--scrambling { color: color-mix(in srgb, var(--c-blue) 60%, currentColor); }
+
 /* The state before the script has read the ground: the attribute, or a
    dark page (data-theme on <html>: BaseLayout.astro, and site.js on a
    navigation). Once it has, the tween's own value on the bar's style, and
    the nav's, takes over from these. */
+/* Floating: past the page's hero (initNavReveal, nav.js, which only ever
+   switches it while the bar is out of view), from 992px, the bar comes
+   off the screen's edges — set in to the grid's own width, so it spans
+   Grid Columns 1–12 exactly as the page's content does, a little below
+   the top — and a touch shorter, its corners softened as the page's
+   surfaces are (--radius, styles.css: 2px, which the nav redeclares for
+   its own blocks, so it is set here), so it reads as standing over the
+   page rather than part of its top edge. The bar clips its blocks to
+   those corners.
+   Inside it the grid's margin is nothing, so its blocks (the logo on
+   Grid Column 1, the feature to Column 5, Contact on 11–12), which are
+   measured from the bar, still land on the columns. Where the bar is in
+   view as the page passes its hero, the script morphs it from the one
+   to the other (initNavReveal) through these same values, the corners
+   with the sides, set inline, and hands back to this rule as it
+   settles. */
+@media (min-width: 992px) {
+  .mega-nav.is--floating {
+    --nav-height: 3.6em;
+    --nav-float-top: 0.75rem;
+    --nav-bar-radius: 1px;
+    top: var(--nav-float-top);
+    left: var(--grid-margin);
+    right: var(--grid-margin);
+  }
+  .mega-nav.is--floating > * { --grid-margin: 0px; }
+  .mega-nav__bar {
+    border-radius: var(--nav-bar-radius, 0px);
+    overflow: clip;
+  }
+}
+
 :root[data-theme="dark"] .mega-nav:not([data-nav-theme]),
 .mega-nav[data-nav-theme="dark"] { --nav-dark: 100%; }
 
@@ -171,8 +207,11 @@
    side where the block is narrowest. Hovered, the forms are drawn back
    into the name (initNavLogo, site.js); mid-change a letter is pressed a
    touch wider than its form, past the viewBox, which it must not be
-   cropped by. */
-.mega-nav__bar-logo-mark { width: min(3.5em, 100% - 2 * var(--grid-edge)); height: auto; display: block; overflow: visible; }
+   cropped by. Its size is a share of the bar's height (3.5em on the full
+   bar's 3.9em), so as the bar floats and shortens (nav.js, initNavReveal,
+   which eases --nav-height on the bar frame by frame) the mark shrinks in
+   step with it, the same way, at the same moment. */
+.mega-nav__bar-logo-mark { width: min(var(--nav-height) * 3.5 / 3.9, 100% - 2 * var(--grid-edge)); height: auto; display: block; overflow: visible; }
 
 /* The feature block — the Tech Firms link. The near-white fill, with the
    label set at the block's far end, the block's padding clear of its edge;
@@ -234,8 +273,8 @@
   display: flex;
   font-family: var(--font-body);
 }
-/* The hover is the site's sliding-box link (nav-link.css): the block
-   inverts the label, never the block it stands in. */
+/* The hover is the site's text-link hover (nav-link.css,
+   text-scramble.js): the label decodes and a dotted line draws under it. */
 
 .mega-nav__bar-link-label {
   font-family: var(--font-body);
@@ -361,9 +400,9 @@
    but the dimmed page: from 992px each group an equal column of the
    screen's width — the four Services cards a quarter each, the three
    Resources blocks a third — from the bar's foot down the dropdown's
-   full height. The Resources columns are parted by a hairline of the
-   dimmed page between them; the Services cards stand flush, one ground
-   from end to end, told apart by their patterns alone. Every row inside
+   full height. Both stand flush, one ground from end to end, with no
+   line between them: the Services cards told apart by their patterns,
+   the Resources columns by their marks' squares and fields. Every row inside
    a group is a whole number of one step (--sc-step), and the groups of
    a panel share their rows, so each part stands level across them.
    Below 992px, in the drawer, the groups stand one under another, the
@@ -380,7 +419,7 @@
 }
 @media (min-width: 992px) {
   .mega-nav__dropdown-inner {
-    gap: 1px;
+    gap: 0;
     padding: 0;
   }
 }
@@ -389,8 +428,8 @@
 /* --- Services cards (ServiceCard.astro) -----------------------------
    Minimal and typographic: each card one block, the service's name
    large in its middle, both ways, a line on the service small under it,
-   and behind it a pattern of its own, faint, stopping
-   round the name: the hero's linework (the Slash Field's upright
+   and behind it a pattern of its own, faint, running on across the
+   whole card, behind the words too: the hero's linework (the Slash Field's upright
    strokes, drawn at build in ServiceCard.astro) or the site's dotted
    line (the drawings' grounds' dots, dot-field.js). The four share the
    strokes' weight and tints and the dots' size and spacing, so they
@@ -488,17 +527,12 @@
   vector-effect: non-scaling-stroke;
 }
 /* the dots, to the card's edges, on their canvas (dot-field.js), in the
-   state's dot ink; open round the name by the clearing the strokes take
-   (--sc-clear, ServiceCard.astro) */
+   state's dot ink, on behind the name as everywhere else */
 .service-card__dots {
   --iso-line: var(--nav-card-dots);
   position: absolute;
   inset: 0;
   pointer-events: none;
-  -webkit-mask-image: var(--sc-clear);
-  mask-image: var(--sc-clear);
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
 }
 .service-card__dots > canvas { display: block; }
 /* the name, large, on one line where it fits (the dropdown's short
@@ -579,13 +613,20 @@
    are told apart by tone alone. A link row takes the cards' hover, a
    shade laid over it, and their focus ring. */
 
-/* The Resources blocks a hair off white, as the Services cards are
-   (--nav-card-bg), their mark's square and their feature's field each a
-   step under that, so the dropdown sits closer to the bar's greys */
+/* The Resources blocks take the nav's state as the Services cards do,
+   mixed by the same --nav-dark: light, a hair off white (the cards'
+   --nav-card-bg), their mark's square and their feature's field each a
+   step under that; dark, the cards' near-black, the square and the field
+   each a step lighter, the words in the bar's ink. The hover's shade is
+   the block's ink, as a card's is, so it shows on either ground. The
+   three stand flush, as the cards do, each carrying its ground a pixel on
+   under the next so no seam of the dimmed page shows between them. */
 .resource-block {
-  --sc-ground: #efefef;
-  --sc-num: #e2e2e2;
-  --sc-field: #e7e7e7;
+  --sc-ground: var(--nav-card-bg);
+  --sc-num: color-mix(in oklab, #e2e2e2, #202020 var(--nav-dark));
+  --sc-field: color-mix(in oklab, #e7e7e7, #1a1a1a var(--nav-dark));
+  --sc-ink: var(--nav-fg);
+  --sc-shade: currentColor;
   position: relative;
   display: grid;
   grid-template-columns: var(--sc-head) minmax(0, 1fr);
@@ -793,7 +834,7 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
     grid-template-rows: calc(3 * var(--sc-step)) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), auto);
     row-gap: 0;
   }
-  .is--resources > .resource-block { grid-row: 1 / span 3; grid-template-rows: subgrid; }
+  .is--resources > .resource-block { grid-row: 1 / span 3; grid-template-rows: subgrid; box-shadow: 1px 0 0 var(--sc-ground); }
 }
 
 @media screen and (max-width: 991px) {

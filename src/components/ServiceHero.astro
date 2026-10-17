@@ -1,0 +1,71 @@
+---
+/*
+  A service page's hero: the homepage deck's card for the service
+  (ServiceDeck.astro), at the size of the screen. Clicking the card opens
+  it into this (service-sheet.js): the card comes out of the deck and its
+  edges open to the screen's, and every part the two share glides to its
+  place here, so the hero is the card, opened.
+
+  So it is built from the card's own parts, and styled by them
+  (src/styles/service-deck.css, "Service hero"): the one charcoal, the
+  12-Column Grid, and in its head row the number on Grid Column 1, the
+  name from Grid Column 2 at the card's size and the square at the end of
+  Grid Column 7 (here its arrow turned down: it leads on into the
+  page); the list of what the route covers on Grid Columns 5–7, as the
+  card has it; and the diagram's panel on Grid Columns 8–12, from the
+  name's line to the foot, the drawing at the card's size. The head row
+  stands where a card's head stands at the top of the deck's pile, under
+  the nav. Under the head the page's own words take the card's line's
+  place: the heading, and under it the lede and the buttons on Grid
+  Columns 2–4.
+
+  The words are the page document's (hero.tagline names the service, as
+  the card's title does); the buttons are the page's own, in the
+  "actions" slot. What the card does not have (the heading, the lede, the
+  buttons) is marked data-sheet-hide: the opening card is laid out with
+  them but does not show them, and they come in once the page is in view
+  (the heading's line reveal, data-hero-rise: reveals.js).
+*/
+import LineArrow from "./LineArrow.astro";
+import ServiceDiagram from "./ServiceDiagram.astro";
+import { SERVICES } from "./services";
+
+interface Props {
+  /** the route's place in the deck, 0–3: its number, list and diagram */
+  index: number;
+  name?: string;
+  heading?: string;
+  lede?: string;
+  /** where the square leads, down the page */
+  next?: string;
+}
+const { index, name, heading, lede, next = "#overview" } = Astro.props;
+const covers = SERVICES[index]?.covers ?? [];
+---
+<section class="service-hero" data-service-hero={index} data-nav-theme="dark">
+  <div class="service-deck__inner service-hero__inner">
+    <span class="service-deck__n" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+    <p class="service-deck__h" data-page-field="hero.tagline" data-nav-float-from>{name}</p>
+    <a class="service-deck__go" href={next} aria-label="Read on">
+      <LineArrow class="service-deck__arrow" aria-hidden="true" />
+    </a>
+    <div class="service-hero__head" data-sheet-hide>
+      <h1 class="service-hero__heading" data-split="heading" data-page-field="hero.heading">{heading}</h1>
+    </div>
+    <div class="service-deck__cell service-hero__copy" data-sheet-hide>
+      <p class="service-hero__lede" data-hero-rise data-page-field="hero.lede">{lede}</p>
+      <div class="actions actions--pair service-hero__actions" data-hero-rise><slot name="actions" /></div>
+    </div>
+    <div class="service-deck__cell service-deck__covers">
+      <ul class="service-deck__list" role="list" aria-label="What it covers">
+        {covers.map((item) => <li>{item}</li>)}
+      </ul>
+    </div>
+    <div class="service-deck__media">
+      <div class="service-deck__art">
+        <div class="service-deck__pattern" data-iso-field aria-hidden="true"></div>
+        <ServiceDiagram index={index} class="service-deck__diagram" />
+      </div>
+    </div>
+  </div>
+</section>

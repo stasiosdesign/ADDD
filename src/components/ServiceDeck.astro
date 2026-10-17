@@ -1,0 +1,87 @@
+---
+/*
+  The four routes as a deck of cards that stack as the page scrolls: an
+  alternative to the service tabs (ServiceTabs.astro), set under them on
+  the homepage for the two to be compared side by side. Each route is a
+  band the screen's height, all in one charcoal and parted by the site's
+  dotted rule (styles: src/styles/service-deck.css), laid out on the
+  12-Column Grid:
+  in its head row, its number in the label face on Grid Column 1 (as the
+  approach cards carry theirs), its name large from Grid Column 2, and at
+  the end of Grid Column 7 a square with an arrow (LineArrow.astro) that leads to
+  its page, in one column down the four cards; under the head, high in
+  the card where it is read before the next card comes over it, two cells
+  on one level, each a label on the site's dotted rule with its words
+  under it: the tagline and the line on Grid Columns 2–4, and a list of
+  what it covers on Grid Columns 5–7, each line on the rule; and on Grid
+  Columns 8–12 its diagram (ServiceDiagram.astro) in a panel from the
+  name's line to the foot, on black, on the drawing's lattice
+  (dot-field.js). Every card sticks under the nav, each a little
+  lower than the one before by its own head, so as the next comes up over
+  it only the head of the one below stays in view: the numbers and names
+  pile up like a set of tabs, and once the last card lands the whole pile
+  scrolls on with the page. CSS
+  alone (position: sticky): nothing is measured or moved by a script, and
+  it runs back exactly.
+
+  The words are the routes' from the Studio (tagline, title, text); the
+  lists are the routes' own (services.ts), which each service page's hero
+  shows too.
+
+  Each card is the start of its page: the page's hero is the card at the
+  screen's size (ServiceHero.astro). A click on a card (data-service-sheet)
+  opens it into that hero (service-sheet.js), wherever the card is in the
+  pile; a card the pointer comes onto, or a finger presses, has its page
+  fetched ahead (data-service-deck), so it opens without a wait.
+*/
+import LineArrow from "./LineArrow.astro";
+import ServiceDiagram from "./ServiceDiagram.astro";
+import { SERVICES } from "./services";
+
+interface Card {
+  tagline?: string;
+  title?: string;
+  text?: string;
+}
+interface Props {
+  cards: Card[];
+  hrefs: string[];
+}
+const { cards, hrefs } = Astro.props;
+
+// what each route covers, by position
+const COVERS = SERVICES.map((route) => route.covers);
+---
+<div class="service-deck" data-service-deck style={`--deck-steps:${Math.max(cards.length - 1, 0)}`}>
+  {cards.map((card, i) => (
+  <article class="service-deck__card" style={`--i:${i}`}>
+    <div class="service-deck__inner">
+      <span class="service-deck__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+      <h3 class="service-deck__h" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
+      <!-- the way to the route's page, in the head row at the end of Grid
+           Column 7, against the panel, so the four stand in one column
+           whatever the names' lengths: a solid square with the logo's
+           triangle. It is the whole card's link (stretched over the card,
+           service-deck.css): pointing anywhere on the card lights it white
+           and turns the triangle up and on; a click opens the page -->
+      <a class="service-deck__go" href={hrefs[i] ?? "contact.html"} data-service-sheet={i} aria-label={`View ${card.title || "the service"}`}>
+        <LineArrow class="service-deck__arrow" aria-hidden="true" />
+      </a>
+      <!-- two cells on one level: the line on Grid Columns 2–4, and what
+           the route covers on Grid Columns 5–7 -->
+      <div class="service-deck__cell service-deck__copy">
+        <p class="service-deck__p" data-page-field={`routes.cards.${i}.text`}>{card.text}</p>
+      </div>
+      <div class="service-deck__cell service-deck__covers">
+        <ul class="service-deck__list" role="list" aria-label="What it covers">
+          {(COVERS[i] ?? []).map((item) => <li>{item}</li>)}
+        </ul>
+      </div>
+      <div class="service-deck__media">
+        <div class="service-deck__pattern" data-iso-field aria-hidden="true"></div>
+        <ServiceDiagram index={i} class="service-deck__diagram" />
+      </div>
+    </div>
+  </article>
+  ))}
+</div>

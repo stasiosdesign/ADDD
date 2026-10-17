@@ -174,7 +174,7 @@ are unchanged.
 | `/report-template.html` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
 | `/newsletter.html` | `src/pages/newsletter.astro` — Newsletter index |
 | `/newsletter-template.html` | `src/pages/newsletter-template.astro` — "AI in architecture" |
-| `/tech-firms.html` | `src/pages/tech-firms.astro` — Tech Firms (the homepage hero, then the original approach cards from the homepage — Understand, Diagnose, Prioritise — kept there while the page is written) |
+| `/tech-firms.html` | `src/pages/tech-firms.astro` — AEC Tech Partners (a centred black hero, `Hero.astro` "centred", on a dotted isometric lattice with stacks of blue plates round its words lying in its cells (one cell, `--cell`, sets out both), drawn in the flatter 2:1 view of the reference rather than the site's 30° isometric (`data-iso-angle`), `IsoStacks.astro`; the blue statements panel; then the original approach cards from the homepage — Understand, Diagnose, Prioritise) |
 | `/about.html` | `src/pages/about.astro` |
 | `/contact.html` | `src/pages/contact.astro` |
 
@@ -202,7 +202,11 @@ src/
                              and ScrollTrigger), page.js (what components
                              share) and nav.js around it, and one module per
                              component: slash-field.js, approach-stack.js,
-                             sticky-title.js, service-tabs.js, parallax.js,
+                             sticky-title.js, dot-lift.js (the dots lifted
+                             round the logos), cell-grid.js (the dots behind
+                             the statement drawn as a grid of cells, its
+                             photographs lit in them),
+                             service-tabs.js, parallax.js,
                              reveals.js, insight-slider.js, …
 public/assets/               images, logos, icons and logo.svg, served as-is at
                              /assets/…
@@ -225,8 +229,7 @@ Each page renders as:
 ```
 
 The nav sits outside the container so it survives navigation — its GSAP
-timelines and the Contact button's width measurement are wired up once per
-document rather than per page. Anything inside the container is replaced on
+timelines are wired up once per document rather than per page. Anything inside the container is replaced on
 every navigation, so page-level behaviour is bound per container: each
 component is listed in `PAGE_COMPONENTS` in `src/scripts/site.js`, with the
 selector that marks it, so a component's script runs only on a page that
@@ -379,24 +382,78 @@ and the shader disk cache (which the scripts can disable) hides it.
   The logo intro — the Logo Morph Loader (`MorphLoader.astro`,
   `logo-morph-loader.js`, `logo-morph.js`): A D D D drawn into the logo's
   forms and the red disc opening behind them, which on the homepage plays out
-  in the hero's own Slash Field and flies into the nav's logo slot — plays
-  once per browsing session: on the first page the visitor lands on, whichever it
-  is, and again only on a genuine reload. Any other document load in the
-  session — Barba falling back to a full load, a back/forward that misses the
-  bfcache, a typed URL — opens on the wipe's reveal instead, and so does any
-  load that arrives from one of the site's own pages, even in a tab with no
-  record of the intro. The inline script in `<head>` makes that call before the
+  in the hero's own Slash Field and flies into the nav's logo slot, its pulse
+  handing over to the field's continuous wave as it reaches the field's edge —
+  plays only on a genuine load of the homepage: opened from outside the site
+  (a typed address, a bookmark, a link from elsewhere) or reloaded. Every other
+  document load — another page, a back/forward that misses the bfcache, Barba
+  falling back to a full load, any load that arrives from one of the site's own
+  pages — opens on the wipe's reveal instead, and moving round the site,
+  home by the logo included, is Barba's wipe. A link to the page already open
+  (the logo on the homepage) is no navigation: the page glides back to its top
+  (`isSamePage`, `page.js`; `nav.js`). The inline script in `<head>` makes that call before the
   first paint and writes it to `<html data-arrival>`; see *ARRIVAL* in
   `src/scripts/site.js`. On a click the page is held exactly as it is — the
   smooth scroll stops and the document height is kept — and the outgoing
   page's components are torn down only once the panel covers it (`afterLeave`),
   since killing pins and reverting splits or the slider's cards would
   otherwise show as a jump before the wipe; the next page is scrolled to the
-  top while still covered. A Back or Forward pressed while a transition is still
+  top while still covered. Building a page is one long piece of main-thread
+  work (the homepage's, a few hundred milliseconds), so it happens only in a
+  still covered window: the old page is taken out and torn down, and the new
+  one built, once the panel's logo has settled (`wipeSettled`, timed to be
+  still about as the panel arrives, 0.65s); then, still covered, the new
+  page's webfonts are awaited, it is measured once, and it is shown under the
+  panel for a frame so its first paint lands there too, not on the panel's
+  first frame off it. The panel lifts as soon as the page has settled (the
+  main thread idle, a quarter of a second at most: `pageSettled`), not after
+  a fixed beat, so a light page shows about 0.8s after the click and the
+  homepage, whose build runs on for a moment after it is laid out, about
+  1.35s. Every face the stylesheets declare is
+  fetched in an idle moment after the first page arrives (`warmFonts`), so a
+  navigation never waits on the network for one. A Back or Forward pressed while a transition is still
   running is held and replayed when it finishes, rather than letting Barba turn
-  it into a full page load. Both honour `prefers-reduced-motion`: the wipe
-  becomes an immediate swap, and the intro shows the mark without the stack
-  and fades out.
+  it into a full page load. A Back or Forward step comes back to where the
+  reader left that page (`leftAt`, `site.js`), as a reload does, so Back
+  from a service page finds the homepage's deck where it was; a link to a
+  place on another page (`page.html#section`), or a load of one, opens the
+  page there; every other navigation opens a page at its top. The nav takes
+  the new page's light or dark state at once while the page is covered, so
+  it never shows the last page's as the cover lifts.
+- **Glide to a place** — every scroll the site makes to a place is one glide
+  (`glideTo`, `scroll.js`): a link to a section on the same page (one
+  listener for every `#` link), the service tabs taking a route, the nav's
+  back to the top. On Lenis, eased in and out (cubic), 0.9s plus a second
+  for every 2000px, to 2.2s; the section stands 1.5rem under the nav's
+  foot (`anchorY`); the reader's own wheel, key or touch takes over at
+  once; with reduced motion the page is simply there. Both honour `prefers-reduced-motion`:
+  the wipe becomes an immediate swap, and the intro shows the mark without
+  the stack and fades out.
+- **Card to page** — a click on a card of the homepage's service deck opens
+  the card into its page in place of the wipe (`service-sheet.js`, Barba's
+  `service-sheet` transition in `site.js`). Each service page's hero is the
+  card at the screen's size (`ServiceHero.astro`), on the card's own parts
+  and measures, so the card can become it part for part. The page is fetched
+  into Barba's cache as the pointer comes onto a card (or a finger presses
+  it), and its hero is laid out in a layer over everything at its own size,
+  cut to the card's shape, with every shared part (number, name, square,
+  list, the diagram's panel and drawing) moved back onto the card's place
+  (FLIP), so its first frame is the card as it stands, however much of it
+  the pile hides. The cards in front slide down off it, its foot on their
+  edge, and the pile behind falls into shade; then it comes forward over
+  them, its edges out to the screen's, every part gliding to its place on
+  the page, and over the last of that the page's heading rises into it
+  line by line and its lede and buttons after it (Web Animations, on the
+  compositor, so they run on smoothly while the page is built under the
+  sheet, which starts as soon as the sheet is still to the eye). The page's
+  hero is built in the state those end in (`data-hero-shown`), the nav
+  comes back over the sheet in the page's state, and the sheet hands over
+  (the drawing picking up its loop where the card's was): about two seconds
+  from click to scroll. Only transforms and opacity move: the card's shape
+  is a window of boxes moved by transforms, not an animated clip-path,
+  which repainted the sheet every frame and halved the frame rate on this
+  machine's graphics. With reduced motion, or should the page not come, a
+  card is an ordinary link (the swap or the wipe).
 - **Hero pattern** — the hero's band carries one of two patterns
   (`src/components/Hero.astro`, `pattern` prop). The homepage has the Slash
   Field (`src/scripts/slash-field.js`), and no schematic lines: a stable grid
@@ -470,10 +527,10 @@ and the shader disk cache (which the scripts can disable) hides it.
   the grid is), and its columns stand so that every card's sides run
   midway between two of them, to a fraction of a pixel at every width.
   The rail stands on one of those columns, so the mark on it sits on a
-  line of dots: from 992px on the left edge of Grid Column 7, where a
-  column of dots falls (a card is 25 steps across, and from that edge to
-  the right-hand cards is six and a half), set onto it to the fraction of
-  a pixel (`snapRail`); its rows run from the rail's dots, which take the same
+  line of dots: from 992px on the page's centre line, exactly, which the
+  fit takes as a point a column must stand on (the cards stand
+  symmetrically about it, so the fit can give both), the rail set onto
+  that column to the fraction of a pixel (`snapRail`); its rows run from the rail's dots, which take the same
   pitch (`--dot-pitch` on the band, which the statement's dotted line and
   the snake take too). Inside each card the blocks are whole steps and
   the card's top is moved down onto a row by half a step at most
@@ -513,11 +570,13 @@ and the shader disk cache (which the scripts can disable) hides it.
   a tablet, two on a phone), their sides on the gutters' middles
   (`initBandSteps`, `parallax.js`; styles.css "band steps"). Nothing shows
   with the page at the top; from the first of the scroll each piece comes
-  up faster than the band on a curve of its own (`BAND_STEPS`: the left
-  quick to start, the right late; up to 22% of the screen), so the steps
-  keep changing shape, in a staircase none of the first five ever breaks.
-  One timeline, a short lag behind the scroll, a transform each; not
-  under reduced motion.
+  up a little faster than the band on a curve of its own (`BAND_STEPS`:
+  small leads, up to 14% of the screen, stepping down gently from the
+  left on near-even curves), so every column is still moving as the band
+  reaches the top and the silhouette develops across the whole way, in a
+  staircase none of the first five ever breaks (the last rises again a
+  little). One timeline, a short lag behind the scroll, a transform
+  each; not under reduced motion.
 - **What actually costs you time** — the heading alone, centred and
   larger than the hero's, its two lines set close and still (no line
   reveal), over three level
@@ -568,54 +627,81 @@ and the shader disk cache (which the scripts can disable) hides it.
   the drawing's top 70% of the way down the screen to its middle a
   little above the screen's. Under reduced motion it is the finished
   stack, still.
-- **Service tabs** — the homepage's four routes, straight after the cost
-  section, on a charcoal band the page's full width (`ServiceTabs.astro`,
-  `service-tabs.js`, styles.css "service tabs"): one panel the scroll moves
-  through. Over it, the routes' label as its heading, set as "What
-  actually costs you time" is (`.problem-head`, with its line reveal) a
-  step smaller, in white, with more room above and below. The band is a
-  charcoal (`--st-ground`, the site's `--c-dark-bg`, #1a1a1a) and the drawing's half a near-black
-  (`--st-media`, #050505), parted by tone alone; the nav's dark blocks
-  over the band (its group #181818, the logo block #262626) sit either
-  side of the charcoal. The panel is two halves across Grid Columns
-  1–12 meeting on the page's centre line: on the site's red, the
-  route's name (the Services dropdown's short forms, kept in
-  `ServiceTabs.astro`: Work[shop/flow] with the dropdown's turning
-  ending, Before Revit, Tech Blueprint, ADDD Advisory; read and buttoned
-  with the full title from the Studio), its line and button, a small
-  solid white + near each corner (in a 2px stroke), and at the foot the
-  numbers 01–04, each a small block of its own, a touch wider than
-  tall, close together, its numeral in a heavier label face, greyed, the
-  one in front alone filling white from the left as the scroll goes
-  through its route, the numeral in the ink where the white has reached
-  it. On the near-black,
-  one dotted lattice for the whole panel, still, and over it the four
-  diagrams (white, moving, a step brighter here than their own tints),
-  one under another in a tall strip, each moved onto one ground line
-  (`--st-ground-y`) so all stand on the one lattice. From 768px across
-  and 540px down the panel sticks centred in the screen under the nav,
-  halfway between the nav's foot (`--nav-h`) and the screen's
-  (`position: sticky`), for 75% of a screen of scroll per route, then
-  lets go; a number scrolls to the middle of its route. One value
-  follows the scroll throughout and draws both halves: the strip carried
-  up a moment behind the scroll (`SMOOTH`), so it glides. The words are
-  not tied to it: they change only once the strip is well past the
-  middle of a hand-over (`SWITCH`, a tolerance either way), and then as a
-  timed change, line by line, each line rising out through its own mask
-  (the name, the line under it split into lines, the button), top line
-  first, the next route's rising in after them; they are never left
-  half-split where the scroll stops. Nothing plays on its own or locks:
-  it runs on an even pace with a sine wave on it (`DWELL`), slowest with
-  each route in the middle, where it is read, and quickest at the
-  hand-over. On a phone it sits in the flow and a number eases the panel
-  to its route. Under reduced motion the changes are immediate.
+- **Service deck** — the homepage's four routes, straight after the cost
+  section, as cards that stack as the page scrolls (`ServiceDeck.astro`,
+  `service-deck.css`; CSS alone, position: sticky). Four bands the page's
+  full width, each a shade of the charcoal stepping lighter; every card
+  sticks under the nav a head lower than the one before, so as the next
+  comes up over it only its head stays in view and the names pile up
+  like tabs, the last card whole under them. Inside a card, on the
+  12-Column Grid, two left edges only: Grid Column 1 for the number (the
+  label face, centred on the name's line) and Grid Column 2 for all
+  else. The head row is the name's line (`--t-h3`, the section headings'
+  setting a step down) with the square way on at the end of Grid Column
+  7, so the four squares stand in one column whatever the names'
+  lengths. Under it, high in the card where it is read before the next
+  card covers it, two cells on one level, each a label on the site's
+  dotted rule with its words under it: the tagline and the line on Grid
+  Columns 2–4, "What it covers" and its list on Grid Columns 5–7, every
+  line of the list on the rule. The diagram's panel takes Grid Columns
+  8–12 from the name's line to the card's foot, on the drawing's lattice
+  with a + near each corner. On a tablet the cells stand one over the
+  other on Grid Columns 2–3 beside the panel; on a phone the cards are
+  in the flow, one column. The words are the routes' from the Studio;
+  the lists are the routes' own (`src/components/services.ts`), which
+  each service page's hero shows too. Each card opens into its page (see
+  *Card to page*).
+- **Service hero** — each service page (Workflow Workshop, Before Revit,
+  Technology Blueprint, Ongoing Advisory) opens on its deck card at the
+  screen's size (`ServiceHero.astro`, `service-deck.css` "Service hero"):
+  the charcoal ground, the head row (the number on Grid Column 1, the name,
+  from the page's `hero.tagline`, on Grid Column 2 at the card's size, the
+  square at the end of Grid Column 7, its triangle turned down to lead on
+  into the page), the page's heading under it, the lede and buttons on Grid
+  Columns 2–4 beside the card's list on 5–7, and the diagram's panel on Grid
+  Columns 8–12 from the name's line to the foot, the drawing at the card's
+  size. Its head row stands where the head of the card at the top of the
+  deck's pile stands. The heading's lines rise and the lede and buttons
+  come in once the page is in view (`initHeroRise`, `reveals.js`).
+- **AEC Tech Partners blue** — that page's one accent is `--c-blue`
+  (#1E6EF3): its container (and the nav while it is the page marked on
+  `<html>`) sets `--c-red` to it, so every red accent there, the diagrams'
+  highlights included, is the blue, and the wipe into the page is blue. It
+  goes with the page; every other page keeps the red. The footer keeps its
+  red ground (`--c-red-brand`).
+- **Homepage FAQ** — near the foot of the homepage, in place of the old
+  fit comparison (`index.astro` "8. FAQ"): a large heading on Grid Columns
+  1–5 and the questions on Grid Columns 7–12 (`Accordion.astro`, variant
+  "boxed": each question in a plain white box, a little apart; six "FAQ
+  Test" placeholders after the two real questions, for now). "Who is
+  this for?" and "Who is this not for?", answered by the fit lists
+  (`fit.forItems`, `fit.notItems`, a red square or an open one before each
+  point); the heading and questions are fields of their own in the Studio.
+  Each answer opens to its own height on the site's curve (grid rows 0fr to
+  1fr, after Osmo's CSS accordion), the questions under it moving with it;
+  with reduced motion it is simply there.
+- **Service tabs** — the AEC Tech Partners page's statements as one panel
+  on a black band the page's full width, straight after its hero
+  (`ServiceTabs.astro`, `service-tabs.js`, styles.css "service tabs"): one
+  panel the scroll moves through, under the section's tagline as its
+  heading. From 992px it takes Grid Columns 1–12, half and half: a square of
+  the page's blue (`--c-blue`, #1E6EF3, after the supplied reference) on Grid Columns 1–6,
+  a solid white + near each corner, one statement at a time in its middle,
+  large and centred, with nothing else (`services.statements` in the
+  Studio: three), and at its foot the statements' numbers (01–03), each a
+  small block, the one in front filling white from the left as the scroll
+  goes through its statement; on Grid Columns 7–12, on the black, one
+  dotted lattice and a drawing for each statement (ServiceDiagram, by
+  position), carried up through the panel by the scroll. Below 992px the
+  two stand one over the other.
 - **Testimonials** — the homepage's quotes (`TestimonialSlider.astro`,
   `testimonial-slider.js`), after the Outsource Consultants slider: every
   quote mounted and stacked in one place, with no title over it, the
-  section coming out from under the band above as the footer does from
-  under the page (`initRevealParallax`, `parallax.js`: from 0.9 of a quarter
-  of the screen higher, measured off the screen so the section's own
-  changes of height never move it, and under a 24% scrim), split
+  section uncovered from under the service deck as the deck scrolls away
+  (`initDepthTransitions`, `parallax.js`, "depth transitions",
+  `data-depth="under"`, as the footer is from under the page: the quotes
+  settle out of a higher place inside the section's clipping wrap and its
+  shadow clears; nothing comes over the deck), split
   into masked lines that rise in one after another and run back out last
   line first (its timings: 0.3s a line, 0.05s apart), and with them, in
   the same run, the count and the attribution in masked lines of their
@@ -653,16 +739,17 @@ and the shader disk cache (which the scripts can disable) hides it.
   together on one lighter ground as one compact run across Grid Columns 7–10 —
   starting where the hero's headline does, each label centred in its own share
   of the run, the gaps between them even — then the Contact button, from the
-  end of Grid Column 11 to the bar's edge. The logo
+  end of Grid Column 11 to the bar's edge: one solid block of the bar's
+  call-to-action colour, its hover a slight deepening of it
+  (`contact-button.css`). The logo
   is the link home; there is no Home item. Every item takes one type treatment,
   the `--nav-text-*` tokens (the drawer redeclares only the size), and every
   colour is a `--nav-*` token in `src/styles/nav.css`, redeclared for the dark
   state. In the drawer, "For Tech Firms" leads the list. The dropdowns are the
   bar continued downwards: each panel its groups side by side over the
   dimmed page, with no ground or frame of their own, each group an equal
-  column of the screen's width and the dropdown's full height: the
-  Resources blocks parted by a hairline of the dimmed page, the Services
-  cards flush, one continuous ground. A panel opens column by
+  column of the screen's width and the dropdown's full height, flush,
+  one continuous ground with no line between the columns. A panel opens column by
   column (`initMegaNav`): each drops in from under the bar, clipped by
   its edge, 0.07s after the one before, left to right, as the dimmed page
   comes up; closing, they lift back under it, the last first; from one
@@ -678,8 +765,8 @@ and the shader disk cache (which the scripts can disable) hides it.
   Blueprint, ADDD Advisory; the names everywhere else are unchanged), a
   line on the service small under it, set by hand as two lines, the
   first the longer (Before Revit's proportions, the model for the
-  four), and behind it a faint pattern of its own, stopping round the
-  name. The Workshop's ending turns between "shop" and "flow" with the
+  four), and behind it a faint pattern of its own, running on across the
+  whole card, behind the words too (no clearing or fade). The Workshop's ending turns between "shop" and "flow" with the
   homepage hero's word cycle (`word-cycle.js`, mounted once by
   `initMegaNav`), in a box as wide as its widest ending, so the name
   never moves. The patterns: the hero's upright
@@ -697,7 +784,9 @@ and the shader disk cache (which the scripts can disable) hides it.
   compact square and its name (Explore, Reports, Newsletter), its lead
   link, then a feature on the field's grey — the software database, the
   latest report with its cover, the signup — every row's words hanging
-  from the name's line, the cards' palette and steps shared (`--sc-*`).
+  from the name's line, the cards' palette and steps shared (`--sc-*`),
+  and, like the cards, in the nav's state (light greys with ink, or the
+  cards' near-black with white, mixed by `--nav-dark`).
   Stacked in the drawer, the blocks sit a step apart, over the
   page's off-white (dark, the bar's near-black), so the white
   stands off it as it does on the page. The nav stays in place
@@ -705,8 +794,13 @@ and the shader disk cache (which the scripts can disable) hides it.
   where a section holds it out (`initNavReveal` in `site.js`): on the
   homepage it goes up with the hero, at the hero's own parallax pace, stays
   out while the statement plays out (`data-nav-hold`) and comes back as the
-  approach takes over; on every page it eases out once the closing CTA
-  reaches it and stays out over the footer, and back in on the way up. It
+  approach takes over; on every page it stays until the last quarter
+  screen of scroll before the footer's entrance, goes up with the scroll
+  over that stretch (so it is wholly gone as the footer starts to come up,
+  however fast), and stays out over the footer, and back in on the way up
+  (never out at the top of a page). From 992px it floats once the page's
+  hero has gone up under it, or, on a service page, once the hero's head
+  row reaches it (`data-nav-float-from`). It
   stays while a menu is open or keyboard focus is inside it. It goes up by its height
   rounded up to whole device pixels: the bar's height is fluid, so moved by
   exactly that it would leave its last, partly covered row of pixels on the
@@ -725,20 +819,20 @@ and the shader disk cache (which the scripts can disable) hides it.
   its arrow block a light grey, the label sweeping to that grey on hover,
   nothing red of its own.
   `.btn` remains only for the chevron text links (`.btn--link`).
-- **Links** — the nav's items (For Tech Firms, the two toggles, AEC Jobs,
-  About, Sign in) and the footer's link lists are one sliding-box link
-  (`.nav-link`, `src/styles/nav-link.css`, with `NavLinkLabel.astro` for the
-  inside): on hover a block in the link's ink slides into a small box round
-  the label and the label takes the ground's colour, in through the edge the
-  pointer came in by and out through the edge it leaves by (`initNavLinks` in
-  `site.js`; CSS alone slides it from below). `--fg`/`--bg` set the block
-  and the label on it for each context, so it inverts on the light bar, the
-  dark bar and the footer alike. Each link keeps its own hit area — the bar's
-  items stay full height — and the box gives its padding back in negative
-  margin, so no label moves. Only hover and keyboard focus invert a link —
-  the link to the page being viewed rests like the others — and focus adds a
-  ring.
-  Buttons, cards, the logo and the social marks keep their own hovers.
+- **Links** — every link set in text shares one hover: the nav's items (For
+  Tech Firms, the two toggles, AEC Jobs, About, Sign in), the footer's link
+  lists, the pages' chevron text links (`.btn--link`) and the contact
+  lists (`.nav-link`, `src/styles/nav-link.css`, with `NavLinkLabel.astro`
+  for the inside, which takes a `data-page-field` for the Studio). Pointed
+  at or focused, the label decodes through itself left to right and a
+  dotted line of the site's square dots (2px, 6px apart) draws in under it
+  with the band, and leaves dot by dot as the pointer goes (`initTextScramble`,
+  `text-scramble.js`: bound once for the nav, and with each page through
+  the registry). The footer's old sliding box is gone. Each link keeps its
+  own hit area, and the box round the label gives its padding back in
+  negative margin, so no label moves; focus adds a ring. With reduced motion
+  the line simply shows. Buttons, cards, the logo and the social marks keep
+  their own hovers.
 - **Footer** — `Footer.astro`, on the site's red, revealed with a parallax.
   One row across the 12-Column Grid: the four link groups on Grid Columns
   1–2, 3–4, 5–6 and 7–8, each under a quiet name, the social marks (the
@@ -750,8 +844,9 @@ and the shader disk cache (which the scripts can disable) hides it.
   upward triangle opened to about 85° to do so). Below 992px the groups
   run two across, then the signup; on a phone, one across.
 - **12-Column Grid** — the layout reference. Shift + G toggles the overlay
-  (`src/components/ColumnGrid.astro`); it always starts hidden and never
-  affects the layout. The columns are **Grid Column 1** to **Grid Column 12**
+  (`src/components/ColumnGrid.astro`), at once, with no animation; it
+  always starts hidden, is faint (a 9% fill a column, half-strength edge
+  lines) and never affects the layout. The columns are **Grid Column 1** to **Grid Column 12**
   from the left, numbered on the overlay and marked `data-grid-column="1"` …
   `"12"`, so a position can be named directly ("start at Grid Column 3",
   "span Grid Columns 4–8"). The geometry is in the `--grid-columns`,

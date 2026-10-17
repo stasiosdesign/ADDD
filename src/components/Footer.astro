@@ -1,10 +1,12 @@
 ---
 /*
-  The footer is revealed with a parallax: the panel starts high inside a
-  clipping wrap and settles as the wrap scrolls up, with a scrim clearing
-  off it at the same time. Both are driven from initFooterParallax() in
-  src/scripts/site.js. It sits inside the Barba container, so it is swapped
-  with the page and animates with it.
+  The footer is revealed from under the page (data-depth="under",
+  initDepthTransitions in src/scripts/parallax.js): in a clipping wrap, its
+  contents settle out of a higher offset, the mark across its foot from
+  higher still (data-depth-layer), and the shadow over it clears, all on
+  the scroll. It
+  sits inside the Barba container, so it is swapped with the page and
+  animates with it.
 
   On the site's red, laid out on the 12-Column Grid (styles.css,
   "footer"), in one row across the whole of it: the four link groups on
@@ -14,7 +16,7 @@
   panel. The logo there is the footer's mark, so there is no second,
   small one, and no copyright or legal line.
 
-  Every link in the groups is the site's sliding-box link (.nav-link,
+  Every link in the groups is the site's text link (.nav-link,
   NavLinkLabel.astro), as in the nav; the social marks keep their own.
 */
 import NavLinkLabel from "./NavLinkLabel.astro";
@@ -55,8 +57,8 @@ const SOCIAL = [
   },
 ];
 ---
-<div data-footer-parallax="" class="footer-wrap">
-  <footer data-footer-parallax-inner="" class="site-footer">
+<div data-depth="under" class="footer-wrap">
+  <footer data-depth-content class="site-footer">
     <div class="site-footer__inner">
 
       <div class="site-footer__top">
@@ -145,10 +147,10 @@ const SOCIAL = [
          is half the logo's height; the lower half runs on past the panel's
          foot and is cut off there. Mounted by the page registry with every
          [data-slash-field] (site.js). -->
-    <div class="site-footer__mark" aria-hidden="true">
+    <div class="site-footer__mark" data-depth-layer="0.12" aria-hidden="true">
       <div data-slash-field class="site-footer__mark-field"
         data-shape="-0.0925,1 0.3665,1 0.1370,0; 0.2648,0 0.4942,0.5 0.2648,1; 0.5072,0 0.7367,0.5 0.5072,1; 0.7497,0 0.9777,0.5 0.7497,1"></div>
     </div>
   </footer>
-  <div data-footer-parallax-dark="" class="footer-wrap__dark"></div>
+  <div class="depth-shade" data-depth-shade aria-hidden="true"></div>
 </div>

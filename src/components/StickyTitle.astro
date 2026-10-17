@@ -10,7 +10,13 @@
   (the strip's title and rule); "top" is the top of the held frame (the
   strip's carousel), coming up the page and then staying put over the
   statements for as long as they are held, and leaving with them. The
-  statements are centred in the room under it.
+  statements are centred in the room under it. Two more stand with the
+  statements: "above" over them (the homepage's mark), switched on with
+  the first words, and "after" under them (a button), switched on once
+  the last is whole (sticky-title.js). "around" is a layer the size of
+  the screen centred on the statements, for small things set round them
+  (the homepage's scattered photographs), each [data-float-mark] switched
+  on with the words.
 
   Styles: src/styles/sticky-title.css. Behaviour: src/scripts/
   sticky-title.js, mounted by the page registry in src/scripts/site.js.
@@ -26,6 +32,8 @@ interface Props {
   "aria-label"?: string;
   /** Keeps the nav out of view while the section plays out, either way, until its foot has passed the nav's (initNavReveal, site.js). */
   navHold?: boolean;
+  /** With navHold, keep the nav out of view past the section, until this element (a selector) is coming to the middle of the screen. */
+  navHoldUntil?: string;
   /** The Sanity field the statements come from (data-page-field, for the Studio's Visual editor), where a page reads them from its document. */
   field?: string;
   /** A dotted line beside the statements, as the hero's beside its heading; the approach stack's rail grows out of it (data-rail-lead, approach-stack.js). */
@@ -36,37 +44,81 @@ interface Props {
   mark?: string;
   /** The band's field of dots behind the whole section, the "before" slot and the held frame alike (.band-field, styles.css). */
   dots?: boolean;
-  /** The statements on Grid Columns 2–11, the first line indented two columns (--st-indent, sticky-title.css). */
+  /** The band's dots held still with the frame while the statements are held (sticky-title.js, holdDots); needs dots. */
+  still?: boolean;
+  /** The statements on Grid Columns 2–11, each line centred (sticky-title.css). */
   wide?: boolean;
   /** Hold the statements on the screen while the section scrolls under them (the default); false sets them in the page's flow, revealed as they come up the screen. */
   hold?: boolean;
+  /** Small pictures set in the statement's own line, each after a phrase
+      of it (.sticky-title__pic, sticky-title.css), as a word among the
+      words. A picture whose phrase the statement no longer has is left
+      out. */
+  pictures?: { after: string; src: string }[];
+  /** Phrases the statement's lines end after, on a desktop
+      (.sticky-title__br, sticky-title.css), to give the block its shape:
+      the lines' lengths are the form. A phrase the statement no longer
+      has is left out, and the lines flow. */
+  breaks?: string[];
+  /** The band's dots behind the statement drawn as a grid of cells, from
+      what the section opens on ([data-statement-above]) to the element
+      this selector names (the first thing after it to stand on the plain
+      dots again), and the [data-cell-photo] cards in "around" lit in its
+      cells (cell-grid.js); needs dots. */
+  cells?: string;
 }
 
-const { headings, id, class: className, "aria-label": label, navHold = false, field, rule = false, mark, dots = false, wide = false, hold = true } = Astro.props;
+const { headings, id, class: className, "aria-label": label, navHold = false, navHoldUntil, field, rule = false, mark, dots = false, still = false, wide = false, hold = true, pictures = [], breaks = [], cells } = Astro.props;
 
 // A statement around its marked phrase, where it has it.
 const parts = (text: string) => {
   const at = mark ? text.indexOf(mark) : -1;
   return at < 0 ? null : { before: text.slice(0, at), mark: mark!, after: text.slice(at + mark!.length) };
 };
+// A run of a statement as its words with the pictures and line ends among
+// them: the text cut after each one's phrase, in the order the phrases
+// come (a picture before a line end at the same phrase).
+type Piece = string | { src: string } | { br: true };
+const pieces = (text: string): Piece[] => {
+  const cuts = [
+    ...pictures.map((p) => ({ at: text.indexOf(p.after), len: p.after.length, piece: { src: p.src } as Piece, order: 0 })),
+    ...breaks.map((b) => ({ at: text.indexOf(b), len: b.length, piece: { br: true } as Piece, order: 1 })),
+  ]
+    .filter((c) => c.at >= 0)
+    .sort((a, b) => a.at + a.len - (b.at + b.len) || a.order - b.order);
+  const out: Piece[] = [];
+  let from = 0;
+  for (const c of cuts) {
+    const end = c.at + c.len;
+    if (end < from) continue;
+    // a space either side of a picture, so it stands as a word of its own
+    out.push(end > from ? `${text.slice(from, end)} ` : " ", c.piece);
+    from = end;
+  }
+  out.push(text.slice(from));
+  return out;
+};
 ---
-<section data-sticky-title="wrap" class:list={["sticky-title", className, { "is--static": !hold }]} id={id} aria-label={label} data-nav-hold={navHold ? "" : undefined} style={`--headings:${headings.length}`}>
+<section data-sticky-title="wrap" class:list={["sticky-title", className, { "is--static": !hold, "has--around": Astro.slots.has("around") }]} id={id} aria-label={label} data-nav-hold={navHold ? "" : undefined} data-nav-hold-until={navHold ? navHoldUntil : undefined} data-sticky-title-still={dots && still ? "" : undefined} data-cell-grid={dots && cells ? cells : undefined} style={`--headings:${headings.length}`}>
   {dots && <span class="sticky-title__dots dot-grid band-field" aria-hidden="true"></span>}
   <slot name="before" />
   <div data-sticky-title="track" class="sticky-title__track">
     <div class="sticky-title__container">
       <slot name="top" />
       <div class="sticky-title__stage">
+        {Astro.slots.has("around") && <div class="sticky-title__around" data-sticky-title="around" aria-hidden="true"><slot name="around" /></div>}
         <div class:list={["sticky-title__inner", { "is--wide": wide }]}>
+          {Astro.slots.has("above") && <div class="sticky-title__above" data-sticky-title="above"><slot name="above" /></div>}
           {rule && <span class="sticky-title__rule" aria-hidden="true" data-rail-lead><span class="sticky-title__rule-dots"><span class="sticky-title__rule-fill"><span class="sticky-title__rule-lit"></span></span></span></span>}
           {headings.map((text, i) => {
             const p = parts(text);
             return (
               <h2 data-sticky-title="heading" class:list={["sticky-title__el", { "is--stacked": i > 0 }]} data-page-field={field && headings.length === 1 ? field : undefined}>{p ? (
                 <>{p.before}<span class="sticky-title__mark" data-sticky-title-mark><span class="sticky-title__mark-chip" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" stroke-linecap="square" /></svg></span><span class="sticky-title__mark-text">{p.mark}</span></span>{p.after}</>
-              ) : text}</h2>
+              ) : pieces(text).map((piece) => (typeof piece === "string" ? piece : "br" in piece ? <span class="sticky-title__br" aria-hidden="true"></span> : <span class="sticky-title__pic" aria-hidden="true"><img src={piece.src} alt="" loading="lazy" decoding="async" /></span>))}</h2>
             );
           })}
+          {Astro.slots.has("after") && <div class="sticky-title__after" data-sticky-title="after"><slot name="after" /></div>}
         </div>
       </div>
     </div>

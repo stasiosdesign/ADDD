@@ -90,10 +90,10 @@ const TIMING = {
 // the name rising into the field as the field carves its room (carve, how
 // long that takes across the word), and the hold on the name; the disc's
 // push and its pulse — how long the push takes to open the clearing, and
-// the pulse to cross the field; when the field's wave starts, and when
-// the logo sets off for the nav — both from the disc's start, the second as
-// soon as the disc has opened and sent its pulse off, so the flight and the
-// pulse are one event, the pulse spreading and bringing its words in as the
+// the pulse to cross the field (the field's wave takes over as it reaches
+// the field's edge); when the logo sets off for the nav, from the disc's
+// start, as soon as the disc has opened and sent its pulse off, so the
+// flight and the pulse are one event, the pulse spreading and bringing its words in as the
 // logo travels; the flight; meet, how long the bar and the copy take to
 // arrive, landing as the logo locks in; and the clearing closing behind the
 // logo.
@@ -103,7 +103,6 @@ const HERO = {
   hold: 0.08,
   openTime: 0.36,
   pulseTime: 1.5,
-  wave: 0.9,
   wake: 0.5,
   flight: 1.05,
   meet: 0.9,
@@ -375,16 +374,20 @@ export function initLogoMorphLoader(root = document.querySelector("[data-morph-l
     // The morph, then the disc: as it opens it pushes the field back from
     // the middle — hugging its rim, the strokes there turning to run round it
     // — and sets off the pulse, from just inside its rim, the field's words
-    // born in its wake; the field's wave takes over as the pulse dies. The
+    // born in its wake; and as the pulse reaches the field's left edge the
+    // field's wave takes over there, its first front running back across
+    // from that edge (the field says when the pulse gets there: edge). The
     // pulse is worked out as the morph starts, a quiet moment, and set to
     // start with the disc, so the frame the disc opens on has only the
     // clearing to cut.
     const discStart = morph(morphStart);
     disc(discStart);
+    const spread = { inner: r * 0.6, time: HERO.pulseTime };
+    const pulseStart = discStart + 0.02;
     timeline
-      .call(() => field.intro.pulse(dx, dy, { inner: r * 0.6, time: HERO.pulseTime, delay: discStart + 0.02 - morphStart }), null, morphStart)
+      .call(() => field.intro.pulse(dx, dy, { ...spread, delay: pulseStart - morphStart }), null, morphStart)
       .call(() => field.intro.open(dx, dy, r, { margin: DISC_MARGIN, echo: name.cellW, time: HERO.openTime }), null, discStart)
-      .call(() => field.intro.live(), null, discStart + HERO.wave);
+      .call(() => field.intro.handover(), null, pulseStart + field.intro.edge(dx, dy, spread));
 
     // The hand-over, with the pulse still on its way out: the logo travels to
     // the nav's logo slot and the disc becomes the slot on the way, while the

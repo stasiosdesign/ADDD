@@ -32,6 +32,8 @@ export const homePage = defineType({
     ]),
     pageSection('approach', 'Approach', 'The statement held on screen under the logos, and the three steps on the rail. The steps’ drawings stay in the code.', [
       leadField('The statement.', 'statement', 'Statement', 4),
+      buttonField('The button under the statement; links to Free Tech Stacks.'),
+      headingField('The heading centred over the three steps.'),
       itemsField('steps', 'Steps', 'step', 'The three steps: Understand, Diagnose, Prioritise. Edit what each says; there are always three.'),
     ]),
     pageSection('cost', 'The cost of standing still', 'The heading row and the three cards with their pictures.', [
@@ -52,12 +54,17 @@ export const homePage = defineType({
       textField('The paragraph.'),
       buttonField('Links to the About page.'),
     ]),
-    pageSection('fit', 'Fit', 'The heading row and the two sides: who ADDD is for, and who it is not primarily for.', [
-      ...sectionHead(),
-      headingField('The left side’s title.', 'forTitle', 'Left title'),
-      linesField('forItems', 'Left rows', 'One row per line.'),
-      headingField('The right side’s title.', 'notTitle', 'Right title'),
-      linesField('notItems', 'Right rows', 'One row per line.'),
+    pageSection('fit', 'FAQ', 'The questions near the foot of the page: the heading, and two questions, each answered by its list: who ADDD is for, and who it is not primarily for.', [
+      headingField('The heading beside the questions.', 'faqHeading', 'Heading'),
+      headingField('The first question.', 'forQuestion', 'First question'),
+      linesField('forItems', 'First answer', 'One point per line.'),
+      headingField('The second question.', 'notQuestion', 'Second question'),
+      linesField('notItems', 'Second answer', 'One point per line.'),
+      // the comparison the questions replaced: no longer shown, kept while
+      // the live site still reads them
+      ...sectionHead().map((f) => ({...f, hidden: true})),
+      {...headingField('The left side’s title (no longer shown).', 'forTitle', 'Left title'), hidden: true},
+      {...headingField('The right side’s title (no longer shown).', 'notTitle', 'Right title'), hidden: true},
     ]),
     pageSection('research', 'Research and insight', 'The heading row above the slider of reports and issues (which are collections), and the newsletter signup under it.', [
       leadField('The standfirst on the left.'),

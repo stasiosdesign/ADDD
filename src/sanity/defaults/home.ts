@@ -17,11 +17,13 @@ export const homePage = {
     secondaryButton: 'Work With Us',
   },
   logos: {
-    title: 'Practices\nwe’ve worked with',
+    title: 'Practices we’ve\nworked with',
   },
   approach: {
     statement:
-      'The right technology decisions don’t start with software. They begin with understanding how a practice truly works, and where it could work better.',
+      'Good technology decisions don’t start with software. They start with how a practice works, and how it could improve.',
+    button: 'Free Tech Stacks',
+    heading: 'How we work',
     steps: keyed('step', [
       { title: 'Understand', text: 'Map how work, tools, information and decisions actually move through the practice, not how they are supposed to.' },
       { title: 'Diagnose', text: 'Trace the causes across workflows, BIM, software, infrastructure, data, costs, roles and AI, rather than treating each issue separately.' },
@@ -33,9 +35,9 @@ export const homePage = {
     tagline: 'The cost of standing still',
     heading: 'What actually costs you time',
     cards: keyed('card', [
-      { title: 'Software keeps piling up.', text: 'New tools get added, old ones stay, and costs rise without anyone knowing what’s actually delivering value.', image: { path: 'assets/images/conference-keynote.jpg', alt: '' } },
-      { title: 'Every project works differently.', text: 'Without consistent workflows, teams keep solving the same problems, repeating mistakes and losing valuable time.', image: { path: 'assets/images/allister-keynote-stage.jpg', alt: '' } },
-      { title: 'Information gets lost.', text: 'Disconnected systems force teams to re-enter data, recreate information and waste time searching for what they need.', image: { path: 'assets/images/allister-presenting.jpg', alt: '' } },
+      { title: 'Too Many Tools.', text: 'New tools get added, old licences remain, and costs keep rising. Yet nobody has a clear picture of what’s actually being used or delivering value.', image: { path: 'assets/images/conference-keynote.jpg', alt: '' } },
+      { title: 'Inconsistent Workflows.', text: 'Every team develops its own way of working. The same problems get solved repeatedly, mistakes recur, and valuable time disappears between projects.', image: { path: 'assets/images/allister-keynote-stage.jpg', alt: '' } },
+      { title: 'Lost Information.', text: 'Files, decisions and project data are scattered across disconnected systems. Teams waste time searching, re-entering information and recreating work that’s already been done.', image: { path: 'assets/images/allister-presenting.jpg', alt: '' } },
     ]),
   },
   routes: {
@@ -87,6 +89,9 @@ export const homePage = {
     lede: 'ADDD is most useful when the problem is no longer isolated to one tool, one project or one team.',
     tagline: 'Fit',
     heading: 'For practices where technology is now a leadership issue.',
+    faqHeading: 'Frequently asked questions',
+    forQuestion: 'Who is this for?',
+    notQuestion: 'Who is this not for?',
     forTitle: 'Best suited to',
     forItems: [
       'Established architecture practices, usually around 25–200 people.',

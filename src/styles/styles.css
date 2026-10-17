@@ -20,10 +20,15 @@
      highlight states site-wide. One token — nothing declares a red of
      its own. */
   --c-red: #C40000;
-  /* The AEC Tech Firms accent: the same signal, in blue — the pattern's
-     highlight on that page and the For AEC Tech Firms link's box. It
-     stands in for the red there and nowhere else. */
-  --c-blue: #044AB3;
+  /* the red itself, for what keeps it on the AEC Tech Partners page (the
+     footer's ground), where --c-red is the blue (below) */
+  --c-red-brand: #C40000;
+  /* The AEC Tech Partners accent: the same signal, in blue (the statements
+     panel's, after the supplied reference). On that page it is the one
+     accent: the page's container (and the nav while it is the page shown)
+     sets --c-red to it, so every red accent there, the diagrams' included,
+     is this blue, and goes back to red with the next page. Nowhere else. */
+  --c-blue: #1E6EF3;
   /* the soft fill every quiet control takes on hover */
   --c-btn-soft: rgba(10, 10, 10, 0.05);
   --c-placeholder: #0a0a0a;
@@ -145,7 +150,10 @@ body {
 
 img, svg { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
-p { margin: 0; }
+/* Every paragraph's lines broken with its last line in mind (text-wrap:
+   pretty): never a word or two left alone on the last line, which read
+   as unconsidered; the headings balance their lines instead (below). */
+p { margin: 0; text-wrap: pretty; }
 ul { margin: 0; padding: 0; list-style: none; }
 /* the browser resets a control's tracking as well as its font, so both are
    handed on from the text round it (the primary face's, --primary-tracking) */
@@ -482,6 +490,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    remaining height and space their two pieces apart, so the label and
    the buttons land on one line along the foot of the hero, each under
    the text it belongs to. */
+/* the dotted rule beside the headline: only on the 12-Column Grid
+   (page-grid.css) */
+.hero__rule { display: none; }
 .hero__grid {
   display: flex;
   gap: 4rem;
@@ -556,6 +567,127 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   transition: opacity .2s ease;
 }
 .hero__arrow:hover { opacity: .6; }
+
+/* Centred (Hero.astro, "centred": AEC Tech Partners): the first screen in
+   the ink, no pattern; its words one under another on the page's centre
+   line, on Grid Columns 3–10 at most, the headline the largest thing on
+   the screen and the tagline a small label over it; the scroll cue
+   centred at the screen's foot. It runs on into the ink band under it
+   (the statements' section), so the two read as one dark opening. */
+.hero.hero--centred {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: calc(var(--nav-h) + var(--sec-md)) var(--grid-margin) calc(var(--sec-md) + 2.5rem);
+  background: var(--c-dark-fg);
+  color: var(--c-white);
+  text-align: center;
+}
+/* The ground and the plates are one drawing on one cell (--cell). The
+   lattice is the dotted isometric lattice of the site's drawings
+   (data-iso-field, dot-field.js), set out from its ground: the hidden
+   square (.hero__ground) a cell wide at the hero's middle, so a line
+   runs through the middle each way and every cell is a cell across.
+   Faint, to every edge, in the flatter 2:1 view of the reference
+   (data-iso-angle, --cos-a, --sin-a), not the site's other drawings' 30°.
+   Over it, round the words, stacks of plates in the
+   page's blue (IsoStacks.astro), each plate a cell, each stack's bottom
+   plate lying in a cell of the lattice: its back corner on the crossing
+   (--i, --j cells along the two axes from the middle; its drawing --span
+   cells wide, the corner at --ax, --ay in it), the plates filled with
+   the ground so each hides the lattice under it, the inner ones a faint
+   blue, dotted guides up their sides. A smaller cell on a tablet and a
+   phone, each stack at its own crossing there. The words stand over both. */
+.hero--centred { --cell: 8.5rem; }
+.hero__ground {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--cell);
+  height: var(--cell);
+  visibility: hidden;
+  pointer-events: none;
+}
+.hero__lattice {
+  /* a dash-dot line carries more ink than a row of dots, so it is held
+     back further than the drawings' 0.16 */
+  --iso-line: rgba(255, 255, 255, 0.09);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hero__lattice > canvas { display: block; }
+.iso-stacks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.iso-stacks__stack {
+  /* the view's axes, 2:1 (IsoStacks.astro): cos and sin of atan(1/2) */
+  --cos-a: 0.8944272;
+  --sin-a: 0.4472136;
+  position: absolute;
+  left: calc(50% + (var(--i) - var(--j)) * var(--cos-a) * var(--cell));
+  top: calc(50% + (var(--i) + var(--j)) * var(--sin-a) * var(--cell));
+  width: calc(var(--span) * var(--cell));
+  height: auto;
+  translate: calc(-1 * var(--ax)) calc(-1 * var(--ay));
+  overflow: visible;
+}
+.iso-stacks__plate {
+  fill: var(--c-dark-fg);
+  stroke: var(--c-blue);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: miter;
+}
+.iso-stacks__plate.is--fill { fill: color-mix(in srgb, var(--c-blue) 16%, var(--c-dark-fg)); }
+.iso-stacks__guide {
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 4;
+  vector-effect: non-scaling-stroke;
+}
+@media (max-width: 991px) {
+  .hero--centred { --cell: 6rem; }
+  .iso-stacks__stack {
+    left: calc(50% + (var(--i-t, var(--i)) - var(--j-t, var(--j))) * var(--cos-a) * var(--cell));
+    top: calc(50% + (var(--i-t, var(--i)) + var(--j-t, var(--j))) * var(--sin-a) * var(--cell));
+  }
+  .iso-stacks__stack.is--no-tablet { display: none; }
+}
+@media (max-width: 767px) {
+  .hero--centred { --cell: 4.75rem; }
+  .iso-stacks__stack {
+    left: calc(50% + (var(--i-m, var(--i)) - var(--j-m, var(--j))) * var(--cos-a) * var(--cell));
+    top: calc(50% + (var(--i-m, var(--i)) + var(--j-m, var(--j))) * var(--sin-a) * var(--cell));
+  }
+  .iso-stacks__stack.is--no-tablet { display: block; }
+  .iso-stacks__stack.is--no-phone { display: none; }
+}
+.hero__centre {
+  position: relative;
+  --hero-col: calc((100vw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: calc(8 * var(--hero-col) + 7 * var(--grid-gutter));
+}
+.hero--centred .hero__tagline { margin: 0 0 2rem; color: rgba(255, 255, 255, 0.72); }
+.hero--centred .hero__heading { margin: 0; max-width: 13em; text-wrap: balance; }
+.hero--centred .hero__lede { margin: 2rem 0 0; max-width: 30em; color: rgba(255, 255, 255, 0.8); text-wrap: pretty; }
+.hero--centred .actions { justify-content: center; margin-top: 2.5rem; }
+.hero--centred .hero__arrow {
+  position: absolute;
+  left: 50%;
+  bottom: var(--sec-md);
+  margin-left: -0.75rem;
+  color: var(--c-white);
+}
+@media (max-width: 767px) {
+  .hero--centred .actions { flex-wrap: wrap; }
+}
 /* the box's size, so the 24px mark scales with it */
 .hero__arrow svg { width: 100%; height: auto; }
 
@@ -727,7 +859,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    the marks in their white versions (assets/logos/White). Its title well
    up the band, close under the steps' edge. */
 .logos {
-  --logos-top: 5.5rem;
+  --logos-top: 3.5rem;
   padding: var(--logos-top) 0 8.875rem;
   background: var(--c-dark-fg);
   color: var(--c-white);
@@ -816,7 +948,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
     --wall-w: calc(5 * var(--wall-step) - var(--wall-gap));
     /* its left edge from the band's, where each gap's middle falls on a
        column of dots (the first --dot-phase in: approach-stack.js), as near
-       centred as the dots allow */
+       centred as the dots allow. With the script, both are set on the wall
+       itself (placeWall, approach-stack.js): the step with the parity that
+       lets the wall centre exactly on the dots, and the wall centred */
     --ph: var(--dot-phase, calc(var(--p) / 2));
     --wall-x: calc(round(down, calc((100cqw - var(--wall-w)) / 2 - var(--ph) - var(--wall-gap) / 2), var(--p)) + var(--ph) + var(--wall-gap) / 2);
     grid-template-columns: repeat(5, calc(var(--wall-step) - var(--wall-gap)));
@@ -884,8 +1018,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    columns as the grid's overlay draws them; the outer two run on to the
    screen's edges. The pieces wait flush (yPercent 100: below their own
    boxes, inside the band); the script raises each at its own rate with
-   the scroll (initBandSteps, parallax.js). Six from 992px, three on a tablet's six
-   columns, two on a phone's four.
+   the scroll (initBandSteps, parallax.js). Six from 992px, three on a
+   tablet's six columns, two on a phone's four.
    ------------------------------------------------------------ */
 .band-steps-host { position: relative; }
 .band-steps {
@@ -903,9 +1037,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* a pixel down into the band, so no hairline of the hero can show
      between a piece and the band where the edge falls between pixels */
   bottom: calc(100% - 1px);
-  /* the tallest lead (BAND_STEPS, parallax.js): 22% of the screen */
-  height: calc(22vh + 1px);
-  height: calc(22svh + 1px);
+  /* the tallest lead (BAND_STEPS, parallax.js): 14% of the screen */
+  height: calc(14vh + 1px);
+  height: calc(14svh + 1px);
   z-index: 3;
   overflow: hidden;
   pointer-events: none;
@@ -1001,9 +1135,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    the card's title, large, and its line, in white. Below 992px the
    cards stand apart, one under another.
    ------------------------------------------------------------ */
-/* the section a little further off the band above it than a section's
-   own step */
-.section.cost { padding-top: calc(var(--sec-lg) * 1.35); }
+/* the section further off the band above it than a section's own step,
+   and further still off the service tabs below: the cards drift down as
+   the page scrolls (data-problem-parallax), which takes up much of the
+   room under them, so it has more than twice a step */
+.section.cost {
+  padding-top: calc(var(--sec-lg) * 1.5);
+  padding-bottom: calc(var(--sec-lg) * 1.9);
+}
 .problem-head {
   /* the heading's size, which the coin stack set into it is sized from */
   --head-size: 5.25rem;
@@ -1096,6 +1235,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   flex: none;
   aspect-ratio: 7 / 5;
   background: var(--pc-field);
+  /* a pixel on under the band of words (see "Seams"): where the two met
+     flush, the page's ground showed between them as a hairline on the
+     middle card, flickering as the scroll moved the card by fractions of
+     a pixel */
+  margin-bottom: -1px;
 }
 /* the dots, set out from the field's corner on its step, so its edges
    run midway between two lines of them; few and far apart, so in the
@@ -1132,11 +1276,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    wherever the scroll left the card on a fraction of a pixel) */
 .problem-card__body {
   flex: 1 0 auto;
+  position: relative;
   background: var(--c-dark-bg);
   display: flex;
   flex-direction: column;
+  /* the words centred in the band's height and across it, with more
+     room round them */
+  justify-content: center;
+  align-items: center;
+  text-align: center;
   gap: 0.5rem;
-  padding: 1.5rem 1.5rem 1.75rem;
+  padding: 2.25rem 1.75rem 2.5rem;
 }
 /* the title, the band's lead: large enough to read as the card's
    heading over its line, still on one line across a card's four Grid
@@ -1152,8 +1302,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 .problem-card__p {
   margin: 0;
-  font-size: var(--t-sm);
-  line-height: 1.4;
+  font-size: calc(var(--t-sm) * 1.1);
+  font-weight: var(--fw-light, 300);
+  line-height: 1.45;
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -1564,17 +1715,18 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    stacks (the count, the attribution, the logo) are as large as their
    largest member.
    ------------------------------------------------------------ */
-/* The testimonials come out from under the band above (initRevealParallax,
-   parallax.js): a clipping wrap, on the section's own ground, so the strip
-   the section vacates mid-reveal is the section's too; the section kept on
-   a layer of its own, as the hero is. */
+/* The testimonials are uncovered from under the service deck above them
+   (data-depth="under", initDepthTransitions, parallax.js), as the footer is
+   from under the page: a clipping wrap, edge to edge, on the section's own
+   ground, the quotes inside it settling out of a higher place (the
+   footer's travel) as the deck scrolls away off its top, under a shadow
+   that clears (.depth-shade). Nothing comes over the deck. */
 .reveal-wrap {
   position: relative;
   overflow: hidden;
   overflow: clip;
   background: var(--c-light-bg);
 }
-[data-reveal-parallax-inner] { will-change: transform; }
 /* Set off from the band above it by a section step and a half, so it
    reads as its own chapter: room inside the section (--slider-above),
    not a margin outside it, so the rule can run up through it to the
@@ -1693,11 +1845,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   padding: var(--slider-pad) 0;
 }
 /* the site's dotted rule, stood upright on the line, from the section's
-   top (the band above) to its foot (the section after) */
+   top (the band above) to its foot (the section after); run up past the
+   top by as far as the quotes lag behind the section's edge as it comes
+   up (--depth-lag, initDepthTransitions), into the wrap's clip, so it
+   meets the edge wherever the lag has the quotes */
 .testimonial-slider__side::before {
   content: "";
   position: absolute;
-  top: calc(-1 * var(--slider-above, 0px));
+  top: calc(-1 * var(--slider-above, 0px) - var(--depth-lag, 0) * 100vh);
   bottom: 0;
   left: -1px;
   width: 2px;
@@ -1853,74 +2008,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ============================================================
-   8 — comparison
+   8 — FAQ (index.astro; Accordion.astro, "boxed")
    ============================================================ */
-/* A step roomier than a standard section — 135px against --sec-lg's
-   112px — and scaled from the token, so it closes up with every other
-   section on smaller screens instead of holding its desktop height. */
-.section.compare {
+/* A step roomier than a standard section, as the comparison it replaced
+   was, scaled from the token so it closes up on smaller screens. The
+   heading over the questions below 992px; beside them from 992px
+   (page-grid.css: Grid Columns 1–5 and 7–12). */
+.section.faq-home {
   padding-top: calc(var(--sec-lg) * 135 / 112);
   padding-bottom: calc(var(--sec-lg) * 135 / 112);
 }
-/* Two sides set against each other, after the supplied comparison
-   reference: each a panel drawn in a dotted line, a large title at its
-   head, then a run of rows, each a white block with a square at its
-   start. The square is the accent on the side the practice belongs to,
-   and only an outline on the side it does not. */
-.compare__grid {
-  display: flex;
-  gap: var(--grid-gutter);
-  align-items: stretch;
-  margin-top: 5rem;
-}
-.compare__side {
-  flex: 1 0 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  padding: 1.25rem;
-  border: 1px dotted rgba(10, 10, 10, 0.3);
-  border-radius: var(--radius);
-}
-.compare__title {
-  margin: 0;
-  /* the open space under the title is the reference's: the rows sit
-     well clear of it, at the panel's foot */
-  padding: 1.5rem 1rem 8rem;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 3.75rem;
-  line-height: 1.05;
-  letter-spacing: calc(var(--primary-tracking) - 0.03em);
-}
-.compare__list {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-.compare__row {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  min-height: 6.25rem;
-  padding: 1.5rem 1.75rem;
-  background: var(--c-white);
-  border-radius: var(--radius);
-  font-size: var(--t-md);
-  line-height: 1.32;
-}
-.compare__row p { flex: 1 0 0; min-width: 0; }
-.compare__mark {
-  flex: none;
-  width: 0.625rem;
-  height: 0.625rem;
-  background: var(--c-red);
-}
-.compare__side.is--not .compare__mark {
-  background: transparent;
-  box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.45);
-}
+.faq-home__h { margin: 0 0 3rem; text-wrap: balance; }
 
 /* ============================================================
    9 — insight cards + the insight slider
@@ -2259,29 +2357,39 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* ============================================================
    11 — footer
    ============================================================ */
-/* The panel is revealed with a parallax: it starts a quarter of its
-   own height high inside a clipping wrap and settles as the wrap
-   scrolls into place, with a black scrim clearing off it on the way.
-   Both are driven from initFooterParallax() in site.js. The wrap
-   carries the same background as the panel, so the strip the panel
-   vacates mid-reveal reads as part of the footer. */
+/* The footer is revealed from under the page (data-depth="under",
+   initDepthTransitions, parallax.js): in a clipping wrap, edge to edge,
+   the panel's contents settle out of a quarter of its height higher, the
+   mark across its foot from higher still, and the shadow over it all
+   clears. The wrap is the panel's red, so the strip the panel leaves
+   mid-reveal is the footer's too. */
 .footer-wrap {
   position: relative;
   overflow: hidden;
   background: var(--c-red);
 }
-/* the scrim, here, over the homepage hero as it leaves and over the
-   testimonials as they come out from under the band above */
-.footer-wrap__dark,
-.hero-wrap__dark,
-.reveal-wrap__dark {
+
+/* The shadow in a depth transition (initDepthTransitions, parallax.js): a
+   plain black box over what it darkens, a layer of its own only while its
+   meeting is near (the script's will-change), never at rest. */
+.depth-shade {
   position: absolute;
   inset: 0;
   z-index: 2;
   background: #000;
   opacity: 0;
   pointer-events: none;
-  /* scrubbed every frame of the hero's exit and the footer's entrance: a
+}
+
+/* the scrim over the homepage hero as it leaves */
+.hero-wrap__dark {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  /* scrubbed every frame of the hero's exit, which it starts on: a
      layer of its own fades on the compositor, where a plain box repaints
      the whole viewport under it at each step */
   will-change: opacity;
@@ -2305,6 +2413,15 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    The panel stands a full viewport tall, so the space between the
    parts is part of the composition rather than something to fill.
    ------------------------------------------------------------ */
+/* The AEC Tech Partners page: its one accent is the blue. Set on the page's
+   own container, so it goes with the page; and on the nav (outside the
+   container) for as long as that page is the one marked on <html>
+   (markPage, site.js). The footer keeps the red: it is the site's ground,
+   not an accent. */
+[data-barba="container"][data-page-name="AEC Tech Partners"],
+:root[data-page="aec-tech-partners"] .mega-nav { --c-red: var(--c-blue); }
+[data-page-name="AEC Tech Partners"] .footer-wrap { --c-red: var(--c-red-brand); }
+
 .site-footer {
   position: relative;
   display: flex;
@@ -2670,15 +2787,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ============================================================
-   Service tabs — the routes as one panel that sticks while the scroll
-   takes it through them (ServiceTabs.astro, service-tabs.js)
+   Service tabs — the AEC Tech Partners page's statements as one panel
+   that sticks while the scroll takes it through them (ServiceTabs.astro,
+   service-tabs.js)
    ------------------------------------------------------------
-   The homepage's routes, on a band of the ink the page's full width. Its
-   heading first, the routes' label set as "What actually costs you time"
-   is (.problem-head, and its line reveal), in white, scrolling with the
-   page; then the panel: two halves across Grid Columns 1–12, meeting on the page's
-   centre line (the middle of the gutter between Grid Columns 6 and 7),
-   only its outer corners rounded.
+   On a band of the ink the page's full width. Its heading first, the
+   section's tagline set as "What actually costs you time" is
+   (.problem-head, and its line reveal), in white, scrolling with the
+   page; then the panel across Grid Columns 1–12 from 992px: the blue
+   square and the drawing's part exactly half each (Grid Columns 1–6 and
+   7–12), meeting in the middle of the gutter between them, only the
+   outer corners rounded.
 
    Where the screen is tall and wide enough (STICKY in service-tabs.js:
    768px across, 540px down) the panel sticks a nav's height and the
@@ -2689,11 +2808,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    proportion (seven across to six down), so on a wide screen it keeps
    its shape. Below that the panel sits in the flow.
 
-   The left half, on the site's red, in white: the route's name, its
-   line and its button centred, the four numbers at the foot, and a
-   small + near each corner (.corner-marks). Every route's words share
-   one cell, the size of the largest, so nothing moves as they change.
-   The numbers: 01 to 04, each a square of its own, close together, a
+   The left part, a square of the page's blue (--c-blue, the reference's
+   #1E6EF3), in white: one statement centred, large and alone, the
+   numbers at the foot, and a small + near each corner (.corner-marks).
+   Every statement shares one cell, the size of the largest, so nothing
+   moves as they change. The numbers: 01 on, one for each statement, each a square of its own, close together, a
    faint white with the numeral held back; the one in front alone fills
    white from the left as the scroll goes through its route, a small
    loading bar of its own, the others staying grey, its numeral turning to the
@@ -2709,25 +2828,33 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    stands on the one lattice as it comes to the middle. Below 992px the
    two halves stand one over the other.
 
-   The band and the drawing's half part by tone alone: the band a
-   charcoal (--st-ground), the drawing's half well under it. The nav's
+   The band and the drawing's half are one black (--st-ground, the ink
+   band's), so the drawing's half has its edge drawn: its own lattice's
+   dotted line (the same dots, the same spacing and tint: dot-field.js,
+   mountIsoField) run along its top, right and foot, just inside its
+   edge (.service-tabs__media::after); its left is the blue half. The nav's
    dark blocks over the band's top (nav.css: the group #181818, the
-   feature block #202020, the logo block #262626) sit about the charcoal
-   (#1a1a1a): the group all but on it, the feature and logo blocks
-   lighter, so the bar is held by its lighter blocks over the band.
+   feature block #202020, the logo block #262626) all stand lighter than
+   the black, so the bar is held by its blocks over the band.
    ============================================================ */
 .service-tabs-section {
-  /* the band's charcoal (the site's own dark ground), and the drawing's
-     half, near black, well under it, so the two never run into each
-     other */
-  --st-ground: var(--c-dark-bg);
-  --st-media: #050505;
+  /* the band and the drawing's half both the site's black (the ink
+     band's ground); the dotted edge round the panel parts them */
+  --st-ground: var(--c-dark-fg);
+  --st-media: var(--c-dark-fg);
   /* the band, the page's full width, its heading and panel on Grid
-     Columns 1–12 at every width, a section's step above and below */
-  padding: var(--sec-lg) var(--grid-margin);
+     Columns 1–12 at every width, a section's step and a half above and
+     below, so the band opens and closes with room round its compact
+     panel */
+  padding: calc(var(--sec-lg) * 1.5) var(--grid-margin);
   background: var(--st-ground);
   color: var(--c-white);
+  /* the testimonials come up over it, and its contents sink under them,
+     shrinking towards its foot, under its shade, its ground staying whole
+     behind them (initDepthTransitions) */
+  position: relative;
 }
+.service-tabs-section__body { transform-origin: 50% 100%; }
 /* The heading a step under the cost section's, with more room round it,
    so it stands on its own before the panel begins. */
 .service-tabs-head {
@@ -2743,17 +2870,35 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 
 .service-tabs {
   /* the least room round the panel, under the nav and above the foot of
-     the screen */
-  --st-gap: var(--grid-margin);
+     the screen: the grid's margin on an ordinary screen (its edge twice),
+     without the frame's room a wide screen adds either side, which is
+     no reason for less height */
+  --st-gap: calc(2 * var(--grid-edge));
   /* the scroll each route has while the panel is stuck */
   --st-step: 75vh;
   --st-step: 75svh;
+  /* how far the panel stands in from the band's Grid Columns 1–12: half
+     a Grid Column and half a gutter each side from 992px (below), so it
+     stands in from the grid's edges by half a column, a compact
+     composition rather than the whole width; the full width below */
+  --st-inset: 0px;
   position: relative;
+  margin-inline: var(--st-inset);
 }
 .service-tabs__panel {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   color: var(--c-white);
+}
+/* From 992px the panel takes the whole grid, the blue square and the
+   drawing exactly half each (Grid Columns 1–6 and 7–12, meeting in the
+   middle of the gutter between them) */
+@media screen and (min-width: 992px) {
+  .service-tabs {
+    --st-col: calc((100vw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+    --st-inset: 0px;
+  }
 }
 
 .service-tabs__copy {
@@ -2767,9 +2912,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: center;
   min-width: 0;
   min-height: 0;
-  padding: 3rem 3rem 2.5rem;
+  padding: 3.5rem 4rem 2.5rem;
   text-align: center;
-  background: var(--c-red);
+  background: var(--c-blue);
+  color: var(--c-white);
   border-radius: var(--radius) 0 0 var(--radius);
 }
 /* in from each corner by half the old tab's height, in a firmer stroke
@@ -2790,61 +2936,30 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   gap: 1.25rem;
 }
 /* until the script takes them over, only the first shows; the script
-   moves the words with the scroll, line by line, through their masks */
+   fades one route's words out and the next's in (service-tabs.js) */
 .service-tabs__slide:not(.is--active) { visibility: hidden; opacity: 0; }
-/* the name's mask and the button's: one line each, clipping, opened past
-   the glyphs (the display face overhangs its 1.05 leading) and past the
-   button's focus ring, and drawn back by as much, so nothing moves; the
-   line under the name is split into the headings' own masks (.line-mask) */
-.service-tabs__mask {
-  overflow: hidden;
-  padding: 0.25em 0.5em;
-  margin: -0.25em -0.5em;
-}
-.service-tabs__mask.is--action { padding: 0.5rem; margin: -0.5rem; }
-.service-tabs__h {
+/* the statement: the panel's one line of words, large, in the
+   headings' face and setting, balanced on a measure that keeps it to
+   three or four lines */
+.service-tabs__statement {
+  max-width: 15em;
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 3.25rem;
-  line-height: 1.05;
-  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  font-size: 2.875rem;
+  line-height: 1.08;
+  letter-spacing: calc(var(--primary-tracking) - 0.035em);
   text-wrap: balance;
 }
-/* The Workshop's turning ending (word-cycle.js), as the dropdown's
-   (nav.css, .service-card__cycle): every ending stood unseen in one cell,
-   so the box is the widest ending's width and the name never moves; the
-   word laid over them, out of the flow. Its letters still scrambling in
-   a held-back white, as the red the hero's take would vanish on the red. */
-.service-tabs__cycle { position: relative; display: inline-grid; }
-.service-tabs__cycle-ghost { grid-area: 1 / 1; visibility: hidden; }
-.service-tabs__cycle-word {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: inline-block;
-  white-space: pre;
-  clip-path: inset(-0.5em -0.08em);
-}
-.service-tabs__cycle-word .is--scrambling { color: rgba(255, 255, 255, 0.55); }
-.service-tabs__p {
-  max-width: 26rem;
-  margin: 0;
-  font-size: 1.125rem;
-  line-height: 1.35;
-  color: rgba(255, 255, 255, 0.85);
-  text-wrap: balance;
-}
-.service-tabs__action { margin-top: 0.75rem; }
 
-/* the four numbers: blocks of their own, close together, a touch wider
+/* the numbers: blocks of their own, close together, a touch wider
    than tall, in the label face (the button's) at a heavier weight */
 .service-tabs__nav {
   display: flex;
   align-items: center;
   gap: 0.1875rem;
 }
-/* greyed: a faint white on the red, the numeral held back */
+/* greyed: a faint white on the blue, the numeral held back */
 .service-tabs__pos {
   position: relative;
   display: grid;
@@ -2904,7 +3019,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   --c-text: var(--c-white);
   --diagram-ground: var(--st-media);
   --sd-line: 80%;
-  --sd-soft: 46%;
   --sd-layer: 48%;
   --sd-setout: 34%;
   position: absolute;
@@ -2928,12 +3042,32 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    drawing's ground (dot-field.js), a touch brighter than a field's
    default, still well under the drawings */
 .service-tabs__pattern {
-  --iso-line: rgba(255, 255, 255, 0.16);
   position: absolute;
   inset: 0;
   pointer-events: none;
 }
 .service-tabs__pattern > canvas { display: block; }
+/* The half's edge on the black band: the lattice's own dotted line
+   (1.5px dots, 6px apart, in --iso-line: the numbers mountIsoField draws
+   with, dot-field.js) along its top, right and foot, inside its edge, so
+   the quadrant reads as a quadrant where its ground is the band's; the
+   blue half is its left side. Each run rounded to its length, so a dot
+   stands at both ends and the corners meet. */
+.service-tabs__media::after {
+  --st-edge-x: linear-gradient(to right, transparent 2.25px, var(--iso-line, rgba(255, 255, 255, 0.16)) 2.25px 3.75px, transparent 3.75px);
+  --st-edge-y: linear-gradient(to bottom, transparent 2.25px, var(--iso-line, rgba(255, 255, 255, 0.16)) 2.25px 3.75px, transparent 3.75px);
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    var(--st-edge-x) top left / 6px 1.5px round no-repeat,
+    var(--st-edge-x) bottom left / 6px 1.5px round no-repeat,
+    var(--st-edge-y) top right / 1.5px 6px round no-repeat;
+  background-repeat: repeat-x, repeat-x, repeat-y;
+}
+.service-tabs__media { --iso-line: rgba(255, 255, 255, 0.16); }
 /* the drawing, nearly the whole of its field, moved up or down onto the
    strip's one ground line: from its own ground (--sd-ground-y, in its
    256-unit-high viewBox: ServiceDiagram.astro) to the shared one, a
@@ -2948,20 +3082,30 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   transform: translateY(calc((var(--st-ground-y) - var(--sd-ground-y, 177)) / 256 * 100%));
 }
 
-/* Stuck: the panel as tall as the screen leaves under the nav (the
-   margin's room above and below it at least) and never taller than the
-   right half's proportion (half the grid's width, seven across to six
-   down), centred in the screen under the nav: the nav's foot (--nav-h,
-   the bar's height at every width) is the top of what is seen, so the
-   panel is set halfway between it and the foot of the screen, not
-   halfway down the whole screen. The stretch it sticks for, a step of
-   scroll for each route after it. */
+/* Stuck: the panel centred in what the screen shows under the nav (the
+   nav's foot, --nav-h, the bar's height at every width, is the top of
+   what is seen), half a Grid Column in from the grid's edges from 992px
+   (--st-inset; the whole grid on a tablet), and as tall as leaves the same room above and below
+   it, so it has one room on all four sides. Only where the screen's
+   shape would make the panel a sliver or a tower — taller than
+   --st-tallest or shorter than --st-shortest times its width — is its
+   height held to that, and it stays centred under the nav. From 992px
+   the tallest is half the panel's width: two halves each about as wide
+   as tall, a compact composition that never fills the screen's height:
+
+     panel = (under the nav - 2 margin) high, held between shortest and
+             tallest × its width; the grid's width less a Grid Column
+
+   The stretch it sticks for, a step of scroll for each route after it. */
 @media screen and (min-width: 768px) and (min-height: 540px) {
   .service-tabs {
-    --st-panel-h: min(100vh - var(--nav-h) - 2 * var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
-    --st-panel-h: min(100svh - var(--nav-h) - 2 * var(--st-gap), (100vw - 2 * var(--grid-margin)) / 2 * 6 / 7);
-    --st-top: calc(var(--nav-h) + (100vh - var(--nav-h) - var(--st-panel-h)) / 2);
-    --st-top: calc(var(--nav-h) + (100svh - var(--nav-h) - var(--st-panel-h)) / 2);
+    --st-tallest: 0.75;
+    --st-shortest: 0.36;
+    --st-under: calc(100vh - var(--nav-h));
+    --st-under: calc(100svh - var(--nav-h));
+    --st-panel-w: calc(100vw - 2 * var(--grid-margin) - 2 * var(--st-inset));
+    --st-panel-h: clamp(var(--st-shortest) * var(--st-panel-w), var(--st-under) - 2 * var(--st-gap), var(--st-tallest) * var(--st-panel-w));
+    --st-top: calc(var(--nav-h) + (var(--st-under) - var(--st-panel-h)) / 2);
     height: calc(var(--st-panel-h) + var(--st-count, 4) * var(--st-step));
   }
   .service-tabs__panel {
@@ -2970,6 +3114,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
     height: var(--st-panel-h);
   }
   .service-tabs__media { aspect-ratio: auto; }
+}
+@media screen and (min-width: 992px) and (min-height: 540px) {
+  .service-tabs { --st-tallest: 0.5; }
 }
 
 /* Below 992px the halves stand one over the other: the words, then the
@@ -2986,122 +3133,69 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   }
   .service-tabs__marks { --mark-inset: 1.25rem; }
   .service-tabs__slides { margin-bottom: 1.75rem; }
-  .service-tabs__h { font-size: 2.5rem; }
+  .service-tabs__statement { font-size: 2.25rem; }
   .service-tabs__media {
     aspect-ratio: 9 / 6;
     border-radius: 0 0 var(--radius) var(--radius);
   }
 }
 @media screen and (min-width: 768px) and (max-width: 991px) and (min-height: 540px) {
-  .service-tabs {
-    --st-panel-h: calc(100vh - var(--nav-h) - 2 * var(--st-gap));
-    --st-panel-h: calc(100svh - var(--nav-h) - 2 * var(--st-gap));
-  }
+  /* the halves stacked, so the panel is meant to be taller than wide: the
+     room is the margin on every side, whatever the screen's shape */
+  .service-tabs { --st-panel-h: calc(var(--st-under) - 2 * var(--st-gap)); }
   .service-tabs__panel { grid-template-rows: auto minmax(0, 1fr); }
   .service-tabs__copy { flex: none; }
   .service-tabs__media { aspect-ratio: auto; }
 }
 @media screen and (max-width: 767px) {
-  .service-tabs__h { font-size: 2rem; }
-  .service-tabs__p { font-size: 1rem; }
+  .service-tabs__statement { font-size: 1.875rem; }
 }
 
 /* ============================================================
    Service diagrams (ServiceDiagram.astro) — the four services drawn
-   as the approach schematics are: isometric wireframes in hairlines
-   of three weights over a dashed setting-out cross, the faces of a
-   solid in the ground of the field it is on, the red only ever a
-   line. The ink is the field's text colour and the ground its
-   --diagram-ground (a light grey unless a field says otherwise), so
-   the one drawing serves a dark field and a light one alike; every line keeps one pixel's weight however
-   large or small the drawing is shown.
+   as Hairline figures (service-figures.js): rounded solids in
+   hairlines of three weights over a dashed setting-out, their plates
+   in the ground of the field they are on, the one bright stroke the
+   red. The figures set classes only, as Hairline's own do (sil, lo,
+   hi, nf, fo, dash, dot); this is their palette. The ink is the
+   field's text colour and the ground its --diagram-ground (a light
+   grey unless a field says otherwise), so one drawing serves a dark
+   field and a light one alike; every line keeps one pixel's weight
+   however large or small the drawing is shown.
    ============================================================ */
 .service-diagram {
   --sd-ink: var(--c-text);
   --sd-ground: var(--diagram-ground, var(--c-light-fg));
   --sd-accent: var(--diagram-accent, var(--c-red));
-  /* the lines' weight in screen pixels, and the dashes' rhythm: a field
-     that shows the drawing small may draw it finer */
+  /* the lines' weight in screen pixels: a field that shows the drawing
+     small may draw it finer */
   --sd-stroke: 1;
-  --sd-dash: 3 3;
-  /* the ink's tints: a line, a soft line or ring, a lower layer, and the
-     setting-out; a field that needs the drawing brighter or quieter sets
-     them (the service tabs' panel) */
+  /* the ink's tints: a silhouette, a plate's other lines, and what
+     recedes; a field that needs the drawing brighter or quieter sets
+     them (the service tabs' panel, the deck's) */
   --sd-line: 60%;
-  --sd-soft: 32%;
   --sd-layer: 34%;
   --sd-setout: 24%;
   overflow: visible;
 }
-.service-diagram :is(path, circle) {
+.service-diagram :is(path, ellipse) {
+  fill: var(--sd-ground);
+  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-layer), transparent);
+  stroke-width: var(--sd-stroke);
   vector-effect: non-scaling-stroke;
   stroke-linejoin: round;
-}
-.service-diagram__line {
-  fill: none;
-  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent);
-  stroke-width: var(--sd-stroke);
-}
-.service-diagram__line.is--soft { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-soft), transparent); }
-.service-diagram__line.is--dash { stroke-dasharray: var(--sd-dash); }
-.service-diagram__line.is--dash:not(.is--soft) { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-setout), transparent); }
-/* Solid lines are things; dotted ones are what moves or relates them:
-   a path work takes, a design carried across, a part mapped into a plan.
-   A path keeps its line's weight; only the setting-out is faint. */
-.service-diagram__line.is--path { stroke-dasharray: var(--sd-dash); }
-.service-diagram__ring {
-  fill: var(--sd-ground);
-  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-soft), transparent);
-  stroke-width: var(--sd-stroke);
-}
-.service-diagram__ring.is--accent { stroke: var(--sd-accent); }
-.service-diagram__ring.is--session { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent); }
-/* a solid: its faces the field's ground, its edges the group's stroke */
-.service-diagram__solid {
-  fill: var(--sd-ground);
-  stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent);
-  stroke-width: var(--sd-stroke);
-}
-.service-diagram__solid.is--accent { stroke: var(--sd-accent); }
-/* the lower layers of an exploded stack, a weight quieter */
-.service-diagram__solid.is--soft { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-layer), transparent); }
-.service-diagram__accent {
-  fill: none;
-  stroke: var(--sd-accent);
-  stroke-width: calc(1.25 * var(--sd-stroke));
-}
-.service-diagram__accent.is--dash { stroke-dasharray: var(--sd-dash); }
-/* the milestones on the roadmap: closed in the ground, so the roadmap
-   reads as passing through each */
-.service-diagram__accent.is--mark { fill: var(--sd-ground); }
-/* The parts the homepage's stack moves (service-diagram.js) change colour
-   by a class, eased here, lit quickly and let go slowly: a system the
-   roadmap reaches in the full ink, a session the run passes in the red,
-   the sticking point found in the red (its own is--accent). */
-.service-diagram :is(.service-diagram__solid, .service-diagram__ring) { transition: stroke .9s ease-in; }
-.service-diagram :is(.service-diagram__solid, .service-diagram__ring):is(.is--lit, .is--accent) { transition: stroke .2s ease-out; }
-.service-diagram__solid.is--lit { stroke: var(--sd-ink); }
-.service-diagram__ring.is--session.is--lit { stroke: var(--sd-accent); }
-/* A signal run along a line (service-diagram.js): a short red dash
-   moved down the path's own length (pathLength="1"), so it is drawn in
-   the drawing's units rather than the screen's. Out of sight at rest. */
-.service-diagram .service-diagram__pulse {
-  vector-effect: none;
-  fill: none;
-  stroke: var(--sd-accent);
-  stroke-width: 1.5;
   stroke-linecap: round;
-  stroke-dasharray: 0.06 1;
-  stroke-dashoffset: 0.06;
-  opacity: 0;
+  transition: stroke 260ms cubic-bezier(0.32, 0.72, 0, 1);
 }
-/* the R on the Before Revit block */
-.service-diagram__glyph {
-  fill: var(--sd-ink);
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 19px;
-}
+.service-diagram .nf { fill: none; }
+.service-diagram .fo { stroke: none; }
+.service-diagram .sil { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent); }
+.service-diagram .lo { stroke: color-mix(in srgb, var(--sd-ink) var(--sd-setout), transparent); }
+.service-diagram .hi { stroke: var(--sd-accent); }
+.service-diagram .dash { stroke-dasharray: 1 3; }
+.service-diagram .dot { stroke: none; fill: var(--sd-accent); }
+.service-diagram .dot.m { fill: color-mix(in srgb, var(--sd-ink) var(--sd-line), transparent); }
+.service-diagram .dot.off { fill: color-mix(in srgb, var(--sd-ink) var(--sd-setout), transparent); }
 
 /* ============================================================
    Dot grid — the site's field of small square dots, as a layer

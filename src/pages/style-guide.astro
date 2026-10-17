@@ -1,0 +1,139 @@
+---
+/*
+  The style guide: the site's colours, on one quiet page. Not part of the
+  site: no nav, no footer, no Barba, nothing links to it, and it asks not to
+  be indexed (robots: noindex, nofollow). It reads the tokens from
+  styles.css (through the same stylesheets the site loads, so it is always
+  the site's own values), and sets each out as a swatch with its name, its
+  value and a line on where it is used. Served at /style-guide.html.
+*/
+import "../styles/scaling.css";
+import "../styles/styles.css";
+
+const colours = [
+  { token: "--c-light-bg", value: "#f5f5f3", name: "Off-white", use: "The page and every light section." },
+  { token: "--c-light-fg", value: "#f2f2f2", name: "Light grey", use: "The hero's pattern band, the quote panel, fills inside white surfaces." },
+  { token: "--c-white", value: "#ffffff", name: "White", use: "Cards, tiles and fields on the off-white; text on dark grounds." },
+  { token: "--c-dark-bg", value: "#1a1a1a", name: "Charcoal", use: "Dark sections, the nav's bar in its dark state, the routes' drawing panel." },
+  { token: "--c-dark-fg", value: "#0a0a0a", name: "Ink", use: "The band behind the logos and the approach, the routes' ground, the text colour." },
+  { token: "--c-red", value: "#C40000", name: "Signal red", use: "The accent: hover, active and highlight states, the rail's mark." },
+  { token: "--c-blue", value: "#1E6EF3", name: "Signal blue", use: "The AEC Tech Partners accent, standing in for the red there and nowhere else." },
+];
+const tints = [
+  { token: "--c-border", value: "rgba(10, 10, 10, 0.15)", name: "Border", use: "Hairlines on light grounds." },
+  { token: "--c-border-dark", value: "rgba(255, 255, 255, 0.2)", name: "Border, dark", use: "Hairlines on dark grounds." },
+  { token: "--c-btn-soft", value: "rgba(10, 10, 10, 0.05)", name: "Soft fill", use: "The fill a quiet control takes on hover." },
+  { token: "dots", value: "rgba(255, 255, 255, 0.11)", name: "Field dots", use: "The band's field of dots; 30% of the text colour on light grounds." },
+];
+---
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADDD style guide</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<link rel="icon" href="/assets/logos/logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://use.typekit.net" crossorigin>
+<link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&display=swap">
+</head>
+<body class="sg">
+  <main class="sg__page">
+    <header class="sg__head">
+      <p class="tagline">ADDD</p>
+      <h1 class="sg__title">Style guide</h1>
+      <p class="sg__lede">The colours the site is built from, as the stylesheet names them. One red, one blue, two darks, two lights and white; everything else is one of these at a tint.</p>
+    </header>
+
+    <section class="sg__section" aria-labelledby="sg-colour">
+      <h2 class="tagline" id="sg-colour">Colour</h2>
+      <ul class="sg__swatches" role="list">
+        {colours.map((c) => (
+          <li class="sg__swatch">
+            <span class="sg__chip" style={`background:${c.value}`}></span>
+            <span class="sg__name">{c.name}</span>
+            <span class="sg__meta"><code>{c.token}</code><code>{c.value}</code></span>
+            <span class="sg__use">{c.use}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="sg__section" aria-labelledby="sg-tints">
+      <h2 class="tagline" id="sg-tints">Tints</h2>
+      <ul class="sg__swatches" role="list">
+        {tints.map((c) => (
+          <li class="sg__swatch">
+            <span class="sg__chip sg__chip--tint" style={`--tint:${c.value}`}></span>
+            <span class="sg__name">{c.name}</span>
+            <span class="sg__meta"><code>{c.token}</code><code>{c.value}</code></span>
+            <span class="sg__use">{c.use}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section class="sg__section" aria-labelledby="sg-type">
+      <h2 class="tagline" id="sg-type">Type</h2>
+      <ul class="sg__type" role="list">
+        <li><span class="sg__type-sample h2">Parabolica</span><span class="sg__use">Headings and body, one weight (400); 200 where a line is set light.</span></li>
+        <li><span class="sg__type-sample tagline">Geist Mono</span><span class="sg__use">Labels, taglines and the pattern's words, always uppercase.</span></li>
+      </ul>
+    </section>
+  </main>
+</body>
+</html>
+
+<style>
+  .sg {
+    margin: 0;
+    background: var(--c-light-bg);
+    color: var(--c-text);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  .sg__page {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: 5rem 2rem 7rem;
+  }
+  .sg__head { max-width: 36rem; margin-bottom: 4.5rem; }
+  .sg__title {
+    margin: 0.75rem 0 1.25rem;
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  .sg__lede { margin: 0; font-size: 1.125rem; line-height: 1.45; }
+  .sg__section { margin-bottom: 4rem; }
+  .sg__section > .tagline { margin: 0 0 1.25rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--c-border); }
+  .sg__swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+    gap: 1.5rem 1.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .sg__swatch { display: grid; gap: 0.35rem; }
+  .sg__chip {
+    display: block;
+    aspect-ratio: 3 / 2;
+    border-radius: var(--radius, 2px);
+    box-shadow: inset 0 0 0 1px var(--c-border);
+    margin-bottom: 0.5rem;
+  }
+  /* a tint shown over the two grounds it is used on, light and dark */
+  .sg__chip--tint { background: linear-gradient(to right, var(--c-white) 50%, var(--c-dark-fg) 50%); position: relative; overflow: hidden; }
+  .sg__chip--tint::after { content: ""; position: absolute; inset: 25% 12%; background: var(--tint); border-radius: 1px; }
+  .sg__name { font-size: 1rem; }
+  .sg__meta { display: flex; gap: 0.75rem; flex-wrap: wrap; font-family: var(--font-label, "Geist Mono", monospace); font-size: 0.75rem; color: rgba(10, 10, 10, 0.6); }
+  .sg__meta code { font: inherit; }
+  .sg__use { font-size: 0.875rem; line-height: 1.4; color: rgba(10, 10, 10, 0.7); }
+  .sg__type { display: grid; gap: 1.75rem; margin: 0; padding: 0; list-style: none; }
+  .sg__type li { display: grid; gap: 0.35rem; }
+  .sg__type-sample { display: block; }
+  .sg__type-sample.h2 { font-size: 2.5rem; letter-spacing: -0.03em; }
+</style>
