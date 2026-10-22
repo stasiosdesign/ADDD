@@ -49,6 +49,7 @@ import { mountDotFit } from "./dot-fit.js";
 import { mountDotLift } from "./dot-lift.js";
 import { mountCellGrid } from "./cell-grid.js";
 import { initServiceSheets, opensSheet, openSheet, sheetOpen, closeSheet, markSheetArrival } from "./service-sheet.js";
+import { initHoldingFigure } from "./holding-figure.js";
 
 
 // The wipe panel lives outside the Barba container, so it is looked up once.
@@ -485,6 +486,7 @@ const PAGE_COMPONENTS = [
   ["[data-depth]", initDepthTransitions],
   ["[data-band-steps]", initBandSteps],
   [".nav-link", initTextScramble],
+  ["[data-holding-figure]", initHoldingFigure],
 ];
 
 function initPage(container) {

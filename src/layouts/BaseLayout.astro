@@ -80,10 +80,10 @@ interface Props {
 
 const { title, description, pageName, home = false, theme: pageTheme = "light", doc } = Astro.props;
 // While the site is held (src/holding.ts), every page but the homepage
-// shows the holding page in place of its own, on white: the page's own
+// shows the holding page in place of its own, on black: the page's own
 // content is not rendered, and is back as it was once the switch is off
 const holding = HOLDING && !home;
-const theme = holding ? "light" : pageTheme;
+const theme = holding ? "dark" : pageTheme;
 const docAttrs = doc ? { "data-page-doc": doc.id, "data-page-type": doc.type ?? doc.id } : {};
 // The page's name and theme on <html>, for the stylesheets that lay the
 // page out by them (the homepage's frame, page-grid.css; a dark page's bar,

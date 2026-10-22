@@ -474,41 +474,61 @@
    Holding page — what a page shows while it waits to be published
    (src/holding.ts, HoldingPage.astro)
    ------------------------------------------------------------
-   Plain white, the screen's height, under the nav: the label, one line
-   in the display face, a sentence and a text link, on the grid's left
-   margin (the logo's edge), a little above the middle of the screen.
+   Black, the screen's height, the nav over it: centred in the screen,
+   the tray of cards (holding-figure.js, its plates the page's black),
+   then the first line in the display face in white and the second a
+   step smaller in grey.
    ============================================================ */
 .holding {
   display: flex;
   align-items: center;
+  justify-content: center;
   box-sizing: border-box;
   min-height: 100vh;
   min-height: 100svh;
-  padding: calc(var(--nav-h) + 4rem) var(--grid-margin) 8rem;
-  background: var(--c-white);
-  color: var(--c-text);
+  padding: calc(var(--nav-h) + 2.5rem) var(--grid-margin) 2.5rem;
+  background: #000;
+  color: var(--c-white);
+  text-align: center;
 }
-.holding__inner { max-width: 44rem; }
-.holding__label { margin: 0 0 1.75rem; }
+.holding__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 34rem;
+}
+/* The figure's box is its 400 × 320 frame, the tray in the middle of it
+   with empty frame above and below: the box is set wide and its empty
+   top and foot are given back in negative margin (shares of its width:
+   the tray starts 23% and ends 81% down the frame, which is 0.8 of the
+   width tall), so the tray, not the frame, sits close over the heading */
+.holding__figure {
+  --hairline-plate: #000;
+  --fig-w: min(25rem, 88vw);
+  width: var(--fig-w);
+  margin: calc(-0.17 * var(--fig-w)) 0 calc(-0.15 * var(--fig-w) + 1.75rem);
+  opacity: 0.85;
+}
+/* the tray alone: not the faint reflection Hairline draws under it */
+.holding__figure .ghost { display: none; }
 .holding__h {
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: var(--t-h2);
-  line-height: 1.05;
-  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  font-size: var(--t-h4);
+  line-height: 1.12;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   text-wrap: balance;
 }
+/* on two lines, balanced: a measure narrower than the line */
 .holding__p {
-  max-width: 28em;
-  margin: 1.5rem 0 0;
+  max-width: 15em;
+  margin: 1rem 0 0;
   font-size: var(--t-md);
   line-height: 1.4;
-  color: color-mix(in srgb, currentColor 62%, transparent);
-  text-wrap: pretty;
+  color: rgba(255, 255, 255, 0.5);
+  text-wrap: balance;
 }
-.holding__link { display: inline-block; margin-top: 2.5rem; font-size: var(--t-rg); color: inherit; }
 @media screen and (max-width: 767px) {
-  .holding { padding-bottom: 5rem; }
-  .holding__label { margin-bottom: 1.25rem; }
+  .holding__figure { --fig-w: min(20rem, 88vw); }
 }
