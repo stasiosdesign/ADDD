@@ -296,7 +296,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        The four routes as cards that stack as the page scrolls
        (ServiceDeck.astro). The panel that takes the routes in turn
        (ServiceTabs.astro) now lives on the AEC Tech Partners page. -->
-  <ServiceDeck cards={routeCards} hrefs={routeHrefs} />
+  <ServiceDeck heading={t("routes.heading")} cards={routeCards} hrefs={routeHrefs} />
 
   <!-- ========== 6. TESTIMONIALS ========== -->
   <!-- The slider alone (TestimonialSlider.astro): the quotes stacked in

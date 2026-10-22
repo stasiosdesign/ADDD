@@ -1,0 +1,30 @@
+---
+/*
+  The Technology Blueprint's ground: its sub-brand, one graphic wherever
+  the service shows (the nav's Services card, the homepage deck's card,
+  the service page's hero). The AEC Tech Partners hero's lattice
+  (Hero.astro, .hero__lattice): a draughtsman's dash-dot line, a dot on
+  every crossing (mountIsoField, dot-field.js, data-iso-line="dash"), but
+  at the site's drawings' 30° rather than that hero's flatter 2:1, a
+  cell of that hero's size (8.5rem).
+  It fills its parent (styles.css, "Service grounds"), behind
+  everything in it, set out from its middle and cropped by its edges.
+
+  module: the cell, in the screen's units (or in the units of the
+  sibling svg the field takes its scale from: the nav's card, whose
+  pattern box is 400 wide).
+  on: a drawing in the ground's parent (a selector: the service page
+  hero's diagram) the ground is set out from instead, through its
+  origin (data-ground) at its scale, a whole number of its cells (54)
+  to the ground's, as near the screen's 136 as that allows
+  (dot-field.js, data-iso-cell): the drawing stands on the ground, its
+  slab's edges and its setting-out on the ground's lines.
+*/
+interface Props {
+  module?: number;
+  on?: string;
+  class?: string;
+}
+const { module = 136, on, class: className } = Astro.props;
+---
+<div class:list={["service-ground", "blueprint-ground", className]} data-iso-field data-iso-line="dash" data-iso-module={on ? 54 : module} data-iso-ground={on} data-iso-cell={on ? 136 : undefined} aria-hidden="true"></div>

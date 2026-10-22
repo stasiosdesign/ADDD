@@ -40,5 +40,15 @@ const { index, class: className } = Astro.props;
 // each figure's lattice point, as service-figures.js sets the figure out
 const GROUNDS = [[200, 168], [200, 182], [200, 186], [200, 177]];
 const origin = GROUNDS[index];
+// each figure's extent in the frame at rest (its box: x, y, width,
+// height, measured), for a service page's hero to size and centre the
+// figure rather than the frame (service-deck.css, is--figure-large): its
+// width and height as shares of the frame's height, and how far its
+// middle is from the frame's, in the same shares
+const EXTENTS = [[105, 38, 190, 188], [96, 97, 209, 140], [105, 24, 190, 220], [89, 54, 221, 154]];
+const extent = EXTENTS[index];
+const fig = extent
+  ? `--fig-w:${(extent[2] / 256).toFixed(3)};--fig-h:${(extent[3] / 256).toFixed(3)};--fig-dx:${((200 - extent[0] - extent[2] / 2) / 256).toFixed(3)};--fig-dy:${((128 - extent[1] - extent[3] / 2) / 256).toFixed(3)}`
+  : "";
 ---
-<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-ground={origin?.join(" ")} style={origin ? `--sd-ground-y:${origin[1]}` : undefined} data-service-diagram={index}></svg>
+<svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-ground={origin?.join(" ")} style={[origin && `--sd-ground-y:${origin[1]}`, fig].filter(Boolean).join(";") || undefined} data-service-diagram={index}></svg>

@@ -3,8 +3,8 @@
   The four routes as a deck of cards that stack as the page scrolls: an
   alternative to the service tabs (ServiceTabs.astro), set under them on
   the homepage for the two to be compared side by side. Each route is a
-  band the screen's height, all in one charcoal and parted by the site's
-  dotted rule (styles: src/styles/service-deck.css), laid out on the
+  band the screen's height, all in one charcoal, under the section's
+  centred title (styles: src/styles/service-deck.css), laid out on the
   12-Column Grid:
   in its head row, its number in the label face on Grid Column 1 (as the
   approach cards carry theirs), its name large from Grid Column 2, and at
@@ -36,6 +36,7 @@
 */
 import LineArrow from "./LineArrow.astro";
 import ServiceDiagram from "./ServiceDiagram.astro";
+import ServiceGround from "./ServiceGround.astro";
 import { SERVICES } from "./services";
 
 interface Card {
@@ -44,17 +45,21 @@ interface Card {
   text?: string;
 }
 interface Props {
+  /** the section's title (routes.heading), centred over the cards */
+  heading?: string;
   cards: Card[];
   hrefs: string[];
 }
-const { cards, hrefs } = Astro.props;
+const { heading, cards, hrefs } = Astro.props;
 
 // what each route covers, by position
 const COVERS = SERVICES.map((route) => route.covers);
 ---
 <div class="service-deck" data-service-deck style={`--deck-steps:${Math.max(cards.length - 1, 0)}`}>
+  {heading && <h2 class="service-deck__title" data-split="heading" data-page-field="routes.heading">{heading}</h2>}
   {cards.map((card, i) => (
-  <article class="service-deck__card" style={`--i:${i}`}>
+  <article class:list={["service-deck__card", SERVICES[i]?.ground && ["has--ground", `is--${SERVICES[i].ground}`]]} style={`--i:${i}`}>
+    {SERVICES[i]?.ground && <ServiceGround kind={SERVICES[i].ground} on={SERVICES[i].ground === "blueprint" ? undefined : ".service-deck__diagram"} />}
     <div class="service-deck__inner">
       <span class="service-deck__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
       <h3 class="service-deck__h" data-page-field={`routes.cards.${i}.title`}>{card.title}</h3>
@@ -77,8 +82,8 @@ const COVERS = SERVICES.map((route) => route.covers);
           {(COVERS[i] ?? []).map((item) => <li>{item}</li>)}
         </ul>
       </div>
-      <div class="service-deck__media">
-        <div class="service-deck__pattern" data-iso-field aria-hidden="true"></div>
+      <div class:list={["service-deck__media", SERVICES[i]?.ground && "is--grounded"]}>
+        {!SERVICES[i]?.ground && <div class="service-deck__pattern" data-iso-field aria-hidden="true"></div>}
         <ServiceDiagram index={i} class="service-deck__diagram" />
       </div>
     </div>

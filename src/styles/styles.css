@@ -621,6 +621,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   pointer-events: none;
 }
 .hero__lattice > canvas { display: block; }
+/* Service grounds — each route's own (ServiceGround.astro): fills its
+   parent, behind its contents, cropped by its edges; its ink is the
+   place's own --iso-line (nav.css, service-deck.css) */
+.service-ground { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.service-ground > canvas { display: block; }
 .iso-stacks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .iso-stacks__stack {
   /* the view's axes, 2:1 (IsoStacks.astro): cos and sin of atan(1/2) */
@@ -1905,8 +1910,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 /* Square, as the research slider's arrows are (.arrows): a white block
    on the off-white with the controls' radius and no outline, the
-   arrow in ink, and over it the fill, in the ink, and a white arrow the
-   script runs in on hover and keyboard focus: the block inverts. */
+   arrow in ink, and over it the fill, in the ink, and a white arrow, both
+   uncovered from the foot up on hover and keyboard focus
+   (testimonial-slider.js): the block inverts as the ink slides up. */
 .testimonial-slider__button {
   position: relative;
   display: flex;
@@ -1932,7 +1938,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   position: absolute;
   inset: 0;
   background: var(--c-text);
-  transform: scale(0);
+  clip-path: inset(100% 0% 0% 0%);
 }
 .testimonial-slider__over {
   position: absolute;
@@ -1942,10 +1948,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   align-items: center;
   justify-content: center;
   color: var(--c-white);
+  clip-path: inset(100% 0% 0% 0%);
 }
-/* the white arrow waits outside, on the side it comes in from */
-.testimonial-slider__button.is--prev .testimonial-slider__over { transform: translateY(100%); }
-.testimonial-slider__button.is--next .testimonial-slider__over { transform: translateY(-100%); }
 
 /* Below 992px the quote, the count and the attribution run the width,
    and the rule lies down across the grid under them, dividing them from
@@ -1983,8 +1987,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* across the rule: the previous points left, the next right */
   .testimonial-slider__button.is--prev .testimonial-slider__arrow { transform: rotate(180deg); }
   .testimonial-slider__button.is--next .testimonial-slider__arrow { transform: none; }
-  .testimonial-slider__button.is--prev .testimonial-slider__over { transform: translateX(100%); }
-  .testimonial-slider__button.is--next .testimonial-slider__over { transform: translateX(-100%); }
 }
 
 /* ============================================================

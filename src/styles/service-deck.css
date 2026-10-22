@@ -87,19 +87,31 @@
   padding: var(--deck-inset) var(--deck-pad) calc(var(--deck-pad) + var(--deck-tail));
   background: var(--deck-ground);
 }
-/* every card the one charcoal; from the second on, the dotted rule along
-   its top, inside the page's margins, is what parts it from the card
-   before (and each piled head from the next) */
-.service-deck, .service-hero, .service-sheet { --deck-ground: #161616; }
-.service-deck__card + .service-deck__card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: round(var(--deck-pad), 1px);
-  right: round(var(--deck-pad), 1px);
-  height: var(--deck-dot);
-  background: var(--deck-rule);
+/* The section's title (routes.heading), centred over the first card, on
+   the deck's charcoal, in the approach heading's setting
+   (approach-stack.css, .approach-stack__head) */
+.service-deck__title {
+  margin: 0;
+  padding: var(--sec-md) var(--deck-pad) calc(var(--sec-md) - var(--deck-inset));
+  background: var(--deck-ground);
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 4rem;
+  line-height: 0.9;
+  letter-spacing: calc(var(--primary-tracking) - 0.0274em);
+  -webkit-text-stroke: 0.010em currentColor;
+  text-align: center;
+  text-wrap: balance;
 }
+@media screen and (max-width: 991px) {
+  .service-deck__title { font-size: 3rem; }
+}
+@media screen and (max-width: 767px) {
+  .service-deck__title { font-size: 2.25rem; }
+}
+/* every card the one charcoal, with no rule between them: each piled
+   head is parted from the next by its own air alone */
+.service-deck, .service-hero, .service-sheet { --deck-ground: #161616; }
 /* each card starts over the card before's tail, and a pixel more, so no
    hairline of the page shows between two while they stack ("Seams",
    styles.css) */
@@ -252,6 +264,29 @@
   max-height: 80%;
 }
 
+/* A route with a ground of its own (services.ts, "ground";
+   ServiceGround.astro) has it across the whole card, and across its page's hero, rather than
+   a lattice in the panel: the panel is left open on the ground, its
+   plates filled with the card's charcoal so each hides the ground under
+   it, and the ground lies under everything in the card (its own layer:
+   isolation), held back enough that the words read over it. The panel
+   is marked on itself (is--grounded), as it is taken out of the card's
+   page into a window of its own while the card opens (service-sheet.js). */
+.has--ground { isolation: isolate; }
+.has--ground > .service-ground { z-index: -1; }
+/* the dash-dot lines, the Blueprint's and the Workshop's laid flat: the
+   AEC Tech Partners hero's ink (styles.css, .hero__lattice) */
+:is(.is--blueprint, .is--plan) > .service-ground { --iso-line: rgba(255, 255, 255, 0.09); }
+/* the Advisory's isometric paper: whole lines, closer, so fainter */
+.is--paper > .service-ground { --iso-line: rgba(255, 255, 255, 0.06); }
+/* the nav card's dark ink (nav.css, --nav-card-dots): a field of single
+   dots carries less than a line, so it is held back less */
+.is--grid > .service-ground { --iso-line: rgba(255, 255, 255, 0.11); }
+.service-deck__media.is--grounded {
+  --diagram-ground: var(--deck-ground);
+  background: transparent;
+}
+
 /* Below 992px, six columns: the number on Grid Column 1, the name on
    Grid Columns 2–5 and the square at the end of Grid Column 6; under
    them the two cells one over the other on Grid Columns 2–3 and the
@@ -371,6 +406,27 @@
   .service-hero .service-deck__diagram {
     max-height: min(80%, calc(0.8 * (100svh - var(--deck-top) - var(--deck-steps) * var(--deck-head) - var(--deck-inset) - var(--deck-pad))));
   }
+}
+/* A service page's hero (its panel marked is--figure-large, on itself,
+   as is--grounded is): the drawing larger, each figure by its own
+   extent in its 400 × 256 frame (ServiceDiagram.astro: --fig-w, --fig-h,
+   shares of the frame's height) about two thirds of the panel's height
+   and never more than three quarters of its width, and moved by its own
+   offset (--fig-dx, --fig-dy) so the figure, not the frame, stands in
+   the middle of the panel; the frame's empty sides may run past the
+   panel, which crops them. The ground is set out from the drawing as it
+   stands (ServiceGround.astro, "on"), so at any size its lines run
+   through the figure's. */
+.is--figure-large > .service-deck__art { container-type: size; }
+.is--figure-large > .service-deck__art > .service-deck__diagram {
+  --fig-size: min(calc(65cqh / var(--fig-h, 0.86)), calc(75cqw / var(--fig-w, 0.74)));
+  flex: none;
+  width: auto;
+  max-width: none;
+  height: var(--fig-size);
+  max-height: none;
+  aspect-ratio: 400 / 256;
+  translate: calc(var(--fig-dx, 0) * var(--fig-size)) calc(var(--fig-dy, 0) * var(--fig-size));
 }
 @media screen and (max-width: 991px) {
   .service-hero__inner { grid-template-rows: var(--deck-line) auto auto minmax(0, 1fr); }

@@ -11,7 +11,12 @@
    towards the label's, so it stays the bar's one filled block.
 
    It is painted from the bar's own theme variables (nav.css), so it
-   inverts with the bar on a dark page.
+   inverts with the bar on a dark page, frame for frame with the rest of
+   the bar: its colour has no transition of its own (one lagged 0.3s
+   behind every change of theme, and played a change made at once under
+   a page's cover as a flash of the last page's colour). The hover's
+   deepening is a layer of the label's colour over it (::before), which
+   fades.
    ============================================================ */
 .contact-button {
   /* the label's inset: its own 1.25rem, and the 2.75rem the four bars
@@ -37,8 +42,17 @@
   text-decoration: none;
   display: inline-flex;
   position: relative;
-  transition: background-color 0.3s var(--contact-button-ease);
   -webkit-tap-highlight-color: transparent;
+}
+
+.contact-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--nav-cta-fg);
+  opacity: 0;
+  transition: opacity 0.3s var(--contact-button-ease);
+  pointer-events: none;
 }
 
 .contact-button::after {
@@ -55,13 +69,14 @@
 }
 
 .contact-button__text {
+  position: relative;
   white-space: nowrap;
   line-height: var(--nav-text-leading);
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .contact-button:hover {
-    background-color: color-mix(in oklab, var(--nav-cta-bg), var(--nav-cta-fg) 12%);
+  .contact-button:hover::before {
+    opacity: 0.12;
   }
 }
 

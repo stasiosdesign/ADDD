@@ -1,0 +1,28 @@
+---
+/*
+  The Workflow Workshop's ground: its sub-brand, one graphic wherever the
+  service shows (the nav's Services card, the homepage deck's card, the
+  service page's hero), one of the four routes' grounds (ServiceGround.astro).
+  The Technology Blueprint's own line (BlueprintGround.astro), a
+  draughtsman's dash-dot with a dot on every crossing, but laid flat: a
+  plain square grid, the plan of a floor rather than its axonometric
+  (mountIsoField, dot-field.js, data-iso-plan="flat").
+  It fills its parent (styles.css, "Service grounds"), behind everything
+  in it, cropped by its edges.
+
+  module: the cell, in the units of the sibling svg the field takes its
+  scale from (the nav's card, whose pattern box is 400 wide).
+  on: a drawing in the ground's parent (a selector: the deck card's and
+  the hero's diagram) the grid is set out from instead: a line each way
+  through its origin, at its scale, a whole number of half its cells (54)
+  to the grid's, as near the screen's 112px as that allows
+  (data-iso-cell).
+*/
+interface Props {
+  module?: number;
+  on?: string;
+  class?: string;
+}
+const { module = 64, on, class: className } = Astro.props;
+---
+<div class:list={["service-ground", "plan-ground", className]} data-iso-field data-iso-line="dash" data-iso-plan="flat" data-iso-module={on ? 27 : module} data-iso-ground={on} data-iso-cell={on ? 112 : undefined} aria-hidden="true"></div>

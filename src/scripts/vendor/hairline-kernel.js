@@ -1,7 +1,9 @@
 /*
   Hairline's kernel (@lucasmarkes/hairline, src/core), unchanged, as the
   hairline-create skill ships it (.claude/skills/hairline-create/kernel.js),
-  with only the export at the foot added so the site can import it. The
+  with only the export at the foot added so the site can import it, and
+  tour's optional timing (a first delay and a pace; without it, the lap
+  is the package's). The
   homepage's Understand figure (understand-figure.js) is drawn on it.
   https://github.com/lucasmarkes/hairline
 
@@ -98,7 +100,7 @@
  * The bench's business, not a figure's
  *   css(lightDark)
  *   inject(root)
- *   tour(stage, stops, onStop)             an unseen pointer that walks the stops, [x, y] in viewBox units or null to leave, and gives way to a real one; onStop(i) on each arrival; returns {stop}
+ *   tour(stage, stops, onStop, timing)     an unseen pointer that walks the stops, [x, y] in viewBox units or null to leave, and gives way to a real one; onStop(i) on each arrival; timing {delay, pace} (site addition): ms on screen before the first step, and a speed factor; returns {stop}
  *   LAP                                    the default stops: a diamond around the centre, then a leave
  *
  * Classes, on path, polygon, ellipse and line. They are the whole palette; a
@@ -565,9 +567,10 @@ var HL = (() => {
     const k = Math.min(dx ? (dx > 0 ? 200 : -200) / dx : Infinity, dy ? (dy > 0 ? 160 : -160) / dy : Infinity);
     return [200 + dx * k, 160 + dy * k];
   }
-  function tour(stage, stops, onStop) {
+  function tour(stage, stops, onStop, timing) {
     let i = 0;
-    let wait = RESUME + STAGGER * (started++ % 4);
+    const pace = timing?.pace ?? 1;
+    let wait = timing?.delay != null ? timing.delay * pace : RESUME + STAGGER * (started++ % 4);
     let t = -1;
     let at = null;
     let origin = [200, 320];
@@ -580,6 +583,7 @@ var HL = (() => {
     };
     const tick = (dt) => {
       if (hand || keys || !stops.length) return false;
+      dt *= pace;
       if (reducedMotion()) {
         if (at) leave();
         return false;

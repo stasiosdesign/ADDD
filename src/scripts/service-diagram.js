@@ -25,7 +25,7 @@ export function mountServiceDiagram(svg) {
   svg.replaceChildren();
   const read = { textContent: "" };
   const drawn = figure.draw({ stage: svg, svg, read }, figure.value, { oy: figure.oy, fh: FRAME_H });
-  const walk = HL.tour(svg, figure.tour);
+  const walk = HL.tour(svg, figure.tour, null, { delay: 1500 });
 
   return {
     destroy() {

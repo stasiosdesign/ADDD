@@ -1,0 +1,31 @@
+---
+/*
+  A route's own ground, its sub-brand (services.ts, "ground"), whichever
+  it is: the one place the deck's card, the page's hero and the nav's
+  card ask for it.
+
+    plan       Workflow Workshop     the dash-dot line laid flat, a square
+                                     grid (PlanGround.astro)
+    grid       Before Revit          a square grid of dots (GridGround.astro)
+    blueprint  Technology Blueprint  the dash-dot lattice (BlueprintGround.astro)
+    paper      Ongoing Advisory      isometric paper (PaperGround.astro)
+
+  module and on are passed through: the cell in the nav card's box units,
+  or the drawing the ground is set out from.
+*/
+import PlanGround from "./PlanGround.astro";
+import GridGround from "./GridGround.astro";
+import BlueprintGround from "./BlueprintGround.astro";
+import PaperGround from "./PaperGround.astro";
+import type { ServiceRoute } from "./services";
+
+interface Props {
+  kind: NonNullable<ServiceRoute["ground"]>;
+  module?: number;
+  on?: string;
+  class?: string;
+}
+const { kind, ...props } = Astro.props;
+const Ground = { plan: PlanGround, grid: GridGround, blueprint: BlueprintGround, paper: PaperGround }[kind];
+---
+<Ground {...props} />

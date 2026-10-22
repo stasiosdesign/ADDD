@@ -229,8 +229,8 @@ function build(card, source) {
   const drawing = card.querySelector(".service-deck__diagram");
   hero.querySelector(".service-deck__diagram")?.replaceWith(drawing ? drawing.cloneNode(true) : document.createTextNode(""));
   into.appendChild(hero);
-  // the dotted rule along the top of every card after the first
-  const rule = card.previousElementSibling?.matches(".service-deck__card") ? document.createElement("span") : null;
+  // (the cards carry no rule along their top any more: nothing to draw)
+  const rule = null;
   if (rule) {
     rule.className = "service-sheet__rule";
     into.appendChild(rule);
@@ -250,8 +250,9 @@ function build(card, source) {
   // The lattice behind the drawing, drawn once at the hero's size (it runs
   // past the panel on every side, service-deck.css), before anything is
   // moved: it is set out from the drawing as it stands.
-  const pattern = hero.querySelector(".service-deck__pattern");
-  const field = pattern ? mountIsoField(pattern) : null;
+  // (or the route's own ground, across the whole hero: ServiceGround.astro)
+  const fields = [...hero.querySelectorAll(".service-deck__pattern, .service-ground")].map((el) => mountIsoField(el));
+  const field = { destroy: () => fields.forEach((f) => f.destroy()) };
 
   // Every shared part, from where it is on the card back to where the hero
   // has it, at rest: the difference, set as a transform to undo.

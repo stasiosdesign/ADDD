@@ -248,59 +248,33 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
     if (into) change.add(into.tweenFromTo(0, into.duration(), { ease: "none" }));
   }
 
-  // the controls
-  const upright = window.matchMedia("(min-width: 992px)");
+  // the controls: on hover or keyboard focus the ink slides up into the
+  // block from its foot, the arrow turning white as it passes (the white
+  // arrow over the fill, both uncovered together), and slides back down
+  // as the pointer leaves
+  const HIDDEN = "inset(100% 0% 0% 0%)";
+  const SHOWN = "inset(0% 0% 0% 0%)";
   buttons.forEach((button) => {
     const fill = button.querySelector("[data-testimonial-fill]");
     const over = button.querySelector("[data-testimonial-over]");
-    // the way the arrow points along its axis: the next down (or right),
-    // the previous up (or left)
+    // the way the arrow steps through the quotes: the next on, the
+    // previous back
     const way = button.dataset.testimonialButton === "prev" ? -1 : 1;
-    const axis = () => (upright.matches ? "yPercent" : "xPercent");
-    const edge = (side) => (upright.matches ? (side > 0 ? "bottom center" : "top center") : side > 0 ? "right center" : "left center");
     const length = () => (reducedMotion ? 0 : CONTROL.duration);
     let run = null;
-    let lit = false;
 
-    // waiting: the fill drained, the white arrow outside on the side it
-    // comes in from (its offset as a share of itself, the stylesheet's
-    // own translate taken off: read as pixels, it held the arrow outside)
     const rest = () => {
       run?.kill();
       run = null;
-      lit = false;
-      gsap.set(fill, { scale: 0 });
-      gsap.set(over, { x: 0, y: 0, xPercent: 0, yPercent: 0, [axis()]: -100 * way });
+      gsap.set([fill, over], { clipPath: HIDDEN });
     };
-    function light() {
-      if (lit) return;
-      lit = true;
-      let d = length();
-      if (run && run.progress() > 0 && run.progress() < 0.5) {
-        // caught early on its way out: back from where it is
-        d *= run.progress();
-      } else {
-        gsap.set([fill, over], { transformOrigin: edge(-way) });
-        gsap.set(over, { x: 0, y: 0, xPercent: 0, yPercent: 0, [axis()]: -100 * way });
-      }
+    const to = (clipPath) => {
       run?.kill();
-      run = gsap.timeline({ defaults: { ease: CONTROL.ease } })
-        .to(fill, { scale: 1, duration: d })
-        .to(over, { xPercent: 0, yPercent: 0, duration: d * 0.8 }, d * 0.2);
-    }
-    function dim() {
-      if (!lit) return;
-      lit = false;
-      let d = length();
-      if (run && run.progress() > 0 && run.progress() < 0.5) d *= run.progress();
-      else gsap.set([fill, over], { transformOrigin: edge(way) });
-      run?.kill();
-      run = gsap.timeline({ defaults: { ease: CONTROL.ease } })
-        .to(fill, { scale: 0, duration: d })
-        .to(over, { [axis()]: 100 * way, duration: d * 0.8 }, 0);
-    }
+      run = gsap.to([fill, over], { clipPath, duration: length(), ease: CONTROL.ease });
+    };
+    const light = () => to(SHOWN);
+    const dim = () => to(HIDDEN);
     rest();
-
     const onEnter = (e) => e.pointerType === "mouse" && light();
     const onLeave = (e) => e.pointerType === "mouse" && dim();
     const onFocus = () => button.matches(":focus-visible") && light();
@@ -318,7 +292,6 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
     button.addEventListener("blur", onBlur);
     button.addEventListener("click", onClick);
     button.addEventListener("keydown", onKey);
-    upright.addEventListener("change", rest);
     cleanups.push(() => {
       button.removeEventListener("pointerenter", onEnter);
       button.removeEventListener("pointerleave", onLeave);
@@ -326,7 +299,6 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
       button.removeEventListener("blur", onBlur);
       button.removeEventListener("click", onClick);
       button.removeEventListener("keydown", onKey);
-      upright.removeEventListener("change", rest);
       run?.kill();
       gsap.set([fill, over], { clearProps: "all" });
     });

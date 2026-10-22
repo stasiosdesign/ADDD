@@ -1212,8 +1212,21 @@ function initNavTheme(nav) {
       decide();
     }, { rootMargin: `${-y}px 0px ${-(window.innerHeight - y - 1)}px 0px` });
     grounds.forEach((_, el) => observer.observe(el));
+    // A new page, still covered: its state read here and now, from where
+    // its grounds stand, rather than at the observer's first report, which
+    // comes a few frames on (later still while the page's build holds the
+    // main thread) — by then the nav was already coming back over the
+    // sheet in the last page's state, and turned as it came. The report
+    // then finds the same grounds on the line, and changes nothing.
+    if (underCover) {
+      grounds.forEach((_, el) => {
+        const r = el.getBoundingClientRect();
+        if (r.top <= y && r.bottom > y && r.width > 0) onLine.add(el);
+      });
+      decide();
+    }
     // with nothing to watch the observer never reports: the body's ground
-    if (!grounds.size) decide();
+    else if (!grounds.size) decide();
   }
 
   watch();

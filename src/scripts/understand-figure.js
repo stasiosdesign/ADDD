@@ -50,6 +50,10 @@ const T = [
 const REACH = 138;
 // settle's lap, in the frame's units, ending with a leave
 const TOUR = [[360, 40], [320, 120], [203, 155], null];
+// the lap sets off as soon as the card is on screen, a touch quicker than
+// the package's (its own first wait is 1.2-2.55 s, staggered): the first
+// stop lies beyond the tiles' reach, so the tiles first move about 1.5 s in
+const LAP_TIMING = { delay: 0, pace: 1.3 };
 // The logo (public/assets/logo.svg): its disc's centre and radius, and its
 // four triangles, in its own 100-unit box.
 const LOGO = { cx: 51, cy: 50.3, r: 40.2 };
@@ -230,7 +234,7 @@ export function mountUnderstandFigure(stage) {
   const undraw = draw({ stage, svg });
 
   let walk = null;
-  const walkOn = () => { if (!walk) walk = tour(stage, TOUR); };
+  const walkOn = () => { if (!walk) walk = tour(stage, TOUR, null, LAP_TIMING); };
   const walkOff = () => { walk?.stop(); walk = null; };
 
   return {

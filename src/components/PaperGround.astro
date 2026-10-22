@@ -1,0 +1,29 @@
+---
+/*
+  The Ongoing Advisory's ground: its sub-brand, one graphic wherever the
+  service shows (the nav's Services card, the homepage deck's card, the
+  service page's hero), one of the four routes' grounds (ServiceGround.astro).
+  Isometric paper: the site's drawings' 30° lattice in fine whole lines,
+  and an upright line through every crossing, so the sheet is all
+  equilateral triangles (mountIsoField, dot-field.js,
+  data-iso-line="paper"). The figure stands on it as on the paper it was
+  drawn on.
+  It fills its parent (styles.css, "Service grounds"), behind everything
+  in it, cropped by its edges.
+
+  module: the cell, in the units of the sibling svg the field takes its
+  scale from (the nav's card, whose pattern box is 400 wide).
+  on: a drawing in the ground's parent (a selector: the deck card's and
+  the hero's diagram) the paper is set out from instead: through its
+  origin, at its scale, a whole number of quarters of its cell (54) to
+  the paper's, as near the screen's 36px as that allows (data-iso-cell),
+  so the figure's own lattice lines are the paper's.
+*/
+interface Props {
+  module?: number;
+  on?: string;
+  class?: string;
+}
+const { module = 26, on, class: className } = Astro.props;
+---
+<div class:list={["service-ground", "paper-ground", className]} data-iso-field data-iso-line="paper" data-iso-module={on ? 13.5 : module} data-iso-ground={on} data-iso-cell={on ? 36 : undefined} aria-hidden="true"></div>

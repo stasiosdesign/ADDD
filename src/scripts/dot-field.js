@@ -68,6 +68,8 @@ const DASH_WIDTH = 0.8;
 const DASH_GAP = 0.14;
 const DASH_DOT = 1.25;
 const CROSS_DOT = 1.75;
+// isometric paper's lines (data-iso-line="paper"): this fine
+const PAPER_WIDTH = 0.75;
 
 export function mountIsoField(el) {
   const canvas = document.createElement("canvas");
@@ -88,10 +90,26 @@ export function mountIsoField(el) {
     : el.parentElement?.querySelector(":scope > svg[data-ground]");
   const frame = el.dataset.isoGround ? drawing?.closest("[data-iso-frame]") : null;
   // the cell, in the drawing's units, and what is drawn: the ground's
-  // lattice, or a square grid
-  const module = Number(el.dataset.isoModule) || MODULE;
+  // lattice, or a square grid. A field with a cell of its own on the
+  // screen (data-iso-cell, in px: the Technology Blueprint's ground) takes
+  // the whole number of the drawing's cells nearest it, at the drawing's
+  // scale (layout), so its lines run through the drawing's own wherever
+  // the drawing is drawn, at any size.
+  const own = Number(el.dataset.isoModule) || MODULE;
+  const cell = Number(el.dataset.isoCell) || 0;
+  let module = own;
   const mode = el.dataset.isoField;
   const dashed = el.dataset.isoLine === "dash";
+  // or drawn as isometric paper (data-iso-line="paper", the Ongoing
+  // Advisory's ground): the lattice's lines whole and fine, and an upright
+  // line through every crossing, which halves each cell into two
+  // equilateral triangles (drawPaper)
+  const paper = el.dataset.isoLine === "paper";
+  // The ground seen from above rather than at an angle (data-iso-plan=
+  // "flat", the Workflow Workshop's): its two axes level and upright, so
+  // its lattice is a plain square grid, a cell the same length on the
+  // screen either way.
+  const flat = el.dataset.isoPlan === "flat";
   // the lattice's angle to the level (degrees): the drawings' isometric
   // 30°, or the field's own (data-iso-angle: the AEC Tech Partners hero's
   // flatter 2:1, about 26.57°, after its reference); each axis a unit
@@ -117,6 +135,7 @@ export function mountIsoField(el) {
     const x0 = 0, x1 = width, y0 = 0, y1 = height;
     // the field's corners on the ground, for the lines that cross it
     const ground = [[x0, y0], [x1, y0], [x0, y1], [x1, y1]].map(([X, Y]) => {
+      if (flat) return [(X - ox) / scale, (Y - oy) / scale];
       const u = (X - ox) / scale / AX;
       const v = (Y - oy) / scale / AY;
       return [(u + v) / 2, (v - u) / 2];
@@ -125,7 +144,13 @@ export function mountIsoField(el) {
     const hi = (i) => Math.max(...ground.map((g) => g[i]));
     // (one ground unit is one screen unit long along either axis)
     const step = stepOf(scale);
-    const at = (x, y) => [ox + (x - y) * AX * scale, oy + (x + y) * AY * scale];
+    const at = flat
+      ? (x, y) => [ox + x * scale, oy + y * scale]
+      : (x, y) => [ox + (x - y) * AX * scale, oy + (x + y) * AY * scale];
+    if (paper) {
+      drawPaper(lo, hi, at, x0, x1);
+      return;
+    }
     if (dashed) {
       drawDashed(lo, hi, at, x0, x1, y0, y1);
       return;
@@ -197,6 +222,35 @@ export function mountIsoField(el) {
     ctx.fill(crossings);
   }
 
+  // Isometric paper: each of the lattice's lines drawn whole, from edge to
+  // edge (the canvas crops them), and an upright line through every
+  // crossing: the crossings stand in columns a cell's width apart across
+  // (AX of a cell, as every crossing is a whole number of cells along x
+  // less a whole number along y). All one path, stroked once, a hairline
+  // snapped to the device pixel where it stands upright.
+  function drawPaper(lo, hi, at, x0, x1) {
+    const { ox, scale, dpr, height } = field;
+    const lines = new Path2D();
+    const run = (fixed, swap) => {
+      for (let k = Math.ceil(lo(fixed) / module); k <= Math.floor(hi(fixed) / module); k++) {
+        const a = swap ? at(lo(0), k * module) : at(k * module, lo(1));
+        const b = swap ? at(hi(0), k * module) : at(k * module, hi(1));
+        lines.moveTo(a[0], a[1]);
+        lines.lineTo(b[0], b[1]);
+      }
+    };
+    run(0, false);
+    run(1, true);
+    const across = AX * module * scale;
+    for (let X = ox - Math.floor((ox - x0) / across) * across; X <= x1 + 0.5; X += across) {
+      const x = (Math.round(X * dpr) + 0.5) / dpr;
+      lines.moveTo(x, 0);
+      lines.lineTo(x, height);
+    }
+    ctx.lineWidth = PAPER_WIDTH;
+    ctx.stroke(lines);
+  }
+
   // A square grid of dots a cell apart both ways, the cell fitted to the
   // field's height so the first and last rows stand half a cell in from
   // its top and foot, never against its edges, and its columns set out from
@@ -244,6 +298,7 @@ export function mountIsoField(el) {
       ox = d.left - base.left + (d.width - view.width * scale) / 2 + (gx - view.x) * scale;
       oy = d.top - base.top + (d.height - view.height * scale) / 2 + (gy - view.y) * scale;
     }
+    if (cell) module = own * Math.max(1, Math.round(cell / (own * scale)));
     field = { width, height, dpr, ox, oy, scale };
     draw();
   }

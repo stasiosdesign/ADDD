@@ -13,33 +13,27 @@
   name never moves as it changes. Screen readers are given the name as it
   is written (title), once, and not the turning word.
 
-  The four are one family with four characters, drawn in two kinds of
-  line: the Slash Field's upright stroke (slash-field.js), a hairline of
-  varying length on a grid of narrow cells, set out by a field of its own;
-  and the site's dotted line, the dots of the drawings' grounds
-  (dot-field.js):
+  Behind each, its route's own ground, the service's sub-brand
+  (services.ts, "ground"; ServiceGround.astro), the same graphic as on
+  its homepage card and its page's hero, here on a cell of its own:
 
-    0  Workflow Workshop     strokes: two streams along the diagonal, the
-                             way work runs through a practice
-    1  Before Revit          dots: a square grid, close and exact, the
-                             approach band's dots on a tighter pitch,
-                             the sheet a design is set out on before
-                             the model is built
-    2  Technology Blueprint  dots: the isometric ground, dotted lines at
-                             30° either way, a fine lattice of cube tops
-    3  Ongoing Advisory      strokes: rings round the middle, evenly
-                             spaced, as regular sessions are
+    0  Workflow Workshop     the dash-dot line laid flat, a square grid
+                             (PlanGround.astro)
+    1  Before Revit          a square grid of dots, close and exact, the
+                             approach band's dots on a tighter pitch, the
+                             sheet a design is set out on before the model
+                             is built (GridGround.astro)
+    2  Technology Blueprint  the AEC Tech Partners hero's dash-dot
+                             lattice (BlueprintGround.astro)
+    3  Ongoing Advisory      isometric paper (PaperGround.astro)
 
-  Every pattern runs on across the whole card, behind the name and the
+  Every ground runs on across the whole card, behind the name and the
   line under it too, a ground rather than a frame round the words: no
-  clearing, mask or fade. The strokes are worked out here, at build, from a
-  seeded random sequence, so a card's pattern is the same every time;
-  drawn as a few paths (one per tint) in a viewBox the card's shape at its
-  widest, cropped to the card at any other (slice), at one pixel's weight
-  however it is scaled. The dots are drawn on a canvas in the card
-  (mountIsoField, mounted by initMegaNav), each snapped to the screen's
-  pixels, set out from the same viewBox (data-ground, its middle), so they
-  are cropped as the strokes are.
+  clearing, mask or fade. It is drawn on a canvas in the card
+  (mountIsoField, mounted by initMegaNav), snapped to the screen's
+  pixels, set out from an empty svg the card's shape at its widest
+  (data-ground, its middle), cropped to the card at any other (slice), so
+  it is cropped the same however the card is sized.
 */
 interface Props {
   href: string;
@@ -55,84 +49,26 @@ interface Props {
   [attr: string]: unknown;
 }
 
+import ServiceGround from "./ServiceGround.astro";
+import { SERVICES } from "./services";
+
 const { href, index, title, cycle, text, ...attrs } = Astro.props;
 
-// the pattern's box and its cells (the hero's are 7 × 15)
+// the ground's box: the card's shape at its widest
 const W = 400;
 const H = 320;
-const CELL_W = 10;
-const CELL_H = 20;
-const COLS = W / CELL_W;
-const ROWS = H / CELL_H;
 
-// a seeded sequence (mulberry32), so each card draws the same pattern
-function sequence(seed: number) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-// Each service's pattern. Strokes: the field's strength at a cell (u
-// across and v down, 0–1; c and r the cell's column and row). Dots: what
-// the canvas draws (dot-field.js) and its cell, in the box's units — the
-// grid a little over half a cell of the strokes' (about 13px on a wide
-// screen, two thirds of the approach band's pitch), the ground four
-// (three or so cube tops across a card).
-type Pattern =
-  | { strokes: (u: number, v: number, c: number, r: number) => number }
-  | { dots: "grid" | "ground"; module: number };
-const PATTERNS: Pattern[] = [
-  // two streams along the diagonal, from the foot's left to the top's right
-  { strokes: (u, v) => Math.exp(-((((u + v) / 2 - 0.5) / 0.1) ** 2)) },
-  // a square grid, close and exact
-  { dots: "grid", module: 11 },
-  // the isometric ground, fine
-  { dots: "ground", module: 4 * CELL_H },
-  // rings round the middle, evenly spaced
-  {
-    strokes: (u, v) => {
-      const d = Math.hypot((u - 0.5) / 0.5, (v - 0.5) / 0.5);
-      return Math.max(...[0.7, 1.0, 1.3].map((ring) => Math.exp(-(((d - ring) / 0.05) ** 2))));
-    },
-  },
-];
-const pattern = PATTERNS[index % PATTERNS.length];
-
-// the strokes, gathered by tint into one path each
-const TINTS = [0.14, 0.22, 0.32, 0.44];
-const paths = TINTS.map(() => [] as string[]);
-if ("strokes" in pattern) {
-  const random = sequence(9137 + index * 7919);
-  for (let r = 0; r < ROWS; r++) {
-    for (let c = 0; c < COLS; c++) {
-      const u = (c + 0.5) / COLS;
-      const v = (r + 0.5) / ROWS;
-      const strength = pattern.strokes(u, v, c, r);
-      if (strength <= 0.02 || random() > strength) continue;
-      const tint = Math.min(TINTS.length - 1, Math.floor(strength * (0.45 + 0.55 * random()) * TINTS.length));
-      const x = (c + 0.5) * CELL_W;
-      const y = (r + 0.5) * CELL_H;
-      // an upright stroke, from a little under half the cell's height to
-      // most of it
-      const half = (CELL_H * (0.4 + 0.4 * random())) / 2;
-      paths[tint].push(`M${x.toFixed(1)} ${(y + half).toFixed(1)}V${(y - half).toFixed(1)}`);
-    }
-  }
-}
-const strokes = paths.map((d, i) => ({ d: d.join(""), opacity: TINTS[i] })).filter((s) => s.d);
+// each ground's cell in the box's units, smaller than on the deck's
+// card and the hero, the card being small: the grid of dots 11 (about
+// 13px on a wide screen, two thirds of the approach band's pitch), the
+// flat squares 64, the lattice 100 (three or so cube tops across), the
+// paper 32
+const MODULES = { plan: 64, grid: 11, blueprint: 100, paper: 32 } as const;
+const ground = SERVICES[index]?.ground;
 ---
 <a class="service-card" href={href} {...attrs}>
-  <svg class="service-card__pattern" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" data-ground={`${W / 2} ${H / 2}`} aria-hidden="true">
-    {strokes.map((s) => <path d={s.d} stroke-opacity={s.opacity} />)}
-  </svg>
-  {"dots" in pattern && (
-    <span class="service-card__dots" data-iso-field={pattern.dots} data-iso-module={pattern.module} aria-hidden="true"></span>
-  )}
+  <svg class="service-card__pattern" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" data-ground={`${W / 2} ${H / 2}`} aria-hidden="true"></svg>
+  {ground && <ServiceGround kind={ground} class="service-card__dots" module={MODULES[ground]} />}
   {cycle ? (
     <span class="service-card__title"><span class="service-card__sr">{title}</span><span aria-hidden="true">{cycle.stem}<span class="service-card__cycle"><span class="service-card__cycle-word" data-word-cycle={cycle.words.join("|")}>{cycle.words[0]}</span>{cycle.words.map((word) => <span class="service-card__cycle-ghost">{word}</span>)}</span></span></span>
   ) : (

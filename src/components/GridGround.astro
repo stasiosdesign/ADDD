@@ -1,0 +1,29 @@
+---
+/*
+  Before Revit's ground: its sub-brand, one graphic wherever the service
+  shows (the nav's Services card, the homepage deck's card, the service
+  page's hero), as the Technology Blueprint has its own
+  (BlueprintGround.astro). A square grid of dots, close and exact, the
+  sheet a design is set out on before the model is built: the site's 2px
+  square dots, a cell apart both ways, its rows fitted evenly between the
+  field's top and foot and its columns set out from the drawing's origin
+  (mountIsoField, dot-field.js, data-iso-field="grid").
+  It fills its parent (styles.css, "Service grounds"), behind everything in
+  it, cropped by its edges.
+
+  module: the cell, in the units of the sibling svg the field takes its
+  scale from (the nav's card, whose pattern box is 400 wide).
+  on: a drawing in the ground's parent (a selector: the deck card's and
+  the hero's diagram) the grid is set out from instead: a column through
+  its origin, at its scale, a quarter of its cell (54) or a whole number
+  of quarters to the grid's, as near the screen's 18px (the approach
+  band's pitch) as that allows (data-iso-cell).
+*/
+interface Props {
+  module?: number;
+  on?: string;
+  class?: string;
+}
+const { module = 11, on, class: className } = Astro.props;
+---
+<div class:list={["service-ground", "grid-ground", className]} data-iso-field="grid" data-iso-module={on ? 13.5 : module} data-iso-ground={on} data-iso-cell={on ? 18 : undefined} aria-hidden="true"></div>

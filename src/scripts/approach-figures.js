@@ -231,7 +231,7 @@ export function mountApproachFigure(stage) {
   const undraw = figure.draw({ stage, svg });
 
   let walk = null;
-  const walkOn = () => { if (!walk) walk = tour(stage, figure.tour); };
+  const walkOn = () => { if (!walk) walk = tour(stage, figure.tour, null, { delay: 1500 }); };
   const walkOff = () => { walk?.stop(); walk = null; };
 
   return {

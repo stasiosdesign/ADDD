@@ -535,6 +535,9 @@
   pointer-events: none;
 }
 .service-card__dots > canvas { display: block; }
+/* the Advisory's isometric paper (PaperGround.astro): whole lines, three
+   ways, carry more ink than dots or dashes, so held back further */
+.service-card__dots.paper-ground { --iso-line: color-mix(in oklab, var(--nav-card-dots) 55%, transparent); }
 /* the name, large, on one line where it fits (the dropdown's short
    names all do), evened out where it must wrap */
 .service-card__title {
