@@ -469,3 +469,46 @@
 /* a price range sets one size down so it holds one line */
 .offer .price { flex-wrap: wrap; }
 .offer .price__amount { font-size: var(--t-h3); white-space: nowrap; }
+
+/* ============================================================
+   Holding page — what a page shows while it waits to be published
+   (src/holding.ts, HoldingPage.astro)
+   ------------------------------------------------------------
+   Plain white, the screen's height, under the nav: the label, one line
+   in the display face, a sentence and a text link, on the grid's left
+   margin (the logo's edge), a little above the middle of the screen.
+   ============================================================ */
+.holding {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: calc(var(--nav-h) + 4rem) var(--grid-margin) 8rem;
+  background: var(--c-white);
+  color: var(--c-text);
+}
+.holding__inner { max-width: 44rem; }
+.holding__label { margin: 0 0 1.75rem; }
+.holding__h {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h2);
+  line-height: 1.05;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-wrap: balance;
+}
+.holding__p {
+  max-width: 28em;
+  margin: 1.5rem 0 0;
+  font-size: var(--t-md);
+  line-height: 1.4;
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  text-wrap: pretty;
+}
+.holding__link { display: inline-block; margin-top: 2.5rem; font-size: var(--t-rg); color: inherit; }
+@media screen and (max-width: 767px) {
+  .holding { padding-bottom: 5rem; }
+  .holding__label { margin-bottom: 1.25rem; }
+}

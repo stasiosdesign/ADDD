@@ -1,0 +1,17 @@
+---
+/*
+  What a page shows while it waits to be published (src/holding.ts): on
+  plain white under the nav, a label, one line in the display face and a
+  way back to the homepage, set a little above the middle of the screen
+  on the page's left text edge (styles: pages.css, "Holding page").
+*/
+import NavLinkLabel from "./NavLinkLabel.astro";
+---
+<main class="holding">
+  <div class="holding__inner">
+    <p class="tagline holding__label">Not yet published</p>
+    <h1 class="holding__h">This page hasn't been published yet.</h1>
+    <p class="holding__p">It will be here soon. Until then, everything we do starts on the homepage.</p>
+    <a class="nav-link holding__link" href="/"><NavLinkLabel>Back to the homepage</NavLinkLabel></a>
+  </div>
+</main>

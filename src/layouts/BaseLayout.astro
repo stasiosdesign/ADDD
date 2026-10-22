@@ -31,7 +31,9 @@ import ColumnGrid from "../components/ColumnGrid.astro";
 import ScrollBar from "../components/ScrollBar.astro";
 import Footer from "../components/Footer.astro";
 import DraftModeLabel from "../components/DraftModeLabel.astro";
+import HoldingPage from "../components/HoldingPage.astro";
 import { BUILD_STAMP } from "../build-stamp.js";
+import { HOLDING } from "../holding";
 
 // Site stylesheets, bundled into one file in this order — the cascade order
 // the pages have always loaded them in, after the scaling system that sets
@@ -76,7 +78,12 @@ interface Props {
   doc?: { id: string; type?: string };
 }
 
-const { title, description, pageName, home = false, theme = "light", doc } = Astro.props;
+const { title, description, pageName, home = false, theme: pageTheme = "light", doc } = Astro.props;
+// While the site is held (src/holding.ts), every page but the homepage
+// shows the holding page in place of its own, on white: the page's own
+// content is not rendered, and is back as it was once the switch is off
+const holding = HOLDING && !home;
+const theme = holding ? "light" : pageTheme;
 const docAttrs = doc ? { "data-page-doc": doc.id, "data-page-type": doc.type ?? doc.id } : {};
 // The page's name and theme on <html>, for the stylesheets that lay the
 // page out by them (the homepage's frame, page-grid.css; a dark page's bar,
@@ -141,8 +148,7 @@ const draftMode = staging && Astro.locals.draftMode;
 <ColumnGrid />
 <ScrollBar />
 <div data-barba="container" data-page-name={pageName} {...docAttrs}>
-<slot />
-<Footer />
+{holding ? <HoldingPage /> : <><slot /><Footer /></>}
 </div>
 {draftMode && <DraftModeLabel />}
 <script is:inline src="https://cdn.jsdelivr.net/npm/@barba/core@2.10.3/dist/barba.umd.min.js"></script>
