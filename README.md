@@ -88,7 +88,11 @@ deployment), and Sanity's own drafts in the one the Studio edits:
   Studio session and role, writes with its own token, and after every live
   write calls the Vercel deploy hook for `main`, so the static production
   site is rebuilt with the new content (about a minute; the control watches
-  `/build.json`). **Publish to Staging** never touches production; **Publish
+  `/build.json`, whose `contentFrom` says when the build read its content,
+  and shows a rebuild that doesn't come as failed, with Try again). That
+  rebuild is of a commit that hasn't changed, so production builds are never
+  skipped (`vercel.ts`: its ignore rule is for staging alone; from 10 to 25
+  Oct 2026 it skipped them, and live publishes never reached the site). **Publish to Staging** never touches production; **Publish
   Live…** asks for confirmation first.
 
 ### What is editable
