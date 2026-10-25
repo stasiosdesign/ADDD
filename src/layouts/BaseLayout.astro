@@ -171,5 +171,17 @@ const draftMode = staging && Astro.locals.draftMode;
   if (window.self !== window.top) import("../sanity/live-preview");
 </script>
 )}
+{/* Staging and development only: website comments, the CMS package's
+    review layer, served by this site's Studio (static/cms-comments.js). It
+    loads only in a tab the Studio's Comments page opened, and keeps the
+    comments in Sanity through that Studio; anywhere else nothing loads. */}
+{staging && (
+<script>
+  if (window.opener && window.self === window.top) {
+    const studio = import.meta.env.DEV ? "http://localhost:3333" : "https://addd.sanity.studio";
+    document.head.append(Object.assign(document.createElement("script"), { src: `${studio}/static/cms-comments.js` }));
+  }
+</script>
+)}
 </body>
 </html>
