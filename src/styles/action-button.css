@@ -259,16 +259,16 @@
     transform: translate3d(0, 0, 0) rotate(0deg);
   }
 
-  .action-button:is(:hover, :focus-visible) .action-button__text {
+  .action-button:not(.is--pill, .is--frame):is(:hover, :focus-visible) .action-button__text {
     transform: translate(0px, calc(-1 * var(--action-button-text-duplicate-distance)));
   }
 
-  .action-button:is(:hover, :focus-visible) .action-button__arrow {
+  .action-button:not(.is--frame):is(:hover, :focus-visible) .action-button__arrow {
     transform: translateX(0.1875rem);
   }
 
   /* on the accent, the label is white whatever ground it sits on */
-  .action-button:not(.is--secondary):is(:hover, :focus-visible) {
+  .action-button:not(.is--secondary, .is--pill):is(:hover, :focus-visible) {
     --action-button-color: var(--action-button-accent-color);
   }
 }
@@ -300,4 +300,314 @@
     text-shadow: none;
     transform: none;
   }
+}
+
+/* ============================================================
+   Pill — the other form of both variants (shape="pill",
+   ActionButton.astro): the homepage's CTAs, for now
+   ============================================================
+   The label in a pill, and a circle as tall as the pill joined to its
+   right, carrying a line arrow. At rest the two are one shape: a neck
+   fills the notches where the pill's round end meets the circle, its
+   sides arcs of half the circle's radius, tangent to both (so the neck
+   is about three fifths of the height at its narrowest). Pointed at,
+   the neck pinches shut and the circle stands off the pill by a small
+   gap (--action-button-gap), the arrow turning from up-and-right to
+   straight on; left, the circle comes back and the neck closes over
+   the join again. The gap's room is kept on the button's right at rest,
+   so nothing round it moves, and the whole of it, gap included, is the
+   one link. Without a fine pointer (touch), pressing shows the same;
+   with reduced motion it changes at once. The colours are the variant's
+   own (and their inversions on a dark ground or the band, above), pill
+   and circle in one colour, no sweep.
+   ============================================================ */
+.action-button.is--pill {
+  /* the whole button's size, as one number: every measure below is
+     this times its size at 1, so it scales down or up in proportion */
+  --action-button-pill-scale: 0.8;
+  --action-button-height: calc(3rem * var(--action-button-pill-scale));
+  --action-button-inset: calc(1.875rem * var(--action-button-pill-scale));
+  --action-button-gap: calc(0.625rem * var(--action-button-pill-scale));
+  --action-button-pill-font: calc(1.0625rem * var(--action-button-pill-scale));
+  --action-button-pill-arrow: calc(1rem * var(--action-button-pill-scale));
+  --action-button-pill-time: 0.5s;
+  --action-button-pill-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  /* the circle's radius, which the neck is drawn from */
+  --action-button-r: calc(var(--action-button-height) / 2);
+  align-items: center;
+  padding-right: var(--action-button-gap);
+  transition: none;
+}
+.action-button.is--pill::after { display: none; }
+
+.action-button.is--pill .action-button__body {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: var(--action-button-height);
+  padding: 0 var(--action-button-inset);
+  border-radius: var(--action-button-r);
+  background-color: var(--action-button-color-background);
+  position: relative;
+  /* the site's body face, set as the label is, at the pill's size */
+  font-family: var(--font-body);
+  font-size: var(--action-button-pill-font);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+.action-button.is--pill .action-button__text {
+  text-shadow: none;
+  transition: none;
+  line-height: 1;
+  /* the label's box cut to its capitals, from their tops to the baseline
+     (none of the face's room over them or under the line), so centring
+     the box in the pill centres the letters as they are seen; without
+     text-box, the face's line box sat them about 3/4px low */
+  text-box: trim-both cap alphabetic;
+}
+
+/* the neck: centred on the point where the pill's end meets the circle,
+   as wide as the arcs' touch points are apart (2r/3) and as tall (1.49r),
+   cut top and bottom by an arc of radius r/2 centred 1.118r from the
+   join (each half of the mask carries one) */
+.action-button.is--pill .action-button__body::after {
+  content: "";
+  position: absolute;
+  top: calc(50% - 0.7454 * var(--action-button-r));
+  right: calc(-0.3333 * var(--action-button-r));
+  width: calc(0.6667 * var(--action-button-r));
+  height: calc(1.4907 * var(--action-button-r));
+  background-color: var(--action-button-color-background);
+  -webkit-mask:
+    radial-gradient(circle calc(0.5 * var(--action-button-r)) at 50% calc(-0.3727 * var(--action-button-r)), #0000 97%, #000) top / 100% 50.5% no-repeat,
+    radial-gradient(circle calc(0.5 * var(--action-button-r)) at 50% calc(100% + 0.3727 * var(--action-button-r)), #0000 97%, #000) bottom / 100% 50.5% no-repeat;
+  mask:
+    radial-gradient(circle calc(0.5 * var(--action-button-r)) at 50% calc(-0.3727 * var(--action-button-r)), #0000 97%, #000) top / 100% 50.5% no-repeat,
+    radial-gradient(circle calc(0.5 * var(--action-button-r)) at 50% calc(100% + 0.3727 * var(--action-button-r)), #0000 97%, #000) bottom / 100% 50.5% no-repeat;
+  /* closing back over the join as the circle arrives */
+  transition: transform calc(0.5 * var(--action-button-pill-time)) var(--action-button-pill-ease) calc(0.4 * var(--action-button-pill-time));
+}
+
+.action-button.is--pill .action-button__circle {
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--action-button-height);
+  height: var(--action-button-height);
+  border-radius: 50%;
+  background-color: var(--action-button-color-background);
+  transition: translate var(--action-button-pill-time) var(--action-button-pill-ease);
+}
+
+.action-button__chevron {
+  width: var(--action-button-pill-arrow, 1rem);
+  height: var(--action-button-pill-arrow, 1rem);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  rotate: -45deg;
+  transition: rotate var(--action-button-pill-time) var(--action-button-pill-ease);
+}
+
+/* apart: the neck pinched shut at once, the circle off by the gap, the
+   arrow straight on */
+.action-button.is--pill:focus-visible .action-button__body::after {
+  transform: scaleY(0);
+  transition-delay: 0s;
+  transition-duration: calc(0.35 * var(--action-button-pill-time));
+}
+.action-button.is--pill:focus-visible .action-button__circle { translate: var(--action-button-gap) 0; }
+.action-button.is--pill:focus-visible .action-button__chevron { rotate: 0deg; }
+@media (hover: hover) and (pointer: fine) {
+  .action-button.is--pill:hover .action-button__body::after {
+    transform: scaleY(0);
+    transition-delay: 0s;
+    transition-duration: calc(0.35 * var(--action-button-pill-time));
+  }
+  .action-button.is--pill:hover .action-button__circle { translate: var(--action-button-gap) 0; }
+  .action-button.is--pill:hover .action-button__chevron { rotate: 0deg; }
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .action-button.is--pill:active .action-button__body::after { transform: scaleY(0); transition-delay: 0s; }
+  .action-button.is--pill:active .action-button__circle { translate: var(--action-button-gap) 0; }
+  .action-button.is--pill:active .action-button__chevron { rotate: 0deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .action-button.is--pill .action-button__body::after,
+  .action-button.is--pill :is(.action-button__circle, .action-button__chevron) { transition: none; }
+}
+
+/* focus: a ring round the pill and round the circle, which stand apart */
+.action-button.is--pill:focus-visible :is(.action-button__body, .action-button__circle) {
+  outline: 1.5px solid var(--action-button-color-focus);
+  outline-offset: 2px;
+}
+
+/* on a dark ground the secondary's see-through lift would show the neck
+   where it overlaps the pill and the circle, so the pill's is solid */
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button.is--pill:where(:not(.cta *)).is--secondary {
+  --action-button-color-background: #303030;
+}
+
+/* two pills in a pair: the first given one more gap on its right, so a lead
+   circle standing off its pill is still nearer its own pill than the
+   next button (on its right, so it is nothing when the pair stacks) */
+.action-button.is--pill:has(+ .action-button.is--pill) { margin-right: var(--action-button-gap); }
+
+/* ============================================================
+   Frame — the site's CTA on every page (the default shape,
+   ActionButton.astro); the block and the pill above are earlier forms
+   no page uses
+   ============================================================
+   One flat box with barely rounded corners (the controls' 1px,
+   --radius-sm): the label, in the site's tracked capitals, centred in
+   its larger part, and a fine line arrow in a short part on its right,
+   the two parted by a dotted line of hairline square dots, top to
+   bottom. No bevel, no shadow.
+
+   Block colours only, no outline; the label, the dots and the arrow all
+   in one ink. Primary — a solid black box, set in white. Secondary — a
+   solid light grey box, set in ink.
+
+   Pointed at (or focused by the keyboard), the label takes the nav's
+   scramble (.nav-link, text-scramble.js: the button carries the class,
+   its label NavLinkLabel's markup) without the nav's dotted line
+   under it, and the box's ground steps a shade deeper; the arrow stays
+   where it is. The scrambling letters' tint (--frame-scramble): the
+   nav's red eased into the label's ink on a primary; the label's own
+   ink, no red, where the primary's box is itself a colour (the blue)
+   and on the secondary. Pressed on a touch screen, the ground
+   the same. A label too long for its row wraps in
+   its part, centred and balanced: the button is never wider than its
+   row, the arrow's part keeps its width, and a pair (.actions--pair,
+   stretched) grows to the taller of the two together. Its height and
+   width can be set from outside (dot-fit.js on the approach band sets
+   --action-button-height and --dot-fit-body).
+   ============================================================ */
+.action-button.is--frame {
+  --frame-ground: var(--c-text);
+  --frame-ground-hover: #2a2a2a;
+  --frame-ink: var(--c-white);
+  --frame-r: var(--radius-sm);
+  /* the nav links' tint (nav-link.css), in this box's ink */
+  --frame-scramble: color-mix(in srgb, var(--c-red) 60%, var(--frame-ink));
+  --action-button-height: 2.375rem;
+  --action-button-inset: 1.125rem;
+  --action-button-radius: var(--frame-r);
+  flex: 0 1 auto;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: var(--frame-r);
+  background-color: var(--frame-ground);
+  color: var(--frame-ink);
+  font-size: 0.6875rem;
+  transition: background-color 0.3s var(--action-button-ease-hover);
+}
+.action-button.is--frame.is--secondary {
+  --frame-ground: #e2e2df;
+  --frame-ground-hover: #d4d4d0;
+  --frame-ink: var(--c-text);
+  /* no accent on the quieter button: its letters stay its ink */
+  --frame-scramble: var(--frame-ink);
+}
+
+.action-button.is--frame .action-button__body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem var(--action-button-inset);
+}
+.action-button.is--frame .action-button__text {
+  /* stacks cleanly when it has to: centred, lines balanced, and the box
+     cut to the capitals (top of the caps to the baseline) so one line or
+     three sit optically centred in the box */
+  white-space: normal;
+  text-wrap: balance;
+  text-align: center;
+  line-height: 1.35;
+  text-shadow: none;
+  text-box: trim-both cap alphabetic;
+}
+
+/* the arrow's part: a little wider than the box is tall, parted from
+   the label by a column of 1px square dots every 4px, in the label's
+   ink, run from edge to edge */
+.action-button.is--frame .action-button__tip {
+  flex: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(1.05 * var(--action-button-height));
+}
+.action-button.is--frame .action-button__tip::before {
+  content: "";
+  position: absolute;
+  top: 0.125rem;
+  bottom: 0.125rem;
+  left: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--frame-ink) 1px, #0000 0) 0 0 / 1px 4px repeat-y;
+}
+/* small and fine: a 12px line arrow drawn about 1.25px thick, square-ended */
+.action-button.is--frame .action-button__arrow {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+
+/* pointing down the page (arrow="down") */
+.action-button.is--frame .action-button__arrow.is--down { rotate: 90deg; }
+
+/* the nav's scramble, in the button: the label may still wrap, the
+   button's own ring is its focus (not the link box's), and no dotted
+   line under the words (the divider is the button's dotted line) */
+.action-button.is--frame .nav-link__text { white-space: normal; }
+.action-button.is--frame:focus-visible .nav-link__box { outline: none; }
+.action-button.is--frame .nav-link__dots { display: none; }
+.action-button.is--frame .nav-link__text .is--scrambling { color: var(--frame-scramble); }
+
+@media (hover: hover) and (pointer: fine) {
+  .action-button.is--frame:hover { background-color: var(--frame-ground-hover); }
+}
+.action-button.is--frame:focus-visible,
+.action-button.is--frame:active { background-color: var(--frame-ground-hover); }
+@media (prefers-reduced-motion: reduce) {
+  .action-button.is--frame { transition: none; }
+}
+
+/* On a dark ground the black would vanish, so the pair inverts, as the
+   site's buttons do there: the primary a white block in ink, the
+   secondary a solid block a few steps up from the dark, set in white. */
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button.is--frame:where(:not(.cta *)):not(.is--secondary) {
+  --frame-ground: var(--c-white);
+  --frame-ground-hover: #e6e6e3;
+  --frame-ink: var(--c-text);
+}
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button.is--frame:where(:not(.cta *)).is--secondary {
+  --frame-scramble: var(--frame-ink);
+  --frame-ground: #2a2a29;
+  --frame-ground-hover: #363635;
+  --frame-ink: var(--c-white);
+}
+/* the AEC Tech Firms pages: the lead in their blue */
+:is(.hero--blue, .cta--blue) .action-button.is--frame:not(.is--secondary) {
+  --frame-ground: var(--c-blue);
+  --frame-ground-hover: #1757c4;
+  /* red on the blue would neither read nor belong, and a faded ink loses
+     its contrast there: the letters keep the label's own ink */
+  --frame-scramble: var(--frame-ink);
+}
+
+@media screen and (max-width: 479px) {
+  .action-button.is--frame { --action-button-height: 2.625rem; }
 }

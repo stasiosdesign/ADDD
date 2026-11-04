@@ -9,8 +9,7 @@
 // so they are always there when it runs.
 //
 //   ARRIVAL            how a document load opens: the intro or the wipe's reveal
-//   PAGE TRANSITIONS   the wipe between pages, and a service card opening
-//                      into its page (service-sheet.js)
+//   PAGE TRANSITIONS   the wipe between pages
 //   PAGE LIFECYCLE     per-page init and teardown, wired to Barba's hooks
 //   COMPONENTS         the registry: every component inside the Barba
 //                      container, bound again on each page
@@ -48,8 +47,11 @@ import { mountDotSnap } from "./dot-snap.js";
 import { mountDotFit } from "./dot-fit.js";
 import { mountDotLift } from "./dot-lift.js";
 import { mountCellGrid } from "./cell-grid.js";
-import { initServiceSheets, opensSheet, openSheet, sheetOpen, closeSheet, markSheetArrival } from "./service-sheet.js";
 import { initHoldingFigure } from "./holding-figure.js";
+import { initProblemFigures } from "./problem-figures.js";
+import { initFolderDocs } from "./folder-docs.js";
+import { initBooking } from "./booking.js";
+import { initStageTimelines } from "./stage-timeline.js";
 
 
 // The wipe panel lives outside the Barba container, so it is looked up once.
@@ -241,11 +243,13 @@ function removeLoader() {
 // as the panel arrives (WIPE.cover), and the page is built straight away:
 // the covered window was the panel's 0.75s and then a third of a second
 // more waiting on the logo, with nothing on screen to show for it.)
-const WIPE_HANDOFF = { start: 0.12, stagger: 0.06, press: 0.25, rise: 0.38, overlap: 0.13, settle: 0.1 };
+const WIPE_HANDOFF = { start: 0.1, stagger: 0.05, press: 0.21, rise: 0.32, overlap: 0.11, settle: 0.085 };
 // The panel: up over the page (cover), and on up off the new one (uncover),
 // from the moment it is built and settled (beat: none; it was a fifth of a
-// second for every page: see pageSettled).
-const WIPE = { cover: 0.65, beat: 0, uncover: 0.85, shown: 0.25 };
+// second for every page: see pageSettled). (2026-11-03: every time here, the
+// hand-over's and the logo's lift-off after it, made about 15% shorter, for
+// a snappier wipe of the same shape: it was cover 0.65, uncover 0.85.)
+const WIPE = { cover: 0.55, beat: 0, uncover: 0.72, shown: 0.21 };
 let wipeHandoff = null;
 
 function playWipeHandoff() {
@@ -379,15 +383,15 @@ function runPageEnterAnimation(next) {
   // in, and are gone before the panel's edge has cleared the middle.
   tl.to(wipe.forms, {
     y: -6,
-    duration: 0.35,
-    ease: "power1.in",
-    stagger: 0.04,
-  }, "startEnter+=0.15");
-  tl.to(wipe.logo, {
-    autoAlpha: 0,
     duration: 0.3,
     ease: "power1.in",
-  }, "startEnter+=0.22");
+    stagger: 0.034,
+  }, "startEnter+=0.13");
+  tl.to(wipe.logo, {
+    autoAlpha: 0,
+    duration: 0.25,
+    ease: "power1.in",
+  }, "startEnter+=0.19");
 
   tl.from(next, { y: "15vh", duration: WIPE.uncover }, "startEnter");
 
@@ -466,7 +470,6 @@ const PAGE_COMPONENTS = [
   ["[data-accordion-init]", initAccordions],
   ["[data-split=\"heading\"]", initLineReveal],
   ["[data-hero-rise]", initHeroRise],
-  ["[data-service-deck]", initServiceSheets],
   ["[data-stack-cards]", initStackCards],
   ["[data-service-tabs]", initServiceTabs],
   ["[data-iso-field]", initIsoFields],
@@ -487,6 +490,10 @@ const PAGE_COMPONENTS = [
   ["[data-band-steps]", initBandSteps],
   [".nav-link", initTextScramble],
   ["[data-holding-figure]", initHoldingFigure],
+  ["[data-problem-figure]", initProblemFigures],
+  ["[data-folder-open]", initFolderDocs],
+  ["[data-booking-open]", initBooking],
+  ["[data-stage-timeline]", initStageTimelines],
 ];
 
 function initPage(container) {
@@ -604,8 +611,6 @@ barba.hooks.beforeEnter(async data => {
   backScroll = navigating && typeof data.trigger === "string" ? leftAt.get(data.next.url.href) || 0 : 0;
   if (navigating) await wipeSettled();
 
-  // a card opening into this page has brought its hero's words in already
-  markSheetArrival(data.next.container);
   initPage(data.next.container);
 
   if (navigating) await pageFontsLoaded();
@@ -770,33 +775,6 @@ barba.init({
       // New page enters
       async enter(data) {
         return runPageEnterAnimation(data.next.container);
-      }
-    },
-    {
-      // A service card on the homepage's deck, clicked: the card opens into
-      // its page in place of the wipe (service-sheet.js). leave() opens it
-      // until it covers the screen; the page is then built under it as
-      // under the wipe (the hooks above), and enter() hands over to the
-      // page's own hero. Should the page not be there to open into, the
-      // wipe goes as for any link. Not with reduced motion (opensSheet),
-      // where the default's plain swap goes.
-      name: "service-sheet",
-      custom: ({ trigger }) => opensSheet(trigger),
-
-      async leave(data) {
-        if (await openSheet(data.trigger, data.next.url.href)) return;
-        return runPageLeaveAnimation(data.current.container, data.next.url.href);
-      },
-
-      async enter(data) {
-        if (!sheetOpen()) return runPageEnterAnimation(data.next.container);
-        // the page's hero is under the sheet now, part for part, at the
-        // top, its words as the sheet has them: the page is seen, the nav
-        // comes back, and once the words are in scrolling is the reader's
-        // again and the sheet goes
-        gsap.set(data.next.container, { autoAlpha: 1 });
-        showPage();
-        return closeSheet(() => resetPage(data.next.container));
       }
     }
   ],

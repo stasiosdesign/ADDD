@@ -40,9 +40,13 @@ function initMegaNav() {
   // Resources' blocks) drops in from under the bar on its own, clipped by
   // the dropdown's top edge, one after the next, left to right, while the
   // dimmed page comes up behind them; closing, they lift back up under
-  // it, the last first. Going from one panel to the other, the open
-  // panel's columns lift out while the other's drop in over them, the
-  // dimmed page staying as it is. Only transforms and opacity move.
+  // it, the last first. Going from one panel to the other is one move,
+  // not a close and an open: the two panels cross over, the one leaving
+  // fading as it slides a little the way the pointer went and the one
+  // arriving sliding in from the other side, the dropdown easing from the
+  // one's height to the other's, the dimmed page staying as it is (the
+  // dropdown's height is the one thing besides transforms and opacity
+  // that moves, and only while switching).
   const DUR = {
     // the mobile drawer's panels, item by item
     stagger: 0.06,
@@ -52,6 +56,15 @@ function initMegaNav() {
     dropStagger: 0.07,
     liftOut: 0.3,
     liftStagger: 0.04,
+    // one panel to the other: the arriving one's fade, quick (it is over
+    // the other, and its columns are their own grounds, so it covers the
+    // one leaving almost at once: no moment empty, and hardly one with
+    // both showing), the leaving one's, under it, slower; the slides and
+    // the dropdown's height; and how far each slides (px)
+    switchFadeIn: 0.16,
+    switchFadeOut: 0.3,
+    switchIn: 0.5,
+    switchShift: 28,
   };
 
   const HOVER_ENTER = 120;
@@ -128,7 +141,7 @@ function initMegaNav() {
 
   function killDropdown() {
     killTl("tl");
-    gsap.killTweensOf(backdrop);
+    gsap.killTweensOf([backdrop, dropContainer]);
     panels.forEach((p) => { gsap.killTweensOf(p); gsap.killTweensOf(getFade(p)); });
   }
 
@@ -258,32 +271,48 @@ function initMegaNav() {
     tl.to(backdrop, { autoAlpha: 0, duration: DUR.backdropOut, ease: "power2.out" }, 0.05);
   }
 
-  // DESKTOP — switch panel: the open panel's blocks lift out while the
-  // other's drop in over them, over the dimmed page, which stays as it is
+  // DESKTOP — switch panel: the open one crosses over to the other, each
+  // from wherever it is (so going back and forth quickly retargets the
+  // same move rather than starting it again), the dimmed page staying as
+  // it is. The arriving panel's columns stand at rest: it comes in whole.
   function switchPanel(fromName, toName) {
     const fromEl = getPanel(fromName), toEl = getPanel(toName);
     if (!fromEl || !toEl) return;
-    const fromBlocks = getFade(fromEl), toBlocks = getFade(toEl);
+    const toBlocks = getFade(toEl);
+    // the way the pointer went: on along the bar, or back
+    const way = toggles.indexOf(getToggle(toName)) > toggles.indexOf(getToggle(fromName)) ? 1 : -1;
+    // the arriving panel still on its way out (back again quickly): from
+    // where it is; else from a little off to the side, unseen
+    const arriving = toEl.style.visibility === "visible";
+    const from = dropContainer.offsetHeight;
 
     killDropdown();
-    panels.forEach((p) => { if (p !== fromEl) hidePanel(p); });
+    panels.forEach((p) => { if (p !== fromEl && p !== toEl) hidePanel(p); });
     // the panel leaving: out of the flow, under the one arriving, still
-    // drawn where it was while its blocks go
+    // drawn where it was while it goes; its columns as they stand
     gsap.set(fromEl, { position: "absolute", zIndex: 0, pointerEvents: "none" });
-    gsap.set(toBlocks, { yPercent: -100 });
-    showPanel(toEl);
+    // the one arriving: in the flow, its columns at rest
+    gsap.set(toBlocks, { autoAlpha: 1, yPercent: 0 });
+    if (!arriving) gsap.set(toEl, { opacity: 0, x: DUR.switchShift * way });
+    gsap.set(toEl, { position: "relative", zIndex: 1, visibility: "visible", pointerEvents: "auto" });
     gsap.set(backdrop, { autoAlpha: 1 });
+    // the dropdown from the height it stood at to the arriving panel's
+    gsap.set(dropContainer, { height: "auto" });
+    const to = dropContainer.offsetHeight;
 
     const toToggle = getToggle(toName);
     state.activePanel = toName;
     resetToggles();
     if (toToggle) toToggle.setAttribute("aria-expanded", "true");
 
-    const tl = gsap.timeline();
+    const tl = gsap.timeline({ onComplete: () => gsap.set(dropContainer, { clearProps: "height" }) });
     state.tl = tl;
-    liftOut(tl, fromBlocks);
-    tl.add(() => hidePanel(fromEl));
-    dropIn(tl, toBlocks, 0.1);
+    tl.to(fromEl, { opacity: 0, duration: DUR.switchFadeOut, ease: "sine.in" }, 0);
+    tl.to(fromEl, { x: -DUR.switchShift * way, duration: DUR.switchIn, ease: "osmo" }, 0);
+    tl.add(() => hidePanel(fromEl), DUR.switchFadeOut);
+    tl.to(toEl, { opacity: 1, duration: DUR.switchFadeIn, ease: "sine.out" }, 0);
+    tl.to(toEl, { x: 0, duration: DUR.switchIn, ease: "osmo" }, 0);
+    if (from !== to) tl.fromTo(dropContainer, { height: from }, { height: to, duration: DUR.switchIn, ease: "osmo" }, 0);
   }
 
   // DESKTOP — hover intent, for a mouse or a pen. A tap on a touch screen
@@ -783,6 +812,11 @@ const NAV_REVEAL = { duration: 0.6, ease: "osmo", catchUp: 0.2 };
 // carries a hair past and settles back, so it lands rather than stops.
 CustomEase.create("navFloat", "M0,0 C0.18,0.6 0.32,1.06 0.56,1.035 0.74,1.016 0.86,1 1,1");
 const NAV_FLOAT = { duration: 0.7, lag: 0.09, ease: "navFloat" };
+// An experiment (2026-11-03): the floating bar always, from the first paint,
+// never the full one, so no morph between them. Set false (and take
+// is--floating out of the nav's markup, Nav.astro) for the bar to start full
+// and float past the hero again.
+const NAV_ALWAYS_FLOATS = true;
 // how far past the middle of the screen a data-nav-hold-until element's
 // middle goes before the bar comes back, as a share of the screen: a
 // little short of it, so the bar is back as the card comes to the middle
@@ -965,7 +999,7 @@ function initNavReveal() {
 
   // whether the bar floats at scroll y: past the hero, and only where the
   // stylesheet has a floating bar (from 992px)
-  const floats = (y) => !!zones && wide.matches && y >= zones.floatFrom;
+  const floats = (y) => !!zones && wide.matches && (NAV_ALWAYS_FLOATS || y >= zones.floatFrom);
   const wide = window.matchMedia("(min-width: 992px)");
 
   // Where the bar should be at scroll y: how far out, and whether it

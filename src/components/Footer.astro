@@ -2,19 +2,19 @@
 /*
   The footer is revealed from under the page (data-depth="under",
   initDepthTransitions in src/scripts/parallax.js): in a clipping wrap, its
-  contents settle out of a higher offset, the mark across its foot from
-  higher still (data-depth-layer), and the shadow over it clears, all on
-  the scroll. It
-  sits inside the Barba container, so it is swapped with the page and
-  animates with it.
+  contents settle out of a higher offset, the logo from a little higher
+  still (data-depth-layer), and the shadow over it clears, all on the
+  scroll. It sits inside the Barba container, so it is swapped with the
+  page and animates with it.
 
-  On the site's red, laid out on the 12-Column Grid (styles.css,
-  "footer"), in one row across the whole of it: the four link groups on
-  Grid Columns 1–2, 3–4, 5–6 and 7–8, the social marks closing Contact,
-  and the newsletter signup on Grid Columns 9–12; and across the foot the
-  logo, drawn in the hero's pattern, its lower half running off the
-  panel. The logo there is the footer's mark, so there is no second,
-  small one, and no copyright or legal line.
+  On the site's red, a full screen tall, composed on the 12-Column Grid
+  (styles.css, "footer") round its anchor, the ADDD logo: its four forms,
+  solid white, large across Grid Columns 1–7 at the panel's middle. Over
+  it on the left the site map (Services on 1–3, Resources on 4–6); on the
+  right, Grid Columns 9–12, Company and under it the newsletter signup at
+  the top, and Contact at the foot, level with the social marks at the
+  foot on the left. Below 992px the logo leads across the grid and the
+  rest follows in pairs. No copyright or legal line.
 
   Every link in the groups is the site's text link (.nav-link,
   NavLinkLabel.astro), as in the nav; the social marks keep their own.
@@ -59,97 +59,90 @@ const SOCIAL = [
 ---
 <div data-depth="under" class="footer-wrap">
   <footer data-depth-content class="site-footer">
-    <div class="site-footer__inner">
+    <div class="site-footer__grid">
 
-      <div class="site-footer__top">
-        <div class="site-footer__group">
-          <p class="site-footer__eyebrow">Services</p>
-          <ul class="site-footer__links">
-            <li><a class="nav-link" href="/workshops-audits.html"><NavLinkLabel>Workflow Workshop</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/before-revit.html"><NavLinkLabel>Before Revit</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/technology-blueprint.html"><NavLinkLabel>Technology Blueprint</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/advisory.html"><NavLinkLabel>Ongoing Advisory</NavLinkLabel></a></li>
-          </ul>
-        </div>
-        <div class="site-footer__group">
-          <p class="site-footer__eyebrow">Resources</p>
-          <ul class="site-footer__links">
-            <li><a class="nav-link" href="/stack-diagnostic.html"><NavLinkLabel>Free Tech Stacks</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="https://app.addd.io/" target="_blank" rel="noopener"><NavLinkLabel>Software Database &#8599;</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/reports.html"><NavLinkLabel>Reports &amp; Guides</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/newsletter.html"><NavLinkLabel>ADDDitive Newsletter</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="https://aectechjobs.com/" target="_blank" rel="noopener"><NavLinkLabel>AEC Jobs &#8599;</NavLinkLabel></a></li>
-          </ul>
-        </div>
-        <div class="site-footer__group">
-          <p class="site-footer__eyebrow">Company</p>
-          <ul class="site-footer__links">
-            <li><a class="nav-link" href="/about.html"><NavLinkLabel>About</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/tech-firms.html"><NavLinkLabel>AEC Tech Partners</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="https://app.addd.io/login" target="_blank" rel="noopener"><NavLinkLabel>Sign in &#8599;</NavLinkLabel></a></li>
-          </ul>
-        </div>
-        <div class="site-footer__group">
-          <p class="site-footer__eyebrow">Contact</p>
-          <ul class="site-footer__links">
-            <li><a class="nav-link" href="mailto:allister@addd.io"><NavLinkLabel>allister@addd.io</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="tel:+442071833675"><NavLinkLabel>+44 (0) 207 183 3675</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="/contact.html"><NavLinkLabel>Book a call</NavLinkLabel></a></li>
-          </ul>
-          <ul class="site-footer__social">
-            {SOCIAL.map((social) => (
-            <li>
-              <a class="site-footer__social-link" href={social.href} aria-label={social.name}>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox={social.viewBox ?? "0 0 24 24"} fill="currentColor" aria-hidden="true">
-                  {social.paths.map((d) => <path d={d} />)}
-                </svg>
-              </a>
-            </li>
-            ))}
-          </ul>
-        </div>
-        <!-- The newsletter signup: the shared signup (styles.css), with
-             the audience question, under its name -->
-        <div class="site-footer__signup">
-          <p class="site-footer__eyebrow">ADDDitive newsletter</p>
-          <p class="site-footer__title">Get ADDDitive in your inbox</p>
-          <form class="newsletter-signup" onsubmit="return false">
-            <div class="newsletter-form is--plain">
-              <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
-              <button class="newsletter-form__submit" type="submit">Subscribe</button>
-            </div>
-            <fieldset class="newsletter-audience">
-              <legend class="newsletter-audience__legend">Which describes you?</legend>
-              <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
-              <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
-            </fieldset>
-          </form>
-        </div>
+      <div class="site-footer__group is--services">
+        <p class="site-footer__eyebrow">Services</p>
+        <ul class="site-footer__links">
+          <li><a class="nav-link" href="/workshops-audits.html"><NavLinkLabel>Workflow Workshop</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/before-revit.html"><NavLinkLabel>Before Revit</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/technology-blueprint.html"><NavLinkLabel>Technology Blueprint</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/advisory.html"><NavLinkLabel>Ongoing Advisory</NavLinkLabel></a></li>
+        </ul>
+      </div>
+      <div class="site-footer__group is--resources">
+        <p class="site-footer__eyebrow">Resources</p>
+        <ul class="site-footer__links">
+          <li><a class="nav-link" href="/stack-diagnostic.html"><NavLinkLabel>Free Tech Stacks</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="https://app.addd.io/" target="_blank" rel="noopener"><NavLinkLabel>Software Database &#8599;</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/reports.html"><NavLinkLabel>Reports &amp; Guides</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/newsletter.html"><NavLinkLabel>ADDDitive Newsletter</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="https://aectechjobs.com/" target="_blank" rel="noopener"><NavLinkLabel>AEC Jobs &#8599;</NavLinkLabel></a></li>
+        </ul>
+      </div>
+      <div class="site-footer__group is--company">
+        <p class="site-footer__eyebrow">Company</p>
+        <ul class="site-footer__links">
+          <li><a class="nav-link" href="/about.html"><NavLinkLabel>About</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/tech-firms.html"><NavLinkLabel>AEC Tech Partners</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="https://app.addd.io/login" target="_blank" rel="noopener"><NavLinkLabel>Sign in &#8599;</NavLinkLabel></a></li>
+        </ul>
       </div>
 
-    </div>
+      <!-- The newsletter signup: the shared signup (styles.css), with
+           the audience question, under its name -->
+      <div class="site-footer__signup">
+        <p class="site-footer__eyebrow">ADDDitive newsletter</p>
+        <p class="site-footer__title">Get ADDDitive in your inbox</p>
+        <form class="newsletter-signup" onsubmit="return false">
+          <div class="newsletter-form is--plain">
+            <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
+            <button class="newsletter-form__submit" type="submit">Subscribe</button>
+          </div>
+          <fieldset class="newsletter-audience">
+            <legend class="newsletter-audience__legend">Which describes you?</legend>
+            <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
+            <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
+          </fieldset>
+        </form>
+      </div>
 
-    <!-- The logo across the foot, the viewport's full width, built from the
-         hero's Slash Field: the field takes the logo's own 64 × 16 box and
-         keeps only the strokes whose cells fall inside its four forms
-         (data-shape, slash-field.js), so the pattern itself makes the logo,
-         its edges stepping with the grid. The forms are assets/logo.svg's,
-         set on the 12-Column Grid, as shares of the viewport's width (the
-         grid's margins and gutters scale with it, scaling.css): the three
-         pointing right on Grid Columns 4–6, 7–9 and 10–12, each from its
-         first column's left edge to its last column's right edge, and the
-         upward triangle centred on Grid Columns 1–3, opened well wider than
-         the logo's own (about 85° at its tip rather than 49°), so that where
-         the crop cuts it, it fills its three columns as the other forms fill
-         theirs: from Grid Column 1's left edge to Grid Column 3's right edge
-         (its foot, out of sight, runs past the panel's left edge). Only
-         their upper half shows, so their tips land on the crop. The frame
-         is half the logo's height; the lower half runs on past the panel's
-         foot and is cut off there. Mounted by the page registry with every
-         [data-slash-field] (site.js). -->
-    <div class="site-footer__mark" data-depth-layer="0.12" aria-hidden="true">
-      <div data-slash-field class="site-footer__mark-field"
-        data-shape="-0.0925,1 0.3665,1 0.1370,0; 0.2648,0 0.4942,0.5 0.2648,1; 0.5072,0 0.7367,0.5 0.5072,1; 0.7497,0 0.9777,0.5 0.7497,1"></div>
+      <!-- The logo, the footer's anchor: assets/logo.svg's four forms
+           (the upward triangle and the three pointing on, without the
+           disc), solid in the white, its box the forms' own 64 × 16. It
+           settles a little behind the words as the footer is uncovered
+           (data-depth-layer, initDepthTransitions). -->
+      <a class="site-footer__logo" href="/" aria-label="ADDD, home" data-depth-layer="0.06">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="18.4 42.7 64 16" preserveAspectRatio="xMinYMid meet" fill="currentColor" aria-hidden="true">
+          <polygon points="18.4,58.7 34.7,58.7 26.5,42.7"/>
+          <polygon points="34.7,42.7 49.7,50.7 34.7,58.7"/>
+          <polygon points="50.7,42.7 66.4,50.7 50.7,58.7"/>
+          <polygon points="66.8,42.7 82.4,50.7 66.8,58.7"/>
+        </svg>
+      </a>
+
+      <div class="site-footer__group is--contact">
+        <p class="site-footer__eyebrow">Contact</p>
+        <ul class="site-footer__links">
+          <li><a class="nav-link" href="mailto:allister@addd.io"><NavLinkLabel>allister@addd.io</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="tel:+442071833675"><NavLinkLabel>+44 (0) 207 183 3675</NavLinkLabel></a></li>
+          <li><a class="nav-link" href="/contact.html"><NavLinkLabel>Book a call</NavLinkLabel></a></li>
+        </ul>
+      </div>
+
+      <!-- the social marks, at the foot on the left, level with Contact -->
+      <ul class="site-footer__social" aria-label="ADDD elsewhere">
+        {SOCIAL.map((social) => (
+        <li>
+          <a class="site-footer__social-link" href={social.href} aria-label={social.name}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox={social.viewBox ?? "0 0 24 24"} fill="currentColor" aria-hidden="true">
+              {social.paths.map((d) => <path d={d} />)}
+            </svg>
+          </a>
+        </li>
+        ))}
+      </ul>
+
     </div>
   </footer>
   <div class="depth-shade" data-depth-shade aria-hidden="true"></div>

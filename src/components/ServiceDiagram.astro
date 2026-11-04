@@ -26,16 +26,21 @@
   through, and --sd-ground-y its height, which the service tabs use to
   set every drawing on one ground line.
 
-  Used on the homepage's service deck and each service page's hero (dark)
-  and the service tabs (light): the lines are drawn in the field's ink
-  (--c-text) and the plates in its ground (--diagram-ground), so one
-  drawing serves both (styles.css, "service diagrams").
+  Used on each service page's hero (dark) and the service tabs (light):
+  the lines are drawn in the field's ink (--c-text) and the plates in its
+  ground (--diagram-ground), so one drawing serves both (styles.css,
+  "service diagrams"). The homepage's service deck has its own four
+  (deck: Handover, Resolution, Exploded, Course, in deck-figures.js, drawn
+  the same way on its cards' light ground).
 */
 interface Props {
   index: number;
   class?: string;
+  /** the homepage deck's own four (deck-figures.js), shown in the middle
+      300 × 225 of their 400 × 320 frame, on the cards' light ground */
+  deck?: boolean;
 }
-const { index, class: className } = Astro.props;
+const { index, class: className, deck = false } = Astro.props;
 
 // each figure's lattice point, as service-figures.js sets the figure out
 const GROUNDS = [[200, 168], [200, 182], [200, 186], [200, 177]];
@@ -51,4 +56,8 @@ const fig = extent
   ? `--fig-w:${(extent[2] / 256).toFixed(3)};--fig-h:${(extent[3] / 256).toFixed(3)};--fig-dx:${((200 - extent[0] - extent[2] / 2) / 256).toFixed(3)};--fig-dy:${((128 - extent[1] - extent[3] / 2) / 256).toFixed(3)}`
   : "";
 ---
+{deck ? (
+<svg class:list={["service-diagram", className]} viewBox="50 54 300 225" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-figure-set="deck" data-service-diagram={index}></svg>
+) : (
 <svg class:list={["service-diagram", className]} viewBox="0 0 400 256" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" fill="none" data-ground={origin?.join(" ")} style={[origin && `--sd-ground-y:${origin[1]}`, fig].filter(Boolean).join(";") || undefined} data-service-diagram={index}></svg>
+)}

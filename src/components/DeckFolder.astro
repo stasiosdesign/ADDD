@@ -1,0 +1,64 @@
+---
+/*
+  One folder card of the deck (ServiceDeck.astro; service-deck.css, "A deck
+  card: a paper folder"): a front, and one sheet inside it standing up past
+  its top, carrying a few words that show through the notch; on the front a
+  label row over a hairline, the title and its line, the number large, and
+  at the foot a kind in a pill and the way on. Pointed at (or focused, or
+  pressed on a touch screen) the folder opens a little.
+
+  The whole card is one control, stretched over it:
+    href   a link (the homepage's routes, each to its page, with the wipe)
+    opens  a button that opens the document with that id
+           (FolderDocument.astro, folder-docs.js: the Workflow Workshop's)
+*/
+export interface Folder {
+  /** the number, from 1 (set large, and in the label) */
+  n: number;
+  /** the label row's left (e.g. "Service N°01") and right */
+  label: string;
+  meta?: string;
+  title?: string;
+  text?: string;
+  /** the Studio fields the title and line come from, for the Visual editor */
+  titleField?: string;
+  textField?: string;
+  /** the words on the sheet inside, through the notch */
+  covers?: string[];
+  /** the pill at the foot, and the way on beside it */
+  kind?: string;
+  go: string;
+  /** the control's name for screen readers */
+  action: string;
+  href?: string;
+  opens?: string;
+}
+type Props = Folder & { index?: number };
+
+const { n, label, meta, title, text, titleField, textField, covers = [], kind, go, action, href, opens, index = n - 1 } = Astro.props;
+const pad = (v: number) => String(v).padStart(2, "0");
+---
+<article class="service-deck__card deck-folder" style={`--i:${index}`}>
+  <span class="deck-folder__sheet" aria-hidden="true">
+    <ul class="deck-folder__page" role="list">{covers.map((item) => <li>{item}</li>)}</ul>
+  </span>
+  <div class="deck-folder__front">
+    <p class="deck-folder__label"><span>{label}</span>{meta && <span>{meta}</span>}</p>
+    <div class="deck-folder__body">
+      <h3 class="deck-folder__h" data-page-field={titleField}>{title}</h3>
+      <p class="deck-folder__p" data-page-field={textField}>{text}</p>
+    </div>
+    <span class="deck-folder__n" aria-hidden="true">{pad(n)}</span>
+    <div class="deck-folder__foot" aria-hidden="true">
+      {kind && <span class="deck-folder__kind">{kind}</span>}
+      <span class="deck-folder__go">{go}{opens
+        ? <svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8" /></svg>
+        : <svg viewBox="0 0 12 12"><path d="M2.5 9.5L9.5 2.5M4 2.5h5.5V8" /></svg>}</span>
+    </div>
+  </div>
+  {opens ? (
+    <button type="button" class="deck-folder__link" data-folder-open={opens} aria-haspopup="dialog" aria-controls={opens} aria-label={action}></button>
+  ) : (
+    <a class="deck-folder__link" href={href ?? "contact.html"} aria-label={action}></a>
+  )}
+</article>

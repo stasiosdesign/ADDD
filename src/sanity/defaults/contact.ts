@@ -8,7 +8,7 @@ export const contactPage = {
     heading: 'Send your enquiry',
     lede: 'Tell us what you need',
     email: 'allister@addd.io',
-    phone: '+1 (555) 000-0000',
+    phone: '+44 (0) 207 183 3675',
     address: '123 Sample St, Sydney NSW 2000 AU',
     button: 'Send enquiry',
   },

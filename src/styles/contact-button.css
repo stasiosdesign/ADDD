@@ -7,16 +7,15 @@
    centred in it. It is as wide as the striped button it replaced was at
    rest (the label's inset, plus the room its bars and seams took:
    --contact-button-padding), stretches to the full bar height and sits
-   flush to the right edge. Hovered, its colour only deepens a little
-   towards the label's, so it stays the bar's one filled block.
+   flush to the right edge. Pointed at, the block stays as it is: only
+   its label takes the hover every link in the bar does, the scramble
+   and the dotted line under it (.nav-link, text-scramble.js).
 
    It is painted from the bar's own theme variables (nav.css), so it
    inverts with the bar on a dark page, frame for frame with the rest of
    the bar: its colour has no transition of its own (one lagged 0.3s
    behind every change of theme, and played a change made at once under
-   a page's cover as a flash of the last page's colour). The hover's
-   deepening is a layer of the label's colour over it (::before), which
-   fades.
+   a page's cover as a flash of the last page's colour).
    ============================================================ */
 .contact-button {
   /* the label's inset: its own 1.25rem, and the 2.75rem the four bars
@@ -45,16 +44,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.contact-button::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-color: var(--nav-cta-fg);
-  opacity: 0;
-  transition: opacity 0.3s var(--contact-button-ease);
-  pointer-events: none;
-}
-
 .contact-button::after {
   content: '';
   display: block;
@@ -67,17 +56,13 @@
 .contact-button:focus-visible::after {
   box-shadow: 0 0 0 0.0625em var(--nav-cta-fg);
 }
+/* the block's own ring marks focus, so not the text link's ring round the label too */
+.contact-button.nav-link:focus-visible .nav-link__box { outline: none; }
 
 .contact-button__text {
   position: relative;
   white-space: nowrap;
   line-height: var(--nav-text-leading);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .contact-button:hover::before {
-    opacity: 0.12;
-  }
 }
 
 @media screen and (max-width: 991px) {

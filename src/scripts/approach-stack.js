@@ -732,13 +732,14 @@ export function mountApproachStack(root, { lenis } = {}) {
     // From the moment the window settles at the middle of the viewport to
     // the moment it leaves the bottom of the rail. Measured off the rail:
     // the window is sticky, so where it sits depends on the scroll.
-    // Led in, from the moment the mark starts to come up on the window
-    // (SNAKE.cubeFrom), so it points the way the page is going as soon as
-    // it can be seen.
+    // Led in, from the moment the cube starts to come up on the window
+    // (SNAKE.cubeFrom); the mark turns from earlier still, as soon as it can
+    // be seen (below).
     const half = () => win.offsetHeight / 2;
+    const runFrom = () => (lead ? geo.release + geo.morph * SNAKE.cubeFrom : `top center-=${half()}`);
     ScrollTrigger.create({
       trigger: rail,
-      start: () => (lead ? geo.release + geo.morph * SNAKE.cubeFrom : `top center-=${half()}`),
+      start: runFrom,
       end: () => `bottom center+=${half()}`,
       invalidateOnRefresh: true,
       onUpdate(self) {
@@ -760,6 +761,22 @@ export function mountApproachStack(root, { lenis } = {}) {
         if (!self.isActive) resetTrail();
       },
     });
+    // The mark shows well before that run begins: the rail fades in, mark
+    // and all, from its top at 80% of the window (above). From then on it
+    // turns the way the page is going, by the same rule and the same
+    // turn; the trail waits for the run above.
+    if (mark) {
+      ScrollTrigger.create({
+        trigger: rail,
+        start: "top 80%",
+        end: runFrom,
+        invalidateOnRefresh: true,
+        onUpdate(self) {
+          const velocity = lenis ? lenis.velocity : self.getVelocity() / 60;
+          if (Math.abs(velocity) > TRAIL.minSpeed) turnMark(Math.sign(velocity));
+        },
+      });
+    }
 
     return () => {
       clearTimeout(idle);

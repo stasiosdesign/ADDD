@@ -11,6 +11,10 @@ export interface ServiceRoute {
   href: string;
   /** what the route covers, a line each */
   covers: string[];
+  /** what kind of route it is, a word (the deck's card, in its foot) */
+  kind: string;
+  /** its format, in a few words (the deck's card, by its number) */
+  format: string;
   /** the route's own ground, its sub-brand, wherever it shows: the deck's
       card and the page's hero across their whole width (the nav's card
       has it too, ServiceCard.astro), each drawn by ServiceGround.astro:
@@ -25,21 +29,29 @@ export const SERVICES: ServiceRoute[] = [
   {
     href: "/workshops-audits.html",
     ground: "plan",
+    kind: "Workshop",
+    format: "Half a day",
     covers: ["A half day on a live project", "How work actually moves", "Where tools and workflows create friction", "A written report of priorities", "No further commitment"],
   },
   {
     href: "/before-revit.html",
     ground: "grid",
+    kind: "Research",
+    format: "Early design",
     covers: ["The early stages of design", "Tools, information and decisions", "What carries into Revit or Archicad", "What is recreated or lost on the way", "What should change first"],
   },
   {
     href: "/technology-blueprint.html",
     ground: "blueprint",
+    kind: "Strategy",
+    format: "Eight weeks",
     covers: ["Eight weeks, practice-wide", "Workflows and software", "Licensing costs", "Infrastructure, data and AI readiness", "A sequenced roadmap"],
   },
   {
     href: "/advisory.html",
     ground: "paper",
+    kind: "Advisory",
+    format: "Monthly",
     covers: ["A monthly 60-minute session", "A rotating theme", "Decision frameworks and comparisons", "Questions between sessions", "One practice membership"],
   },
 ];

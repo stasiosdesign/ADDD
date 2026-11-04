@@ -1,0 +1,222 @@
+/* ============================================================
+   A folder's document (FolderDocument.astro, folder-docs.js)
+   ------------------------------------------------------------
+   A sheet of paper drawn up out of its folder. It stands low in the
+   window (--doc-top) and runs on to the window's foot and past it, as a
+   page lying on a desk does: the dialog is what scrolls (smoothly, a
+   Lenis of its own), the paper in it, so the sheet slides up as it is
+   read and ends flush with the foot of the window. The scrim behind stays
+   put: a faint dim and a fixed soft blur, whose opacity alone is animated
+   (never the blur's radius, which drops frames on modest GPUs).
+
+   The paper after a reference sheet of writing (2026-11-04): the barest
+   rounding, an off-white a breath off white, and over it the homepage's
+   dark bands' dots (the ink band's fields: 1.5px on a 0.875rem pitch, in
+   white) turned round, in ink and much fainter, a plain background that
+   is painted once; a label row over a hairline, a line, the title, "In
+   short" and the summary between two hairlines, the body at a reading
+   size, and what the reader takes away. The close button rides at the
+   paper's top right corner as it scrolls (sticky).
+   ============================================================ */
+.folder-doc {
+  --doc-top: max(5rem, 12svh);
+  --doc-pad-x: 5.5rem;
+  --doc-pad-y: 4rem;
+  --doc-rule: color-mix(in srgb, var(--c-text) 11%, transparent);
+  --doc-paper: #f6f6f3;
+  --doc-dots: rgba(10, 10, 10, 0.075);
+  --doc-pitch: 14px;
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  background: transparent;
+  color: var(--c-text);
+}
+.folder-doc::backdrop { background: transparent; }
+
+/* the scrim, fixed under the paper whatever the scroll */
+.folder-doc__scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, 0.22);
+  -webkit-backdrop-filter: blur(5px);
+  backdrop-filter: blur(5px);
+}
+/* the paper's run: from --doc-top to the end of the paper, the window's
+   width; it lets the pointer through beside the paper, to the scrim */
+.folder-doc__scroll {
+  position: relative;
+  padding-top: var(--doc-top);
+  pointer-events: none;
+}
+
+.folder-doc__paper {
+  position: relative;
+  box-sizing: border-box;
+  width: min(50rem, 100% - 2 * var(--grid-margin));
+  /* at least down to the window's foot */
+  min-height: calc(100svh - var(--doc-top));
+  margin: 0 auto;
+  padding: var(--doc-pad-y) var(--doc-pad-x) calc(var(--doc-pad-y) + 1rem);
+  border-radius: 2px;
+  background-color: var(--doc-paper);
+  background-image: radial-gradient(circle at 50% 50%, var(--doc-dots) 0.75px, transparent 1.05px);
+  background-size: var(--doc-pitch) var(--doc-pitch);
+  background-position: calc(var(--doc-pitch) / 2) calc(var(--doc-pitch) / 2);
+  box-shadow: 0 -0.25rem 2.5rem rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(10, 10, 10, 0.04);
+  pointer-events: auto;
+  /* drawn up out of the folder from its top (folder-docs.js) */
+  transform-origin: 50% 0;
+  outline: none;
+}
+
+/* the close button: at the paper's top right corner, held there as the
+   paper scrolls under the window's top */
+.folder-doc__bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  height: 0;
+  margin-top: calc(-1 * var(--doc-pad-y));
+  margin-bottom: var(--doc-pad-y);
+}
+.folder-doc__close {
+  position: absolute;
+  top: 1rem;
+  right: calc(1rem - var(--doc-pad-x));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 10, 10, 0.06);
+  color: var(--c-text);
+  cursor: pointer;
+  transition: background-color 0.25s ease;
+}
+.folder-doc__close svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+}
+@media (hover: hover) {
+  .folder-doc__close:hover { background: rgba(10, 10, 10, 0.11); }
+}
+.folder-doc__close:focus-visible { outline: 1px solid var(--c-text); outline-offset: 2px; }
+
+/* the label row over a hairline: the series, and the folder's number */
+.folder-doc__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--doc-rule);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in srgb, var(--c-text) 66%, transparent);
+}
+.folder-doc__kicker {
+  margin: 1.75rem 0 0;
+  font-size: var(--t-rg);
+  line-height: 1.3;
+  color: color-mix(in srgb, var(--c-text) 62%, transparent);
+}
+.folder-doc__kicker::before { content: ":: "; }
+.folder-doc__title {
+  margin: 0.375rem 0 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 2.75rem;
+  line-height: 1.02;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  -webkit-text-stroke: 0.01em currentColor;
+  text-wrap: balance;
+}
+/* "In short" and the summary, between two hairlines */
+.folder-doc__summary {
+  margin-top: 1.75rem;
+  padding: 1.25rem 0 1.5rem;
+  border-top: 1px solid var(--doc-rule);
+  border-bottom: 1px solid var(--doc-rule);
+}
+.folder-doc__label {
+  margin: 0 0 0.625rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in srgb, var(--c-text) 66%, transparent);
+}
+.folder-doc__lede {
+  margin: 0;
+  font-size: var(--t-md);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.folder-doc__body {
+  margin-top: 1.75rem;
+  font-size: 1.0625rem;
+  line-height: 1.62;
+}
+.folder-doc__body p { margin: 0; text-wrap: pretty; }
+.folder-doc__body p + p { margin-top: 1.125rem; }
+/* what the reader takes away: a short list, each line after one of the
+   site's small squares */
+.folder-doc__points { margin-top: 2.25rem; }
+.folder-doc__points ul {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+.folder-doc__points li {
+  position: relative;
+  padding-left: 1.125rem;
+}
+.folder-doc__points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.3125rem;
+  height: 0.3125rem;
+  background: var(--c-red);
+}
+
+@media screen and (max-width: 991px) {
+  .folder-doc { --doc-pad-x: 3rem; --doc-pad-y: 3.25rem; }
+}
+@media screen and (max-width: 767px) {
+  /* the label row starts under the close button (its foot 3.5rem down) */
+  .folder-doc { --doc-top: 4.5rem; --doc-pad-x: 1.5rem; --doc-pad-y: 4.25rem; }
+  .folder-doc__title { font-size: 2.125rem; }
+  .folder-doc__lede { font-size: var(--t-rg); }
+  .folder-doc__body { font-size: var(--t-rg); }
+}

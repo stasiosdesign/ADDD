@@ -13,9 +13,10 @@
   come online in a chain reaction — a word bursts and decodes, and its
   shockwave runs out through the strokes and sets the next one off.
 */
-import ActionButton from "./ActionButton.astro";
+import ActionButton, { type ActionButtonShape } from "./ActionButton.astro";
 import ArrowIcon from "./ArrowIcon.astro";
 import IsoStacks from "./IsoStacks.astro";
+import { FIELD_TEXT } from "./field-text";
 
 interface Props {
   /** The scroll cue's in-page target, e.g. "#approach". */
@@ -44,6 +45,12 @@ interface Props {
   /** The two buttons: where each leads, and its label from the same section. */
   primaryCta: { href: string; label: string };
   secondaryCta: { href: string; label: string };
+  /** The buttons' form (ActionButton.astro): the site's block, the pill, or the frame. */
+  ctaShape?: ActionButtonShape;
+  /** The scroll cue at the band's foot (band and split): the logo's triangle
+      turned down, or a line arrow pointing down and on, its head's foot
+      level with the screen's (styles.css, .hero__arrow.is--arrow). */
+  cue?: "triangle" | "arrow";
   /** The section the words come from (data-page-field, for the Studio's Visual editor); "hero" on every page. */
   field?: string;
 }
@@ -59,6 +66,8 @@ const {
   headingWords = [],
   primaryCta,
   secondaryCta,
+  ctaShape,
+  cue = "triangle",
   field = "hero",
 } = Astro.props;
 
@@ -69,6 +78,11 @@ const cycle = cycleAt < 0 ? null : {
   word: headingWords[0],
   after: heading.slice(cycleAt + headingWords[0].length),
 };
+
+// The field's ground: text in place of strokes (slash-field.js, "text"),
+// the stream the intro's ground reads too (field-text.ts); the wave
+// scrambles its letters as it passes.
+const fieldText = FIELD_TEXT;
 
 // The Slash Field's vocabulary: BIM, Software, Infrastructure and AI, and
 // the practice's other subjects — two from the hero's own copy, four from
@@ -125,15 +139,15 @@ const screenWords = [
     <h1 class="h1 hero__heading" data-split="heading" data-page-field={`${field}.heading`}>{heading}</h1>
     <p class="text-md hero__lede" data-page-field={`${field}.lede`}>{lede}</p>
     <div class="actions actions--pair">
-      <ActionButton href={primaryCta.href}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
-      <ActionButton href={secondaryCta.href} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
+      <ActionButton href={primaryCta.href} shape={ctaShape}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
+      <ActionButton href={secondaryCta.href} variant="secondary" shape={ctaShape}><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
     </div>
   </div>
   <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>
 </section>
 ) : (
 <section class:list={["hero", { "hero--split": layout === "split", "hero--blue": accent === "blue" }]}>
-  <div class="hero__media" data-slash-field>
+  <div class="hero__media" data-slash-field data-text={fieldText}>
     <ul class="hero__labels">
       {fieldWords.map(({ text, spot: [fx, fy], from }) => (
         <li data-slash-label data-slash-spot={`${fx},${fy}`} data-slash-from={from} class="hero__label" style={`left:${fx * 100}%;top:${fy * 100}%`}>{text}</li>
@@ -160,10 +174,12 @@ const screenWords = [
 
         <div class="hero__cta-row">
           <div class="actions actions--pair">
-            <ActionButton href={primaryCta.href}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
-            <ActionButton href={secondaryCta.href} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
+            <ActionButton href={primaryCta.href} shape={ctaShape}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
+            <ActionButton href={secondaryCta.href} variant="secondary" shape={ctaShape}><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
           </div>
-          <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>
+          <a class:list={["hero__arrow", { "is--arrow": cue === "arrow" }]} href={arrowHref} aria-label={arrowLabel}>{cue === "arrow" ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6L18 18M8.5 18H18V8.5" /></svg>
+          ) : <ArrowIcon aria-hidden="true" />}</a>
         </div>
       </div>
     </div>

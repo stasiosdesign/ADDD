@@ -10,19 +10,20 @@
   feature block, the group of links with Sign in, and the Contact button.
   In the drawer the feature block leads the list.
 
-  For Tech Firms, the two toggles, AEC Jobs, About and Sign in are the
-  site's text links (.nav-link, NavLinkLabel.astro: the label decodes and a
-  dotted line draws under it, text-scramble.js): each keeps its
+  For Tech Firms, the two toggles, AEC Jobs, About, Sign in and Contact are
+  the site's text links (.nav-link, NavLinkLabel.astro: the label decodes
+  and a dotted line draws under it, text-scramble.js): each keeps its
   full-height block as its hit area, and the box is drawn round its label.
-  The logo and the Contact button keep their own treatments: hovered, the
-  logo's four forms are drawn back into the name, A D D D, by the intro's
-  own morph (src/scripts/logo-morph.js, initNavLogo() in site.js), and
-  drawn into the forms again as the pointer leaves; Contact is one solid
-  block that only deepens a little (contact-button.css).
+  Contact's block (contact-button.css) stays as it is on hover; only its
+  label scrambles. The logo keeps its own treatment: hovered, its four
+  forms are drawn back into the name, A D D D, by the intro's own morph
+  (src/scripts/logo-morph.js, initNavLogo() in site.js), and drawn into
+  the forms again as the pointer leaves.
 */
 import ArrowIcon from "./ArrowIcon.astro";
 import NavLinkLabel from "./NavLinkLabel.astro";
 import ServiceCard from "./ServiceCard.astro";
+import { lineGridRatio, type LineGridShape } from "./line-grid";
 import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 
 // The forms as the morph draws them at rest, so the mark is the logo before
@@ -36,15 +37,27 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 // as one set rather than wrapping wherever their words fall. The names here are the dropdown's own short forms; the services'
 // names everywhere else stay as they are. The first ends in a word that
 // turns between "shop" and "flow", as the homepage hero's word does: Work,
-// then shop or flow.
-const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string[] }[] = [
-  { href: "/workshops-audits.html", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: ["A half-day live-project diagnostic,", "followed by a written report."] },
+// then shop or flow. A card with a grid is set on a line grid of that
+// shape instead of its route's ground (ServiceCard.astro, LineGrid.astro):
+// the Workshop's, 6 × 4 large squares of 4 × 4 small ones, the lines
+// running on one small square past the outer large lines to the card's
+// edges (2026-11-04: fewer, larger squares than the first 7 × 5, and no
+// crosses). The cards' height follows the first card set on a grid (nav.css,
+// --sc-grid-ratio: the drawing's height over its width, line-grid.ts), so
+// the card is the grid's own shape and shows it whole
+const gridOf = (list: { grid?: LineGridShape }[]) => list.find((s) => s.grid)?.grid;
+const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string[]; grid?: LineGridShape }[] = [
+  { href: "/workshops-audits.html", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: ["A half-day live-project diagnostic,", "followed by a written report."], grid: { cols: 6, rows: 4, sub: 4, bleed: 1 } },
   { href: "/before-revit.html", name: "Before Revit", text: ["A review of early-stage design,", "before Revit or Archicad."] },
   { href: "/technology-blueprint.html", name: "Tech - Blueprint", text: ["An eight-week practice-wide strategy", "and a sequenced roadmap."] },
   { href: "/advisory.html", name: "ADDD Advisory", text: ["Monthly advice on AI, BIM, software", "and other digital priorities."] },
 ];
+const firstGrid = gridOf(services);
+const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
 ---
-<nav data-menu-open="false" data-menu-wrap class="mega-nav">
+<!-- is--floating from the first paint: the floating bar always (an
+     experiment: NAV_ALWAYS_FLOATS in nav.js, where to undo it) -->
+<nav data-menu-open="false" data-menu-wrap class="mega-nav is--floating">
   <div class="mega-nav__bar">
     <div class="mega-nav__container">
       <div class="mega-nav__bar-start">
@@ -91,9 +104,7 @@ const services: { href: string; name: string; cycle?: { stem: string; words: str
               <a href="https://app.addd.io/login" target="_blank" rel="noopener" class="mega-nav__bar-cta nav-link"><NavLinkLabel class="mega-nav__bar-link-label">Sign in</NavLinkLabel></a>
             </li>
             <li class="mega-nav__bar-action">
-              <a href="/contact.html" class="contact-button">
-                <span class="contact-button__text">Contact</span>
-              </a>
+              <a href="/contact.html" class="contact-button nav-link"><NavLinkLabel class="contact-button__text">Contact</NavLinkLabel></a>
             </li>
           </ul>
         </div>
@@ -129,9 +140,9 @@ const services: { href: string; name: string; cycle?: { stem: string; words: str
            dropdown's full height, with nothing behind them but the dimmed
            page (nav.css, "The dropdowns' columns"). -->
       <div data-nav-content="services" id="mega-nav-services" role="region" aria-label="Services" class="mega-nav__dropdown-panel">
-        <div class="mega-nav__dropdown-inner is--services">
+        <div class="mega-nav__dropdown-inner is--services" style={gridRatio ? `--sc-grid-ratio:${gridRatio}` : undefined}>
           {services.map((s, i) => (
-            <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} cycle={s.cycle} text={s.text} />
+            <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} cycle={s.cycle} text={s.text} grid={s.grid} />
           ))}
         </div>
       </div>

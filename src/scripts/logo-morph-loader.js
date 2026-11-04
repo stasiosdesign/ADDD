@@ -69,6 +69,7 @@
    ============================================================ */
 
 import { LETTER_COUNT, NAME_BOUNDS, morphPath, outline, getMorphEase } from "./logo-morph.js";
+import { mountSlashField } from "./slash-field.js";
 
 // Each stage starts as the one before it is all but done rather than once it
 // has finished, so the intro runs on as one movement.
@@ -119,6 +120,9 @@ const DISC = 40.2;
 // sits optically centred: a little less room above it than below.
 const NAME_ROWS = 1.15;
 const NAME_RISE = 0.1;
+// the row height those were set for (px): on a field of finer rows the
+// name keeps the same size, so it takes that many more of them
+const NAME_CELL = 15;
 
 // How close the field's strokes may come (px) to the name's letters, and to
 // the disc's rim, as each clears its room; on the name's left, where the
@@ -282,7 +286,8 @@ export function initLogoMorphLoader(root = document.querySelector("[data-morph-l
     const grid = field.intro.grid();
     const { cellW, cellH } = grid;
     const { left, right, top, bottom } = NAME_BOUNDS;
-    const unit = (cellH * NAME_ROWS) / (bottom - top);
+    const rows = (NAME_ROWS * NAME_CELL) / cellH;
+    const unit = (cellH * rows) / (bottom - top);
     // set directly, as the nudge below is: GSAP would round them to whole
     // pixels, and with them the name's height off the rows
     logo.style.width = logo.style.height = `${100 * unit}px`;
@@ -296,7 +301,7 @@ export function initLogoMorphLoader(root = document.querySelector("[data-morph-l
     // the rows sit wherever the band puts them, between pixels as often as
     // not
     logo.style.left = `${grid.x + c * cellW + slack - (box.left + left * unit)}px`;
-    logo.style.top = `${grid.y + (line - NAME_ROWS / 2 - NAME_RISE) * cellH - (box.top + top * unit)}px`;
+    logo.style.top = `${grid.y + (line - rows / 2 - NAME_RISE * rows / NAME_ROWS) * cellH - (box.top + top * unit)}px`;
     return { ...grid, c, n, r: line - 1 };
   }
 
@@ -457,6 +462,13 @@ export function initLogoMorphLoader(root = document.querySelector("[data-morph-l
   } else if (stage) {
     heroIntro(stage);
   } else {
+    // The black ground set as the hero's text field (data-text, dark tints:
+    // morph-loader.css), its wave let go at once — the page is still
+    // arriving, which holds a field's wave back — and taken down with the
+    // loader.
+    const ground = bg.hasAttribute("data-text") ? mountSlashField(bg) : null;
+    ground?.intro.handover();
+    if (ground) timeline.eventCallback("onComplete", () => ground.destroy());
     const morphStart = rise(TIMING.enter) + TIMING.hold;
     timeline.addLabel("morph", morphStart);
     disc(morph(morphStart));

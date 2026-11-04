@@ -5,11 +5,12 @@ import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import CoinStack from "../components/CoinStack.astro";
+import ProblemCard from "../components/ProblemCard.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
 import Hero from "../components/Hero.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 import StickyTitle from "../components/StickyTitle.astro";
-import TestimonialSlider from "../components/TestimonialSlider.astro";
+import Testimonials from "../components/Testimonials.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { hasImage, imageAttrs } from "../sanity/image";
 import { logoShape } from "../sanity/logo-balance";
@@ -26,13 +27,21 @@ import { CLIENTS } from "../sanity/defaults/clients";
 // navigation, the footer, the hero's pattern and where every button leads
 // stay here. Each element names the field it shows (data-page-field) so
 // the Studio's Visual editor can outline it and write drafts into it.
+// The homepage's CTAs, every one, in the frame form (ActionButton.astro:
+// a black block, the secondary a grey one, a dotted line before the triangle);
+// "block" or "pill" for the others.
+const CTA = "frame" as const;
+// An experiment: the approach statement held on the screen while it comes
+// in (true, as it was), or scrolling with the page, revealed as it comes
+// up (false: StickyTitle's hold, sticky-title.js and .css "is--static").
+const STATEMENT_HOLD = true;
 const { sanity } = Astro.locals;
 const [doc, clients, insights] = await Promise.all([
   pageDocument(sanity, "homePage"),
   sanity.fetch<{ _id: string; name: string; logo?: unknown }[]>(CLIENT_LOGOS_QUERY),
   sanity.fetch<Insight[]>(INSIGHTS_QUERY),
 ]);
-const { t, list, lines, img } = reader(doc, D);
+const { t, list, lines } = reader(doc, D);
 
 // The photographs round the approach statement: four small cards set
 // straight, each the picture in a hairline frame over a white caption
@@ -107,10 +116,6 @@ const photoStyle = (p: Photo) =>
     p.phone && `--col-m:${p.phone[0]};--top-m:${p.phone[1]}%`,
   ].filter(Boolean).join(";");
 
-// The homepage FAQ's temporary placeholders, to see a longer list: six
-// items that say "FAQ Test". Remove once the real questions are written.
-const FAQ_PLACEHOLDERS = Array.from({ length: 6 }, () => ({ question: "FAQ Test", answer: "FAQ Test" }));
-
 // The strip's logos: the clients in the Studio, each with its mark, or the
 // ten files the strip has always shown. Each is sized to balance the others
 // (src/sanity/logo-balance.ts): the same area of ink box, whatever its shape.
@@ -131,27 +136,6 @@ const steps = list<{ _key: string; title?: string; text?: string }>("approach.st
 }));
 const costCards = list<{ _key: string; title?: string; text?: string; image?: unknown }>("cost.cards");
 const routeCards = list<{ _key: string; tagline?: string; title?: string; text?: string }>("routes.cards");
-const quotes = list<{ _key: string; quote?: string; name?: string; role?: string; client?: { name?: string; logo?: unknown }; clientId?: string }>("testimonials.items");
-const quoteLogo = (quote: (typeof quotes)[number]) => {
-  if (quote.client && hasImage(quote.client.logo)) return { ...imageAttrs(quote.client.logo, 600), alt: quote.client.name ?? "" };
-  const own = CLIENTS.find((client) => client._id === quote.clientId);
-  return { src: own?.logo.path ?? "", width: undefined, height: undefined, alt: own?.name ?? "" };
-};
-// Each quote with its practice's logo, balanced by its ink as the logo
-// strip's are (src/sanity/logo-balance.ts)
-const testimonials = await Promise.all(
-  quotes.map(async (quote) => {
-    const logo = quoteLogo(quote);
-    const shape = logo.src ? await logoShape(logo.src, logo.width, logo.height) : undefined;
-    return {
-      quote: quote.quote ?? "",
-      name: quote.name,
-      role: quote.role,
-      logo: { ...logo, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined },
-    };
-  }),
-);
-
 // The route cards' destinations stay here, by position (their diagrams
 // are the services' own: ServiceDiagram.astro)
 const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
@@ -180,6 +164,8 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
         headingWords={lines("hero.headingWords")}
         primaryCta={{ href: "stack-diagnostic.html", label: t("hero.primaryButton") }}
         secondaryCta={{ href: "contact.html", label: t("hero.secondaryButton") }}
+        ctaShape={CTA}
+        cue="arrow"
       />
     </div>
     <div data-hero-parallax-dark class="hero-wrap__dark"></div>
@@ -205,7 +191,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
   <!-- The statement stands on the band's dots drawn as a grid of cells,
        from under the wall to over the approach's heading (cells;
        cell-grid.js) -->
-  <StickyTitle id="approach" class="logos" navHold navHoldUntil=".approach-stack__slot:nth-child(2)" headings={[t("approach.statement")]} field="approach.statement" dots still wide cells=".approach-stack__head" breaks={["decisions", "software. They", "practice works,"]}>
+  <StickyTitle id="approach" class="logos" navHold navHoldUntil=".approach-stack__slot:nth-child(2)" headings={[t("approach.statement")]} field="approach.statement" hold={STATEMENT_HOLD} still={STATEMENT_HOLD} dots wide cells=".approach-stack__head" breaks={["decisions", "software. They", "practice works,"]}>
     <!-- The software marks where the screen is empty round the statement
          (PHOTOS, above), each in a cell of the grid behind it, lit in its
          turn while the statement is held: a red outline drawn round the
@@ -230,7 +216,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
          round it lifted a little (dot-lift.js), as they are round the
          logos above, so the eye is drawn to it without anything drawn
          round it -->
-    <ActionButton href="/stack-diagnostic.html" slot="after" data-dot-fit=".sticky-title__dots" data-dot-lift=".sticky-title__dots" data-dot-lift-reach="8" data-dot-lift-amount="0.7"><span data-page-field="approach.button">{t("approach.button")}</span></ActionButton>
+    <ActionButton href="/stack-diagnostic.html" shape={CTA} slot="after" data-dot-fit=".sticky-title__dots" data-dot-lift=".sticky-title__dots" data-dot-lift-reach="8" data-dot-lift-amount="0.7"><span data-page-field="approach.button">{t("approach.button")}</span></ActionButton>
     <div class="logos__field" slot="before">
       <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
       <div class="logo-wall-wrap">
@@ -269,52 +255,43 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
 
       <div data-problem-parallax class="problem-grid">
         {costCards.map((card, i) => (
-        <article class="problem-card">
-          <!-- the picture's place in a field of dots (styles.css, "industry
-               problems"), held empty for now: the frame keeps its size and
-               its light ground, and stands in for the picture. To bring the
-               pictures back, put an img.problem-card__image in the frame again,
-               from img("cost.cards.N.image", 1200, the default), bound with
-               data-page-field="cost.cards.N.image" and data-page-width="1200"
-               (the Studio still holds each card's picture, and the defaults
-               theirs) -->
-          <div class="problem-card__media">
-            <span class="problem-card__dots dot-grid" aria-hidden="true"></span>
-            <div class="problem-card__frame"></div>
+        <ProblemCard title={card.title} text={card.text} titleField={`cost.cards.${i}.title`} textField={`cost.cards.${i}.text`}>
+          <!-- the picture in the card's field of dots (ProblemCard.astro):
+               one photograph, the same in all three cards, from the site's
+               own files, cut to the frame (object-fit: cover). Not bound to
+               the Studio for now (2026-11-03: the Studio still holds each
+               card's earlier picture, and the defaults theirs). To bind it,
+               take the src from img("cost.cards.N.image", 1200, the
+               default), with data-page-field="cost.cards.N.image" and
+               data-page-width="1200", once the photo is in the Studio -->
+          <div class="problem-card__frame">
+            <img class="problem-card__image" src="/assets/images/team-model-review.webp" width="450" height="268" alt="" loading="lazy" decoding="async" draggable="false">
           </div>
-          <div class="problem-card__body">
-            <h3 class="problem-card__h" data-page-field={`cost.cards.${i}.title`}>{card.title}</h3>
-            <p class="problem-card__p" data-page-field={`cost.cards.${i}.text`}>{card.text}</p>
-          </div>
-        </article>
+        </ProblemCard>
         ))}
       </div>
     </div>
   </section>
 
   <!-- ========== 5b. WAYS TO WORK WITH ADDD ==========
-       The four routes as cards that stack as the page scrolls
-       (ServiceDeck.astro). The panel that takes the routes in turn
+       The four routes as folder cards, one under another, beside the
+       section's title held on the left (ServiceDeck.astro). The panel that takes the routes in turn
        (ServiceTabs.astro) now lives on the AEC Tech Partners page. -->
-  <ServiceDeck heading={t("routes.heading")} cards={routeCards} hrefs={routeHrefs} />
+  <ServiceDeck heading={t("routes.heading")} aside="Services" cards={routeCards} hrefs={routeHrefs} />
 
   <!-- ========== 6. TESTIMONIALS ========== -->
-  <!-- The slider alone (TestimonialSlider.astro): the quotes stacked in
-       one place, changed line by line, its dotted rule the section's
-       full height -->
-  <!-- uncovered from under the service deck as it scrolls away, as the
-       footer is from under the page: the quotes settle out of a higher
-       place inside a clipping wrap and their shadow clears
-       (data-depth="under", initDepthTransitions, parallax.js) -->
-  <div data-depth="under" class="reveal-wrap">
-    <section class="testimonials" aria-label="Testimonials" data-depth-content>
-      <TestimonialSlider items={testimonials} field="testimonials.items" />
-    </section>
-    <div class="depth-shade" data-depth-shade aria-hidden="true"></div>
-  </div>
+  <!-- The slider alone (Testimonials.astro, shared with the Workflow
+       Workshop page): the quotes stacked in one place, changed line by
+       line, its dotted rule the section's full height -->
+  <!-- straight after the service deck, in the page's own scroll, with
+       no transition between the two -->
+  <Testimonials />
 
   <!-- ========== 7. CREDENTIALS ========== -->
-  <section class="section">
+  <!-- creds--on-rule: an experiment, the testimonials' rule run on down
+       through this section with the photograph centred on it (styles.css,
+       "credentials on the rule"); take the class off to undo it -->
+  <section class="section creds--on-rule">
     <div class="container">
       <div class="creds__title">
         <p class="tagline tagline--plain" data-page-field="credentials.tagline">{t("credentials.tagline")}</p>
@@ -329,7 +306,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
         <div class="creds__text">
           <p data-page-field="credentials.text">{t("credentials.text")}</p>
           <div class="actions">
-            <ActionButton href="about.html" variant="secondary"><span data-page-field="credentials.button">{t("credentials.button")}</span></ActionButton>
+            <ActionButton href="about.html" variant="secondary" shape={CTA}><span data-page-field="credentials.button">{t("credentials.button")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -340,10 +317,9 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        Who ADDD is for and who it is not, as questions (the fit section's
        own lists, fit.forItems and fit.notItems, as the answers): the
        heading on Grid Columns 1–5, the questions on Grid Columns 7–12,
-       each opening to its answer (Accordion.astro, "boxed"). The six "FAQ
-       Test" items after them are temporary placeholders, to see a longer
-       list: take them out (FAQ_PLACEHOLDERS) once the real questions are
-       written. -->
+       each opening to its answer (Accordion.astro, "boxed"), then the
+       section's further questions (fit.questions), each with its answer.
+       All start closed. -->
   <section class="section section--light faq-home" id="faq">
     <div class="container">
       <h2 class="h2 faq-home__h" data-split="heading" data-page-field="fit.faqHeading">{t("fit.faqHeading")}</h2>
@@ -351,7 +327,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
         <Accordion id="home-faq" variant="boxed" items={[
           { question: t("fit.forQuestion"), questionField: "fit.forQuestion", points: lines("fit.forItems"), pointsField: "fit.forItems", mark: "fill" },
           { question: t("fit.notQuestion"), questionField: "fit.notQuestion", points: lines("fit.notItems"), pointsField: "fit.notItems", mark: "open" },
-          ...FAQ_PLACEHOLDERS,
+          ...list<{ _key: string; question?: string; answer?: string }>("fit.questions").map(({ question, answer }) => ({ question, answer })),
         ]} />
       </div>
     </div>
@@ -375,7 +351,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
   </section>
 
   <!-- ========== 10. CTA ========== -->
-  <ClosingCta />
+  <ClosingCta shape={CTA} />
 
 </main>
 </BaseLayout>

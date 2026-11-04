@@ -1,0 +1,321 @@
+/* ============================================================
+   The Workflow Workshop page (src/pages/workshops-audits.astro)
+
+   The desktop design of 2026-11-04 ("Workshops • Desktop"), set in
+   the site's own type, tokens and buttons: white sections, light grey
+   cards, the journey on a grey band. Sizes are the design's px / 16
+   at the 1440 ideal (README, "Sizing"). Every rule here is scoped to
+   the page's <main> (.page--workshop), so no other page changes; it
+   is loaded with the rest of the CSS (BaseLayout.astro), because
+   Barba never swaps <head>.
+
+   Desktop first: below 992px the grids fold to fewer columns and the
+   hero's pictures step aside, so the page stays readable, but the
+   narrow layouts are not designed yet.
+   ============================================================ */
+
+.page--workshop {
+  --ws-ground: var(--c-white);
+  --ws-card: var(--c-light-bg);
+  /* the warm off-white of the problems and What to Expect, either side of
+     Inside the Workshop's ink */
+  --ws-warm: #f2f0eb;
+  --ws-chip: var(--c-btn-soft);
+}
+
+.page--workshop .ws-section { background: var(--ws-ground); }
+.page--workshop .ws-section--grey { background: var(--ws-card); }
+
+/* ------------------------------------------------------------
+   A section's head: the tagline, the heading and the standfirst,
+   centred, or on the left (.is--left: the Investment section)
+   ------------------------------------------------------------ */
+.ws-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 48rem;
+  margin: 0 auto;
+}
+.ws-head > .tagline { margin-bottom: 1rem; }
+.ws-head > .h2 { max-width: 37.5rem; text-wrap: balance; }
+.ws-head > .text-md { margin-top: 1.5rem; line-height: 1.5; }
+.ws-head.is--left { align-items: flex-start; text-align: left; margin: 0; }
+
+/* A card's 28px title (the design's step between .h4 and body: the price
+   cards') */
+.ws-card__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: 1.75rem;
+  line-height: 1.1;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+
+/* ------------------------------------------------------------
+   Opening: two columns set down at the foot, the red block's top
+   showing under them (the reference of 2026-11-04)
+   ------------------------------------------------------------
+   On the 12-Column Grid (column-grid.css): the label and the heading on
+   Grid Columns 1–8, on white; the panel from the middle of the gutter
+   before Grid Column 9 out to the window's edge, on the light grey with a
+   hairline down its left side, its words in from that edge as the
+   reference sets them. Both sides end the same distance over the red.
+   The opening is a screen tall less the red block's top (--ws-peek), so
+   on arrival the red shows as a band across the foot of the screen. */
+.ws-hero {
+  /* how much of the red block shows under the opening */
+  --ws-peek: 7rem;
+  /* one Grid Column, of the opening's full width */
+  --ws-col: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+  --ws-foot: 2.5rem;
+  display: grid;
+  grid-template-columns: calc(var(--grid-margin) + 8 * (var(--ws-col) + var(--grid-gutter)) - var(--grid-gutter) / 2) minmax(0, 1fr);
+  height: calc(100svh - var(--ws-peek));
+  min-height: 38rem;
+  background: var(--ws-ground);
+}
+.ws-hero__main,
+.ws-hero__aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-bottom: var(--ws-foot);
+}
+.ws-hero__main { padding: calc(var(--nav-h) + 3rem) 2rem var(--ws-foot) var(--grid-margin); }
+.ws-hero__aside {
+  padding: calc(var(--nav-h) + 3rem) var(--grid-margin) var(--ws-foot) calc(var(--grid-gutter) / 2 + 2rem);
+  background: var(--ws-card);
+  border-left: 1px solid rgba(10, 10, 10, 0.08);
+}
+/* the label: a small red square, then the name in the label face */
+.ws-hero__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+.ws-hero__label::before {
+  content: "";
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--c-red);
+}
+/* the heading large and closed up, a step nearer the homepage hero's
+   scale than the reference's (2026-11-04): its lines evened out, so no
+   word is left alone on the last */
+.ws-hero__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 6rem;
+  line-height: 0.95;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-wrap: balance;
+}
+/* on three lines from 992px: a measure narrower than "Find out where
+   your" and wider than "your practice is" */
+@media screen and (min-width: 992px) {
+  .ws-hero__heading { max-width: var(--ws-hero-measure, 8.1em); }
+}
+/* the standfirst at the site's standfirst size (--t-md), the homepage
+   hero's a step under it */
+.ws-hero__lede {
+  max-width: 25rem;
+  margin-bottom: 2.75rem;
+  font-size: var(--t-md);
+  line-height: 1.45;
+}
+.ws-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+/* The red block: the window's width and a screen tall, its top showing
+   under the opening (a plain red for now) */
+.ws-red {
+  height: 100svh;
+  background: var(--c-red);
+}
+
+/* ------------------------------------------------------------
+   Does this sound like your practice: the homepage's problem cards
+   (ProblemCard.astro; styles.css, "industry problems"), each with its
+   Hairline figure, close under the standfirst
+   ------------------------------------------------------------ */
+.ws-problems { margin-top: 4.5rem; margin-bottom: 0; }
+/* the section on the warm ground, so the white field of the first card
+   stands off it, and further from Inside the Workshop below than a
+   section's step: the cards drift down into the room under them as the
+   page scrolls (data-problem-parallax), as the homepage's do */
+.page--workshop .ws-section.is--problems {
+  padding-bottom: calc(var(--sec-lg) * 1.75);
+  background: var(--ws-warm);
+}
+/* Inside the Workshop: the homepage deck's own ink and paper folders
+   (ServiceDeck.astro). From 992px its title and line a column further
+   left than the homepage's, on Grid Columns 1–4, the title on two lines,
+   and the folders half a column left of theirs, so the two stand further
+   apart */
+@media screen and (min-width: 992px) {
+  .page--workshop .service-deck__hold:not(.is--aside) { grid-column: 1 / 5; }
+  .page--workshop .service-deck__title { max-width: 6.5em; }
+  /* half a Grid Column: a tenth of the folders' five */
+  .page--workshop .service-deck__card { margin-left: -10%; margin-right: 10%; }
+}
+
+/* ------------------------------------------------------------
+   What to Expect: the stages on a timeline (StageTimeline.astro;
+   stage-timeline.css), on the warm ground, the whole section a screen
+   tall or less on a laptop: a closer section step than the page's, the
+   heading and its line on one row, the timeline under them across the
+   whole grid
+   ------------------------------------------------------------ */
+.page--workshop .ws-expect {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+  background: var(--ws-warm);
+}
+.ws-expect__head,
+.ws-expect__run { grid-column: 1 / -1; }
+.ws-expect__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3rem;
+  margin-bottom: 2.25rem;
+}
+.ws-expect__head .tagline { margin: 0 0 0.875rem; }
+.ws-expect__lede {
+  max-width: 24rem;
+  margin: 0;
+  font-size: var(--t-rg);
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--c-text) 76%, transparent);
+  text-wrap: pretty;
+}
+
+/* ------------------------------------------------------------
+   Investment: what the day holds on the left, the workshop's card
+   on the right, the Technology Blueprint's card across under both
+   ------------------------------------------------------------ */
+.ws-pricing {
+  display: grid;
+  grid-template-columns: 1fr 35.25rem;
+  column-gap: 6rem;
+  row-gap: 4rem;
+  align-items: center;
+  margin-top: 5rem;
+}
+.ws-stages { display: flex; flex-direction: column; gap: 2rem; }
+.ws-stages__item { display: flex; flex-direction: column; gap: 0.75rem; }
+.ws-stages__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: 1.375rem;
+  line-height: 1.3;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+
+.ws-price {
+  container-type: inline-size;
+  background: var(--ws-card);
+  border-radius: var(--radius);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+.ws-price.is--wide { grid-column: 1 / -1; }
+.ws-price__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding-bottom: 2.5rem;
+  border-bottom: 1px solid var(--c-border);
+}
+.ws-price__name { display: flex; flex-direction: column; gap: 0.75rem; }
+.ws-price__amount { display: flex; align-items: baseline; gap: 0.5rem; white-space: nowrap; }
+.ws-price__figure {
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h1);
+  line-height: 1;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+}
+.ws-price__includes {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 2.5rem 0 2rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--c-border);
+}
+.ws-price .action-button { width: 100%; }
+
+/* the included lines, two to a row, each with a tick */
+.ws-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+.ws-price.is--wide .ws-checks { column-gap: 2.5rem; }
+.ws-checks__pair {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.5rem;
+}
+.ws-checks span {
+  position: relative;
+  display: block;
+  padding-left: 2.5rem;
+}
+.ws-checks span::before {
+  content: "";
+  position: absolute;
+  left: 0.375rem;
+  top: 0.3em;
+  width: 0.4375rem;
+  height: 0.8125rem;
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ------------------------------------------------------------
+   Common questions: the heading, the questions across under it
+   ------------------------------------------------------------ */
+.ws-faq { margin-top: 2.5rem; }
+.page--workshop .ws-faq .is--boxed .accordion__item { background-color: var(--ws-card); }
+@media (hover: hover) {
+  .page--workshop .ws-faq .is--boxed .accordion__item:hover { background-color: color-mix(in srgb, var(--ws-card), var(--c-text) 3%); }
+}
+
+/* ------------------------------------------------------------
+   Narrower screens: not designed yet, kept readable
+   ------------------------------------------------------------ */
+@media screen and (max-width: 991px) {
+  /* the opening stacks: the heading, then the panel under it */
+  .ws-hero { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; }
+  .ws-hero__main { padding-right: var(--grid-margin); }
+  .ws-hero__aside { padding-top: 2.5rem; padding-left: var(--grid-margin); border-left: 0; }
+  .ws-hero__heading { font-size: 3.75rem; }
+  .ws-red { height: 50svh; }
+  .ws-pricing { grid-template-columns: 1fr; }
+}
+@media screen and (max-width: 767px) {
+  .ws-hero__heading { font-size: 2.875rem; }
+  .ws-hero__lede { font-size: var(--t-rg); }
+  .ws-checks,
+  .ws-checks__pair { grid-template-columns: 1fr; }
+  .ws-checks__pair { row-gap: 1rem; }
+  .ws-price__head { flex-direction: column; }
+}

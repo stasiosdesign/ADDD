@@ -535,6 +535,29 @@
   pointer-events: none;
 }
 .service-card__dots > canvas { display: block; }
+/* A card set on a line grid instead of its route's ground (the Workflow
+   Workshop's: ServiceCard.astro, grid; LineGrid.astro): the grid over the
+   whole card, edge to edge, in the card's ink, behind the name. From 992px
+   the card is the grid's own shape (the dropdown's rows, below:
+   --sc-grid-ratio), so the outer large lines stand a small square in from
+   every edge and the small lines run on to the edges; in the drawer the
+   grid fills the card and is cropped. Its lines are whole lines, not
+   dots, and one can fall along a line of the words, where it read as a
+   strike through them: so the words carry a soft edge of the card's own
+   ground, which stops a line just short of the letters and leaves the
+   grid untouched everywhere else. */
+.service-card__grid {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.service-card.has--grid :is(.service-card__title, .service-card__text) {
+  text-shadow:
+    0 0 2px var(--sc-card-bg),
+    0 0 4px var(--sc-card-bg),
+    0 0 6px var(--sc-card-bg);
+}
 /* the Advisory's isometric paper (PaperGround.astro): whole lines, three
    ways, carry more ink than dots or dashes, so held back further */
 .service-card__dots.paper-ground { --iso-line: color-mix(in oklab, var(--nav-card-dots) 55%, transparent); }
@@ -828,9 +851,17 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
      the screen each, sixteen steps tall, the height they have always had;
      the three Resources blocks a third, their rows shared. */
   .mega-nav__dropdown-inner.is--services {
+    /* a card's width: a quarter of the row, less its share of the seams */
+    --sc-card-w: calc((100cqw - 3 * var(--sc-gap, 0px)) / 4);
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-template-rows: calc(16 * var(--sc-step));
     row-gap: 0;
+  }
+  /* With a card set on a line grid (Nav.astro sets the drawing's height
+     over its width, --sc-grid-ratio: line-grid.ts), the row the grid's own
+     shape at the card's width. Every card in the row takes that height. */
+  .mega-nav__dropdown-inner.is--services[style*="--sc-grid-ratio"] {
+    grid-template-rows: calc(var(--sc-card-w) * var(--sc-grid-ratio));
   }
   .mega-nav__dropdown-inner.is--resources {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -838,6 +869,44 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
     row-gap: 0;
   }
   .is--resources > .resource-block { grid-row: 1 / span 3; grid-template-rows: subgrid; box-shadow: 1px 0 0 var(--sc-ground); }
+
+  /* Floating (past the hero), the Services cards float as the bar does:
+     four boxes of their own rather than one strip, set off from the bar
+     and from each other by one narrow seam of the dimmed page (a quarter
+     of the room the bar keeps from the screen's top, --nav-float-top). A little
+     shorter than the strip (twelve steps), each with the bar's corners
+     and no edge or ring in any state: its own ground and pattern alone
+     tell it from the page, and the keyboard's focus shows as the
+     pointer's light (the ::after shade). The seams are the open panel's
+     own (it takes the pointer from edge to edge), so the pointer crossing
+     one never leaves the dropdown, which stays open. */
+  .mega-nav.is--floating .mega-nav__dropdown-inner.is--services {
+    /* one seam, the same under the bar and between the boxes, always */
+    --sc-float-gap: calc(var(--nav-float-top) / 4);
+    --sc-gap: var(--sc-float-gap);
+    grid-template-rows: calc(12 * var(--sc-step));
+    gap: var(--sc-float-gap);
+    padding-top: var(--sc-float-gap);
+  }
+  .mega-nav.is--floating .mega-nav__dropdown-inner.is--services[style*="--sc-grid-ratio"] {
+    grid-template-rows: calc(var(--sc-card-w) * var(--sc-grid-ratio));
+  }
+  .mega-nav.is--floating .is--services > .service-card,
+  .mega-nav.is--floating .is--services > .service-card:is(:hover, :focus-visible, :active) {
+    --sc-bleed: none;
+    border: 0;
+    border-radius: var(--nav-bar-radius);
+    outline: none;
+    box-shadow: none;
+  }
+  /* Light, each box a step under the bar's own greys (its links' group,
+     #ececec), so it stands a touch off the bar it hangs from; dark, as
+     the cards always are. The names a step down from the strip's, in
+     keeping with the shorter box. */
+  .mega-nav.is--floating .is--services > .service-card {
+    --sc-card-bg: color-mix(in oklab, #e8e8e8, #121212 var(--nav-dark));
+  }
+  .mega-nav.is--floating .is--services .service-card__title { font-size: 1.875rem; }
 }
 
 @media screen and (max-width: 991px) {

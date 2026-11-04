@@ -2,27 +2,101 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Accordion from "../components/Accordion.astro";
 import ActionButton from "../components/ActionButton.astro";
-import ServiceHero from "../components/ServiceHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import Testimonials from "../components/Testimonials.astro";
+import ProblemCard from "../components/ProblemCard.astro";
+import ServiceDeck from "../components/ServiceDeck.astro";
+import FolderDocument from "../components/FolderDocument.astro";
+import BookingDialog from "../components/BookingDialog.astro";
+import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
+import type { Folder } from "../components/DeckFolder.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { workshopPage as D } from "../sanity/defaults/workshop";
 
 // Every section's words come from the Workflow Workshop page document in
 // Sanity (studio/schemaTypes/pages/workshop.ts), each element falling back
 // to its own (src/sanity/defaults/workshop.ts): see src/sanity/content.ts.
-// The navigation, the footer, the two price cards' looks and where every
-// button leads stay here. Each element names the field it shows
-// (data-page-field) so the Studio's Visual editor can outline it and write
-// drafts into it.
-const { t, list, lines, bg } = reader(await pageDocument(Astro.locals.sanity, "workshopPage"), D);
+// The navigation, the footer, the figures, the two price cards' looks and
+// where every button leads stay here. Each element names the field it
+// shows (data-page-field) so the Studio's Visual editor can outline it and
+// write drafts into it. The layout is the desktop design of 2026-11-04
+// ("Workshops • Desktop"), styled in src/styles/workshop.css.
+const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "workshopPage"), D);
 
 type Tile = { _key: string; tagline?: string; title?: string; text?: string; image?: unknown };
 type Step = { _key: string; label?: string; title?: string; text?: string };
 const symptoms = list<Tile>("symptoms.tiles");
 const methods = list<Tile>("method.tiles");
 const journey = list<Step>("journey.steps");
+// What to Expect: each step with its timing and its more (journey.details,
+// in the steps' order), and a photograph from the library (the
+// page's own, not the Studio's)
+const details = list<{ _key: string; meta?: string; more?: string }>("journey.details");
+const STAGE_PHOTOS = [
+  { src: "/assets/images/allister-gesture-close-crop.webp", alt: "" },
+  { src: "/assets/images/conference-keynote-crop.webp", alt: "" },
+  { src: "/assets/images/allister-keynote-stage-crop.webp", alt: "" },
+  { src: "/assets/images/team-model-review.webp", alt: "" },
+];
+const expectStages: Stage[] = journey.map((step, i) => ({
+  label: step.label,
+  title: step.title,
+  text: step.text,
+  meta: details[i]?.meta,
+  more: details[i]?.more,
+  image: STAGE_PHOTOS[i],
+  fields: {
+    label: `journey.steps.${i}.label`,
+    title: `journey.steps.${i}.title`,
+    text: `journey.steps.${i}.text`,
+    meta: `journey.details.${i}.meta`,
+    more: `journey.details.${i}.more`,
+  },
+}));
 const stages = list<Tile>("pricing.tiles");
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
+
+// The problem cards' figures, in the cards' order (problem-figures.js):
+// the same problems coming round again, the formats no two teams share,
+// and the handoff that never quite connects.
+const PROBLEM_FIGURES = [
+  { figure: "turntable", label: "Blocks on a turntable that settles back where it started" },
+  { figure: "format", label: "A file of crooked lines, each set to a different indent" },
+  { figure: "plug", label: "A plug drawn towards its socket that stops short" },
+];
+
+// What the workshop delivers: one folder per method tile, each opening its
+// document. What the folders show besides the tile's words (the label row,
+// the sheet's words, the pill) stays here, as the homepage's routes keep
+// theirs in services.ts.
+type Doc = { _key: string; kicker?: string; lede?: string; body?: string[]; points?: string[] };
+const documents = list<Doc>("method.documents");
+const FOLDER_PARTS = [
+  { meta: "Your project", covers: ["Recent project", "Real delays"], kind: "Evidence" },
+  { meta: "The friction", covers: ["Duplication", "Lost data"], kind: "Diagnosis" },
+  { meta: "The map", covers: ["Brief", "Completion"], kind: "Clarity" },
+];
+const pad = (n: number) => String(n).padStart(2, "0");
+const folders: Folder[] = methods.map((tile, i) => ({
+  n: i + 1,
+  label: `Outcome N°${pad(i + 1)}`,
+  ...FOLDER_PARTS[i],
+  title: tile.title,
+  text: tile.text,
+  titleField: `method.tiles.${i}.title`,
+  textField: `method.tiles.${i}.text`,
+  go: "Open folder",
+  action: `Open ${tile.title || "the folder"}`,
+  opens: `workshop-folder-${i + 1}`,
+}));
+
+// An included line "Title — detail" is set as two entries side by side,
+// the detail starting with a capital as an entry of its own; a line
+// without the dash as one.
+const parts = (line: string) => {
+  const [first, second] = line.split(/\s+—\s+/);
+  return [first, second && second.charAt(0).toUpperCase() + second.slice(1)];
+};
 ---
 <BaseLayout
   title="Workflow Workshop — ADDD"
@@ -30,57 +104,158 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
   pageName="Workflow Workshop"
   doc={{ id: "workshopPage" }}
 >
-<main class="page--grid">
+<main class="page--grid page--workshop">
 
-  <!-- The deck's card for this service at the screen's size
-       (ServiceHero.astro): the homepage's card opens into it. -->
-  <ServiceHero index={0} name={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
-    <Fragment slot="actions">
-      <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
-      <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
-    </Fragment>
-  </ServiceHero>
-  <div class="band band--wide" id="overview"></div>
+  <!-- The opening, after the reference of 2026-11-04: the label and the
+       heading large on the left (Grid Columns 1–8), the standfirst and the
+       two buttons on a light panel on the right (from Grid Column 9 to the
+       window's edge), both set down at the foot. The opening is a screen
+       tall less the red block's top, which shows under it. -->
+  <section class="ws-hero">
+    <div class="ws-hero__main">
+      <p class="ws-hero__label" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+      <h1 class="ws-hero__heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
+    </div>
+    <div class="ws-hero__aside">
+      <p class="ws-hero__lede" data-page-field="hero.lede">{t("hero.lede")}</p>
+      <div class="ws-hero__actions">
+        <!-- the booking calendar (a demonstration for now: BookingDialog.astro),
+             and the way down to the prices, clear of the nav (scroll.js) -->
+        <ActionButton type="button" data-booking-open="workshop-booking" aria-haspopup="dialog" aria-controls="workshop-booking"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+        <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
+      </div>
+    </div>
+  </section>
 
-  <section class="section">
+  <BookingDialog id="workshop-booking" />
+
+  <!-- the red block under the opening: a screen tall and the window's
+       width, its top showing under the opening (a plain red for now) -->
+  <div class="ws-red" aria-hidden="true"></div>
+
+  <section class="section ws-section is--problems" id="overview">
     <div class="container">
-      <div class="section-title">
+      <div class="ws-head">
+        <h2 class="h2" data-split="heading" data-page-field="symptoms.heading">{t("symptoms.heading")}</h2>
         <p class="text-md" data-page-field="symptoms.lede">{t("symptoms.lede")}</p>
-        <div class="section-title__body">
-          <h2 class="h2" data-split="heading" data-page-field="symptoms.heading">{t("symptoms.heading")}</h2>
-        </div>
       </div>
 
-      <div class="grid grid--2 grid--mt" data-page-list="symptoms.tiles">
-        {symptoms.map((tile) => (
-        <article class="tile" data-page-item={tile._key}>
-          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
-          <p data-page-item-field="text">{tile.text}</p>
-        </article>
+      <!-- the homepage's problem cards (ProblemCard.astro), each with a
+           Hairline figure in the frame the homepage's photograph stands
+           in (problem-figures.js), the strip set out as a stair by the
+           scroll as the homepage's is -->
+      <div data-problem-parallax class="problem-grid ws-problems">
+        {symptoms.map((tile, i) => (
+        <ProblemCard title={tile.title} text={tile.text} titleField={`symptoms.tiles.${i}.title`} textField={`symptoms.tiles.${i}.text`}>
+          <div class="problem-card__frame is--figure">
+            <div class="problem-card__figure" data-problem-figure={PROBLEM_FIGURES[i]?.figure} data-label={PROBLEM_FIGURES[i]?.label}></div>
+          </div>
+        </ProblemCard>
         ))}
       </div>
     </div>
   </section>
 
-  <section class="section section--light">
+  <!-- Inside the Workshop: the homepage's folder cards (ServiceDeck.astro),
+       paper folders on the ink as the homepage's are, three of them, each
+       opening a document drawn out of it (FolderDocument.astro,
+       folder-docs.js); set a little to the left (workshop.css) -->
+  <ServiceDeck
+    heading={t("method.heading")}
+    headingField="method.heading"
+    lede={t("method.lede")}
+    ledeField="method.lede"
+    aside={t("method.tagline")}
+    folders={folders}
+  />
+  {folders.map((folder, i) => (
+  <FolderDocument
+    id={folder.opens!}
+    n={folder.n}
+    series="ADDD :: Workflow Workshop"
+    title={folder.title}
+    titleField={folder.titleField}
+    kicker={documents[i]?.kicker}
+    lede={documents[i]?.lede}
+    body={documents[i]?.body}
+    points={documents[i]?.points}
+    field={`method.documents.${i}`}
+  />
+  ))}
+
+  <!-- What to Expect: the four stages on a timeline after a Gantt chart
+       (StageTimeline.astro), each opening to tell more, the whole a screen
+       tall or less on a laptop -->
+  <section class="section ws-section ws-expect" id="what-to-expect">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="method.heading">{t("method.heading")}</h2>
+      <div class="ws-expect__head">
+        <div>
+          <p class="tagline" data-page-field="journey.tagline">{t("journey.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="journey.heading">{t("journey.heading")}</h2>
         </div>
+        <p class="ws-expect__lede" data-page-field="journey.lede">{t("journey.lede")}</p>
+      </div>
+      <div class="ws-expect__run">
+        <StageTimeline id="workshop-stages" stages={expectStages} />
+      </div>
+    </div>
+  </section>
+
+  <!-- the homepage's testimonials, the same block (Testimonials.astro):
+       its quotes are the Home page's -->
+  <Testimonials />
+
+  <section class="section ws-section" id="pricing">
+    <div class="container">
+      <div class="ws-head is--left">
+        <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
+        <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
+        <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
       </div>
 
-      <div class="grid grid--3 grid--mt" data-page-list="method.tiles">
-        {methods.map((tile, i) => {
-          const picture = bg(`method.tiles.${i}.image`);
+      <div class="ws-pricing">
+        <ul class="ws-stages" data-page-list="pricing.tiles">
+          {stages.map((tile) => (
+          <li class="ws-stages__item" data-page-item={tile._key}>
+            <h3 class="ws-stages__title" data-page-item-field="title">{tile.title}</h3>
+            <p data-page-item-field="text">{tile.text}</p>
+          </li>
+          ))}
+        </ul>
+
+        {[0, 1].map((n) => {
+          const f = `pricing.cards.${n}`;
+          const includes = lines(`${f}.includes`);
           return (
-        <article class="stack stack--16" data-page-item={tile._key}>
-          <div class="ph" style={picture ? `aspect-ratio:4/3;${picture}` : "aspect-ratio:4/3"} data-page-item-field="image" data-page-item-bg></div>
-          {tile.tagline && <p class="tagline tagline--sm" data-page-item-field="tagline">{tile.tagline}</p>}
-          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
-          <p data-page-item-field="text">{tile.text}</p>
+        <article class:list={["ws-price", { "is--wide": n === 1 }]}>
+          <div class="ws-price__head">
+            <div class="ws-price__name">
+              <h3 class="ws-card__title" data-page-field={`${f}.title`}>{t(`${f}.title`)}</h3>
+              {t(`${f}.subtitle`) && <p data-page-field={`${f}.subtitle`}>{t(`${f}.subtitle`)}</p>}
+            </div>
+            <div class="ws-price__amount">
+              {t(`${f}.pricePrefix`) && <span class="ws-price__affix" data-page-field={`${f}.pricePrefix`}>{t(`${f}.pricePrefix`)}</span>}
+              <span class="ws-price__figure" data-page-field={`${f}.price`}>{t(`${f}.price`)}</span>
+              {t(`${f}.priceSuffix`) && <span class="ws-price__affix" data-page-field={`${f}.priceSuffix`}>{t(`${f}.priceSuffix`)}</span>}
+            </div>
+          </div>
+          {t(`${f}.note`) && <p data-page-field={`${f}.note`}>{t(`${f}.note`)}</p>}
+          {(t(`${f}.includesLabel`) || includes.length > 0) && (
+          <div class="ws-price__includes">
+            {t(`${f}.includesLabel`) && <p data-page-field={`${f}.includesLabel`}>{t(`${f}.includesLabel`)}</p>}
+            <ul class="ws-checks">
+              {includes.map((line, j) => {
+                const [first, second] = parts(line);
+                return second ? (
+              <li class="ws-checks__pair" data-page-field={`${f}.includes.${j}`}><span>{first}</span><span>{second}</span></li>
+                ) : (
+              <li data-page-field={`${f}.includes.${j}`}><span>{line}</span></li>
+                );
+              })}
+            </ul>
+          </div>
+          )}
+          <ActionButton href={n === 0 ? "contact.html" : "technology-blueprint.html"}><span data-page-field={`${f}.button`}>{t(`${f}.button`)}</span></ActionButton>
         </article>
           );
         })}
@@ -88,118 +263,12 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
     </div>
   </section>
 
-  <section class="section">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="journey.lede">{t("journey.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="journey.tagline">{t("journey.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="journey.heading">{t("journey.heading")}</h2>
-        </div>
-      </div>
-
-      <div class="steps" data-page-list="journey.steps">
-        {journey.map((step) => (
-        <div class="steps__item" data-page-item={step._key}>
-          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
-          <div class="steps__body">
-            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
-            <p data-page-item-field="text">{step.text}</p>
-          </div>
-        </div>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--light">
-    <div class="container">
-      <div class="section-title">
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="story.tagline">{t("story.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="story.heading">{t("story.heading")}</h2>
-        </div>
-      </div>
-      <div class="case__panel">
-        <div class="case__quote-wrap">
-          <div class="case__quote-inner">
-            <blockquote class="quote" data-page-field="quote.quote">{t("quote.quote")}</blockquote>
-            <div class="avatar">
-              <div class="avatar__img"></div>
-              <div>
-                <p class="avatar__name" data-page-field="quote.name">{t("quote.name")}</p>
-                <p data-page-field="quote.role">{t("quote.role")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="pricing">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
-        </div>
-      </div>
-
-      <div class="grid grid--3 grid--mt" data-page-list="pricing.tiles">
-        {stages.map((tile) => (
-        <article class="tile tile--outline" data-page-item={tile._key}>
-          <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
-          <p data-page-item-field="text">{tile.text}</p>
-        </article>
-        ))}
-      </div>
-
-      <div class="grid grid--2" style="margin-top:2rem">
-        <article class="price-card">
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field="pricing.cards.0.title">{t("pricing.cards.0.title")}</h3>
-            {t("pricing.cards.0.subtitle") && <p data-page-field="pricing.cards.0.subtitle">{t("pricing.cards.0.subtitle")}</p>}
-            <div class="price">{t("pricing.cards.0.pricePrefix") && <Fragment><span data-page-field="pricing.cards.0.pricePrefix">{t("pricing.cards.0.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.0.price">{t("pricing.cards.0.price")}</span>{t("pricing.cards.0.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.0.priceSuffix">{t("pricing.cards.0.priceSuffix")}</span></Fragment>}</div>
-            {t("pricing.cards.0.note") && <p data-page-field="pricing.cards.0.note">{t("pricing.cards.0.note")}</p>}
-          </div>
-          {t("pricing.cards.0.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.0.includesLabel">{t("pricing.cards.0.includesLabel")}</p>}
-          {lines("pricing.cards.0.includes").length > 0 && (
-          <ul class="check-list">
-            {lines("pricing.cards.0.includes").map((line, j) => (
-            <li data-page-field={`pricing.cards.0.includes.${j}`}>{line}</li>
-            ))}
-          </ul>
-          )}
-          <ActionButton href="contact.html"><span data-page-field="pricing.cards.0.button">{t("pricing.cards.0.button")}</span></ActionButton>
-        </article>
-
-        <article class="price-card price-card--dark">
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field="pricing.cards.1.title">{t("pricing.cards.1.title")}</h3>
-            {t("pricing.cards.1.subtitle") && <p data-page-field="pricing.cards.1.subtitle">{t("pricing.cards.1.subtitle")}</p>}
-            <div class="price">{t("pricing.cards.1.pricePrefix") && <Fragment><span data-page-field="pricing.cards.1.pricePrefix">{t("pricing.cards.1.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.1.price">{t("pricing.cards.1.price")}</span>{t("pricing.cards.1.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.1.priceSuffix">{t("pricing.cards.1.priceSuffix")}</span></Fragment>}</div>
-            {t("pricing.cards.1.note") && <p data-page-field="pricing.cards.1.note">{t("pricing.cards.1.note")}</p>}
-          </div>
-          {t("pricing.cards.1.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.1.includesLabel">{t("pricing.cards.1.includesLabel")}</p>}
-          {lines("pricing.cards.1.includes").length > 0 && (
-          <ul class="check-list">
-            {lines("pricing.cards.1.includes").map((line, j) => (
-            <li data-page-field={`pricing.cards.1.includes.${j}`}>{line}</li>
-            ))}
-          </ul>
-          )}
-          <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{t("pricing.cards.1.button")}</span></ActionButton>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--light">
+  <section class="section ws-section">
     <div class="container">
       <h2 class="h2" data-split="heading" data-page-field="faq.heading">{t("faq.heading")}</h2>
-      <Accordion id="faq" items={faq} field="faq.questions" />
+      <div class="ws-faq">
+        <Accordion id="faq" items={faq} field="faq.questions" variant="boxed" />
+      </div>
     </div>
   </section>
 

@@ -194,8 +194,13 @@ export function initBandSteps(container) {
       // stylesheet's own resting translate, which GSAP would otherwise read
       // as pixels and keep under its yPercent.)
       const tallest = Math.max(...BAND_STEPS.lead);
+      // From the band's edge at the screen's foot, or from the page's top
+      // where the edge is already on the screen at rest (clamp: a screen
+      // taller than the hero, as a tablet held upright), so at rest the
+      // pieces are always flush and nothing stands over the hero; unclamped,
+      // they started part-way up, over its buttons.
       const tl = gsap.timeline({
-        scrollTrigger: { trigger: host, start: "top bottom", end: "top top", scrub: BAND_STEPS.lag, invalidateOnRefresh: true },
+        scrollTrigger: { trigger: host, start: "clamp(top bottom)", end: "top top", scrub: BAND_STEPS.lag, invalidateOnRefresh: true },
       });
       segs.forEach((seg, i) => {
         const k = i % BAND_STEPS.lead.length;
@@ -235,8 +240,7 @@ export function initBandSteps(container) {
             sinking a little smaller and all of it darkening, its
             ground staying whole; the testimonials' quotes follow
             their edge up from lower down.
-     under  ([data-depth="under"]: the footer, and the homepage's
-            testimonials under the service deck) the section is
+     under  ([data-depth="under"]: the footer) the section is
             revealed from under the page. The page above keeps the
             scroll's own speed and uncovers it; the footer's contents
             settle out of a higher offset, the mark across its foot

@@ -1,0 +1,75 @@
+---
+/*
+  Stages on a timeline, after a Gantt chart (references of 2026-11-04):
+  the stages side by side across the grid, each a column under its head
+  (a tick, its number, its name and its timing), the columns parted by
+  dotted lines and each divided by fainter ones; under each head a block
+  (a small photograph, the title and a line), the blocks stepping down
+  from one column to the next, each joined to the one before by a line
+  that runs along the column's edge, so the four read as one run.
+
+  Each block is one button (its title's, stretched over it): pressed, it
+  opens to tell more, and closes again; the others stay as they are. The
+  room the opened blocks need is kept under the run from the start
+  (stage-timeline.js), so opening one never moves the page under it.
+  Styles: stage-timeline.css. Below 992px the stages stand one under
+  another.
+
+  fields: the Studio fields each stage's words come from, for the Visual
+  editor (the list item's, and the parallel list of details).
+*/
+export interface Stage {
+  label?: string;
+  meta?: string;
+  title?: string;
+  text?: string;
+  more?: string;
+  image?: { src: string; alt?: string };
+  fields?: { label?: string; meta?: string; title?: string; text?: string; more?: string };
+}
+interface Props {
+  id: string;
+  stages: Stage[];
+  /** the label over the extra words, when a stage is open */
+  moreLabel?: string;
+}
+const { id, stages, moreLabel = "In more detail" } = Astro.props;
+const pad = (n: number) => String(n).padStart(2, "0");
+// the dotted lines: one at every stage's edge, three fainter between
+const SUB = 4;
+const lines = Array.from({ length: stages.length * SUB + 1 }, (_, i) => ({ at: (i / (stages.length * SUB)) * 100, major: i % SUB === 0 }));
+---
+<div class="stage-timeline" data-stage-timeline style={`--tl-count:${stages.length}`}>
+  <div class="stage-timeline__lines" aria-hidden="true">
+    {lines.map((line) => <span class:list={["stage-timeline__line", { "is--major": line.major }]} style={`left:${line.at.toFixed(4)}%`}></span>)}
+  </div>
+  <ol class="stage-timeline__stages" role="list">
+    {stages.map((stage, i) => (
+    <li class="stage-timeline__stage" style={`--i:${i}`}>
+      <p class="stage-timeline__head">
+        <span class="stage-timeline__n">{pad(i + 1)}</span>
+        <span class="stage-timeline__name" data-page-field={stage.fields?.label}>{stage.label}</span>
+        {stage.meta && <span class="stage-timeline__meta" data-page-field={stage.fields?.meta}>{stage.meta}</span>}
+      </p>
+      <article class="stage-timeline__block" data-stage-block>
+        {stage.image && <img class="stage-timeline__photo" src={stage.image.src} alt={stage.image.alt ?? ""} width="112" height="112" loading="lazy" decoding="async" draggable="false" />}
+        <h3 class="stage-timeline__title">
+          <button type="button" class="stage-timeline__toggle" aria-expanded="false" aria-controls={`${id}-more-${i + 1}`} data-stage-toggle>
+            <span data-page-field={stage.fields?.title}>{stage.title}</span>
+          </button>
+        </h3>
+        <span class="stage-timeline__icon" aria-hidden="true"></span>
+        <p class="stage-timeline__text" data-page-field={stage.fields?.text}>{stage.text}</p>
+        {stage.more && (
+          <div class="stage-timeline__more" id={`${id}-more-${i + 1}`} data-stage-more>
+            <div class="stage-timeline__more-inner">
+              <p class="stage-timeline__more-label">{moreLabel}</p>
+              <p data-page-field={stage.fields?.more}>{stage.more}</p>
+            </div>
+          </div>
+        )}
+      </article>
+    </li>
+    ))}
+  </ol>
+</div>

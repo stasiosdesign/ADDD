@@ -34,6 +34,14 @@
   pixels, set out from an empty svg the card's shape at its widest
   (data-ground, its middle), cropped to the card at any other (slice), so
   it is cropped the same however the card is sized.
+
+  A card given a grid (its shape: line-grid.ts) is set on a line grid
+  instead of its route's ground (LineGrid.astro; nav.css,
+  "service-card__grid"): over the whole card, edge to edge, the outer
+  large lines a small square in from the card's edges and the small
+  lines running on to them. The Workflow Workshop's card, 6 × 4
+  (Nav.astro); its ground elsewhere (the deck's card, a hero) stays the
+  route's own.
 */
 interface Props {
   href: string;
@@ -46,13 +54,17 @@ interface Props {
       left to wrap, the first the longer, so the four cards share one
       silhouette. A line still wraps where a card is too narrow for it. */
   text: string[];
+  /** Set the card on a line grid of this shape instead of its route's ground (line-grid.ts). */
+  grid?: LineGridShape;
   [attr: string]: unknown;
 }
 
+import LineGrid from "./LineGrid.astro";
+import type { LineGridShape } from "./line-grid";
 import ServiceGround from "./ServiceGround.astro";
 import { SERVICES } from "./services";
 
-const { href, index, title, cycle, text, ...attrs } = Astro.props;
+const { href, index, title, cycle, text, grid, ...attrs } = Astro.props;
 
 // the ground's box: the card's shape at its widest
 const W = 400;
@@ -66,9 +78,11 @@ const H = 320;
 const MODULES = { plan: 64, grid: 11, blueprint: 100, paper: 32 } as const;
 const ground = SERVICES[index]?.ground;
 ---
-<a class="service-card" href={href} {...attrs}>
+<a class:list={["service-card", { "has--grid": grid }]} href={href} {...attrs}>
   <svg class="service-card__pattern" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" data-ground={`${W / 2} ${H / 2}`} aria-hidden="true"></svg>
-  {ground && <ServiceGround kind={ground} class="service-card__dots" module={MODULES[ground]} />}
+  {grid ? (
+    <LineGrid class="service-card__grid" {...grid} />
+  ) : ground && <ServiceGround kind={ground} class="service-card__dots" module={MODULES[ground]} />}
   {cycle ? (
     <span class="service-card__title"><span class="service-card__sr">{title}</span><span aria-hidden="true">{cycle.stem}<span class="service-card__cycle"><span class="service-card__cycle-word" data-word-cycle={cycle.words.join("|")}>{cycle.words[0]}</span>{cycle.words.map((word) => <span class="service-card__cycle-ghost">{word}</span>)}</span></span></span>
   ) : (

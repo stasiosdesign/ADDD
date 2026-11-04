@@ -429,7 +429,7 @@
 /* the caption: a white strip, the name at its left in the label face */
 .sticky-title__photo-cap {
   padding: 0.3125rem 0.375rem 0.375rem;
-  background: var(--c-white);
+  background: var(--c-paper);
   color: var(--c-text);
   font-family: var(--font-mono);
   font-size: 0.5625rem;
@@ -520,7 +520,7 @@
   height: var(--mark-h);
   vertical-align: top;
   margin-top: var(--mark-drop);
-  background: var(--c-white);
+  background: var(--c-paper);
   color: var(--c-red);
 }
 .sticky-title__mark-chip svg { display: block; width: 0.56em; height: 0.56em; }
@@ -566,11 +566,31 @@
    (sticky-title.js). */
 .sticky-title.is--static .sticky-title__track { height: auto; }
 .is--static .sticky-title__container { position: static; height: auto; }
+/* (positioned, so what is set round the statements, "around", is centred
+   on them, as on the held frame) */
 .is--static .sticky-title__stage {
-  position: static;
+  position: relative;
   padding-top: 0;
   padding-bottom: var(--sec-lg);
 }
+/* The logo strip's, not held (the homepage's experiment, index.astro,
+   STATEMENT_HOLD): set out as the held frame stands, so the page reads
+   the same either way. The same room over the statement (as much as lets
+   the screen round it, where "around" sets its marks in the grid's
+   squares, clear the wall, with squares to spare over the words:
+   cell-grid.js), and none under it: the approach stack after it brings
+   its own. */
+/* Over the approach stack's ground, which begins at the section's foot
+   (held, a screen further down): the button set on the band's dots
+   (dot-fit.js) stands a few pixels past that foot, and the marks set
+   round the words reach on over it (the layer lets the pointer through,
+   and its squares stop over the stack's heading: cell-grid.js) */
+.sticky-title.logos.is--static .sticky-title__stage { padding-bottom: 0; z-index: 1; }
+.sticky-title.logos.is--static .sticky-title__track {
+  margin-top: max(var(--sec-lg), calc(50svh - var(--st-half, 8rem) - var(--sec-md) + 1rem));
+}
+/* a mark with no square to spare (cell-grid.js) */
+.sticky-title__cell.is--crowded { visibility: hidden; }
 
 /* Without motion the strip and the statements simply follow one another. */
 @media (prefers-reduced-motion: reduce) {

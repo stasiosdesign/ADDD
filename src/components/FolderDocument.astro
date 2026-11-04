@@ -1,0 +1,71 @@
+---
+/*
+  The document a folder opens (DeckFolder.astro, opens): a sheet of paper
+  drawn up out of the folder, standing low in the window and running on
+  past its foot, as a page does on a desk (folder-doc.css; folder-docs.js
+  runs the drawing out and back, and the scroll). The page behind dims a
+  little and softens. A native modal dialog, so the browser keeps the
+  keyboard in it, closes it on Escape and gives the focus back to the
+  folder after.
+
+  The dialog itself is what scrolls (smoothly, as the page does), the
+  paper in it: wheel, trackpad or touch anywhere over it moves the sheet
+  up. The scrim behind stays put; a click on it, beside the paper, closes.
+
+  On the paper, after a reference sheet of writing (2026-11-04): a label
+  row over a hairline (the series and the folder's number), a line, the
+  title, then "In short" and the summary between two hairlines, the body,
+  and what the reader takes away. Its close button rides at the paper's
+  top right corner as it scrolls.
+
+  field: the Studio list item the words come from (method.documents.N),
+  for the Visual editor; the title is the folder's own (titleField).
+*/
+interface Props {
+  id: string;
+  n: number;
+  series: string;
+  title?: string;
+  titleField?: string;
+  kicker?: string;
+  lede?: string;
+  body?: string[];
+  points?: string[];
+  pointsLabel?: string;
+  field?: string;
+}
+const { id, n, series, title, titleField, kicker, lede, body = [], points = [], pointsLabel = "What you take away", field } = Astro.props;
+const pad = (v: number) => String(v).padStart(2, "0");
+const f = (path: string) => (field ? `${field}.${path}` : undefined);
+---
+<dialog class="folder-doc" id={id} aria-labelledby={`${id}-title`} data-folder-doc data-lenis-prevent>
+  <div class="folder-doc__scrim" data-folder-doc-close aria-hidden="true"></div>
+  <div class="folder-doc__scroll">
+    <article class="folder-doc__paper" tabindex="-1">
+      <!-- held at the paper's top right as it scrolls -->
+      <div class="folder-doc__bar">
+        <button type="button" class="folder-doc__close" data-folder-doc-close aria-label="Close">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" /></svg>
+        </button>
+      </div>
+      <p class="folder-doc__meta"><span>{series}</span><span>N°{pad(n)}</span></p>
+      {kicker && <p class="folder-doc__kicker" data-page-field={f("kicker")}>{kicker}</p>}
+      <h2 class="folder-doc__title" id={`${id}-title`} data-page-field={titleField}>{title}</h2>
+      {lede && (
+        <div class="folder-doc__summary">
+          <p class="folder-doc__label">In short</p>
+          <p class="folder-doc__lede" data-page-field={f("lede")}>{lede}</p>
+        </div>
+      )}
+      <div class="folder-doc__body">
+        {body.map((para, i) => <p data-page-field={f(`body.${i}`)}>{para}</p>)}
+      </div>
+      {points.length > 0 && (
+        <div class="folder-doc__points">
+          <p class="folder-doc__label">{pointsLabel}</p>
+          <ul role="list">{points.map((point, i) => <li data-page-field={f(`points.${i}`)}>{point}</li>)}</ul>
+        </div>
+      )}
+    </article>
+  </div>
+</dialog>

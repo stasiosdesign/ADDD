@@ -1,47 +1,80 @@
 ---
 /*
-  The site's CTA (src/styles/action-button.css), in two variants —
+  The site's CTA (src/styles/action-button.css), every page's: one flat
+  box (the frame), the label in its larger part and a fine line arrow in
+  a short part on its right, the two parted by a dotted line, all in the
+  label's colour. A long label wraps inside it. In two variants —
 
-    primary    a label block with a shorter block joined to its right,
-               a third wider than tall, carrying two of the logo's
-               triangles, one button: the label in the variant's ink,
-               the arrow block in the page's accent; the label sweeps
-               to the accent on hover, so the whole button becomes one
-               colour
-    secondary  the label block alone, no arrow, one step quieter
+    primary    a solid black box, set in white (on a dark ground, a
+               white box in ink; on AEC Tech Firms pages, their blue)
+    secondary  a solid light grey box, set in ink, one step quieter
 
-  — so a pair reads as one system with one clear lead. On a dark ground
-  the pair inverts by itself.
+  — so a pair reads as one system with one clear lead. Primary is for
+  the action a section exists to prompt (enquire, send, start);
+  secondary for supporting, navigational or in-page moves.
 
-  Primary is for the action a section exists to prompt (enquire, send,
-  start); secondary for supporting, navigational or in-page moves.
+  Pointed at, or reached by the keyboard, the label takes the nav links'
+  scramble (.nav-link, text-scramble.js), without their dotted line
+  under it, and the box steps a shade deeper; the arrow stays still. The
+  primary's scrambling letters take the nav's red tint (on a coloured
+  box, its own ink instead); the secondary's stay in its own ink.
+
+  shape="block" and shape="pill" are earlier forms, kept but used on no
+  page: the label block with a joined arrow block that sweeps to the
+  accent, and the label in a pill with a circle that stands off it.
+
+  arrow="down" turns the frame's arrow to point down the page, for a
+  button that leads to a place further down it.
 
   The label is the slot. With an href it is a link; without one it is a
-  <button>, for a form's submit (pass type="submit"). Any other
-  attributes — target, rel, type — pass through.
+  <button>, for a form's submit (pass type="submit") or one a script
+  takes (pass type="button"). Any other attributes — target, rel, type,
+  data-* — pass through.
 */
 import ArrowIcon from "./ArrowIcon.astro";
+
+export type ActionButtonShape = "block" | "pill" | "frame";
 
 interface Props {
   href?: string;
   variant?: "primary" | "secondary";
+  shape?: ActionButtonShape;
+  /** where the frame's arrow points: on (right), or down the page */
+  arrow?: "right" | "down";
   [attr: string]: unknown;
 }
 
-const { href, variant = "primary", ...attrs } = Astro.props;
+const { href, variant = "primary", shape = "frame", arrow = "right", ...attrs } = Astro.props;
 const Tag = href ? "a" : "button";
 const primary = variant === "primary";
+const pill = shape === "pill";
 ---
-<Tag href={href} class:list={["action-button", { "is--secondary": !primary }]} {...attrs}>
-  <span class="action-button__body">
-    <span class="action-button__bg"><span class="action-button__bg-hover"></span></span>
-    <span class="action-button__inner">
-      <span class="action-button__mask"><span class="action-button__text"><slot /></span></span>
+{shape === "frame" ? (
+  <Tag href={href} class:list={["action-button", "is--frame", "nav-link", { "is--secondary": !primary }]} {...attrs}>
+    <span class="action-button__body"><span class="nav-link__box"><span class="action-button__text nav-link__text"><slot /></span></span></span>
+    <span class="action-button__tip" aria-hidden="true">
+      <svg class:list={["action-button__arrow", { "is--down": arrow === "down" }]} viewBox="0 0 12 12" aria-hidden="true"><path d="M1 6h9M6 2l4 4-4 4" /></svg>
     </span>
-  </span>
-  {primary && (
-    <span class="action-button__arrow-block" aria-hidden="true">
-      <ArrowIcon count={2} class="action-button__arrow" aria-hidden="true" />
+  </Tag>
+) : pill ? (
+  <Tag href={href} class:list={["action-button", "is--pill", { "is--secondary": !primary }]} {...attrs}>
+    <span class="action-button__body"><span class="action-button__text"><slot /></span></span>
+    <span class="action-button__circle" aria-hidden="true">
+      <svg class="action-button__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h11M8.75 3.25 13.5 8l-4.75 4.75" /></svg>
     </span>
-  )}
-</Tag>
+  </Tag>
+) : (
+  <Tag href={href} class:list={["action-button", { "is--secondary": !primary }]} {...attrs}>
+    <span class="action-button__body">
+      <span class="action-button__bg"><span class="action-button__bg-hover"></span></span>
+      <span class="action-button__inner">
+        <span class="action-button__mask"><span class="action-button__text"><slot /></span></span>
+      </span>
+    </span>
+    {primary && (
+      <span class="action-button__arrow-block" aria-hidden="true">
+        <ArrowIcon count={2} class="action-button__arrow" aria-hidden="true" />
+      </span>
+    )}
+  </Tag>
+)}

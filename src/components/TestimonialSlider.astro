@@ -10,11 +10,11 @@
       logo sits centred on it at the top, level with the quote, and the
       two square controls stacked on it at the foot, level with the
       attribution, each with the rule broken round it;
-    - the quote, large, on Grid Columns 5–11, and under it, on the same
-      columns' own grid, the count (Grid Column 5) and who said it (from
-      Grid Column 6).
+    - on Grid Columns 5–11, all on one left edge: the count, small, in
+      the label face; the quote, large; and under it who said it, the
+      name and role in the body face.
 
-  Below 992px the quote, the count and the attribution run the width,
+  Below 992px the count, the quote and the attribution run the width,
   and under them the rule lies down across the grid with the logo at its
   start and the controls, side by side, at its end.
 
@@ -46,6 +46,14 @@ const pad = (n: number) => String(n).padStart(2, "0");
 ---
 <div class="testimonial-slider" data-testimonial-slider role="group" aria-roledescription="carousel" aria-label="Testimonials">
   <div class="testimonial-slider__main">
+    <!-- the count, small, in the label face, over the quote -->
+    <p class="tagline tagline--sm testimonial-slider__count" aria-hidden="true">
+      <span class="testimonial-slider__stack">
+        {items.map((_, i) => <span class:list={["testimonial-slider__swap", { "is--active": i === 0 }]} data-testimonial-swap={i}>{pad(i + 1)}</span>)}
+      </span>
+      <span>/ {pad(total)}</span>
+    </p>
+
     <!-- the quotes, one cell; the active one is announced as it changes -->
     <div class="testimonial-slider__quotes" id="testimonial-quotes" aria-live="polite">
       {items.map((item, i) => (
@@ -53,18 +61,12 @@ const pad = (n: number) => String(n).padStart(2, "0");
       ))}
     </div>
 
-    <p class="tagline testimonial-slider__count" aria-hidden="true">
-      <span class="testimonial-slider__stack">
-        {items.map((_, i) => <span class:list={["testimonial-slider__swap", { "is--active": i === 0 }]} data-testimonial-swap={i}>{pad(i + 1)}</span>)}
-      </span>
-      <span>/ {pad(total)}</span>
-    </p>
-
+    <!-- who said it, under the quote on its left edge, in the body face -->
     <div class="testimonial-slider__stack testimonial-slider__credits">
       {items.map((item, i) => (
-      <p class:list={["tagline testimonial-slider__swap testimonial-slider__credit", { "is--active": i === 0 }]} data-testimonial-swap={i} aria-hidden={i === 0 ? undefined : "true"}>
-        {item.name && <span data-page-field={`${field}.${i}.name`}>{item.name}</span>}
-        {item.role && <span data-page-field={`${field}.${i}.role`}>{item.role}</span>}
+      <p class:list={["testimonial-slider__swap testimonial-slider__credit", { "is--active": i === 0 }]} data-testimonial-swap={i} aria-hidden={i === 0 ? undefined : "true"}>
+        {item.name && <span class="testimonial-slider__name" data-page-field={`${field}.${i}.name`}>{item.name}</span>}
+        {item.role && <span class="testimonial-slider__role" data-page-field={`${field}.${i}.role`}>{item.role}</span>}
       </p>
       ))}
     </div>

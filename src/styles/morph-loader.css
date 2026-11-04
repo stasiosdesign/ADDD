@@ -22,8 +22,20 @@
 .morph-loader__bg {
   position: absolute;
   inset: 0%;
+  overflow: hidden;
   background-color: #000;
   transform-origin: 50% 0%;
+  /* the hero's text field (data-text, MorphLoader.astro; mounted by the
+     loader) at the hero's own grid and face, in the white held far back:
+     a texture on the black, a little lighter where the wave passes */
+  --slash-cell-w: 6;
+  --slash-cell-h: 12;
+  --slash-font: 10;
+  --slash-base: rgba(255, 255, 255, 0.07);
+  --slash-hot: rgba(255, 255, 255, 0.17);
+  --slash-ink: rgba(255, 255, 255, 0.34);
+  --slash-signal: rgba(255, 255, 255, 0.34);
+  --slash-fade: 450;
 }
 
 /* The mark, large enough for the morph to read. Hidden until the timeline's first step has placed every part of it, so

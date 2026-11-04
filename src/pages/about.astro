@@ -69,7 +69,7 @@ const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
 
       <div class="grid grid--3 grid--mt" data-page-list="perspective.tiles">
         {tiles.map((tile, i) => (
-        <article class="tile" style="background:var(--c-white)" data-page-item={tile._key}>
+        <article class="tile" style="background:var(--c-paper)" data-page-item={tile._key}>
           <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
           <p data-page-item-field="text">{tile.text}</p>
           <a class="btn btn--link nav-link" href={tileHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{tile.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>

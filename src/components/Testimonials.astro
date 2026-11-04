@@ -1,0 +1,53 @@
+---
+/*
+  The testimonials section: the homepage's, and the same block wherever
+  another page shows it (the Workflow Workshop page), so a change here
+  changes every page at once.
+
+  The slider alone (TestimonialSlider.astro): the quotes stacked in one
+  place, changed line by line, its dotted rule the section's full height
+  (styles.css, "testimonial slider").
+
+  The words and logos are the Testimonials section of the Home page
+  document in Sanity (src/sanity/defaults/home.ts while nothing is
+  published): each quote with its practice's logo, the one set on the
+  client in the Studio or the practice's own file, balanced by its ink as
+  the logo strip's are (src/sanity/logo-balance.ts). The section names the
+  Home page's document for the Visual editor, so on another page an edit
+  still goes to the Home page's quotes.
+*/
+import TestimonialSlider from "./TestimonialSlider.astro";
+import { pageDocument, reader, type Doc } from "../sanity/content";
+import { hasImage, imageAttrs } from "../sanity/image";
+import { logoShape, pngSize } from "../sanity/logo-balance";
+import { homePage } from "../sanity/defaults/home";
+import { CLIENTS } from "../sanity/defaults/clients";
+
+const { list } = reader(await pageDocument(Astro.locals.sanity, "homePage"), homePage as Doc);
+const quotes = list<{ _key: string; quote?: string; name?: string; role?: string; client?: { name?: string; logo?: unknown }; clientId?: string }>("testimonials.items");
+const quoteLogo = (quote: (typeof quotes)[number]) => {
+  if (quote.client && hasImage(quote.client.logo)) return { ...imageAttrs(quote.client.logo, 600), alt: quote.client.name ?? "" };
+  const own = CLIENTS.find((client) => client._id === quote.clientId);
+  return { src: own?.logo.path ?? "", width: undefined, height: undefined, alt: own?.name ?? "" };
+};
+const testimonials = await Promise.all(
+  quotes.map(async (quote) => {
+    const logo = quoteLogo(quote);
+    const shape = logo.src ? await logoShape(logo.src, logo.width, logo.height) : undefined;
+    // a default mark's own size, so it holds its room before it loads (it
+    // loads lazily, as the section comes near: without one, the logos
+    // grew the slider as they arrived and the whole page was measured
+    // again mid-scroll)
+    const size = logo.width && logo.height ? undefined : await pngSize(logo.src);
+    return {
+      quote: quote.quote ?? "",
+      name: quote.name,
+      role: quote.role,
+      logo: { ...logo, ...size, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined },
+    };
+  }),
+);
+---
+<section class="testimonials" aria-label="Testimonials" data-page-doc="homePage" data-page-type="homePage">
+  <TestimonialSlider items={testimonials} field="testimonials.items" />
+</section>

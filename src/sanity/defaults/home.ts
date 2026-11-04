@@ -61,7 +61,7 @@ export const homePage = {
         clientId: 'client-adam',
       },
       {
-        quote: 'ADAM Architecture had three separate software systems doing the same job. The blueprint showed us how to consolidate without losing capability, and we recovered nearly half a day per project.',
+        quote: 'We had three software systems doing the same job. The blueprint showed us how to consolidate them, and we recovered nearly half a day per project.',
         name: 'Marcus Reid',
         role: 'Technology director, ADAM Architecture',
         clientId: 'client-adam',
@@ -73,7 +73,7 @@ export const homePage = {
         clientId: 'client-haworth-tompkins',
       },
       {
-        quote: 'The proposal was professionally presented and the report was clear, insightful and highly informative. It provided valuable guidance for our internal discussions and decision making, while also highlighting a range of AI opportunities and solutions that we would not have identified independently. Thank you for your time, expertise and the quality of the recommendations provided.',
+        quote: 'The report was clear, insightful and highly informative, and highlighted AI opportunities we would not have identified independently.',
         role: 'DMWR Architects',
         clientId: 'client-dmwr',
       },
@@ -104,6 +104,12 @@ export const homePage = {
       'One-off software training, tactical BIM production support or outsourced IT management.',
       'Quick recommendations for a particular product.',
     ],
+    questions: keyed('question', [
+      { question: 'Are you a software reseller or IT provider?', answer: 'No. ADDD is independent of software vendors and does not run day-to-day IT. We advise on the workflows, technology and decisions behind them.' },
+      { question: 'Where should we start?', answer: 'Most practices start with a Workflow Workshop: a half-day diagnostic on a live project, ending with a written report of priorities.' },
+      { question: 'How long does a Technology Blueprint take?', answer: 'Around eight weeks, in three phases: discovery, strategy, and a sequenced roadmap presented to your leadership.' },
+      { question: 'Can you help after the recommendations?', answer: 'Yes. Ongoing Advisory gives your leadership a monthly session and access to our research as new decisions come up.' },
+    ]),
   },
   research: {
     lede: 'The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture.',

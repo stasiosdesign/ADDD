@@ -1,0 +1,32 @@
+---
+/*
+  One problem card (styles.css, "industry problems"): a square-stepped
+  field of the site's dots over a dark band holding the card's title and
+  line. Three of them make a strip (.problem-grid), which the scroll sets
+  out as a stair (data-problem-parallax: initProblemParallax, parallax.js).
+
+  What stands on the field is the slot: the homepage's photograph in its
+  frame (index.astro), or a Hairline figure drawn on the field itself
+  (the Workflow Workshop page: .problem-card__figure, problem-figures.js).
+
+  titleField and textField name the Studio fields the words come from,
+  for the Visual editor.
+*/
+interface Props {
+  title?: string;
+  text?: string;
+  titleField?: string;
+  textField?: string;
+}
+const { title, text, titleField, textField } = Astro.props;
+---
+<article class="problem-card">
+  <div class="problem-card__media">
+    <span class="problem-card__dots dot-grid" aria-hidden="true"></span>
+    <slot />
+  </div>
+  <div class="problem-card__body">
+    <h3 class="problem-card__h" data-page-field={titleField}>{title}</h3>
+    <p class="problem-card__p" data-page-field={textField}>{text}</p>
+  </div>
+</article>

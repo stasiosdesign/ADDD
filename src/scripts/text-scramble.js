@@ -30,8 +30,10 @@ import { DECODE } from "./slash-field.js";
    The word never changes length or moves. Only its letters scramble —
    never a space, so it never gains a word — one character for one, and
    each only into characters no wider than itself in the label's own
-   face (measured once per label): a letter too narrow for any (an i, an
-   l) keeps its shape and takes only the tint. For the scramble each
+   face (measured once per label; as wide counts, within FIT_SLACK of
+   layout rounding, so in a monospaced label, the CTAs' Geist Mono,
+   every letter can take any character): a letter too narrow for any (an
+   i, an l) keeps its shape and takes only the tint. For the scramble each
    letter stands in a box of exactly its own advance in the set word
    (kerning and all, read off the text itself before it is split), the
    word held to its own width. A stand-in character is centred in its
@@ -69,6 +71,13 @@ const NAV_SCRAMBLE = { min: 0.34, max: 0.6, perChar: 0.035, band: 3.5, tick: 0.0
 // band is to show on each tick, and how long each waits after the one
 // before it as the line leaves (s)
 const NAV_DOTS = { size: 2, pitch: 6, flicker: 0.6, back: 0.014 };
+// How much wider than a letter a stand-in may measure and still take its
+// place (px): layout rounds every box to 1/64px, so a character exactly as
+// wide as the letter can measure a hair either side of it. It was a strict
+// "narrower by 0.1px", which no character in a monospaced face ever is: the
+// CTAs' labels (Geist Mono) never scrambled, only took the tint
+// (2026-11-04). The letter's box is clipped to its width besides.
+const FIT_SLACK = 0.1;
 
 /** Every text link (.nav-link) in root takes the scramble; none twice. */
 export function initTextScramble(root) {
@@ -77,8 +86,13 @@ export function initTextScramble(root) {
   const pick = (from) => from[Math.floor(Math.random() * from.length)];
 
   root.querySelectorAll(".nav-link").forEach((link) => {
-    const label = link.querySelector(".nav-link__text");
-    if (!label || link.scrambleBound) return;
+    const outer = link.querySelector(".nav-link__text");
+    if (!outer || link.scrambleBound) return;
+    // the letters themselves: inside a label that only wraps one element
+    // (a button's label carrying its Studio field, ActionButton.astro),
+    // that element, so putting the words back keeps it
+    let label = outer;
+    while (label.childNodes.length === 1 && label.firstElementChild) label = label.firstElementChild;
     link.scrambleBound = true;
     let text = label.textContent;
     let boxes = null;
@@ -88,7 +102,7 @@ export function initTextScramble(root) {
     // label back as text leaves it be), its dots made as it is laid out
     const line = Object.assign(document.createElement("span"), { className: "nav-link__dots" });
     line.setAttribute("aria-hidden", "true");
-    label.parentElement.append(line);
+    outer.parentElement.append(line);
     let dots = [];
     let drawn = false;
 
@@ -176,6 +190,10 @@ export function initTextScramble(root) {
       const node = label.firstChild;
       if (!node || node.nodeType !== Node.TEXT_NODE) return null;
       const range = document.createRange();
+      // a label set on more than one line (a long button label, wrapped)
+      // stays as it is: its letters in boxes would set it again on one
+      range.selectNodeContents(node);
+      if (new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size > 1) return null;
       const widths = [...text].map((_, i) => {
         range.setStart(node, i);
         range.setEnd(node, i + 1);
@@ -194,6 +212,7 @@ export function initTextScramble(root) {
       // and the word held to its own width, whatever the letters' widths
       // add up to after rounding
       label.style.display = "inline-block";
+      label.style.whiteSpace = "nowrap";
       label.style.width = `${label.getBoundingClientRect().width}px`;
       label.textContent = "";
       return [...text].map((ch, i) => {
@@ -202,7 +221,7 @@ export function initTextScramble(root) {
         box.style.width = `${widths[i]}px`;
         box.textContent = ch;
         label.append(box);
-        const fits = ch.trim() ? chars.filter((c) => c !== ch && advance[c] <= widths[i] - 0.1) : [];
+        const fits = ch.trim() ? chars.filter((c) => c !== ch && advance[c] <= widths[i] + FIT_SLACK) : [];
         return { box, ch, fits, shown: ch, at: 0 };
       });
     }
@@ -213,6 +232,7 @@ export function initTextScramble(root) {
       boxes = null;
       label.textContent = text;
       label.style.removeProperty("display");
+      label.style.removeProperty("white-space");
       label.style.removeProperty("width");
     }
 

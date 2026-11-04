@@ -33,13 +33,17 @@
    its lines (so every edge runs midway between two lines of dots),
    moved outward (or, where the words take the width, up or down) when
    it would touch the words or another mark. While the dots are held
-   (sticky-title.js, dotsHeldFrom) they light up one after another, in
+   (sticky-title.js, dotsHeldFrom), or, where the statement is not held
+   (StickyTitle's hold), over the scroll its words come in over
+   (sticky-title.js, revealRun), they light up one after another, in
    reading order: a red hairline drawn from the square's top left corner
    clockwise all the way round, unhurried, easing in and out as one
    stroke, the picture wiped in from the
    top inside it as the outline closes, and the red going out once the
-   picture is there, leaving it in its square. Scrubbed from the scroll,
-   eased after it, transforms and opacity alone.
+   picture is there, leaving it in its square. Held, scrubbed from the
+   scroll, eased after it; not held, each turn a short play of its own,
+   started by the scroll but not timed by it, so a quick scroll does not
+   rush it (drive). Transforms and opacity alone.
 
    Measured on every ScrollTrigger refresh (after the statement's hold
    and the band's pitch are set), never on scroll. With reduced motion
@@ -71,8 +75,24 @@ const FILL = 0.2;
 const WIPE_AT = 0.62;
 const WIPE = 0.3;
 const OUT_AT = 0.84;
+// not held, each turn starts as its square's foot comes this far up the
+// screen (a share of its height from the top): as soon as the square is
+// wholly on it
+const ENTER = 0.95;
 // the scrub's ease after the scroll (s)
 const SMOOTH = 0.8;
+// Not held, each photograph's turn is its own, in seconds, not scrubbed
+// from the scroll: so long (TURN_S), and each starting this long at least
+// after the one before it (SPACE_S), so an ordinary scroll plays them as
+// a slow one does. But never behind where its square stands: from the
+// moment the square's top is HURRY_FROM up the screen (a share of its
+// height from the top) its turn is at least as far on as the square is
+// towards HURRY_BY, where it is whole, so however quick the scroll every
+// one is in while it is still on the screen.
+const TURN_S = 0.9;
+const SPACE_S = 0.15;
+const HURRY_FROM = 0.75;
+const HURRY_BY = 0.35;
 // the red outline's width (px; sticky-title.css, --cell-line, the same)
 const OUTLINE = 1;
 
@@ -110,10 +130,13 @@ export function mountCellGrid(wrap) {
   let tl = null;
   let from = 0;
   let follow = null;
+  // not held: each photograph's own turn and where it stands
+  let turns = [];
+  let wasIn = [];
 
   function unplace() {
     cells.forEach((cell) => {
-      cell.classList.remove("is--placed");
+      cell.classList.remove("is--placed", "is--crowded");
       ["--cell-x", "--cell-y", "--cell-size", "--cell-inset"].forEach((p) => cell.style.removeProperty(p));
       const el = parts(cell);
       gsap.set([el.lines, el.fill, el.top, el.right, el.bottom, el.left, el.win, el.photo, el.img].filter(Boolean), { clearProps: "all" });
@@ -208,21 +231,36 @@ export function mountCellGrid(wrap) {
 
     tl?.kill();
     tl = null;
+    wasIn = turns.map((m) => m.state !== "idle");
+    turns.forEach((m) => {
+      m.call?.kill();
+      m.tl.kill();
+    });
+    turns = [];
     unplace();
-    if (!held) return;
+    // Not held, the scroll the statement's words come in over; without
+    // it (reduced motion: no run), the photographs stay as set.
+    const run = held ? null : wrap.revealRun;
+    if (!held && !(run && run.end > run.start)) return;
 
-    // The photographs in squares of the grid, set out as they stand while
-    // held: the frame at its sticky top on the screen, the dots with it,
-    // so a line at page y stands at y - heldFrom on the screen.
-    const frameTop = parseFloat(getComputedStyle(frame).top) || 0;
+    // The photographs in squares of the grid, set out on the screen as
+    // they stand as they come in. Held: the frame at its sticky top on the
+    // screen, the dots with it, so a line at page y stands at y - heldFrom
+    // on the screen. Not held: as the page stands now, the statement, the
+    // layer round it and the dots all moving together.
     const frameBox = frame.getBoundingClientRect();
     const aroundBox = around.getBoundingClientRect();
-    // the around layer's top on the screen while held
+    const frameTop = held ? parseFloat(getComputedStyle(frame).top) || 0 : frameBox.top;
+    // the around layer's top on the screen as they come in
     const aroundTop = frameTop + (aroundBox.top - frameBox.top);
-    const lineY = y0 - heldFrom;
-    // the cells wholly on the screen while held
-    const rowMin = Math.max(0, Math.ceil(-lineY / size));
-    const rowMax = Math.min(down, Math.floor((vh - lineY) / size)) - 1;
+    const lineY = y0 - (held ? heldFrom : sy);
+    // the cells they may take: held, those wholly on the screen; not held,
+    // those wholly in the layer round the statement (a screen tall,
+    // centred on it)
+    const roomTop = held ? 0 : aroundTop;
+    const roomFoot = held ? vh : aroundTop + aroundBox.height;
+    const rowMin = Math.max(0, Math.ceil((roomTop - lineY) / size));
+    const rowMax = Math.min(down, Math.floor((roomFoot - lineY) / size)) - 1;
     // the words and the button under them, as set (each statement's text,
     // not the wide block it is centred in), half a pitch round, on the
     // screen while held
@@ -296,7 +334,15 @@ export function mountCellGrid(wrap) {
       else {
         const away = lineY + (row + 0.5) * size < wordsMiddle ? -1 : 1;
         const tries = [away, -away].flatMap((dir) => Array.from({ length: rowHi - rowLo + 1 }, (_, i) => row + dir * (i + 1)));
-        row = tries.find((r) => r >= rowLo && r <= rowHi && !clash(col, r)) ?? row;
+        const free = tries.find((r) => r >= rowLo && r <= rowHi && !clash(col, r));
+        // not held, where the room round the words has no square left that
+        // touches neither them nor another mark, the mark is left out
+        // rather than set on one
+        if (free === undefined && !held) {
+          cell.classList.add("is--crowded");
+          return;
+        }
+        row = free ?? row;
       }
       taken.add(`${col},${row}`);
       // its lines on the screen's pixels, so the outline is one crisp
@@ -311,48 +357,120 @@ export function mountCellGrid(wrap) {
       placed.push({ cell, col, row });
     });
 
-    // The timeline, in px of scroll from the hold: each photograph's turn
-    // through it.
-    from = heldFrom;
-    const hold = heldTo - heldFrom;
-    tl = gsap.timeline({ paused: true });
-    placed
-      .sort((a, b) => a.row - b.row || a.col - b.col)
-      .forEach(({ cell }, i, all) => {
-        const el = parts(cell);
-        const turn = TURN * hold;
-        const at = hold * (FIRST + (all.length > 1 ? (i * (LAST - FIRST)) / (all.length - 1) : 0));
-        const t = (share) => at + share * turn;
-        const d = (share) => share * turn;
-        // the outline: brought up softly, then drawn as one line from the
-        // top left corner clockwise all the way round, as a snake would
-        // go (along the top, down the right side, back along the foot and
-        // up the left side to where it began; each bar grows from the
-        // corner the line reaches it at: sticky-title.css), easing in and
-        // out over the whole of it, so it never jerks at a corner, and
-        // out once the picture is in
-        const stroke = { v: 0 };
-        const sides = [["top", "X"], ["right", "Y"], ["bottom", "X"], ["left", "Y"]];
-        const draw = () => sides.forEach(([side, axis], i) => {
-          el[side].style.transform = `scale${axis}(${gsap.utils.clamp(0, 1, stroke.v * 4 - i)})`;
-        });
-        tl.fromTo(el.lines, { opacity: 0 }, { opacity: 1, duration: d(0.08), ease: "none" }, t(0));
-        tl.fromTo(stroke, { v: 0 }, { v: 1, duration: d(TRACE), ease: "sine.inOut", onUpdate: draw }, t(0));
-        tl.to(el.lines, { opacity: 0, duration: d(1 - OUT_AT), ease: "sine.inOut" }, t(OUT_AT));
-        // the box: its charcoal faded up as the outline closes, and kept
-        if (el.fill) tl.fromTo(el.fill, { opacity: 0 }, { opacity: 1, duration: d(FILL), ease: "sine.inOut" }, t(FILL_AT));
-        // the picture: wiped in from the top inside the square (a window
-        // brought down over it, the picture held still in it), settling
-        // from a touch larger; the window starts a hair clear of the
-        // picture, so no edge of its frame shows before its turn
-        tl.fromTo(el.win, { yPercent: -102 }, { yPercent: 0, duration: d(WIPE), ease: "power2.inOut" }, t(WIPE_AT));
-        tl.fromTo(el.photo, { yPercent: 102 }, { yPercent: 0, duration: d(WIPE), ease: "power2.inOut" }, t(WIPE_AT));
-        if (el.img) tl.fromTo(el.img, { scale: 1.15 }, { scale: 1, duration: d(0.6), ease: "power2.out" }, t(WIPE_AT));
+    // The photographs' turns, in reading order. Held: one timeline in px
+    // of scroll from the hold, each photograph's turn through it, eased
+    // after the scroll. Not held: each its own timeline in seconds
+    // (TURN_S), started as its square comes wholly up the screen, a step
+    // after the one before at least (SPACE_S), so its pace is its own
+    // however quick the scroll (drive, below).
+    placed.sort((a, b) => a.row - b.row || a.col - b.col);
+    if (held) {
+      from = heldFrom;
+      const hold = heldTo - heldFrom;
+      tl = gsap.timeline({ paused: true });
+      placed.forEach(({ cell }, i, all) => {
+        addTurn(tl, parts(cell), hold * (FIRST + (all.length > 1 ? (i * (LAST - FIRST)) / (all.length - 1) : 0)), TURN * hold);
       });
-    // rendered through once while the page is still covered, so no tween
-    // first reads its start values mid-scroll (as sticky-title.js does)
-    tl.progress(1).progress(0);
-    seek(sy, true);
+      // rendered through once while the page is still covered, so no tween
+      // first reads its start values mid-scroll (as sticky-title.js does)
+      tl.progress(1).progress(0);
+      seek(sy, true);
+      return;
+    }
+    turns = placed.map(({ cell, row }, i) => {
+      const own = gsap.timeline({ paused: true });
+      addTurn(own, parts(cell), 0, TURN_S);
+      own.progress(1).progress(0);
+      // its square's top line on the page; the scroll at which its foot
+      // is ENTER up the screen, at which it has left the screen's top,
+      // and at which its top is under the screen's foot again
+      const top = y0 + row * size;
+      const turn = { tl: own, top, vh, enter: top + size - ENTER * vh, past: top + size, under: top - vh, state: "idle", call: null };
+      // measured again (a resize) once it had come in: in, at once
+      if (wasIn[i]) {
+        own.progress(1);
+        turn.state = "done";
+      }
+      return turn;
+    });
+    drive(sy);
+  }
+
+  // One photograph's turn, on a timeline, from `at`, `turn` long (in the
+  // timeline's units: px of scroll held, seconds not held).
+  function addTurn(timeline, el, at, turn) {
+    const t = (share) => at + share * turn;
+    const d = (share) => share * turn;
+    // the outline: brought up softly, then drawn as one line from the
+    // top left corner clockwise all the way round, as a snake would
+    // go (along the top, down the right side, back along the foot and
+    // up the left side to where it began; each bar grows from the
+    // corner the line reaches it at: sticky-title.css), easing in and
+    // out over the whole of it, so it never jerks at a corner, and
+    // out once the picture is in
+    const stroke = { v: 0 };
+    const sides = [["top", "X"], ["right", "Y"], ["bottom", "X"], ["left", "Y"]];
+    const draw = () => sides.forEach(([side, axis], i) => {
+      el[side].style.transform = `scale${axis}(${gsap.utils.clamp(0, 1, stroke.v * 4 - i)})`;
+    });
+    timeline.fromTo(el.lines, { opacity: 0 }, { opacity: 1, duration: d(0.08), ease: "none" }, t(0));
+    timeline.fromTo(stroke, { v: 0 }, { v: 1, duration: d(TRACE), ease: "sine.inOut", onUpdate: draw }, t(0));
+    timeline.to(el.lines, { opacity: 0, duration: d(1 - OUT_AT), ease: "sine.inOut" }, t(OUT_AT));
+    // the box: its charcoal faded up as the outline closes, and kept
+    if (el.fill) timeline.fromTo(el.fill, { opacity: 0 }, { opacity: 1, duration: d(FILL), ease: "sine.inOut" }, t(FILL_AT));
+    // the picture: wiped in from the top inside the square (a window
+    // brought down over it, the picture held still in it), settling
+    // from a touch larger; the window starts a hair clear of the
+    // picture, so no edge of its frame shows before its turn
+    timeline.fromTo(el.win, { yPercent: -102 }, { yPercent: 0, duration: d(WIPE), ease: "power2.inOut" }, t(WIPE_AT));
+    timeline.fromTo(el.photo, { yPercent: 102 }, { yPercent: 0, duration: d(WIPE), ease: "power2.inOut" }, t(WIPE_AT));
+    if (el.img) timeline.fromTo(el.img, { scale: 1.15 }, { scale: 1, duration: d(0.6), ease: "power2.out" }, t(WIPE_AT));
+  }
+
+  // Not held, where the page stands decides each turn: started (or queued
+  // behind the one before) as its square comes wholly up the screen;
+  // finished at once if the scroll has carried it off the top before its
+  // turn has played, so none is ever left out behind the reader; set back
+  // once it is under the screen's foot again, to come in afresh.
+  let lastStart = -Infinity;
+  function drive(scroll) {
+    const now = gsap.ticker.time;
+    turns.forEach((m) => {
+      if (scroll >= m.past) {
+        if (m.state === "done") return;
+        m.call?.kill();
+        m.call = null;
+        m.tl.progress(1).pause();
+        m.state = "done";
+      } else if (scroll < m.under) {
+        if (m.state === "idle") return;
+        m.call?.kill();
+        m.call = null;
+        m.tl.pause(0);
+        m.state = "idle";
+      } else {
+        if (scroll >= m.enter && m.state === "idle") {
+          const at = Math.max(now, lastStart + SPACE_S);
+          lastStart = at;
+          m.state = "queued";
+          m.call = gsap.delayedCall(at - now, () => {
+            m.call = null;
+            m.state = "done";
+            m.tl.play(0);
+          });
+        }
+        // never behind where its square stands: carried on to that, and
+        // playing on from there
+        const floor = gsap.utils.clamp(0, 1, (HURRY_FROM * m.vh - (m.top - scroll)) / ((HURRY_FROM - HURRY_BY) * m.vh));
+        if (floor > 0 && m.tl.progress() < floor) {
+          m.call?.kill();
+          m.call = null;
+          m.tl.progress(floor);
+          if (floor < 1) m.tl.play();
+          m.state = "done";
+        }
+      }
+    });
   }
 
   // the timeline at a scroll position, eased after it, or at once
@@ -371,7 +489,7 @@ export function mountCellGrid(wrap) {
     trigger: wrap,
     start: "top bottom",
     end: () => `bottom+=${window.innerHeight} top`,
-    onUpdate: (self) => seek(self.scroll()),
+    onUpdate: (self) => (turns.length ? drive(self.scroll()) : seek(self.scroll())),
   });
   measure();
   ScrollTrigger.addEventListener("refresh", measure);
@@ -382,6 +500,11 @@ export function mountCellGrid(wrap) {
       along.kill();
       follow?.kill();
       tl?.kill();
+      turns.forEach((m) => {
+        m.call?.kill();
+        m.tl.kill();
+      });
+      turns = [];
       fields().forEach((el) => el.dotGrid.zone(null));
       unplace();
     },

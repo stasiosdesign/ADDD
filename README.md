@@ -406,7 +406,7 @@ and the shader disk cache (which the scripts can disable) hides it.
   work (the homepage's, a few hundred milliseconds), so it happens only in a
   still covered window: the old page is taken out and torn down, and the new
   one built, once the panel's logo has settled (`wipeSettled`, timed to be
-  still about as the panel arrives, 0.65s); then, still covered, the new
+  still about as the panel arrives, 0.55s); then, still covered, the new
   page's webfonts are awaited, it is measured once, and it is shown under the
   panel for a frame so its first paint lands there too, not on the panel's
   first frame off it. The panel lifts as soon as the page has settled (the
@@ -433,31 +433,6 @@ and the shader disk cache (which the scripts can disable) hides it.
   once; with reduced motion the page is simply there. Both honour `prefers-reduced-motion`:
   the wipe becomes an immediate swap, and the intro shows the mark without
   the stack and fades out.
-- **Card to page** — a click on a card of the homepage's service deck opens
-  the card into its page in place of the wipe (`service-sheet.js`, Barba's
-  `service-sheet` transition in `site.js`). Each service page's hero is the
-  card at the screen's size (`ServiceHero.astro`), on the card's own parts
-  and measures, so the card can become it part for part. The page is fetched
-  into Barba's cache as the pointer comes onto a card (or a finger presses
-  it), and its hero is laid out in a layer over everything at its own size,
-  cut to the card's shape, with every shared part (number, name, square,
-  list, the diagram's panel and drawing) moved back onto the card's place
-  (FLIP), so its first frame is the card as it stands, however much of it
-  the pile hides. The cards in front slide down off it, its foot on their
-  edge, and the pile behind falls into shade; then it comes forward over
-  them, its edges out to the screen's, every part gliding to its place on
-  the page, and over the last of that the page's heading rises into it
-  line by line and its lede and buttons after it (Web Animations, on the
-  compositor, so they run on smoothly while the page is built under the
-  sheet, which starts as soon as the sheet is still to the eye). The page's
-  hero is built in the state those end in (`data-hero-shown`), the nav
-  comes back over the sheet in the page's state, and the sheet hands over
-  (the drawing picking up its loop where the card's was): about two seconds
-  from click to scroll. Only transforms and opacity move: the card's shape
-  is a window of boxes moved by transforms, not an animated clip-path,
-  which repainted the sheet every frame and halved the frame rate on this
-  machine's graphics. With reduced motion, or should the page not come, a
-  card is an ordinary link (the swap or the wipe).
 - **Hero pattern** — the hero's band carries one of two patterns
   (`src/components/Hero.astro`, `pattern` prop). The homepage has the Slash
   Field (`src/scripts/slash-field.js`), and no schematic lines: a stable grid

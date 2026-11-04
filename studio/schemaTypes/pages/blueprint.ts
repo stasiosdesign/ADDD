@@ -51,7 +51,7 @@ export const blueprintPage = defineType({
       defineField({name: 'address', title: 'Address', type: 'string'}),
       buttonField('The form’s submit button.'),
     ]),
-    pageSection('faq', 'Answers', 'The heading and the questions, in order; the first starts open.', [
+    pageSection('faq', 'Answers', 'The heading and the questions, in order; all start closed.', [
       headingField(),
       itemsField('questions', 'Questions', 'faqItem', 'The questions and their answers, in order.'),
     ]),

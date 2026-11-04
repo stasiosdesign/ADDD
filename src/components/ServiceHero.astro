@@ -1,12 +1,7 @@
 ---
 /*
-  A service page's hero: the homepage deck's card for the service
-  (ServiceDeck.astro), at the size of the screen. Clicking the card opens
-  it into this (service-sheet.js): the card comes out of the deck and its
-  edges open to the screen's, and every part the two share glides to its
-  place here, so the hero is the card, opened.
-
-  So it is built from the card's own parts, and styled by them
+  A service page's hero, built from the homepage deck card's own parts
+  (ServiceDeck.astro) at the size of the screen, and styled by them
   (src/styles/service-deck.css, "Service hero"): the one charcoal, the
   12-Column Grid, and in its head row the number on Grid Column 1, the
   name from Grid Column 2 at the card's size and the square at the end of
@@ -21,10 +16,8 @@
 
   The words are the page document's (hero.tagline names the service, as
   the card's title does); the buttons are the page's own, in the
-  "actions" slot. What the card does not have (the heading, the lede, the
-  buttons) is marked data-sheet-hide: the opening card is laid out with
-  them but does not show them, and they come in once the page is in view
-  (the heading's line reveal, data-hero-rise: reveals.js).
+  "actions" slot. The heading, the lede and the buttons come in once the
+  page is in view (the heading's line reveal, data-hero-rise: reveals.js).
 */
 import LineArrow from "./LineArrow.astro";
 import ServiceDiagram from "./ServiceDiagram.astro";
@@ -44,7 +37,7 @@ const { index, name, heading, lede, next = "#overview" } = Astro.props;
 const covers = SERVICES[index]?.covers ?? [];
 const ground = SERVICES[index]?.ground;
 ---
-<section class:list={["service-hero", ground && ["has--ground", `is--${ground}`]]} data-service-hero={index} data-nav-theme="dark">
+<section class:list={["service-hero", ground && ["has--ground", `is--${ground}`]]} data-nav-theme="dark">
   {ground && <ServiceGround kind={ground} on=".service-deck__diagram" />}
   <div class="service-deck__inner service-hero__inner">
     <span class="service-deck__n" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
@@ -52,10 +45,10 @@ const ground = SERVICES[index]?.ground;
     <a class="service-deck__go" href={next} aria-label="Read on">
       <LineArrow class="service-deck__arrow" aria-hidden="true" />
     </a>
-    <div class="service-hero__head" data-sheet-hide>
+    <div class="service-hero__head">
       <h1 class="service-hero__heading" data-split="heading" data-page-field="hero.heading">{heading}</h1>
     </div>
-    <div class="service-deck__cell service-hero__copy" data-sheet-hide>
+    <div class="service-deck__cell service-hero__copy">
       <p class="service-hero__lede" data-hero-rise data-page-field="hero.lede">{lede}</p>
       <div class="actions actions--pair service-hero__actions" data-hero-rise><slot name="actions" /></div>
     </div>
@@ -64,9 +57,6 @@ const ground = SERVICES[index]?.ground;
         {covers.map((item) => <li>{item}</li>)}
       </ul>
     </div>
-    <!-- marked on itself, not by the hero round it: a card opening into
-         this page takes the panel out of the hero into a window of its own
-         (service-sheet.js), and it is to look the same there -->
     <div class:list={["service-deck__media", ground && "is--grounded", ground && "is--figure-large"]}>
       <div class="service-deck__art">
         {!ground && <div class="service-deck__pattern" data-iso-field aria-hidden="true"></div>}

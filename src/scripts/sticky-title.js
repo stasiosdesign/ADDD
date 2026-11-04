@@ -1,9 +1,10 @@
 /* ============================================================
    Sticky Title Scroll Effect (Osmo Supply), on the page registry
    ------------------------------------------------------------
-   The resource's own timeline: one master timeline scrubbed from the
-   held frame's run (its track) at 40% of the screen to its foot at the
-   screen's foot, each heading's characters faded in in order and, for
+   The resource's own timeline: one master timeline scrubbed over the
+   held frame's run (its track), from as the statement comes up into the
+   screen to its release (run, below), each heading's characters faded
+   in in order and, for
    every heading but the last, taken back out from the end before the
    next comes in, a little overlapped.
 
@@ -47,6 +48,16 @@ const WARM_FOR = 0.05;
 const WARM_SETTLE = 0.2;
 // the scrub's ease after the scroll (s)
 const SMOOTH = 0.6;
+// Not held, the reveal follows the scroll, easing in on it (FOLLOW:
+// about the time, s, to close most of a gap) and no faster than the whole
+// run in RUN_MIN (s), so an ordinary scroll plays it as a slow one does;
+// but never more than LAG (a share of the run) behind it, so however
+// quick the scroll the words are all in while the statement is still
+// on the screen (a little over its middle). Held, the frame stands still
+// while it plays, so the scrub is enough.
+const FOLLOW = 0.2;
+const RUN_MIN = 0.8;
+const LAG = 0.14;
 // a single statement is whole a little before the frame lets go (this
 // much more of the timeline, unused), so even a quick scroll, which the
 // scrub eases after, has it whole as its line hands over to the stack
@@ -70,18 +81,72 @@ export function mountStickyTitle(wrap) {
     const staticRun = wrap.classList.contains("is--static");
     const run = {
       trigger: wrap.querySelector('[data-sticky-title="track"]') || wrap,
-      // held, from as the statement comes up the lower part of the screen,
-      // still riding up with the band's dots (so it moves with them, never
-      // over them) until it and they are held together (from 992px, where
-      // the frame is the statement's height; narrower, the frame is the
-      // screen's height and the words its middle, half a screen under the
-      // track's top)
-      start: staticRun ? "top 85%" : () => (window.matchMedia("(min-width: 992px)").matches ? "top 70%" : "top 40%"),
+      // held, from just after the statement's first line has come up into
+      // the screen, at its foot, still riding up with the band's dots (so
+      // it moves with them, never over them) until it and they are held
+      // together; any later and the screen stood empty under the wall's
+      // foot for a third of a screen's scroll (from 992px, where the frame
+      // is the statement's height; narrower, the frame is the screen's
+      // height and the words its middle, a little under half a screen
+      // below the track's top)
+      start: staticRun ? "top 97%" : () => (window.matchMedia("(min-width: 992px)").matches ? "top 92%" : "top 55%"),
+      // not held, from as soon as its first line is wholly on the screen,
+      // over the next three fifths of the screen, so the statement is whole
+      // a little over halfway up (END_HOLD and its button after)
       end: staticRun
-        ? "bottom 45%"
+        ? "top 37%"
         : () => `bottom ${(parseFloat(getComputedStyle(frame).top) || 0) + frame.offsetHeight}px`,
     };
-    const masterTl = gsap.timeline({ scrollTrigger: { ...run, scrub: SMOOTH } });
+    const masterTl = staticRun ? gsap.timeline({ paused: true }) : gsap.timeline({ scrollTrigger: { ...run, scrub: SMOOTH } });
+    // Not held, the timeline led by the run's progress (target) at a pace
+    // of its own (FOLLOW, RUN_MIN, above), on the ticker only while it is
+    // catching up; set straight to where the page stands on each refresh
+    // before the first, so a page opened part-way down starts there.
+    let shown = 0;
+    let follow = null;
+    let following = false;
+    let placed = false;
+    // the words never further than LAG from where the scroll has them
+    const hold = () => {
+      shown = gsap.utils.clamp(follow.progress - LAG, follow.progress + LAG, shown);
+    };
+    const step = (time, dt) => {
+      const gap = follow.progress - shown;
+      if (Math.abs(gap) < 1e-4) {
+        shown = follow.progress;
+        gsap.ticker.remove(step);
+        following = false;
+      } else {
+        const sec = dt / 1000;
+        const cap = sec / RUN_MIN;
+        shown += gsap.utils.clamp(-cap, cap, gap * (1 - Math.exp(-sec / FOLLOW)));
+        hold();
+      }
+      masterTl.progress(shown);
+    };
+    if (staticRun) {
+      follow = ScrollTrigger.create({
+        ...run,
+        onUpdate: () => {
+          // a quick scroll carries the words with it at once, to LAG behind
+          const was = shown;
+          hold();
+          if (shown !== was) masterTl.progress(shown);
+          if (following) return;
+          following = true;
+          gsap.ticker.add(step);
+        },
+        onRefresh: (self) => {
+          if (placed) return;
+          placed = true;
+          shown = self.progress;
+          masterTl.progress(shown);
+        },
+      });
+    }
+    // the run, for what comes in with the statement where it is not held
+    // (cell-grid.js: the marks round it, each lit as it comes on the screen)
+    wrap.revealRun = staticRun ? follow : masterTl.scrollTrigger;
 
     const splits = headings.map((heading, index) => {
       // the whole heading for screen readers, its split words hidden
@@ -277,7 +342,7 @@ export function mountStickyTitle(wrap) {
     // the writes to the characters before it and so forcing a style
     // recalculation of its own — some 600 of them, about 100 ms, spread
     // over the first scroll through the section as stalls.
-    masterTl.progress(1).progress(0);
+    masterTl.progress(1).progress(shown);
 
     // The held frame stands with the block's middle on the screen's
     // (sticky-title.css, --st-half: half the block's height, mark and
@@ -293,7 +358,10 @@ export function mountStickyTitle(wrap) {
       ScrollTrigger.removeEventListener("refreshInit", centre);
       wrap.style.removeProperty("--st-half");
       masterTl.scrollTrigger?.kill();
+      follow?.kill();
+      gsap.ticker.remove(step);
       masterTl.kill();
+      delete wrap.revealRun;
       holdDots?.kill();
       delete wrap.dotsHeldFrom;
       delete wrap.dotsHeldTo;

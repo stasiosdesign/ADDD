@@ -57,7 +57,7 @@
 /* while it scrambles, each letter in a box of its own advance, so the
    word keeps its length and place: the letter itself at its own pen
    position, overhanging as kerning has it at rest; a stand-in character
-   (always narrower, initNavScramble) centred in it and cut to it as a
+   (never wider, initTextScramble) centred in it and cut to it as a
    backstop (clip-path, which leaves the baseline where it is, as
    overflow on an inline-block would not) */
 .nav-scramble__char {

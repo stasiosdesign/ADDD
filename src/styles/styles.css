@@ -5,15 +5,19 @@
   /* colour */
   --c-text: #0a0a0a;
   --c-white: #ffffff;
+  /* The white of a light surface: a card, tile, panel, field or white
+     control. A shade under pure white, so it still reads as white but
+     softer; pure white (--c-white) stays for type and marks on the dark. */
+  --c-paper: #fbfbfb;
   --c-dark-bg: #1a1a1a;
   --c-dark-fg: #0a0a0a;
   /* The site's off-white: the ground of the page and of every light
      section, the one white the site stands on (the routes' warm white).
-     A card, tile or field on it is white, so it still stands off it. */
-  --c-light-bg: #f5f5f3;
+     A card, tile or field on it is paper, so it still stands off it. */
+  --c-light-bg: #f3f3f1;
   /* a light grey a step under the off-white: the hero's pattern band,
      the testimonial's quote panel, and the fills inside white surfaces */
-  --c-light-fg: #f2f2f2;
+  --c-light-fg: #f0f0f0;
   --c-border: rgba(10, 10, 10, 0.15);
   --c-border-dark: rgba(255, 255, 255, 0.2);
   /* the accent: a clear signal red, used for hover, active and
@@ -319,7 +323,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   flex-wrap: wrap;
   width: 100%;
   max-width: 28.75rem;
-  background: var(--c-white);
+  background: var(--c-paper);
   border: 1px solid var(--c-text);
   border-radius: var(--radius-sm);
   overflow: clip;
@@ -479,7 +483,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   position: relative;
   margin: 0 calc(-1 * var(--hero-gutter));
   /* --hero-band-scale shortens the band in proportion at every size */
-  height: calc(var(--hero-band-scale, 1) * clamp(13.75rem, 43vh, 26.875rem));
+  /* --hero-band-scale shortens the band in proportion at every size;
+     --hero-band-above runs it up past the hero's top padding by that much,
+     behind the nav, the band's own height (and its words, which the
+     field sets in its content box) unchanged under it */
+  box-sizing: border-box;
+  margin-top: calc(-1 * var(--hero-band-above, 0px));
+  padding-top: var(--hero-band-above, 0px);
+  height: calc(var(--hero-band-scale, 1) * clamp(13.75rem, 43vh, 26.875rem) + var(--hero-band-above, 0px));
   background: var(--c-light-fg);
   /* clips the schematic where the band stops, whatever its height */
   overflow: hidden;
@@ -525,6 +536,16 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* a line break written into the heading starts its next line there */
   white-space: pre-line;
 }
+/* From 992px, where the lede and the headline stand side by side, the
+   tops of their first lines' lowercase letters stand on one line: the
+   headline taken up by the difference, measured from each line's
+   baseline and the face's x-height (0.531 of its size). In the
+   headline's own em, as the two sizes keep one ratio, so the one share
+   holds at every width. A move, not a margin, so nothing round it moves;
+   the lede stays where it is. */
+@media screen and (min-width: 992px) {
+  .hero:not(.hero--split) .hero__col--heading .hero__heading { translate: 0 -0.277em; }
+}
 /* The heading's cycling word (word-cycle.js): one piece, its width eased
    by the script from word to word, so the words after it glide over. The
    letters still scrambling take the hero field's decoding red (its
@@ -567,6 +588,17 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   transition: opacity .2s ease;
 }
 .hero__arrow:hover { opacity: .6; }
+/* The line arrow (Hero.astro, cue "arrow"): down and on, at 45°, its head
+   two strokes from its point, one level and one upright, so its foot is
+   level with the screen's; a hairline in the ink, as the pills' arrows
+   are drawn, and not turned. */
+.hero__arrow.is--arrow { transform: none; }
+.hero__arrow.is--arrow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+}
 
 /* Centred (Hero.astro, "centred": AEC Tech Partners): the first screen in
    the ink, no pattern; its words one under another on the page's centre
@@ -626,6 +658,24 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    place's own --iso-line (nav.css, service-deck.css) */
 .service-ground { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .service-ground > canvas { display: block; }
+/* Line grid (LineGrid.astro): a drafting grid in the ink of whatever it
+   sits in (currentColor), each weight of line that ink held back by its
+   own share, so it reads the same on a light ground and a dark one. The
+   lines keep their weight at any scale: the large squares' a little under
+   a pixel, the small squares' half that. A place can set the shares and
+   weights (--line-grid-*). */
+.line-grid {
+  --line-grid-minor: 8%;
+  --line-grid-major: 18%;
+  --line-grid-minor-w: 0.5px;
+  --line-grid-major-w: 0.75px;
+  display: block;
+  fill: none;
+  pointer-events: none;
+}
+.line-grid path { vector-effect: non-scaling-stroke; stroke-linecap: butt; }
+.line-grid__minor { stroke: color-mix(in srgb, currentColor var(--line-grid-minor), transparent); stroke-width: var(--line-grid-minor-w); }
+.line-grid__major { stroke: color-mix(in srgb, currentColor var(--line-grid-major), transparent); stroke-width: var(--line-grid-major-w); }
 .iso-stacks { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .iso-stacks__stack {
   /* the view's axes, 2:1 (IsoStacks.astro): cos and sin of atan(1/2) */
@@ -715,6 +765,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* a touch over the dotted band's height, so the field has room to
      work while the hero still sits compact */
   --hero-band-scale: 1.02;
+  /* the band runs up behind the floating nav to the page's top, so its
+     ground and pattern carry on round the bar */
+  --hero-band-above: var(--nav-h);
   /* A finer grid than the spec's 10 × 22: more rows, more detail, and
      the homepage intro's name — sized from the rows (logo-morph-loader.js)
      — set at a size that sits in the field rather than over it. */
@@ -732,6 +785,26 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   --slash-word-active: rgba(10, 10, 10, 0.88);
   /* the characters still decoding: the signal's red, a little muted */
   --slash-word-decoding: color-mix(in srgb, var(--c-red) 76%, rgb(10 10 10 / 0.6));
+}
+/* The field set as text (data-text, Hero.astro): the label face a
+   pixel under the words', each character in the grid's cell, so the
+   rows read as the words' own tracking. A letter carries more ink than a
+   hairline stroke, so the text rests well lighter than the strokes did,
+   a quiet texture with the words a clear step over it, and is lit a
+   little less by the wave; the decoding red and the near-black stay the
+   words'. */
+.hero__media[data-slash-field][data-text] {
+  /* a dense texture: each character in a cell of about the face's own
+     advance (Geist Mono at 11.5px, 6.9px, in 7px), the rows at about 1.2 */
+  --slash-cell-w: 7;
+  --slash-cell-h: 14;
+  --slash-font: 11.5;
+  /* no wave once it has come to life: characters scrambling here and
+     there, and now and then a word, with a red glow round it */
+  --slash-motion: scatter;
+  --slash-base: rgba(10, 10, 10, 0.075);
+  --slash-hot: rgba(10, 10, 10, 0.17);
+  --slash-ink: rgba(10, 10, 10, 0.46);
 }
 /* For AEC Tech Firms: the same field with the blue in place of the red —
    the signal at the heart of each burst and the characters decoding. */
@@ -753,7 +826,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   }
   .hero.hero--split .hero__media {
     position: absolute;
-    top: var(--nav-h);
+    top: calc(var(--nav-h) - var(--hero-band-above, 0px));
     bottom: 0;
     left: 0;
     width: calc(var(--grid-margin) + 5 * var(--hero-col) + 4 * var(--grid-gutter));
@@ -1097,7 +1170,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    ============================================================ */
 .card {
   /* white on the off-white page */
-  background: var(--c-white);
+  background: var(--c-paper);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -1141,12 +1214,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    cards stand apart, one under another.
    ------------------------------------------------------------ */
 /* the section further off the band above it than a section's own step,
-   and further still off the service tabs below: the cards drift down as
-   the page scrolls (data-problem-parallax), which takes up much of the
-   room under them, so it has more than twice a step */
+   and as far off the service cards below: the cards drift as the page
+   scrolls (data-problem-parallax), which takes up some of the room under
+   them (2026-11-03: it was nearly two steps under them) */
 .section.cost {
   padding-top: calc(var(--sec-lg) * 1.5);
-  padding-bottom: calc(var(--sec-lg) * 1.9);
+  padding-bottom: calc(var(--sec-lg) * 1.5);
 }
 .problem-head {
   /* the heading's size, which the coin stack set into it is sized from */
@@ -1219,6 +1292,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* the field's ground and its dots' tint */
   --pc-field: var(--c-white);
   --pc-dots: color-mix(in srgb, var(--c-text) 30%, transparent);
+  /* the band of words' ground: the one charcoal, a hair lighter or darker
+     card by card, so the three read as a set rather than one strip */
+  --pc-body: color-mix(in srgb, var(--c-dark-bg), var(--c-white) 3%);
   container-type: inline-size;
   display: flex;
   flex-direction: column;
@@ -1229,10 +1305,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .problem-card:nth-child(2) {
   --pc-field: var(--c-dark-fg);
   --pc-dots: rgba(255, 255, 255, 0.3);
+  --pc-body: color-mix(in srgb, var(--c-dark-bg), #000 14%);
 }
 .problem-card:nth-child(3) {
   --pc-field: #737373;
   --pc-dots: color-mix(in srgb, var(--c-text) 55%, transparent);
+  --pc-body: var(--c-dark-bg);
 }
 /* landscape: seven steps across, five down */
 .problem-card__media {
@@ -1273,6 +1351,68 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   height: 100%;
   object-fit: cover;
 }
+/* Problem figures: a Hairline figure in the frame in place of the
+   picture (the Workflow Workshop's cards: ProblemCard.astro,
+   problem-figures.js). Its palette (--hairline-*) is the frame's: the
+   plates its ground, the lines its ink at four strengths (--pc-fig-*).
+
+   Each figure is drawn in a 400 × 320 frame of its own, with room round
+   the drawing that differs from figure to figure. So each is sized by the
+   drawing itself (measured in that frame: its centre --fig-cx, --fig-cy,
+   and a scale --fig-k, in the frame's height, that makes it four fifths
+   of the frame across or four fifths of it down, whichever comes first)
+   and centred on it, the rest of its own frame cropped by ours: the three
+   fill their frames alike. */
+.problem-card__frame.is--figure {
+  /* the frame's ground and the figure's lines, card by card (below) */
+  --pc-frame: var(--c-light-fg);
+  --pc-fig-hi: #0a0a0a;
+  --pc-fig-edge: #767676;
+  --pc-fig-mid: #ababab;
+  --pc-fig-lo: #d8d8d8;
+  container-type: size;
+  background: var(--pc-frame);
+}
+/* Each card a little its own (2026-11-04): the first's light frame on its
+   white field; the second's a dark frame a step lighter than its black
+   field, the figure in white; the third's a frame a step darker than its
+   grey field, the figure in light lines */
+.problem-card:nth-child(2) .problem-card__frame.is--figure {
+  --pc-frame: #1e1e1e;
+  --pc-fig-hi: #f4f4f4;
+  --pc-fig-edge: #a2a2a2;
+  --pc-fig-mid: #5e5e5e;
+  --pc-fig-lo: #363636;
+}
+.problem-card:nth-child(3) .problem-card__frame.is--figure {
+  --pc-frame: #5c5c5c;
+  --pc-fig-hi: #f6f6f6;
+  --pc-fig-edge: #cfcfcf;
+  --pc-fig-mid: #9a9a9a;
+  --pc-fig-lo: #747474;
+}
+.problem-card__figure {
+  --hairline-plate: var(--pc-frame);
+  --hairline-hi: var(--pc-fig-hi);
+  --hairline-edge: var(--pc-fig-edge);
+  --hairline-mid: var(--pc-fig-mid);
+  --hairline-lo: var(--pc-fig-lo);
+  --fig-k: 0.4cqh;
+  --fig-cx: 200;
+  --fig-cy: 160;
+  position: absolute;
+  left: calc(50cqw - var(--fig-cx) * var(--fig-k));
+  top: calc(50cqh - var(--fig-cy) * var(--fig-k));
+  width: calc(400 * var(--fig-k));
+  height: calc(320 * var(--fig-k));
+  aspect-ratio: auto;
+}
+/* each drawing's extent in its frame (x, y, width, height): turntable
+   70.5 83.6 259 181.6, format 34 76.8 332 174.2, plug 99.1 59.6 298.9
+   204.2 (measured 2026-11-04, @lucasmarkes/hairline 0.5.1) */
+.problem-card__figure[data-problem-figure="turntable"] { --fig-k: 0.4295cqh; --fig-cx: 200; --fig-cy: 174.4; }
+.problem-card__figure[data-problem-figure="format"] { --fig-k: 0.4016cqh; --fig-cx: 200; --fig-cy: 163.9; }
+.problem-card__figure[data-problem-figure="plug"] { --fig-k: 0.382cqh; --fig-cx: 248.6; --fig-cy: 161.7; }
 
 /* The band of words under the field. It takes the row's slack, so
    three cards of different words still end level. */
@@ -1282,7 +1422,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .problem-card__body {
   flex: 1 0 auto;
   position: relative;
-  background: var(--c-dark-bg);
+  background: var(--pc-body);
   display: flex;
   flex-direction: column;
   /* the words centred in the band's height and across it, with more
@@ -1597,7 +1737,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   width: 100%;
   border-radius: var(--radius);
   overflow: hidden;
-  background: var(--c-white);
+  background: var(--c-paper);
   color: var(--c-text);
   text-decoration: none;
   transition: transform .3s ease;
@@ -1621,7 +1761,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   left: 1rem;
   padding: 0.3125rem 0.5rem;
   border-radius: var(--radius-sm);
-  background: var(--c-white);
+  background: var(--c-paper);
 }
 /* The card's only affordance — the site's arrow, turned to point
    out of the card, and taking the brand red on hover the way every
@@ -1671,7 +1811,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .case__panel {
   margin-top: 5rem;
   /* white on the off-white page */
-  background: var(--c-white);
+  background: var(--c-paper);
   border-radius: var(--radius);
   overflow: hidden;
 }
@@ -1711,35 +1851,24 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    the section after, its spine: the practice's logo sits centred on
    it, level with the quote, and the two round controls at its foot,
    level with who said it, the rule opened round each by a patch of the
-   page's ground. The quote takes Grid Columns 5–11 in the display face
-   at its third step; a section step under it, on those columns' own
-   grid, the count on Grid Column 5 and the attribution from Grid
-   Column 6, in the label face. The quotes' room is the height of the
-   quote showing, eased to the next with a little give as it changes,
+   page's ground. On Grid Columns 5–11, on one left edge: the count,
+   small, in the label face; the quote in the display face, a little under
+   its third step; and under it who said it, in the body face. The quotes' room is
+   the height of the quote showing, eased straight to the next as it changes,
    and the section, its rule and its controls follow it; the smaller
    stacks (the count, the attribution, the logo) are as large as their
    largest member.
    ------------------------------------------------------------ */
-/* The testimonials are uncovered from under the service deck above them
-   (data-depth="under", initDepthTransitions, parallax.js), as the footer is
-   from under the page: a clipping wrap, edge to edge, on the section's own
-   ground, the quotes inside it settling out of a higher place (the
-   footer's travel) as the deck scrolls away off its top, under a shadow
-   that clears (.depth-shade). Nothing comes over the deck. */
-.reveal-wrap {
-  position: relative;
-  overflow: hidden;
-  overflow: clip;
-  background: var(--c-light-bg);
-}
-/* Set off from the band above it by a section step and a half, so it
-   reads as its own chapter: room inside the section (--slider-above),
-   not a margin outside it, so the rule can run up through it to the
-   band. */
+/* Straight after the service deck, in the page's own scroll, with no
+   transition between them, on its own ground. Set off from the band
+   above it by a section step and a half, so it reads as its own
+   chapter: room inside the section (--slider-above), not a margin
+   outside it, so the rule can run up through it to the band. */
 .testimonials {
   --slider-above: calc(var(--sec-lg) + var(--sec-md));
   position: relative;
   padding-top: var(--slider-above);
+  background: var(--c-light-bg);
 }
 
 .testimonial-slider {
@@ -1779,6 +1908,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    its foot */
 .testimonial-slider__quotes {
   grid-column: 1 / -1;
+  grid-row: 2;
   display: grid;
 }
 .testimonial-slider__quote {
@@ -1788,32 +1918,43 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: var(--t-h3);
+  /* a little under the third step, so the quote reads as said rather
+     than announced */
+  font-size: calc(0.85 * var(--t-h3));
   line-height: 1.05;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
 }
 /* only the one showing, until the script takes them over */
 .testimonial-slider__quote:not(.is--active) { visibility: hidden; }
 
-/* the count and who said it, a section step under the quote */
-.testimonial-slider__count,
-.testimonial-slider__credits {
-  grid-row: 2;
-  margin: var(--sec-lg) 0 0;
-}
+/* All on the quote's left edge: the count over it, small, in the label
+   face (.tagline--sm), a short step above; who said it under it, a
+   larger step below, in the body face a size under the body's, the name
+   in the ink and the role in the label's tint */
 .testimonial-slider__count {
-  grid-column: 1;
+  grid-column: 1 / -1;
+  grid-row: 1;
   display: flex;
   gap: 0.35em;
+  margin: 0 0 1.75rem;
   white-space: nowrap;
 }
-.testimonial-slider__credits { grid-column: 2 / -1; }
+.testimonial-slider__credits {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin: 3rem 0 0;
+}
 .testimonial-slider__credit {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.2rem;
   margin: 0;
+  font-family: var(--font-body);
+  font-size: 0.8125rem;
+  line-height: 1.35;
 }
+.testimonial-slider__name { font-weight: var(--fw-body); }
+.testimonial-slider__role { color: var(--label-ink); }
 
 /* What swaps with the quote (the count's number, the attribution, the
    logo): split, it changes with the quote's lines, line by line, in the
@@ -1850,14 +1991,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   padding: var(--slider-pad) 0;
 }
 /* the site's dotted rule, stood upright on the line, from the section's
-   top (the band above) to its foot (the section after); run up past the
-   top by as far as the quotes lag behind the section's edge as it comes
-   up (--depth-lag, initDepthTransitions), into the wrap's clip, so it
-   meets the edge wherever the lag has the quotes */
+   top (the band above) to its foot (the section after) */
 .testimonial-slider__side::before {
   content: "";
   position: absolute;
-  top: calc(-1 * var(--slider-above, 0px) - var(--depth-lag, 0) * 100vh);
+  top: calc(-1 * var(--slider-above, 0px));
   bottom: 0;
   left: -1px;
   width: 2px;
@@ -1924,7 +2062,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--c-white);
+  background: var(--c-paper);
   color: var(--c-text);
   cursor: pointer;
 }
@@ -1969,6 +2107,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   }
   /* the rule across the grid, from Grid Column 1 to the last */
   .testimonial-slider__side::before {
+    /* at the row's own top, under who said it (not run up into the
+       section, as it stands from 992px) */
+    top: 0;
     bottom: auto;
     left: calc(-1 * var(--dotted-rule-bleed));
     right: calc(-1 * var(--dotted-rule-bleed));
@@ -2009,6 +2150,83 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   align-items: flex-start;
 }
 
+/* The homepage's credentials (.creds--on-rule, at every width): a
+   section's step and a half under the testimonials, so it reads as a
+   chapter of its own, and the photograph upright (4:5), cut from the
+   middle of the picture with Allister in it */
+.creds--on-rule { padding-top: calc(1.5 * var(--sec-lg)); }
+.creds--on-rule .creds__media .ph { aspect-ratio: 4 / 5; background-position: 55% 50%; }
+
+/* Credentials on the rule — an experiment (.creds--on-rule on the
+   section, index.astro; take the class off and the section is as it
+   was). From 992px the testimonials' rule (.testimonial-slider__side,
+   above) runs on down through the section from its top to its foot, on
+   the same line, the left edge of Grid Column 3, in the same dots. Two
+   columns: on the left, the photograph alone on the line, centred on it
+   (from the left edge of Grid Column 1 to the left edge of Grid Column
+   5, so both its edges are on the grid too), the line opened a step
+   above and below it, as the testimonials' logo and controls open it,
+   and running on over and under it; on the right, from Grid Column 6 (a
+   Grid Column's air from the photograph), everything else on one left
+   edge: the label and the heading, then the copy and its button. The
+   photograph stands at the middle of the copy beside it. The section's
+   rows are the right column's two (.creds__grid stands aside so its two
+   take their places in them). Below 992px the testimonials' rule lies
+   across the page, so the section is as it always was. */
+@media screen and (min-width: 992px) {
+  .creds--on-rule {
+    /* the left edge of Grid Column 3, from the section's own edge */
+    --creds-rule-x: calc(var(--grid-margin) + 2 * ((100% - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns) + var(--grid-gutter)));
+    /* the testimonials' (--slider-clear, and their rule's dots) */
+    --creds-clear: 1.25rem;
+    position: relative;
+  }
+  .creds--on-rule::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--creds-rule-x) - 1px);
+    width: 2px;
+    /* whole steps from its top to its foot, the room left over shared
+       between them (space: a fraction of a pixel each), so it starts and
+       ends on a whole step; fitted to its height instead (round), a rule
+       can start or end part-way into a dot, and the two would not meet
+       at the one pitch */
+    background: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 70%, transparent) 5px 7px, transparent 7px) 0 0 / 2px 12px space;
+  }
+  /* and the testimonials' rule the same, so its last dot ends the same
+     step above the join as this one's first begins below it, at any
+     height or pixel ratio */
+  .testimonials:has(+ .creds--on-rule) .testimonial-slider__side::before {
+    background: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 70%, transparent) 5px 7px, transparent 7px) 0 0 / 2px 12px space;
+  }
+  .creds--on-rule .creds__media {
+    position: relative;
+    z-index: 1;
+  }
+  .creds--on-rule .creds__media::before {
+    content: "";
+    position: absolute;
+    inset: calc(-1 * var(--creds-clear)) 0;
+    z-index: -1;
+    background: var(--c-light-bg);
+  }
+  /* the copy's two rows between two that share what the photograph's
+     height leaves, so the copy keeps its own spacing and stands at the
+     photograph's middle */
+  .page--grid .creds--on-rule .container { grid-template-rows: 1fr auto auto 1fr; }
+  .page--grid .creds--on-rule .creds__grid { display: contents; }
+  .page--grid .creds--on-rule .creds__media {
+    grid-column: 1 / 5;
+    grid-row: 1 / 5;
+    align-self: center;
+    width: calc(100% + var(--grid-gutter));
+  }
+  .page--grid .creds--on-rule .creds__title { grid-column: 6 / 12; grid-row: 2; }
+  .page--grid .creds--on-rule .creds__text { grid-column: 6 / 11; grid-row: 3; margin-top: 2.5rem; }
+}
+
 /* ============================================================
    8 — FAQ (index.astro; Accordion.astro, "boxed")
    ============================================================ */
@@ -2020,7 +2238,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   padding-top: calc(var(--sec-lg) * 135 / 112);
   padding-bottom: calc(var(--sec-lg) * 135 / 112);
 }
-.faq-home__h { margin: 0 0 3rem; text-wrap: balance; }
+/* on two lines at every size: a measure narrower than the whole heading
+   and wider than its first two words, filled line by line, so it breaks
+   after "asked" */
+.faq-home__h { max-width: 10em; margin: 0 0 3rem; text-wrap: wrap; }
 
 /* ============================================================
    9 — insight cards + the insight slider
@@ -2036,7 +2257,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .insight-card {
   height: 100%;
   text-align: left;
-  background: var(--c-white);
+  background: var(--c-paper);
   border: 1px solid rgba(10, 10, 10, .08);
 }
 .insight-card:hover { border-color: rgba(10, 10, 10, .16); }
@@ -2154,7 +2375,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   grid-template-rows: auto auto auto auto 1fr auto;
   border: 0;
   border-radius: var(--radius);
-  background: var(--c-white);
+  background: var(--c-paper);
   color: var(--c-text);
 }
 /* hovered, the ground steps a shade further from the page and the arrow
@@ -2271,7 +2492,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   border-radius: var(--radius-sm);
   border: 0;
   /* white on the off-white page */
-  background: var(--c-white);
+  background: var(--c-paper);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: background-color .2s ease;
@@ -2280,7 +2501,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    after the deck has moved. */
 @media (hover: hover) {
   .arrows button:hover { background: #e6e6e6; }
-  .arrows button[disabled]:hover { background: var(--c-white); }
+  .arrows button[disabled]:hover { background: var(--c-paper); }
 }
 
 /* ============================================================
@@ -2428,29 +2649,64 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  /* exactly one screen tall, never more: what does not fit gives way in
+     the logo's row, which takes the room left (.site-footer__grid) */
+  height: 100vh;
+  height: 100svh;
   background: var(--c-red);
   color: var(--c-white);
   /* the content starts the bar's height down, as under the bar
      everywhere else (out of view here, from the closing CTA on:
      initNavReveal), so the panel keeps the page's top line; the logo
      runs down to the panel's foot */
-  padding: calc(var(--nav-h) + 1.75rem) var(--grid-margin) 0;
+  padding: calc(var(--nav-h) + 1rem) var(--grid-margin) 0;
 }
-.site-footer__inner {
-  display: flex;
-  flex-direction: column;
+/* The grid, the overlay's tracks a gutter apart, filling the panel: a
+   row for the site map and Company at the top, one for the signup under
+   Company, the logo's row taking the room between, and a row for the
+   foot. Each part in its own area, so the composition is set here and
+   below 992px set again, not left to the order of the markup. */
+.site-footer__grid {
   flex: 1;
-  width: 100%;
-}
-/* the grid itself: the overlay's tracks, a gutter apart */
-.site-footer__top {
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "svc svc svc res res res . . com com com com"
+    ". . . . . . . . sig sig sig sig"
+    "logo logo logo logo logo logo logo . . . . ."
+    "soc soc soc soc . . . . con con con con";
   column-gap: var(--grid-gutter);
-  row-gap: 4rem;
+  row-gap: 2.5rem;
   align-items: start;
+  width: 100%;
+  min-height: 0;
+  padding-bottom: 2.25rem;
 }
+.site-footer__group.is--services { grid-area: svc; }
+.site-footer__group.is--resources { grid-area: res; }
+.site-footer__group.is--company { grid-area: com; }
+.site-footer__group.is--contact { grid-area: con; align-self: end; }
+.site-footer__signup { grid-area: sig; }
+.site-footer__social { grid-area: soc; align-self: end; }
+
+/* The logo, the anchor: its four forms (assets/logo.svg, Footer.astro),
+   solid white, the width of Grid Columns 1–7, at the middle of the room
+   between the top rows and the foot. A link home; pointed at, it holds
+   still and only a reader's focus rings it. */
+.site-footer__logo {
+  grid-area: logo;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+  color: var(--c-white);
+}
+/* as wide as its columns, or as tall as its row lets it be on a short
+   screen, on its left edge either way */
+.site-footer__logo svg { display: block; width: 100%; height: auto; max-height: 100%; }
+.site-footer__logo:focus-visible { outline: 1px solid var(--c-white); outline-offset: 0.75rem; }
 
 /* Every group's name — the links' own face and size, the white held
    well back, as the reference sets them. */
@@ -2460,10 +2716,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   color: rgba(255, 255, 255, 0.55);
 }
 
-/* Each group two Grid Columns, its name and its links on the first's
-   left edge. */
+/* Each group, its name and its links on its area's left edge. */
 .site-footer__group {
-  grid-column: span 2;
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
@@ -2493,7 +2747,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  margin-top: 0.875rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 .site-footer__social-link {
   display: flex;
@@ -2515,7 +2771,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    width. On the red its submit is ink, as the primary button is on a
    light ground, so it never sinks into the panel. */
 .site-footer__signup {
-  grid-column: span 4;
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
@@ -2534,43 +2789,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .site-footer .newsletter-form__submit:focus-visible { outline-color: var(--c-white); }
 .site-footer .newsletter-audience input { accent-color: var(--c-text); }
 
-/* The logo across the foot, the viewport's full width, built from the
-   hero's Slash Field (Footer.astro): the field is the logo's own box,
-   64 × 16 (assets/logo.svg), kept to its proportions at any width, and
-   shows only the strokes inside the four forms, in white on the red. The
-   frame round it is half that height at the very foot of the panel, so
-   the logo's lower half is cut off there. Only the foot is cut: the top
-   row's strokes may stand a hair above the frame, so they are never
-   trimmed into a row of stubs along the forms' top edge. */
-.site-footer__mark {
-  flex: none;
-  aspect-ratio: 64 / 8;
-  /* held to that ratio although the field in it is twice as tall */
-  min-height: 0;
-  height: auto;
-  margin: 4.5rem calc(-1 * var(--grid-margin)) 0;
-  clip-path: inset(-2rem 0 0 0);
-}
-.site-footer__mark-field {
-  /* The hero's pattern, set finer and closer than the hero sets it
-     (.hero__field), so the forms read as fine detail, and in a white
-     held well back into the red, so the logo sits behind the footer's
-     words as a ground rather than competing with them. The field has
-     no words, so it never runs its wave, and every stroke rests at the
-     one tint. */
-  --slash-cell-w: 5;
-  --slash-cell-h: 11;
-  --slash-stroke: 1.25;
-  --slash-blank: 0.03;
-  --slash-base: rgba(255, 255, 255, 0.34);
-  --slash-hot: rgba(255, 255, 255, 0.34);
-  --slash-ink: rgba(255, 255, 255, 0.34);
-  --slash-signal: rgba(255, 255, 255, 0.34);
-  --slash-fade: 450;
-  position: relative;
-  width: 100%;
-  aspect-ratio: 64 / 16;
-}
 
 /* ============================================================
    touch targets
@@ -2662,7 +2880,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* The band's 220px floor never claims more than its own 43% of the
      screen: on a phone turned on its side it would otherwise fill
      everything under the bar and push all of the copy below the fold. */
-  .hero__media { height: calc(var(--hero-band-scale, 1) * clamp(min(13.75rem, 43vh), 43vh, 26.875rem)); }
+  .hero__media { height: calc(var(--hero-band-scale, 1) * clamp(min(13.75rem, 43vh), 43vh, 26.875rem) + var(--hero-band-above, 0px)); }
   .hero__grid { flex-direction: column; align-items: flex-start; gap: 1.5rem; margin-top: 2.5rem; }
   .hero__col--lede { flex: 0 0 auto; width: 100%; }
   /* Back on the left edge with the lede, as the problem and routes
@@ -2678,22 +2896,29 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
      out past its card. */
   .btn { white-space: normal; text-align: center; }
 
-  .compare__grid, .creds__grid { flex-direction: column; }
-  .compare__title { font-size: 2.1893rem; padding-bottom: 4rem; }
+  .creds__grid { flex-direction: column; }
   .creds__grid { align-items: stretch; }
   .creds__media { flex: none; width: 100%; }
 
-  /* The one row is a desktop composition. Below this the panel goes
-     back to ordinary flow on the grid's six columns: the link groups two
-     across, three Grid Columns each, then the signup across the grid,
-     then the logo. The social marks take a fingertip's size. */
-  .site-footer { min-height: 0; padding-top: 4rem; }
-  .site-footer__top { row-gap: 2.5rem; }
-  .site-footer__group { grid-column: span 3; }
-  .site-footer__signup { grid-column: 1 / -1; }
+  /* The logo beside the words is a desktop composition. On the grid's six
+     columns the logo leads, across the grid, and the rest follows under
+     it in pairs, three Grid Columns each: the site map, then Company
+     beside Contact, then the signup across, the social marks at the
+     foot, at a fingertip's size. The panel as tall as its parts. */
+  .site-footer { height: auto; min-height: 0; padding-top: 4rem; }
+  .site-footer__grid {
+    grid-template-rows: none;
+    grid-template-areas:
+      "logo logo logo logo logo logo"
+      "svc svc svc res res res"
+      "com com com con con con"
+      "sig sig sig sig sig sig"
+      "soc soc soc soc soc soc";
+    row-gap: 3rem;
+  }
+  .site-footer__logo { align-self: start; margin-bottom: 1rem; }
+  .site-footer__group.is--contact { align-self: start; }
   .site-footer__social-link { width: max(2.75rem, 44px); }
-  /* on tablets and phones the forms run edge to edge, to keep their scale */
-  .site-footer__mark { margin-top: 2.5rem; }
 
   .logos { padding: 5rem 0; }
   .cta { --cta-pad: 7.5rem; }
@@ -2717,12 +2942,20 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .approach__card-h { font-size: min(3.0938rem, 15svh); }
   .tagline { font-size: 0.8125rem; }
   .card__body--lg { padding: 1.75rem; }
-  .compare__title { font-size: 2rem; padding: 0.75rem 0.5rem 3rem; }
-  .compare__row { min-height: 0; padding: 1.25rem; font-size: var(--t-rg); }
-  .compare__side { padding: 0.75rem; }
   .cta__body { gap: 2rem; }
   /* one group across, on all four Grid Columns */
-  .site-footer__group { grid-column: 1 / -1; }
+  /* on a phone's four columns, the pairs two Grid Columns each, their
+     longer links free to wrap */
+  .site-footer__grid {
+    grid-template-areas:
+      "logo logo logo logo"
+      "svc svc res res"
+      "com com con con"
+      "sig sig sig sig"
+      "soc soc soc soc";
+    row-gap: 2.5rem;
+  }
+  .site-footer__links a { white-space: normal; }
 }
 
 @media (max-width: 479px) {

@@ -47,7 +47,7 @@ export const advisoryPage = defineType({
     quoteSection('The testimonial between the pricing and the questions: the quote, and who said it.'),
     pageSection('faq', 'Answers', 'The heading and the questions that end the page, each with its answer.', [
       headingField(),
-      itemsField('questions', 'Questions', 'faqItem', 'The questions, in order; the first starts open.'),
+      itemsField('questions', 'Questions', 'faqItem', 'The questions, in order; all start closed.'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Ongoing Advisory page'})},

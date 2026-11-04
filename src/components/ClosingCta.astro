@@ -13,7 +13,7 @@
   own `doc` and field, so the two audiences never share one. Where the
   buttons lead stays here.
 */
-import ActionButton from "./ActionButton.astro";
+import ActionButton, { type ActionButtonShape } from "./ActionButton.astro";
 import ArrowIcon from "./ArrowIcon.astro";
 import { pageDocument, reader, type Doc } from "../sanity/content";
 import { homePage } from "../sanity/defaults/home";
@@ -25,6 +25,8 @@ interface Props {
   secondary?: { href: string; [attr: string]: unknown };
   /** The primary's accent: the site's red, or the AEC Tech Firms blue. */
   accent?: "red" | "blue";
+  /** The buttons' form (ActionButton.astro): the site's block, the pill, or the frame. */
+  shape?: ActionButtonShape;
 }
 
 const {
@@ -32,6 +34,7 @@ const {
   primary = { href: "stack-diagnostic.html" },
   secondary = { href: "contact.html" },
   accent = "red",
+  shape,
 } = Astro.props;
 const field = (doc as { field?: string }).field ?? "closingCta";
 const { t } = reader(await pageDocument(Astro.locals.sanity, doc.id), doc.defaults);
@@ -48,8 +51,8 @@ const lede = t(`${field}.lede`);
       <h2 class="h1 cta__heading" data-split="heading" data-page-field={`${field}.heading`}>{t(`${field}.heading`)}</h2>
       {lede && <p class="text-md cta__lede" data-page-field={`${field}.lede`}>{lede}</p>}
       <div class="actions actions--pair">
-        <ActionButton {...primary}><span data-page-field={`${field}.primaryButton`}>{t(`${field}.primaryButton`)}</span></ActionButton>
-        <ActionButton {...secondary} variant="secondary"><span data-page-field={`${field}.secondaryButton`}>{t(`${field}.secondaryButton`)}</span></ActionButton>
+        <ActionButton {...primary} shape={shape}><span data-page-field={`${field}.primaryButton`}>{t(`${field}.primaryButton`)}</span></ActionButton>
+        <ActionButton {...secondary} variant="secondary" shape={shape}><span data-page-field={`${field}.secondaryButton`}>{t(`${field}.secondaryButton`)}</span></ActionButton>
       </div>
     </div>
     <span class="cta__mark" aria-hidden="true"><ArrowIcon /></span>

@@ -103,16 +103,50 @@ const DEFAULTS = {
   // "screen" runs the field on past the container to fill the screen (the
   // homepage's first-load intro sets it: see logo-morph-loader.js)
   extend: "",
-  // A shape the pattern builds rather than fills (the footer's logo):
-  // polygons in shares of the container's width and height, "x,y x,y …"
-  // with ";" between polygons. Only the cells whose middle falls inside
-  // one keep their stroke, so the shape is made of whole strokes and its
-  // edges step with the grid. Empty: every cell, as in the hero.
-  shape: "",
   // "unborn" keeps the words out of the field until the intro's pulse
   // brings each one in (bear): until then the strokes run on under it
   words: "",
+  // Text in place of the strokes (the hero's and the loader's): a phrase,
+  // repeated along every row as one stream, "·" between its repeats,
+  // each row starting TEXT_STEP characters further on than the one above,
+  // so the field is set text with an even diagonal rhythm rather than
+  // words scattered over it. A cell is a character, centred in it, in the
+  // label face at this size (px); everything else (the tints, the wave,
+  // the words set in it, the intro) is as it is for the strokes, and where
+  // the wave would turn a stroke, it scrambles a letter.
+  text: "",
+  font: 11,
+  // "scatter" in place of the wave once the field has come to life: small
+  // runs of characters scrambling here and there, at random, and now and
+  // then a word coming online with a local red glow round it (SCATTER)
+  motion: "",
 };
+// The scatter (motion "scatter"): no fronts, nothing in sequence. Every
+// so often (every, s) a few runs (runs) of a few characters (cluster) each,
+// anywhere in the field, scramble a moment (stir, s), lit a little, so the
+// whole field is always turning over somewhere; and every so often
+// (word, s) a word chosen at random comes online, held fully scrambled a
+// beat longer than the wave would hold it (hold), the characters round it
+// (glow: so many cells beyond its ends and rows above and below it, a
+// share of them, picked more often nearer the word) scrambling at random
+// moments over a short spell (time), a share of them (red) catching the
+// red and holding it a moment before it fades, so the word lights its
+// neighbourhood rather than setting a ring or a wave off.
+const SCATTER = {
+  every: [0.03, 0.07],
+  runs: [3, 5],
+  cluster: [1, 4],
+  stir: [0.35, 0.9],
+  ink: 1.2,
+  flash: 0.5,
+  word: [1.8, 3.2],
+  hold: 0.7,
+  glow: { cols: 12, rows: 4, time: 1.3, pick: 0.75, red: 0.85, ink: 0.9, flash: 1.2, hold: 0.45, turn: [0.3, 0.8] },
+};
+// the letters a scrambling character runs through
+const SCRAMBLE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+// how many characters further along the stream each row starts
+const TEXT_STEP = 7;
 // Tints between the base and the highlight, the same again from the
 // highlight on to the ink, and steps towards the signal red. A stroke's
 // light runs 0–1 to the highlight and on to 2 at the ink.
@@ -309,25 +343,6 @@ function readOption(el, name) {
   return DEFAULTS[name];
 }
 
-// A shape option, "x,y x,y …;x,y …", to a list of polygons of [x, y] points.
-function parseShape(value) {
-  return String(value || "")
-    .split(";")
-    .map((poly) => poly.trim().split(/\s+/).filter(Boolean).map((pt) => pt.split(",").map(Number)))
-    .filter((poly) => poly.length >= 3 && poly.every((pt) => pt.length === 2 && pt.every(Number.isFinite)));
-}
-
-// Whether the point (x, y) is inside the polygon (even-odd ray cast).
-function inside(poly, x, y) {
-  let hit = false;
-  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-    const [xi, yi] = poly[i];
-    const [xj, yj] = poly[j];
-    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
-  }
-  return hit;
-}
-
 // Any CSS colour to [r, g, b, a], through the canvas's own parser.
 function toRGBA(color, ctx) {
   ctx.fillStyle = "#000";
@@ -367,6 +382,11 @@ export function mountSlashField(el) {
   // corner (ox, oy); per cell: its glyph, its flash, the system's ink, its
   // red, and how long that red is held before it fades
   let opts, colors, width, height, ox, oy, cols, rows, cellW, cellH;
+  // in text mode (opts.text): the stream the rows read along, and its
+  // characters, a cell's glyph being one's number (charOf) in chars
+  let stream = "";
+  let chars = [];
+  let charOf = new Map();
   let glyph, taken, heat, glow, signal, keep;
   // per cell, whether the field has come to life there, its light resting at
   // REST rather than its own pale tint
@@ -426,8 +446,20 @@ export function mountSlashField(el) {
       marks: num("marks"),
       extend: String(readOption(el, "extend")).trim(),
       words: String(readOption(el, "words")).trim(),
-      shape: parseShape(readOption(el, "shape")),
+      text: String(readOption(el, "text")).trim().toUpperCase(),
+      font: num("font"),
+      motion: String(readOption(el, "motion")).trim(),
     };
+    // the text's stream, and its characters (and the scramble's) numbered
+    // from 1 as a cell's glyph (0 is a space: no character)
+    stream = opts.text ? `${opts.text}·` : "";
+    chars = [];
+    charOf = new Map();
+    for (const ch of stream + (stream ? SCRAMBLE : "")) {
+      if (ch === " " || charOf.has(ch) || chars.length >= 250) continue;
+      chars.push(ch);
+      charOf.set(ch, chars.length);
+    }
     const base = toRGBA(readOption(el, "base"), ctx);
     const hot = toRGBA(readOption(el, "hot"), ctx);
     const deep = toRGBA(readOption(el, "ink"), ctx);
@@ -538,7 +570,9 @@ export function mountSlashField(el) {
     // sized and placed so the top and foot each cut a row near the far end
     // of its strokes (fitRows). So it carries on behind the container's
     // edges rather than having been made to fit inside them.
-    cellW = opts.cellW;
+    // (text: whole pixels, so the characters fall on few phases of a pixel
+    // and the atlas holds them all)
+    cellW = opts.text ? Math.round(opts.cellW) : opts.cellW;
     const empty = width < cellW || height < opts.cellH;
     // Filling the screen, the field runs on in whole rows over everything
     // above the container and under it. The rows are counted from the
@@ -547,7 +581,7 @@ export function mountSlashField(el) {
     // a stroke in it changing.
     const box = !empty && opts.extend === "screen" ? el.getBoundingClientRect() : null;
     const [rowH, cutTop] = empty ? [opts.cellH, CUT_TOP] : fitRows(height, opts.cellH, box && { top: box.top, height: window.innerHeight });
-    cellH = rowH;
+    cellH = opts.text ? Math.round(rowH) : rowH;
     above = box ? Math.ceil(Math.max(0, box.top) / cellH) : 0;
     below = box ? Math.ceil(Math.max(0, window.innerHeight - box.bottom) / cellH) : 0;
     ox = empty ? 0 : overscan(width, cellW, cropAcross);
@@ -570,7 +604,15 @@ export function mountSlashField(el) {
     settled = new Uint8Array(cols * rows).fill(opts.words === "unborn" ? 0 : 1);
     blank(cols * rows);
     const slant = opts.straight + (1 - opts.straight) / 2;
-    for (let r = 0; r < rows; r++) {
+    // text: each row reads on along the stream, TEXT_STEP characters on from
+    // the row above (counted from the container's own first row, as the
+    // strokes are, so filling the screen changes no character in it)
+    const len = stream.length;
+    for (let r = 0; opts.text && r < rows; r++) {
+      const start = ((((r - above) * TEXT_STEP) % len) + len) % len;
+      for (let c = 0; c < cols; c++) glyph[r * cols + c] = charOf.get(stream[(start + c) % len]) || 0;
+    }
+    for (let r = 0; !opts.text && r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         if (hash(c, r - above, 1) < opts.blank) continue;
         if (hash(c, r - above, 3) < opts.marks) {
@@ -581,27 +623,10 @@ export function mountSlashField(el) {
         glyph[r * cols + c] = m < opts.straight ? 2 : m < slant ? 1 : 3;
       }
     }
-    if (opts.shape.length) keepShape();
-
     placeWords();
     if (hole.length) clearHole();
     plan(SEQUENCE.first);
     draw();
-  }
-
-  // The shape built from the pattern (opts.shape): every cell whose middle
-  // is outside it is emptied and kept from signals, so what is left of the
-  // pattern, unchanged, is the shape.
-  function keepShape() {
-    for (let r = 0; r < rows; r++) {
-      const y = ((r + 0.5) * cellH - oy) / height;
-      for (let c = 0; c < cols; c++) {
-        const x = ((c + 0.5) * cellW - ox) / width;
-        if (opts.shape.some((poly) => inside(poly, x, y))) continue;
-        glyph[r * cols + c] = 0;
-        taken[r * cols + c] = 1;
-      }
-    }
   }
 
   // The canvas at the pattern's size, sharp for the device's pixels; it sits
@@ -710,8 +735,11 @@ export function mountSlashField(el) {
     // intro's, placed only while the field fills the screen) — the screen.
     const fill = opts.extend === "screen";
     const box = fill ? el.getBoundingClientRect() : null;
+    // (the container's words go in its content box: under its padding at
+    // the top, where the hero's band runs up behind the nav)
+    const padTop = parseFloat(getComputedStyle(el).paddingTop) || 0;
     const areas = {
-      container: { x: ox, y: oy, w: width, h: height },
+      container: { x: ox, y: oy + padTop, w: width, h: height - padTop },
       screen: fill ? { x: ox - box.left, y: oy - box.top, w: document.documentElement.clientWidth, h: window.innerHeight } : null,
     };
 
@@ -877,7 +905,7 @@ export function mountSlashField(el) {
     const y = r * cellH * dpr;
     const fx = x - Math.floor(x);
     const fy = y - Math.floor(y);
-    const key = ((k * 8 + g) * 4096 + Math.round(fx * 4095)) * 4096 + Math.round(fy * 4095);
+    const key = ((k * 256 + g) * 4096 + Math.round(fx * 4095)) * 4096 + Math.round(fy * 4095);
     let slot = sprites.get(key);
     if (slot === undefined) {
       // full: begun again (what was copied onto the canvas stays as it is;
@@ -899,6 +927,7 @@ export function mountSlashField(el) {
   // the strokes come out as they did).
   function drawSprites() {
     if (!wanted.length) return;
+    if (opts.text) return drawLetters();
     actx.lineWidth = opts.stroke;
     actx.lineCap = "butt";
     for (let i = 0; i < wanted.length; i += 5) {
@@ -918,11 +947,35 @@ export function mountSlashField(el) {
     wanted.length = 0;
   }
 
+  // The same for text: each character set in its slot, centred in its
+  // cell, in the label face, a tint at a time.
+  function drawLetters() {
+    actx.font = `${opts.font}px "Geist Mono", ui-monospace, monospace`;
+    actx.textAlign = "center";
+    actx.textBaseline = "middle";
+    for (let i = 0; i < wanted.length; i += 5) {
+      const k = wanted[i + 2];
+      if (k < 0) continue;
+      actx.fillStyle = colors[k];
+      for (let j = i; j < wanted.length; j += 5) {
+        if (wanted[j + 2] !== k) continue;
+        const slot = wanted[j];
+        actx.setTransform(dpr, 0, 0, dpr, (slot % perRow) * spriteW + 1 + wanted[j + 3], Math.floor(slot / perRow) * spriteH + 1 + wanted[j + 4]);
+        actx.fillText(chars[wanted[j + 1] - 1] || "", cellW / 2, cellH / 2);
+        wanted[j + 2] = -1;
+      }
+    }
+    wanted.length = 0;
+  }
+
   function draw() {
     if (!cols || !rows) return;
     // a stirred stroke turns through the three strokes, about twenty times a
-    // second, each on its own beat
-    const spin = Math.floor(now() * 22);
+    // second, each on its own beat; a stirred letter runs through other
+    // letters, at half that rate, so a scramble reads as a flicker in the
+    // text rather than noise
+    const spin = Math.floor(now() * (opts.text ? 11 : 22));
+    const scrambled = (c, r) => charOf.get(SCRAMBLE[Math.floor(hash(c, r, 20 + spin) * SCRAMBLE.length)]);
     let changed = 0;
     for (let r = 0; r < rows; r++) {
       const veil = r === veiled[0] || r === veiled[1];
@@ -934,7 +987,7 @@ export function mountSlashField(el) {
           const level = Math.min(2 * LEVELS, Math.ceil(Math.max(heat[i], glow[i], settled[i] ? REST : 0) * LEVELS));
           const red = signal[i] ? Math.ceil(Math.min(1, signal[i]) * SIGNAL_LEVELS) : 0;
           k = red * (2 * LEVELS + 1) + level;
-          g = stir[i] ? 1 + Math.floor(hash(c, r, 20 + spin) * 3) : glyph[i];
+          g = stir[i] ? (opts.text ? scrambled(c, r) : 1 + Math.floor(hash(c, r, 20 + spin) * 3)) : glyph[i];
         }
         if (k === tint[i] && g === shown[i]) continue;
         tint[i] = k;
@@ -1498,6 +1551,8 @@ export function mountSlashField(el) {
   // The stroke that runs closest to the way (ex, ey) does, or 0 if none of
   // the three is near enough to it to read as following it.
   function strokeAlong(ex, ey) {
+    // a letter never turns to follow a shape: it stays, or is cut
+    if (opts.text) return 0;
     const run = Math.hypot(ex, ey) || 1;
     const w = cellW * (1 - 2 * INSET_X);
     const h = cellH * (1 - 2 * INSET_Y);
@@ -1530,8 +1585,9 @@ export function mountSlashField(el) {
     const clearance = margin + opts.stroke / 2;
     // past this from a cell's middle, nothing of its stroke can be in reach
     const far = Math.max(clearance + Math.hypot(cellW, cellH) / 2, echo);
+    // (a letter as the upright stroke: its cell's height, down its middle)
     const clears = (c, r, g) => {
-      const [ax, ay, bx, by] = strokeEnds(c, r, g, gx, gy);
+      const [ax, ay, bx, by] = strokeEnds(c, r, opts.text ? 2 : g, gx, gy);
       for (let k = 0; k <= 4; k++) if (shape(ax + ((bx - ax) * k) / 4, ay + ((by - ay) * k) / 4)[0] < clearance) return false;
       return true;
     };
@@ -1548,6 +1604,8 @@ export function mountSlashField(el) {
         const [d, ex, ey] = shape(x, y);
         if (d >= far) continue;
         if (!glyph[i]) {
+          // (a space in the text stays a space)
+          if (opts.text) continue;
           const fill = strokeAlong(ex, ey) || 1 + Math.floor(hash(c, r, 4) * 3);
           if (d < echo && clears(c, r, fill)) onTurn(i, fill, sweep(x, y));
           continue;
@@ -1930,8 +1988,92 @@ export function mountSlashField(el) {
       plan(SEQUENCE.settle);
       return;
     }
+    if (opts.motion === "scatter") return scatter();
     send();
     planNext();
+  }
+
+  /* ---------- the scatter: dispersed scrambles in place of the wave ---------- */
+  let speckCall = null;
+  let wordCall = null;
+  let lastWord = null;
+  function scatter() {
+    if (!speckCall) speckCall = gsap.delayedCall(between(SCATTER.every), speck);
+    if (!wordCall) wordCall = gsap.delayedCall(between(SCATTER.word) * 0.5, wordMoment);
+  }
+  function stopScatter() {
+    speckCall?.kill();
+    wordCall?.kill();
+    speckCall = wordCall = null;
+  }
+  // the container's own cells, rows then columns, first and last (the field
+  // runs on past it, cropped)
+  const ownCells = () => [Math.ceil(oy / cellH), Math.floor((oy + height) / cellH) - 1, Math.ceil(ox / cellW), Math.floor((ox + width) / cellW) - 1];
+  // a few runs of a few characters somewhere, scrambling a moment
+  function speck() {
+    speckCall = null;
+    if (!running()) return;
+    const [r0, r1, c0, c1] = ownCells();
+    for (let m = Math.round(between(SCATTER.runs)); m > 0; m--) {
+      const r = r0 + Math.floor(Math.random() * (r1 - r0 + 1));
+      const n = Math.round(between(SCATTER.cluster));
+      const c = c0 + Math.floor(Math.random() * Math.max(1, c1 - c0 - n));
+      for (let k = 0; k < n; k++) {
+        const i = r * cols + c + k;
+        if (!glyph[i] || gone[i] || taken[i]) continue;
+        const turn = between(SCATTER.stir);
+        if (turn > stir[i]) stir[i] = turn;
+        light(i, SCATTER.ink * (0.5 + 0.5 * Math.random()), 0, SCATTER.flash * Math.random());
+      }
+    }
+    wake();
+    speckCall = gsap.delayedCall(between(SCATTER.every), speck);
+  }
+  // a word chosen at random coming online, and its neighbourhood lit
+  function wordMoment() {
+    wordCall = null;
+    if (!running()) return;
+    const ready = words.filter((w) => !live.has(w) && !unborn(w) && !holeWords.includes(w) && !w.label.hidden);
+    const pool = ready.length > 1 ? ready.filter((w) => w !== lastWord) : ready;
+    const word = pool[Math.floor(Math.random() * pool.length)];
+    if (word) {
+      lastWord = word;
+      arrive(word, Math.random() < 0.5 ? 1 : -1, "major", SCATTER.hold);
+      glowAround(word);
+    }
+    wordCall = gsap.delayedCall(between(SCATTER.word), wordMoment);
+  }
+  // The characters round a word: picked more often the nearer they are,
+  // each scrambling at its own random moment of the spell (never in order
+  // of distance, so nothing travels out of the word), a share of them in
+  // the red, nearer ones more often.
+  function glowAround(word) {
+    const g = SCATTER.glow;
+    const list = [];
+    for (let dr = -g.rows; dr <= g.rows; dr++) {
+      const r = word.r + dr;
+      if (r < 0 || r >= rows) continue;
+      for (let c = word.c - g.cols; c < word.c + word.n + g.cols; c++) {
+        if (c < 0 || c >= cols) continue;
+        const i = r * cols + c;
+        if (!glyph[i] || gone[i] || taken[i]) continue;
+        const dx = c < word.c ? word.c - c : c >= word.c + word.n ? c - word.c - word.n + 1 : 0;
+        const d = Math.hypot(dx / g.cols, dr / (g.rows + 0.5));
+        if (d >= 1 || Math.random() > g.pick * (1 - d)) continue;
+        const near = 1 - d;
+        list.push({
+          at: Math.random() * g.time,
+          i,
+          op: FLASH,
+          ink: g.ink * near,
+          flash: g.flash * near,
+          red: Math.random() < g.red * near * near ? 0.5 + 0.5 * near : 0,
+          hold: g.hold,
+          turn: between(g.turn),
+        });
+      }
+    }
+    schedule(list);
   }
 
   // the front after the last one sent: once that is a share of the way
@@ -1949,6 +2091,8 @@ export function mountSlashField(el) {
     next?.kill();
     next = null;
     if (!running()) return;
+    // (the scatter takes over there instead, with no front)
+    if (opts.motion === "scatter") return scatter();
     send({ enter: true });
     planNext();
   }
@@ -2018,6 +2162,7 @@ export function mountSlashField(el) {
   function stopSequence() {
     next?.kill();
     next = null;
+    stopScatter();
     live.forEach(({ timeline, split }, word) => {
       timeline.kill();
       split.revert();
@@ -2161,5 +2306,17 @@ export function mountSlashField(el) {
   // then, if it was still loading (laid out with it already there, the
   // field is right as it is, and a second layout would draw it all again)
   if (document.fonts?.status === "loading") document.fonts.ready.then(() => instance.refresh());
+  // Text: the characters are drawn in the label face, which the canvas can
+  // use only once it is loaded; if it was not, every character is drawn
+  // again then, in place (not laid out again, which would stop whatever the
+  // field is doing, the intro's choreography included).
+  if (opts.text && document.fonts && !document.fonts.check(`${opts.font}px "Geist Mono"`)) {
+    document.fonts.load(`${opts.font}px "Geist Mono"`).then(() => {
+      if (el.slashField !== instance || !opts.text) return;
+      resetAtlas();
+      blank(cols * rows);
+      draw();
+    });
+  }
   return instance;
 }

@@ -1,22 +1,15 @@
 /* ============================================================
-   Service deck — the four routes as cards that stack as the page
-   scrolls (src/components/ServiceDeck.astro)
+   Service deck — the four routes as cards in a grid, two by two
+   (src/components/ServiceDeck.astro)
    ------------------------------------------------------------
-   Four bands, the page's full width, all one charcoal, each after the
-   first parted from the one before by the site's dotted rule. Each card is
-   sticky under the nav, its top a head lower than the card before
-   (--deck-head × its index), and every card the one height: as tall as
-   leaves the last, stuck lowest under the heads of the three before it,
-   its foot on the screen's foot. As the page scrolls the next card
-   slides up over the one below and the heads of the cards passed stand
-   in a pile at the top, each showing its number and name, with the card
-   in front whole under them. The deck's own height is the four cards in
-   flow and nothing more, so the moment the last card lands the pile is
-   let go and the page scrolls on as normal. CSS alone (position: sticky): nothing is measured or moved
-   by a script, so it follows the scroll exactly and runs back exactly.
+   Four cards open on the section's ink, all in view at once: from 992px
+   two across and two down, each a little under six Grid Columns wide and
+   the one shape (3:2), set a little out of line; below it one under
+   another. Nothing moves with the scroll. Each card is a folder of
+   paper ("A deck card: a paper folder", at the end).
 
-   Inside a card, on the 12-Column Grid, two left edges only: Grid
-   Column 1 for the number and Grid Column 2 for everything else, and one
+   A service page's hero, which once was the card at the screen's size,
+   keeps the class names and the twelve columns described here, with one
    right edge before the panel, the end of Grid Column 7.
 
      - The head row is the name's line: the number in the label face on
@@ -37,14 +30,12 @@
    view: the card's top inset, the name's line and the same inset again
    under it, so a piled name never touches the card over it.
 
-   Each card opens into its service page, whose hero is the card at the
-   screen's size (ServiceHero.astro, "Service hero" below), on the same
-   measures: the tokens are the card's, the hero's and the opening
-   sheet's alike (service-sheet.js, "Service sheet" below).
+   Each card leads to its service page, whose hero is built from the
+   card's parts (ServiceHero.astro, "Service hero" below): the tokens are
+   the card's and the hero's alike.
    ============================================================ */
 .service-deck,
-.service-hero,
-.service-sheet {
+.service-hero {
   /* the name's line box; the head row's height */
   --deck-line: 2.25rem;
   /* the air over the name (the card's top inset) and under it */
@@ -56,44 +47,68 @@
      stands down from the top (nav.css, --nav-float-top) and a little more
      of its own, so the first head never crowds the bar */
   --deck-top: round(calc(var(--nav-h) + 2.5rem), 1px);
-  /* the dotted rule between the cards: small square dots, close set,
-     drawn from the rule's own left edge so every dot lands whole */
-  --deck-dot: 2px;
-  --deck-rule: linear-gradient(to right, rgba(255, 255, 255, 0.42) 0 var(--deck-dot), transparent var(--deck-dot)) 0 0 / 7px var(--deck-dot) repeat-x;
   --deck-pad: var(--grid-margin);
-  /* how many heads pile above the last card (set from the card count) */
+  /* how many heads a service page's hero leaves room for over its
+     drawing (the pile the deck once stacked into) */
   --deck-steps: 3;
   position: relative;
 
   color: var(--c-white);
 }
-/* Every card shows the one size, but runs on under the cards after it by
-   the heads still to pile under it (--deck-tail), so that once the last
-   card lands all four end on one line, the deck's foot: the pile then
-   leaves as one with the page, every head still in its place. (With
-   equal boxes, the deck's foot would push each earlier card down behind
-   the last one in turn.) The next card's negative top margin, as long as
-   the card before's tail, keeps the cards' places in the flow, and so the
-   scroll, as before; it has to be the next card's, since a sticky box is
-   held to its parent by its own margin box. The tail is padding, always
-   under the next card. */
-.service-deck__card {
-  --deck-tail: calc((var(--deck-steps) - var(--i, 0)) * var(--deck-head));
-  position: sticky;
-  top: calc(var(--deck-top) + var(--i, 0) * var(--deck-head));
-  box-sizing: border-box;
-  height: calc(100vh - var(--deck-top) - var(--deck-steps) * var(--deck-head) + var(--deck-tail));
-  height: calc(100svh - var(--deck-top) - var(--deck-steps) * var(--deck-head) + var(--deck-tail));
-  padding: var(--deck-inset) var(--deck-pad) calc(var(--deck-pad) + var(--deck-tail));
-  background: var(--deck-ground);
+/* The grid: from 992px two cards across, each six Grid Columns, a
+   gutter apart both ways, on the grid's margins; every row as tall as
+   the tallest (1fr), so all four stand the one size. Below 992px one
+   across. The section's own room under the last row. */
+.service-deck__grid {
+  /* the room between the cards, both ways; how far in from the grid's
+     margins the cards stand, so they are a little smaller than six Grid
+     Columns; and how far out of line they are set */
+  --deck-gap: 4rem;
+  --deck-inset-x: 1.5rem;
+  --deck-stagger: 3.5rem;
+  /* each card's share of its cell's width, centred in it (its height
+     follows from its shape), so the cards stand a little smaller than
+     their cells with the difference as air round them */
+  --deck-card-scale: 0.9;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: var(--deck-gap);
+  padding: 0 calc(var(--grid-margin) + var(--deck-inset-x)) calc(var(--sec-lg) + var(--deck-stagger));
 }
-/* The section's title (routes.heading), centred over the first card, on
-   the deck's charcoal, in the approach heading's setting
-   (approach-stack.css, .approach-stack__head) */
+/* two across: the right column lower than the left (moved, not laid out
+   again, so the rows keep their one height) */
+.service-deck__card:nth-child(even) { translate: 0 var(--deck-stagger); }
+.service-deck__card { justify-self: center; width: calc(100% * var(--deck-card-scale, 1)); }
+@media screen and (max-width: 991px) {
+  .service-deck__grid { --deck-gap: 3rem; --deck-stagger: 3rem; --deck-card-scale: 0.92; grid-template-columns: minmax(0, 1fr); padding-bottom: var(--sec-lg); }
+  /* one across: each card to one side or the other instead, held to its
+     side as it is made smaller (its share taken of the room its margin
+     leaves) */
+  .service-deck__card { width: calc((100% - var(--deck-stagger)) * var(--deck-card-scale, 1)); }
+  .service-deck__card:nth-child(even) { translate: none; margin-left: var(--deck-stagger); justify-self: end; }
+  .service-deck__card:nth-child(odd) { margin-right: var(--deck-stagger); justify-self: start; }
+}
+@media screen and (max-width: 767px) {
+  /* on a phone the same, a step that keeps the words their width, and
+     the cards on the grid's own margins, at their full width */
+  .service-deck__grid { --deck-gap: 2.5rem; --deck-inset-x: 0px; --deck-stagger: 1rem; --deck-card-scale: 1; }
+}
+/* The section's own ink, under its title and around its cards, a step
+   darker than the cards' charcoal (the logos' and the approach's band,
+   --c-dark-fg); the nav takes its theme from it (nav.js) */
+.service-deck { background: var(--c-dark-fg); }
+/* The section's title (routes.heading), centred over the cards, in
+   the approach heading's setting (approach-stack.css,
+   .approach-stack__head), on two lines: a measure narrower than the
+   whole title and wider than its first three words, balanced, breaks it
+   after "what" at every size. The same room over it as under it, the
+   section's large step (--sec-lg) */
 .service-deck__title {
-  margin: 0;
-  padding: var(--sec-md) var(--deck-pad) calc(var(--sec-md) - var(--deck-inset));
-  background: var(--deck-ground);
+  box-sizing: border-box;
+  width: min(9em, 100% - 2 * var(--deck-pad));
+  margin: 0 auto;
+  padding: var(--sec-lg) 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
   font-size: 4rem;
@@ -109,13 +124,9 @@
 @media screen and (max-width: 767px) {
   .service-deck__title { font-size: 2.25rem; }
 }
-/* every card the one charcoal, with no rule between them: each piled
-   head is parted from the next by its own air alone */
-.service-deck, .service-hero, .service-sheet { --deck-ground: #161616; }
-/* each card starts over the card before's tail, and a pixel more, so no
-   hairline of the page shows between two while they stack ("Seams",
-   styles.css) */
-.service-deck__card + .service-deck__card { margin-top: calc(-1px - (var(--deck-steps) - var(--i) + 1) * var(--deck-head)); }
+/* a service page's hero in one charcoal (the deck's cards have their
+   paper: .deck-folder, below) */
+.service-deck, .service-hero { --deck-ground: #161616; }
 
 /* the grid: the head row the name's line, the body under it after the
    same air the name has over it */
@@ -156,20 +167,10 @@
   line-height: 1;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
 }
-/* the way on: at the end of Grid Column 7, centred on the name's line,
-   a solid square a few steps lighter than the card's charcoal, its
-   corners the barest round (a pixel), with a plain arrow in white,
-   pointing on (LineArrow.astro). The whole card is its link (the ::after
-   stretched over the card), so pointing anywhere on the card lights the
-   square white, the arrow in the ink turning to point up and on, and a click
-   anywhere on it opens the route's page. */
-.service-deck__card { cursor: pointer; }
-.service-deck__card .service-deck__go::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
+/* the way on, on a service page's hero: at the end of Grid Column 7,
+   centred on the name's line, a solid square a few steps lighter than
+   the charcoal, its corners the barest round (a pixel), with a plain
+   arrow in white (LineArrow.astro) */
 .service-deck__go {
   grid-column: 7;
   grid-row: 1;
@@ -191,14 +192,6 @@
   height: auto;
   transition: transform 0.5s var(--ease-osmo);
 }
-@media (hover: hover) {
-  .service-deck__card:hover .service-deck__go { background: var(--c-white); color: var(--c-text); }
-  .service-deck__card:hover .service-deck__arrow { transform: rotate(-45deg); }
-}
-/* clicked, while its page is still on its way (service-sheet.js): held
-   lit, as under the pointer, so a tap is answered at once */
-.service-deck__card[data-sheet-opening] .service-deck__go { background: var(--c-white); color: var(--c-text); }
-.service-deck__card[data-sheet-opening] .service-deck__arrow { transform: rotate(-45deg); }
 .service-deck__go:focus-visible { outline: 1px solid var(--c-white); outline-offset: 3px; background: var(--c-white); color: var(--c-text); }
 
 /* --- The two cells ---------------------------------------------- */
@@ -270,8 +263,7 @@
    plates filled with the card's charcoal so each hides the ground under
    it, and the ground lies under everything in the card (its own layer:
    isolation), held back enough that the words read over it. The panel
-   is marked on itself (is--grounded), as it is taken out of the card's
-   page into a window of its own while the card opens (service-sheet.js). */
+   is marked on itself (is--grounded). */
 .has--ground { isolation: isolate; }
 .has--ground > .service-ground { z-index: -1; }
 /* the dash-dot lines, the Blueprint's and the Workshop's laid flat: the
@@ -287,15 +279,12 @@
   background: transparent;
 }
 
-/* Below 992px, six columns: the number on Grid Column 1, the name on
-   Grid Columns 2–5 and the square at the end of Grid Column 6; under
-   them the two cells one over the other on Grid Columns 2–3 and the
-   panel on Grid Columns 4–6, from the body's top to the foot. Below
-   768px, one column, the cards in the flow rather than stacked (a
-   phone's screen is too short for the pile): the number, the name and
-   the square on one line, then the cells and the panel the full width. */
+/* Below 992px, six columns, the same for the cards and a service page's
+   hero (above, for a card). Below 768px, one column: the number, the
+   name and the square on one line, then the cells and the panel the
+   full width. */
 @media screen and (max-width: 991px) {
-  :is(.service-deck, .service-hero, .service-sheet) { --deck-line: 2.25rem; --deck-inset: 1rem; }
+  :is(.service-deck, .service-hero) { --deck-line: 2.25rem; --deck-inset: 1rem; }
   .service-deck__inner { grid-template-columns: repeat(6, minmax(0, 1fr)); grid-template-rows: var(--deck-line) auto minmax(0, 1fr); }
   .service-deck__h { grid-column: 2 / 6; font-size: 1.875rem; }
   .service-deck__go { grid-column: 6; width: 2rem; height: 2rem; }
@@ -306,7 +295,6 @@
   .service-deck__media { grid-column: 4 / 7; grid-row: 2 / 4; margin-top: var(--deck-inset); }
 }
 @media screen and (max-width: 767px) {
-  .service-deck__card { --deck-tail: 0px; position: relative; top: auto; height: auto; padding-block: 2rem; }
   .service-deck__inner { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-rows: auto; row-gap: 1.5rem; height: auto; }
   .service-deck__n { grid-column: 1; grid-row: 1; margin-right: 1rem; }
   .service-deck__h { grid-column: 2; grid-row: 1; font-size: 1.5rem; white-space: normal; }
@@ -319,8 +307,7 @@
    Service hero — a service page's opening: the deck's card at the
    screen's size (ServiceHero.astro)
    ------------------------------------------------------------
-   The card's own parts on the card's own measures, so the card opened
-   (service-sheet.js) is this, part for part: the one charcoal, the head
+   The card's own parts on the card's own measures: the one charcoal, the head
    row (the number on Grid Column 1, the name from Grid Column 2 at the
    card's size, the square at the end of Grid Column 7), the list on
    Grid Columns 5–7, the panel on Grid Columns 8–12 from the name's line
@@ -391,8 +378,7 @@
 /* a text link's chevron, drawn black, in the hero's white */
 .service-hero .btn--link .icon { filter: invert(1); }
 .service-hero .service-deck__media { grid-row: 1 / -1; }
-/* the drawing and its lattice, one layer, so the two move as one as a
-   card opens (service-sheet.js) */
+/* the drawing and its lattice, one layer */
 .service-deck__art {
   position: absolute;
   inset: 0;
@@ -450,77 +436,373 @@
 }
 
 /* ============================================================
-   Service sheet — a card opening into its page (service-sheet.js)
+   A deck card: a paper folder (ServiceDeck.astro)
    ------------------------------------------------------------
-   For the length of the opening, a layer over everything, the nav
-   included: the stack dimmed under it (__shade), a soft shadow under
-   its foot (__edge) as it lifts off the cards in front, and the page's
-   hero, as fetched, cut to the card's shape and opened to the screen's
-   (__page, in a window: __win), with the card's own line over it for as long as it
-   fades and the dotted rule along its top edge (from the deck's second
-   card on). What the card does not have is laid out but not shown
-   (data-sheet-hide); the lattice runs past the panel on every side, so
-   that, drawn as small as the card's, it still fills it.
+   Each route a folder of paper on the section's ink: a front, and one
+   sheet inside it a step darker, standing a little up past its top edge,
+   so even at rest the card reads as a folder with something in it,
+   opening from the top. The front is the card: a mono label row
+   over a hairline (the route's number and its format), the name and its
+   line, the route's number large on the right, and at the foot what kind
+   of route it is and the way on. Its top edge dips in at the middle (a
+   notch, where the middle sheet's own words show through).
+
+   Pointed at, or reached by the keyboard, the folder opens a little: the
+   front tips forward a few degrees on its foot, as a folder's front does
+   when it is opened, and the sheet inside lifts a touch out of it, in
+   perspective; let go, all of it
+   settles back on the same curve. Transforms alone; on a touch screen a
+   press opens it; with reduced motion it is the same, at once. The
+   paper is plain, with no grain.
    ============================================================ */
-.service-sheet {
-  position: fixed;
-  inset: 0;
-  z-index: 140;
-  overflow: clip;
-  color: var(--c-white);
-  /* nothing under it is to be clicked while it opens */
-  pointer-events: auto;
+.deck-folder {
+  --paper: #ecece9;
+  --paper-sheet: #d9d9d5;
+  --folder-ink: var(--c-dark-fg);
+  --folder-r: 0.5rem;
+  --folder-pad: 1.75rem;
+  /* the notch in the front's top edge: how deep, and half how wide */
+  --notch-d: 0.75rem;
+  --notch-h: 4.25rem;
+  /* how far the sheet inside stands up past the front at rest */
+  --sheet-out: 1rem;
+  /* opened: the front tipped forward on its foot, and the sheet lifted */
+  --open-front: rotateX(-3deg) translate3d(0, 0.125rem, 0.5rem);
+  --open-sheet: translate3d(0, -0.5rem, 0);
+  --folder-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --folder-time: 0.6s;
+  position: relative;
+  min-width: 0;
+  /* room over the front for the sheet standing up past it */
+  padding-top: var(--sheet-out);
+  /* the front fills the card: where the rows share one height (below
+     992px), a shorter card's sheet, sized to the card, showed under its
+     front */
+  display: flex;
+  flex-direction: column;
+  perspective: 1400px;
+  color: var(--folder-ink);
+  cursor: pointer;
 }
-.service-sheet__shade {
+
+/* the sheet inside: a little narrower than the front either side, set
+   up past its top edge, plain paper with a shade along its top */
+.deck-folder__sheet {
+  position: absolute;
+  inset: 0 0.875rem var(--sheet-out) 0.875rem;
+  overflow: hidden;
+  border-radius: var(--folder-r);
+  background: linear-gradient(to bottom, rgba(10, 10, 10, 0.06), transparent 1.25rem), var(--paper-sheet);
+  transform-origin: 50% 100%;
+  transition: transform var(--folder-time) var(--folder-ease);
+}
+/* the sheet's own page: what the route covers, a line across it
+   just under the front's top edge, so it shows only through the notch,
+   and still only there with the sheet lifted */
+.deck-folder__page {
+  position: absolute;
+  top: calc(var(--sheet-out) + 0.15rem);
+  left: 50%;
+  /* no wider than the notch, so it shows there and nowhere else */
+  width: calc(1.7 * var(--notch-h));
+  overflow: hidden;
+  justify-content: center;
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  translate: -50% 0;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--folder-ink) 62%, transparent);
+}
+
+/* the front sheet, the card itself: as tall as its words need, at least
+   3:2 */
+.deck-folder__front {
+  flex: 1 0 auto;
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  container-type: inline-size;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  column-gap: 1.5rem;
+  aspect-ratio: 3 / 2;
+  padding: calc(var(--folder-pad) + var(--notch-d) * 0.5) var(--folder-pad) var(--folder-pad);
+  border-radius: var(--folder-r);
+  background: var(--paper);
+  transform-origin: 50% 100%;
+  transition: transform var(--folder-time) var(--folder-ease);
+}
+/* the notch, where the browser draws the outline as one shape: the
+   front's rounded box with its top edge easing down and up again at its
+   middle */
+@supports (clip-path: shape(from 0 0, line to 1px 1px)) {
+  .deck-folder__front {
+    clip-path: shape(from var(--folder-r) 0,
+      hline to calc(50% - var(--notch-h)),
+      curve to 50% var(--notch-d)
+        with calc(50% - 0.45 * var(--notch-h)) 0 / calc(50% - 0.55 * var(--notch-h)) var(--notch-d),
+      curve to calc(50% + var(--notch-h)) 0
+        with calc(50% + 0.55 * var(--notch-h)) var(--notch-d) / calc(50% + 0.45 * var(--notch-h)) 0,
+      hline to calc(100% - var(--folder-r)),
+      arc to 100% var(--folder-r) of var(--folder-r) cw,
+      vline to calc(100% - var(--folder-r)),
+      arc to calc(100% - var(--folder-r)) 100% of var(--folder-r) cw,
+      hline to var(--folder-r),
+      arc to 0 calc(100% - var(--folder-r)) of var(--folder-r) cw,
+      vline to var(--folder-r),
+      arc to var(--folder-r) 0 of var(--folder-r) cw,
+      close);
+  }
+}
+
+/* the label row over a hairline: the route's number, and its format */
+.deck-folder__label {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--folder-ink) 12%, transparent);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in srgb, var(--folder-ink) 66%, transparent);
+}
+/* the name and its line, on the left, low in the sheet */
+.deck-folder__body {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  padding-top: 1.25rem;
+}
+.deck-folder__h {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: 1.875rem;
+  line-height: 1.02;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  text-wrap: balance;
+}
+.deck-folder__p {
+  max-width: 24em;
+  margin: 0.75rem 0 0;
+  font-size: var(--t-sm);
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--folder-ink) 78%, transparent);
+}
+/* the number, large, on the right (a share of the sheet's width, so it
+   keeps its place in the sheet at every size) */
+.deck-folder__n {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: center;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 23cqw;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+}
+/* the foot: what kind of route, in a pill, and the way on */
+.deck-folder__foot {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in srgb, var(--folder-ink) 70%, transparent);
+}
+.deck-folder__kind {
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--folder-ink) 28%, transparent);
+  border-radius: 0.3125rem;
+}
+.deck-folder__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.deck-folder__go svg {
+  width: 0.75rem;
+  height: 0.75rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+}
+
+/* the whole card one control: the link to its route's page, or the
+   button that opens its document (DeckFolder.astro), with none of a
+   button's own chrome */
+.deck-folder__link {
   position: absolute;
   inset: 0;
-  background: #000;
-  opacity: 0;
+  z-index: 2;
+  border-radius: var(--folder-r);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  cursor: pointer;
 }
-.service-sheet__edge {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 6rem;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.18) 35%, transparent);
-  opacity: 0;
+.deck-folder__link:focus-visible { outline: 1px solid var(--c-white); outline-offset: 4px; }
+
+/* Open: the front up off the sheets and swung back on its left edge, the
+   sheets out from under it (pointed at, focused, or pressed on a touch
+   screen) */
+.deck-folder:focus-within .deck-folder__front { transform: var(--open-front); }
+.deck-folder:focus-within .deck-folder__sheet { transform: var(--open-sheet); }
+@media (hover: hover) and (pointer: fine) {
+  .deck-folder:hover .deck-folder__front { transform: var(--open-front); }
+  .deck-folder:hover .deck-folder__sheet { transform: var(--open-sheet); }
 }
-.service-sheet__page {
-  position: absolute;
-  inset: 0;
+@media not ((hover: hover) and (pointer: fine)) {
+  .deck-folder:active .deck-folder__front { transform: var(--open-front); }
+  .deck-folder:active .deck-folder__sheet { transform: var(--open-sheet); }
 }
-.service-sheet__page > .service-hero {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
+/* Pulled: its document is being drawn out of it (folder-docs.js), so it
+   opens further than the pointer opens it, and holds there until the
+   document goes back in */
+.deck-folder.is--pulled {
+  --open-front: rotateX(-7deg) translate3d(0, 0.25rem, 1rem);
+  --open-sheet: translate3d(0, -1.75rem, 0);
+  /* opened briskly as the paper is drawn out; it settles back at the
+     folder's own pace */
+  --folder-time: 0.32s;
 }
-/* a window (service-sheet.js, windowed): each box clips, and moves only by
-   a transform */
-.service-sheet__win {
-  position: absolute;
-  inset: 0;
-  overflow: clip;
+.deck-folder.is--pulled .deck-folder__front { transform: var(--open-front); }
+.deck-folder.is--pulled .deck-folder__sheet { transform: var(--open-sheet); }
+@media (prefers-reduced-motion: reduce) {
+  .deck-folder__front,
+  .deck-folder__sheet { transition: none; }
 }
-/* the panel in its own window, at its place on the hero */
-.service-sheet__panel { position: absolute; }
-/* what fades or moves while the sheet opens, each on a layer of its own
-   for the length of it (the sheet is taken out after), so a frame of the
-   opening is the compositor's alone */
-.service-sheet__shade,
-.service-sheet__line { will-change: opacity; }
-.service-sheet__edge,
-.service-sheet__rule { will-change: transform, opacity; }
-.service-sheet .is--sheet-panel { position: absolute; inset: 0; margin: 0; }
-.service-sheet [data-sheet-hide] { visibility: hidden; }
-.service-sheet .service-deck__pattern { inset: -15%; }
-.service-sheet__line { position: absolute; margin: 0; }
-.service-sheet__rule {
-  position: absolute;
-  top: 0;
-  left: round(var(--deck-pad), 1px);
-  right: round(var(--deck-pad), 1px);
-  height: var(--deck-dot);
-  background: var(--deck-rule);
+
+@media screen and (max-width: 767px) {
+  .deck-folder { --folder-pad: 1.25rem; --notch-h: 3.25rem; --notch-d: 0.625rem; --sheet-out: 0.875rem; }
+  .deck-folder__h { font-size: 1.5rem; }
+  .deck-folder__front { aspect-ratio: auto; min-height: 15rem; }
+}
+
+/* ============================================================
+   From 992px, two columns: the section's title on the left, from Grid
+   Column 2, a step under the first card's top and held that far under
+   the nav while the cards go by; the four cards from the middle, Grid
+   Columns 6–10, one under another, a size that lets more than one show
+   at once; and on Grid Column 12 a word of its own in the label face,
+   held level with the title.
+
+   The cards are the section's own rows (their grid stands aside), so the
+   title and the word can be held over the first three alone: each is
+   sticky in a run of its own (.service-deck__hold, rows 1–3; a sticky
+   grid item is held for the whole grid, not its rows), no height of its
+   own (its words hang from its top) and its foot margin drawn back by
+   the gap, so it lets go as its top reaches the last card's top, and
+   from there goes up the page with that card, level with it, as it began
+   level with the first. Below 992px the runs stand aside too.
+   ============================================================ */
+@media screen and (min-width: 992px) {
+  .service-deck {
+    --deck-row-gap: 3.5rem;
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--grid-gutter);
+    row-gap: var(--deck-row-gap);
+    align-items: start;
+    padding: var(--sec-lg) var(--grid-margin);
+  }
+  .service-deck__hold {
+    grid-column: 2 / 6;
+    /* over every card but the last (ServiceDeck.astro sets the count) */
+    grid-row: 1 / var(--deck-count, 4);
+    align-self: stretch;
+  }
+  .service-deck__hold.is--aside { grid-column: 12; }
+  .service-deck__title {
+    position: sticky;
+    top: calc(var(--deck-top) + 3rem);
+    width: auto;
+    height: 0;
+    margin: 3rem 0 calc(-1 * var(--deck-row-gap));
+    font-size: 3rem;
+    padding: 0;
+    text-align: left;
+  }
+  .service-deck__grid { display: contents; }
+  .service-deck__card {
+    grid-column: 6 / 11;
+    width: auto;
+    justify-self: stretch;
+  }
+  .service-deck__card:nth-child(even) { translate: none; }
+  .service-deck__aside {
+    display: block;
+    position: sticky;
+    top: calc(var(--deck-top) + 3rem);
+    height: 0;
+    margin: 3rem 0 calc(-1 * var(--deck-row-gap));
+    font-family: var(--font-mono);
+    font-size: var(--t-xs);
+    font-weight: var(--fw-label);
+    letter-spacing: var(--label-tracking);
+    text-transform: uppercase;
+    line-height: 1;
+    color: color-mix(in srgb, var(--c-white) 62%, transparent);
+  }
+}
+@media screen and (max-width: 991px) {
+  .service-deck__hold { display: contents; }
+  .service-deck__aside { display: none; }
+}
+
+/* A line under the held title (lede): the two held together, the title
+   in its own setting, the line a step under the body size, on the title's
+   measure */
+.service-deck__lede {
+  max-width: 22rem;
+  margin: 1.5rem 0 0;
+  font-size: var(--t-rg);
+  line-height: 1.45;
+  color: color-mix(in srgb, currentColor 72%, transparent);
+  text-wrap: pretty;
+}
+@media screen and (min-width: 992px) {
+  /* the pair held as the title alone is (above): sticky, no height of its
+     own, its foot drawn back by the gap */
+  .service-deck__lead {
+    position: sticky;
+    top: calc(var(--deck-top) + 3rem);
+    height: 0;
+    margin: 3rem 0 calc(-1 * var(--deck-row-gap));
+  }
+  .service-deck__lead > .service-deck__title {
+    position: static;
+    height: auto;
+    margin: 0;
+  }
+}
+@media screen and (max-width: 991px) {
+  /* over the cards, centred, the room under the title moved under the line */
+  .service-deck__lead { padding: var(--sec-lg) var(--deck-pad); text-align: center; }
+  .service-deck__lead > .service-deck__title { padding: 0; }
+  .service-deck__lede { margin-inline: auto; }
 }

@@ -1,0 +1,40 @@
+---
+/*
+  A drafting grid as a ground: large squares, each divided by thinner
+  lines into smaller ones, the lines running on past the outer large
+  lines to the edges of its box (bleed: that many small squares each
+  way), so the grid reads as a sheet that carries on, not a panel boxed
+  inside its box. Both weights of line under a pixel, held back in the
+  ink's own colour (styles.css, "Line grid").
+
+  Drawn once as one svg the size of its box. A box of the drawing's own
+  shape (line-grid.ts) shows it whole, its outer large lines that many
+  small squares in from each edge; any other shape is filled and the
+  rest cropped (slice), so its squares stay square. The lines keep their
+  weight at any scale (non-scaling strokes), in currentColor: black on a
+  light ground, light on a dark one, following that ink as it changes.
+
+  Used by the nav's Workflow Workshop card (ServiceCard.astro, grid).
+*/
+import { lineGridSize, type LineGridShape } from "./line-grid";
+
+type Props = LineGridShape & { class?: string };
+const { cols, rows, sub = 4, bleed = 1, class: className } = Astro.props;
+const { width: W, height: H } = lineGridSize({ cols, rows, sub, bleed });
+
+// every small square's line inside the box (not on its edges), sorted
+// into the large squares' lines (a whole number of large squares from
+// the first, up to the last) and the rest
+const inside = (n: number) => Array.from({ length: n - 1 }, (_, i) => i + 1);
+const isMajor = (v: number, count: number) => v >= bleed && v <= bleed + count * sub && (v - bleed) % sub === 0;
+const xs = inside(W);
+const ys = inside(H);
+const across = (x: number) => `M${x} 0V${H}`;
+const down = (y: number) => `M0 ${y}H${W}`;
+const minor = [...xs.filter((x) => !isMajor(x, cols)).map(across), ...ys.filter((y) => !isMajor(y, rows)).map(down)].join("");
+const major = [...xs.filter((x) => isMajor(x, cols)).map(across), ...ys.filter((y) => isMajor(y, rows)).map(down)].join("");
+---
+<svg class:list={["line-grid", className]} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+  <path class="line-grid__minor" d={minor} />
+  <path class="line-grid__major" d={major} />
+</svg>

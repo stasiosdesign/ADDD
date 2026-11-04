@@ -54,12 +54,13 @@ export const homePage = defineType({
       textField('The paragraph.'),
       buttonField('Links to the About page.'),
     ]),
-    pageSection('fit', 'FAQ', 'The questions near the foot of the page: the heading, and two questions, each answered by its list: who ADDD is for, and who it is not primarily for.', [
+    pageSection('fit', 'FAQ', 'The questions near the foot of the page: the heading, two questions, each answered by its list (who ADDD is for, and who it is not primarily for), then further questions, each with its answer. All start closed.', [
       headingField('The heading beside the questions.', 'faqHeading', 'Heading'),
       headingField('The first question.', 'forQuestion', 'First question'),
       linesField('forItems', 'First answer', 'One point per line.'),
       headingField('The second question.', 'notQuestion', 'Second question'),
       linesField('notItems', 'Second answer', 'One point per line.'),
+      itemsField('questions', 'More questions', 'faqItem', 'The questions after the two above, in order, each with its answer.'),
       // the comparison the questions replaced: no longer shown, kept while
       // the live site still reads them
       ...sectionHead().map((f) => ({...f, hidden: true})),

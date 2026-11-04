@@ -1,7 +1,7 @@
 ---
 /*
   Question-and-answer accordion (src/styles/accordion.css, initAccordions()
-  in src/scripts/site.js). The first item starts open, and opening one item
+  in src/scripts/site.js). Every item starts closed, and opening one item
   closes the others. Each answer opens to its own height on the site's
   curve (grid rows from 0fr to 1fr, after Osmo's CSS accordion), so the
   questions under it move down with it rather than jumping.
@@ -46,12 +46,11 @@ const { id, items, field, variant = "tiles" } = Astro.props;
 <div data-accordion-init data-accordion-close-siblings="true" class:list={["accordion", { "is--boxed": variant === "boxed" }]}>
   <ul class="accordion__list" data-page-list={field}>
     {items.map(({ _key, question, answer, points, mark = "fill", questionField, pointsField }, i) => {
-      const open = i === 0;
       const answerId = `${id}-answer-${i + 1}`;
       return (
-        <li data-accordion-status={open ? "active" : "not-active"} class="accordion__item" data-page-item={field ? _key : undefined}>
+        <li data-accordion-status="not-active" class="accordion__item" data-page-item={field ? _key : undefined}>
           <h3 class="accordion__heading">
-            <button type="button" data-accordion-toggle aria-expanded={open ? "true" : "false"} aria-controls={answerId} class="accordion__toggle">
+            <button type="button" data-accordion-toggle aria-expanded="false" aria-controls={answerId} class="accordion__toggle">
               <span data-page-item-field={field ? "question" : undefined} data-page-field={questionField}>{question}</span>
               <span class="accordion__icon" aria-hidden="true"><svg class="accordion__icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></span>
             </button>

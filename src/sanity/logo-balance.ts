@@ -37,6 +37,20 @@ export async function logoShape(src: string, width?: number, height?: number): P
   return (ink.aspect ** SHAPE_WEIGHT * nudge) / ink.width;
 }
 
+/** A local PNG's own size, from its header: for a mark that comes without
+    one (a default, not the Studio's), so its picture holds its room before
+    it has loaded and nothing round it moves as it arrives */
+export async function pngSize(src: string): Promise<{ width: number; height: number } | undefined> {
+  if (!src || src.startsWith('http')) return undefined;
+  try {
+    const png = await readFile(join(process.cwd(), 'public', src.replace(/^\//, '')));
+    if (png.readUInt32BE(0) !== 0x89504e47) return undefined;
+    return { width: png.readUInt32BE(16), height: png.readUInt32BE(20) };
+  } catch {
+    return undefined;
+  }
+}
+
 async function readInk(src: string): Promise<Ink | null> {
   const png = src.startsWith('http') ? await fetchPng(src) : await readFile(join(process.cwd(), 'public', src.replace(/^\//, '')));
   const image = decodePng(png);

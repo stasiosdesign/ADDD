@@ -30,6 +30,14 @@
    left, the fill drains out of the far edge and the arrow carries on
    out. Turned round part-way, it runs back from where it is.
 
+   On its own, once the first quote has risen, the slider moves on to the
+   next every AUTOPLAY seconds, round and round, by the same change a
+   press makes. It waits while it is off the screen or the tab is
+   hidden, and while it is pointed at, touched or has the keyboard's
+   focus, so it never moves a quote out from under a reader; a press of
+   a control starts the wait again from the change it makes. Not with
+   reduced motion, nor in the Studio's preview.
+
    With reduced motion, or in the Studio's preview (where the Visual
    editor writes into the quotes), nothing is split: a change fades
    (the count, the attribution and the logo by the stylesheet's own)
@@ -37,18 +45,20 @@
    fill at once.
    ============================================================ */
 
-// a quote's lines (from the reference): each 0.3s, 0.05s after the last,
-// from its own height below
-const LINES = { from: 100, duration: 0.3, stagger: 0.05, ease: "power2.out" };
-// a control's fill and arrow (from the reference)
-const CONTROL = { duration: 0.5, ease: "power4.out" };
+// a quote's lines: each 0.3s, 0.04s after the last, from a little over
+// half its height below (2026-11-03: it was its full height and 0.05s,
+// the reference's, which read as too much travel)
+const LINES = { from: 60, duration: 0.3, stagger: 0.04, ease: "power2.out" };
+// a control's fill and arrow, quick and settled (it was 0.5s on power4)
+const CONTROL = { duration: 0.35, ease: "power3.out" };
 // the plain change's fades (s), the stylesheet's swap fade
 const FADE = 0.3;
-// The quotes' room, eased to the next quote's height as it comes in: a
-// little past it and back, once (elastic, with a long period: about 9% of
-// the change over, then a last hair under, and still), so the section
-// stretches and gathers to each quote rather than snapping.
-const SIZE = { duration: 1.1, ease: "elastic.out(1, 0.7)" };
+// The quotes' room, eased to the next quote's height as it comes in,
+// straight there and settled, no overshoot (2026-11-03: it was elastic,
+// past the height and back, which read as springy)
+const SIZE = { duration: 0.6, ease: "power3.out" };
+// how long each quote stands before the slider moves on by itself (s)
+const AUTOPLAY = 5;
 
 export function mountTestimonialSlider(root, { reducedMotion = false, still = false, shown = () => Promise.resolve(), start = "clamp(top 72%)" } = {}) {
   const quotes = [...root.querySelectorAll("[data-testimonial-quote]")];
@@ -157,6 +167,7 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
           if (revealed) return;
           revealed = true;
           if (!change) runs[current]?.play(0);
+          arm();
         }),
     });
     cleanups.push(() => reveal.kill());
@@ -166,9 +177,11 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
   // The quotes' room is the height of the quote showing, not of the
   // longest: the count, the attribution, the controls, the rule and the
   // section's foot follow it. Set outright at rest and whenever a quote's
-  // height changes (the width, the webfont, a split), eased on a change;
-  // once a change has settled, the page below has moved, so every scroll
-  // position is measured again.
+  // height changes (the width, the webfont, a split), eased on a change.
+  // Once a change has settled the page below has moved, and the page's
+  // own height watch measures every scroll position again (site.js,
+  // watchPageHeight): once, so not here as well, which made every change
+  // cost two whole-page measures mid-scroll.
   // Only from 992px, where the controls stand in the side column, fixed
   // under the logo, clear of the quotes' room. Below it they sit under
   // the quote, so a room that changed would move them under the finger:
@@ -177,7 +190,6 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
   const wide = window.matchMedia("(min-width: 992px)");
   let sizing = null;
   let measured = 0;
-  const remeasure = gsap.delayedCall(0.2, () => ScrollTrigger.refresh()).pause();
   function fit(i, { ease = false } = {}) {
     if (!box) return;
     if (!wide.matches) {
@@ -188,16 +200,13 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
     }
     const h = quotes[i].offsetHeight;
     if (h === measured && !ease) return;
-    // (the first setting is the page's own: measured with it as it loads)
-    const first = !measured;
     measured = h;
     sizing?.kill();
     if (!ease || reducedMotion) {
       gsap.set(box, { height: h });
-      if (!first) remeasure.restart(true);
       return;
     }
-    sizing = gsap.to(box, { height: h, ...SIZE, onComplete: () => ScrollTrigger.refresh() });
+    sizing = gsap.to(box, { height: h, ...SIZE });
   }
   fit(current);
   const resized = new ResizeObserver(() => {
@@ -209,7 +218,6 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
   cleanups.push(() => {
     wide.removeEventListener("change", onWide);
     resized.disconnect();
-    remeasure.kill();
     sizing?.kill();
     if (box) gsap.set(box, { clearProps: "height" });
   });
@@ -248,6 +256,59 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
     if (into) change.add(into.tweenFromTo(0, into.duration(), { ease: "none" }));
   }
 
+  // On its own, every AUTOPLAY seconds from the last change (or from the
+  // moment nothing holds it any more), the next quote, by the same change
+  // a press makes; held while off the screen, hidden, pointed at, touched
+  // or focused. Not with reduced motion or in the Studio.
+  const auto = !plain && total > 1;
+  const hold = { offscreen: true, hidden: document.hidden, pointer: false, focus: false };
+  const tick = gsap.delayedCall(AUTOPLAY, () => {
+    goTo(current + 1);
+    arm();
+  }).pause();
+  function arm() {
+    if (!auto) return;
+    if (revealed && !Object.values(hold).some(Boolean)) tick.restart(true);
+    else tick.pause();
+  }
+  if (auto) {
+    const watch = ScrollTrigger.create({
+      trigger: root,
+      start: "top bottom",
+      end: "bottom top",
+      onToggle: (self) => {
+        hold.offscreen = !self.isActive;
+        arm();
+      },
+    });
+    hold.offscreen = !watch.isActive;
+    const set = (key, on) => () => {
+      hold[key] = on;
+      arm();
+    };
+    const onVisibility = () => set("hidden", document.hidden)();
+    const listen = [
+      ["pointerenter", (e) => e.pointerType === "mouse" && set("pointer", true)()],
+      ["pointerleave", (e) => e.pointerType === "mouse" && set("pointer", false)()],
+      // a touch holds it while the finger is down, and starts the wait again
+      ["pointerdown", (e) => e.pointerType !== "mouse" && set("pointer", true)()],
+      ["pointerup", (e) => e.pointerType !== "mouse" && set("pointer", false)()],
+      ["pointercancel", (e) => e.pointerType !== "mouse" && set("pointer", false)()],
+      // keyboard focus only: a click focuses its control too, and the
+      // pointer already holds it while it is over the slider
+      ["focusin", (e) => e.target.matches(":focus-visible") && set("focus", true)()],
+      ["focusout", (e) => !root.contains(e.relatedTarget) && set("focus", false)()],
+    ];
+    listen.forEach(([type, fn]) => root.addEventListener(type, fn));
+    document.addEventListener("visibilitychange", onVisibility);
+    cleanups.push(() => {
+      tick.kill();
+      watch.kill();
+      listen.forEach(([type, fn]) => root.removeEventListener(type, fn));
+      document.removeEventListener("visibilitychange", onVisibility);
+    });
+  }
+
   // the controls: on hover or keyboard focus the ink slides up into the
   // block from its foot, the arrow turning white as it passes (the white
   // arrow over the fill, both uncovered together), and slides back down
@@ -279,12 +340,16 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
     const onLeave = (e) => e.pointerType === "mouse" && dim();
     const onFocus = () => button.matches(":focus-visible") && light();
     const onBlur = () => dim();
-    const onClick = () => goTo(current + way);
+    const onClick = () => {
+      goTo(current + way);
+      arm();
+    };
     const onKey = (e) => {
       const step = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 }[e.key];
       if (!step) return;
       e.preventDefault();
       goTo(current + step);
+      arm();
     };
     button.addEventListener("pointerenter", onEnter);
     button.addEventListener("pointerleave", onLeave);
