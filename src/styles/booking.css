@@ -1,12 +1,13 @@
 /* ============================================================
    The booking calendar (BookingDialog.astro, booking.js)
    ------------------------------------------------------------
-   A small white card in the middle of the window over the folder
-   documents' scrim (folder-doc.css): a faint dim and a fixed soft blur
-   whose opacity alone is animated. On the card: a label, the title, a
-   line, the month between two small steps, the days Monday first (the
-   ones that can be booked in ink, the others faint, the picked one in
-   ink reversed), the two times, and the request.
+   A white card, wider than tall, in the middle of the window over the
+   folder documents' scrim (folder-doc.css): a faint dim and a fixed soft
+   blur whose opacity alone is animated. On the card: a label, the title,
+   a line, the two times and the request on the left; the month between
+   two small steps and the days Monday first on the right (the ones that
+   can be booked in ink, the others faint, the picked one in ink
+   reversed).
    ============================================================ */
 .booking {
   position: fixed;
@@ -35,16 +36,38 @@
   backdrop-filter: blur(5px);
 }
 
+/* Landscape (2026-11-04): the words over the times on the left, the
+   calendar on the right past a hairline, its month row under the close
+   button's room; the times set down at the foot, level with the
+   calendar's last row. Below 768px the three stand one under another. */
 .booking__card {
   position: relative;
   box-sizing: border-box;
-  width: min(25rem, 100% - 2 * var(--grid-margin));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    "intro calendar"
+    "times calendar";
+  column-gap: 2.5rem;
+  width: min(54rem, 100% - 2 * var(--grid-margin));
   max-height: calc(100% - 2 * var(--grid-margin));
   overflow-y: auto;
-  padding: 2rem;
+  padding: 2.25rem;
   border-radius: var(--radius);
   background: var(--c-white);
   box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.16), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
+}
+.booking__intro { grid-area: intro; }
+.booking__calendar {
+  grid-area: calendar;
+  padding: 2.5rem 0 0 2.5rem;
+  border-left: 1px solid var(--c-border);
+}
+.booking__times {
+  grid-area: times;
+  align-self: end;
+  padding-top: 2rem;
 }
 .booking__close {
   position: absolute;
@@ -93,9 +116,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--c-border);
 }
 .booking__month-name { margin: 0; font-size: var(--t-rg); }
 .booking__step {
@@ -131,7 +151,8 @@
   color: color-mix(in srgb, var(--c-text) 50%, transparent);
 }
 .booking__day {
-  aspect-ratio: 1;
+  /* a little wider than tall, so the month keeps the card low */
+  aspect-ratio: 1.3;
   margin: 0;
   padding: 0;
   border: 0;
@@ -158,7 +179,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
-  margin-top: 1.25rem;
 }
 .booking__slot {
   display: flex;
@@ -212,4 +232,23 @@
   background: var(--c-btn-soft);
   font-size: var(--t-sm);
   line-height: 1.45;
+}
+
+/* Below 768px: the words, the calendar under a hairline, the times */
+@media screen and (max-width: 767px) {
+  .booking__card {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    grid-template-areas: "intro" "calendar" "times";
+    width: min(25rem, 100% - 2 * var(--grid-margin));
+    padding: 2rem;
+  }
+  .booking__calendar {
+    margin-top: 1.75rem;
+    padding: 1.25rem 0 0;
+    border-left: 0;
+    border-top: 1px solid var(--c-border);
+  }
+  .booking__day { aspect-ratio: 1; }
+  .booking__times { padding-top: 1.25rem; }
 }

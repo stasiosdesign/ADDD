@@ -26,6 +26,11 @@
   arrow="down" turns the frame's arrow to point down the page, for a
   button that leads to a place further down it.
 
+  photo puts a photograph at the start of the frame, its whole height and
+  flush with its edges (Book a Free Call, BookCall.astro, and the floating
+  Book a Call, BookCallFloat.astro); it is decoration, the label says what
+  the button does.
+
   The label is the slot. With an href it is a link; without one it is a
   <button>, for a form's submit (pass type="submit") or one a script
   takes (pass type="button"). Any other attributes — target, rel, type,
@@ -41,16 +46,19 @@ interface Props {
   shape?: ActionButtonShape;
   /** where the frame's arrow points: on (right), or down the page */
   arrow?: "right" | "down";
+  /** a small photograph at the start of the frame */
+  photo?: { src: string; position?: string };
   [attr: string]: unknown;
 }
 
-const { href, variant = "primary", shape = "frame", arrow = "right", ...attrs } = Astro.props;
+const { href, variant = "primary", shape = "frame", arrow = "right", photo, ...attrs } = Astro.props;
 const Tag = href ? "a" : "button";
 const primary = variant === "primary";
 const pill = shape === "pill";
 ---
 {shape === "frame" ? (
-  <Tag href={href} class:list={["action-button", "is--frame", "nav-link", { "is--secondary": !primary }]} {...attrs}>
+  <Tag href={href} class:list={["action-button", "is--frame", "nav-link", { "is--secondary": !primary, "has--photo": photo }]} {...attrs}>
+    {photo && <span class="action-button__photo" aria-hidden="true"><img src={photo.src} alt="" width="64" height="64" loading="lazy" decoding="async" draggable="false" style={photo.position ? `object-position:${photo.position}` : undefined} /></span>}
     <span class="action-button__body"><span class="nav-link__box"><span class="action-button__text nav-link__text"><slot /></span></span></span>
     <span class="action-button__tip" aria-hidden="true">
       <svg class:list={["action-button__arrow", { "is--down": arrow === "down" }]} viewBox="0 0 12 12" aria-hidden="true"><path d="M1 6h9M6 2l4 4-4 4" /></svg>

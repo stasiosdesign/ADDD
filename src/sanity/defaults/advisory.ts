@@ -98,11 +98,12 @@ export const advisoryPage = {
   faq: {
     heading: 'Answers',
     questions: keyed('question', [
-      { question: 'Who should join?', answer: 'Practice leaders who carry technology decisions — directors, partners, operations leads and digital or BIM leads.' },
-      { question: 'What counts as a question between sessions?', answer: 'Short, decision-shaped questions related to the themes covered. Anything needing dedicated analysis becomes a separate engagement.' },
-      { question: 'Does this include implementation support?', answer: 'No. Ongoing Advisory shapes decisions. Delivery sits with your team, and practice-wide strategy with a Technology Blueprint engagement.' },
-      { question: 'What if we already have a BIM or digital lead?', answer: 'They benefit most. Ongoing Advisory gives them an external reference point and a framework to bring back to leadership.' },
-      { question: 'When should we choose a Technology Blueprint instead?', answer: 'When you need one evidence-based view of the whole practice before deciding anything, rather than monthly guidance.' },
+      { question: 'Who should join?', answer: 'Practice leaders who carry technology decisions — directors, partners, operations leads and digital or BIM leads. Sessions work best with a small, consistent group, so decisions carry over from one month to the next.' },
+      { question: 'What counts as a question between sessions?', answer: 'Short, decision-shaped questions related to the themes covered. Anything needing dedicated analysis becomes a separate engagement. A vendor’s proposal, a licence renewal or a question about using AI on projects are typical examples.' },
+      { question: 'Does this include implementation support?', answer: 'No. Ongoing Advisory shapes decisions. Delivery sits with your team, and practice-wide strategy with a Technology Blueprint engagement. Advice can still cover how to brief the people who carry the work out.' },
+      { question: 'What if we already have a BIM or digital lead?', answer: 'They benefit most. Ongoing Advisory gives them an external reference point and a framework to bring back to leadership. It also gives their recommendations independent support when decisions reach partner level.' },
+      { question: 'When should we choose a Technology Blueprint instead?', answer: 'When you need one evidence-based view of the whole practice before deciding anything, rather than monthly guidance. Many practices begin with a blueprint and continue with Ongoing Advisory once the roadmap is in place.' },
     ]),
+    footLine: 'Have any other questions?',
   },
 };

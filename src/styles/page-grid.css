@@ -152,11 +152,6 @@
   .page--grid .creds__media { grid-column: 2 / 8; }
   .page--grid .creds__text { grid-column: 8 / 12; align-self: end; }
 
-  /* --- FAQ: the heading on Grid Columns 1–5, the questions on Grid
-     Columns 7–12, their tops on one line -- */
-  .page--grid .faq-home__h { grid-column: 1 / 6; align-self: start; margin: 0; }
-  .page--grid .faq-home__list { grid-column: 7 / -1; }
-
   /* --- Research: the cards three Grid Columns wide and a gutter
      apart. The list takes the slider's width, which is a whole number
      of Grid Columns (--slider-cols: Grid Columns 2–11, ten, in a
@@ -179,11 +174,9 @@
      run the grid's width under it. */
   .page--grid .research__head + .insight-slider { grid-column: 1 / -1; --slider-cols: 12; }
 
-  /* --- Closing CTA: the label in Grid Columns 2–4, the heading and
-     buttons from Grid Column 5, the arrow at the end of Grid Column 11 */
-  .page--grid .cta__label { grid-column: 2 / 5; }
-  .page--grid .cta__body { grid-column: 5 / 11; margin: 0; }
-  .page--grid .cta__mark { grid-column: 11; justify-self: end; }
+  /* --- Closing CTA: the heading, its line and the buttons centred on
+     Grid Columns 3–10 */
+  .page--grid .cta__body { grid-column: 3 / 11; margin: 0; }
 }
 
 /* ------------------------------------------------------------
@@ -263,6 +256,8 @@
     max-width: none;
     margin-top: 0;
   }
+  /* "Book a Free Call" under the questions, on their column */
+  .page--grid .container > .accordion + .book-call { grid-column: 7 / 12; }
 }
 
 /* Below 1200px three columns make a card too narrow for its copy, so

@@ -1,0 +1,56 @@
+---
+/*
+  A service page's opening in two columns, set down at the foot (the
+  Workflow Workshop's, after the reference of 2026-11-04, and the
+  Technology Blueprint's after it): the label and the heading large on the
+  left (Grid Columns 1–8), the standfirst and the buttons on a light panel
+  on the right (from Grid Column 9 to the window's edge). The opening is
+  a screen tall less a band (--split-peek), and under it the red block,
+  the window's width and a screen tall, whose top shows across the foot
+  of the screen on arrival (red: the four service pages, the same place
+  on each). Styles: styles.css ("Split hero"); below 992px the panel
+  stands under the heading. dark: the version for a dark page (Ongoing
+  Advisory), the ink and a charcoal panel.
+
+  The buttons are the slot (actions). Each words' Studio field is named
+  for the Visual editor (labelField, headingField, ledeField). measure
+  sets the heading's line length from 992px (in em), for a heading that
+  should break on a given word.
+*/
+interface Props {
+  label?: string;
+  heading?: string;
+  lede?: string;
+  labelField?: string;
+  headingField?: string;
+  ledeField?: string;
+  /** the heading's measure from 992px, in em */
+  measure?: number;
+  /** the red block under the opening */
+  red?: boolean;
+  /** on a dark page */
+  dark?: boolean;
+}
+const {
+  label,
+  heading,
+  lede,
+  labelField = "hero.tagline",
+  headingField = "hero.heading",
+  ledeField = "hero.lede",
+  measure,
+  red = true,
+  dark = false,
+} = Astro.props;
+---
+<section class:list={["split-hero", { "is--dark": dark }]} style={measure ? `--split-hero-measure:${measure}em` : undefined}>
+  <div class="split-hero__main">
+    {label && <p class="split-hero__label" data-page-field={labelField}>{label}</p>}
+    <h1 class="split-hero__heading" data-page-field={headingField}>{heading}</h1>
+  </div>
+  <div class="split-hero__aside">
+    {lede && <p class="split-hero__lede" data-page-field={ledeField}>{lede}</p>}
+    <div class="split-hero__actions"><slot name="actions" /></div>
+  </div>
+</section>
+{red && <div class="split-hero__red" aria-hidden="true"></div>}

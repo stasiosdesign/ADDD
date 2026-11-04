@@ -14,7 +14,7 @@ export const homePage = {
     // the heading's first word here cycles through the rest, in order
     headingWords: ['workflow', 'technology', 'software'],
     primaryButton: 'Free Tech Stacks',
-    secondaryButton: 'Work With Us',
+    secondaryButton: 'Contact',
   },
   logos: {
     title: 'Practices we’ve\nworked with',
@@ -44,6 +44,7 @@ export const homePage = {
     lede: 'From a focused workflow problem or early-stage design to practice-wide strategy and ongoing guidance. Choose the route that fits the issue.',
     tagline: 'Ways to work with ADDD',
     heading: 'Start with what needs solving',
+    button: 'Free Tech Stacks',
     cards: keyed('route', [
       { tagline: 'A focused issue', title: 'Workflow Workshop', text: 'A half-day diagnostic on a live project: map how work moves through the practice, find where tools and workflows create friction, and leave with a written report of priorities.' },
       { tagline: 'Early-stage design workflow', title: 'Before Revit', text: 'A review of the early stages of design, before work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.' },
@@ -105,10 +106,10 @@ export const homePage = {
       'Quick recommendations for a particular product.',
     ],
     questions: keyed('question', [
-      { question: 'Are you a software reseller or IT provider?', answer: 'No. ADDD is independent of software vendors and does not run day-to-day IT. We advise on the workflows, technology and decisions behind them.' },
-      { question: 'Where should we start?', answer: 'Most practices start with a Workflow Workshop: a half-day diagnostic on a live project, ending with a written report of priorities.' },
-      { question: 'How long does a Technology Blueprint take?', answer: 'Around eight weeks, in three phases: discovery, strategy, and a sequenced roadmap presented to your leadership.' },
-      { question: 'Can you help after the recommendations?', answer: 'Yes. Ongoing Advisory gives your leadership a monthly session and access to our research as new decisions come up.' },
+      { question: 'Are you a software reseller or IT provider?', answer: 'No. ADDD is independent of software vendors and does not run day-to-day IT. We advise on the workflows, technology and decisions behind them. With no products to sell, the advice follows what your practice needs.' },
+      { question: 'Where should we start?', answer: 'Most practices start with a Workflow Workshop: a half-day diagnostic on a live project, ending with a written report of priorities. It shows quickly whether the issue sits in one workflow or across the whole practice.' },
+      { question: 'How long does a Technology Blueprint take?', answer: 'Around eight weeks, in three phases: discovery, strategy, and a sequenced roadmap presented to your leadership. The time asked of your team falls mostly in the discovery phase.' },
+      { question: 'Can you help after the recommendations?', answer: 'Yes. Ongoing Advisory gives your leadership a monthly session and access to our research as new decisions come up. It keeps the roadmap current as tools, costs and priorities change.' },
     ]),
   },
   research: {
@@ -121,7 +122,7 @@ export const homePage = {
     label: 'For architecture practices',
     heading: 'Need help making sense of your technology setup?',
     primaryButton: 'Free Tech Stacks',
-    secondaryButton: 'Book a Call',
+    secondaryButton: 'Contact',
   },
 };
 

@@ -51,7 +51,9 @@ export const techFirmsPage = defineType({
       linesField('independence', 'Independence statement', 'One line per commitment.'),
     ]),
     pageSection('closingCta', 'Closing call to action', 'The block that ends this page, for technology companies: this page has its own, apart from the one the other pages share.', [
-      taglineField('The small label on the left.', 'label', 'Label'),
+      // the label on the left, no longer shown (2026-11-04); kept so the
+      // code on main can still read it, hidden from the form
+      {...taglineField('No longer shown.', 'label', 'Label'), hidden: true},
       headingField(),
       leadField('The line under the heading.'),
       buttonField('Opens the enquiry form, set to AEC Tech Partners.', 'primaryButton', 'First button label'),

@@ -242,3 +242,213 @@
   .accordion__panel,
   .accordion__icon { transition: none; }
 }
+
+/* ============================================================
+   The FAQ panel (FaqPanel.astro; Accordion.astro, variant "panel"):
+   every FAQ on the site, after the Workflow Workshop's Common Questions
+   (2026-11-04)
+   ------------------------------------------------------------
+   A panel on the Services dropdown's Workflow Workshop grid (LineGrid,
+   nav.css): small squares (--cell) in faint lines, every fourth line a
+   step darker (--major), the panel's middle on a major line. What stands
+   on it is set out on the same lines rather than laid over them: the
+   heading's band two majors tall from a major line; the questions a
+   measure of whole majors either side of the middle (so their edges run
+   down major lines), each a major tall when shut and a cell apart; in
+   each, the icon a two-cell square a cell in, the question a cell after
+   it, the plus a two-cell square a cell in from the end, the answer from
+   the question's own start.
+
+   The questions are quiet boxes a breath lighter than the grid, without
+   an edge; pointed at, the plus turns a quarter round and lightens, and
+   the box lifts a shade; open, the box is white with a soft shadow, the
+   plus a cross on white, and the answer opens on the site's curve. On a
+   dark page (Ongoing Advisory) the same in the ink: white lines, charcoal
+   boxes.
+   ============================================================ */
+.faq-panel {
+  --cell: 1rem;
+  --major: calc(4 * var(--cell));
+  --faq-ground: #ededeb;
+  --faq-minor: rgba(10, 10, 10, 0.038);
+  --faq-major: rgba(10, 10, 10, 0.075);
+  --faq-box: rgba(255, 255, 255, 0.72);
+  --faq-box-hover: rgba(255, 255, 255, 0.92);
+  --faq-box-open: var(--c-white);
+  --faq-tile: var(--c-white);
+  --faq-ink: var(--c-text);
+  grid-column: 1 / -1;
+  padding: var(--major) var(--cell);
+  border-radius: 0.375rem;
+  background-color: var(--faq-ground);
+  background-image:
+    linear-gradient(to right, var(--faq-major) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--faq-major) 1px, transparent 1px),
+    linear-gradient(to right, var(--faq-minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--faq-minor) 1px, transparent 1px);
+  background-size: var(--major) var(--major), var(--major) var(--major), var(--cell) var(--cell), var(--cell) var(--cell);
+  /* a major line, and so a minor one, down the panel's middle; both from
+     its top */
+  background-position: calc(50% + var(--major) / 2) 0, 0 0, calc(50% + var(--cell) / 2) 0, 0 0;
+  color: var(--faq-ink);
+  text-align: center;
+}
+:is(.section--dark, .page--dark) .faq-panel {
+  --faq-ground: #111111;
+  --faq-minor: rgba(255, 255, 255, 0.03);
+  --faq-major: rgba(255, 255, 255, 0.065);
+  --faq-box: rgba(255, 255, 255, 0.045);
+  --faq-box-hover: rgba(255, 255, 255, 0.07);
+  --faq-box-open: #1d1d1d;
+  --faq-tile: rgba(255, 255, 255, 0.06);
+  --faq-ink: var(--c-white);
+}
+/* the heading, in a band two majors tall */
+.faq-panel__heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(2 * var(--major));
+  margin: 0;
+  text-wrap: balance;
+}
+/* the questions: whole majors wide (an even number, so they sit square on
+   the middle), at most twelve, a major in from the panel's edges */
+.faq-panel__list {
+  width: calc(12 * var(--major));
+  max-width: 100%;
+  margin: var(--major) auto 0;
+  text-align: left;
+}
+@supports (width: round(down, 10px, 4px)) {
+  .faq-panel__list {
+    width: round(down, min(12 * var(--major), 100% - 2 * var(--major)), 2 * var(--major));
+    max-width: none;
+  }
+}
+/* under them: a line, and Book a Free Call */
+.faq-panel__foot { margin-top: var(--major); }
+.faq-panel__foot p {
+  margin: 0;
+  font-size: var(--t-rg);
+  color: color-mix(in srgb, currentColor 66%, transparent);
+}
+.faq-panel__foot .book-call { justify-content: center; margin-top: var(--cell); }
+
+/* --- the questions (Accordion.astro, variant "panel") ----------------- */
+.accordion.is--panel { max-width: none; margin-top: 0; }
+.is--panel .accordion__list { gap: var(--cell); }
+.is--panel .accordion__item {
+  background: var(--faq-box);
+  border: 0;
+  border-radius: 2px;
+  color: var(--faq-ink);
+  transition: background-color 0.35s ease, box-shadow 0.45s var(--ease-osmo);
+}
+@media (hover: hover) {
+  .is--panel .accordion__item:hover,
+  .section--dark .is--panel .accordion__item:hover {
+    background: var(--faq-box-hover);
+    border-color: transparent;
+  }
+}
+.is--panel .accordion__item[data-accordion-status="active"] {
+  background: var(--faq-box-open);
+  box-shadow: 0 0.75rem 2rem rgba(10, 10, 10, 0.07);
+}
+.is--panel .accordion__toggle {
+  justify-content: flex-start;
+  gap: var(--cell);
+  min-height: var(--major);
+  padding: 0 var(--cell);
+}
+.is--panel .accordion__toggle:focus-visible { outline: 1px solid currentColor; outline-offset: -1px; }
+.is--panel .accordion__q { flex: 1; min-width: 0; padding: 0.75rem 0; }
+.is--panel .accordion__heading { font-size: 1.0625rem; line-height: 1.35; }
+/* the icon: a two-cell square, its line drawing in the text's ink (a
+   mask of faq-<name>.svg, so each drawing is fetched once and takes the
+   colour of wherever it is); the number where an item has no icon */
+.accordion__glyph {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(2 * var(--cell));
+  height: calc(2 * var(--cell));
+  border-radius: 2px;
+  background: var(--faq-tile);
+  box-shadow: inset 0 0 0 1px var(--faq-major);
+  color: color-mix(in srgb, var(--faq-ink) 82%, transparent);
+}
+.accordion__glyph > span {
+  width: 1.25rem;
+  height: 1.25rem;
+  background: currentColor;
+  -webkit-mask: var(--glyph) center / contain no-repeat;
+  mask: var(--glyph) center / contain no-repeat;
+}
+.accordion__glyph.is--n {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1;
+}
+/* the plus in an ink square; pointed at, it turns a quarter round and the
+   square lightens; open, a cross on white */
+.is--panel .accordion__icon.is--plus {
+  position: relative;
+  width: calc(2 * var(--cell));
+  height: calc(2 * var(--cell));
+  border-radius: 2px;
+  background-color: var(--faq-ink);
+  color: var(--faq-ground);
+  box-shadow: none;
+  transform: none;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+.accordion__icon.is--plus::before,
+.accordion__icon.is--plus::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.75rem;
+  height: 1px;
+  background: currentColor;
+  translate: -50% -50%;
+  transition: rotate 0.5s var(--ease-osmo);
+}
+.accordion__icon.is--plus::after { rotate: 90deg; }
+@media (hover: hover) {
+  .is--panel .accordion__item:not([data-accordion-status="active"]):hover .accordion__icon.is--plus,
+  .section--dark .is--panel .accordion__item:not([data-accordion-status="active"]):hover .accordion__icon.is--plus {
+    background-color: color-mix(in srgb, var(--faq-ink) 82%, var(--faq-ground));
+  }
+  .is--panel .accordion__item:not([data-accordion-status="active"]):hover .accordion__icon.is--plus::before { rotate: 90deg; }
+  .is--panel .accordion__item:not([data-accordion-status="active"]):hover .accordion__icon.is--plus::after { rotate: 180deg; }
+}
+.is--panel .accordion__item[data-accordion-status="active"] .accordion__icon.is--plus {
+  background-color: var(--faq-box-open);
+  color: var(--faq-ink);
+  box-shadow: inset 0 0 0 1px var(--faq-major);
+  transform: none;
+}
+.is--panel .accordion__item[data-accordion-status="active"] .accordion__icon.is--plus::before { rotate: 45deg; }
+.is--panel .accordion__item[data-accordion-status="active"] .accordion__icon.is--plus::after { rotate: 135deg; }
+/* the answer, from the question's own start */
+.is--panel .accordion__content {
+  max-width: 42rem;
+  padding: 0 var(--cell) calc(1.5 * var(--cell)) calc(4 * var(--cell));
+}
+.is--panel .accordion__text,
+.is--panel .accordion__points {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--faq-ink) 64%, transparent);
+}
+@media screen and (max-width: 767px) {
+  .faq-panel { padding: calc(0.75 * var(--major)) calc(0.5 * var(--cell)); }
+  .faq-panel__list { width: auto; }
+  .is--panel .accordion__toggle { gap: calc(0.75 * var(--cell)); padding: 0 calc(0.75 * var(--cell)); }
+  .is--panel .accordion__content { padding-left: calc(0.75 * var(--cell)); }
+}

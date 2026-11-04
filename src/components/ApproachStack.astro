@@ -32,26 +32,54 @@
     - rank   Prioritise ("Massing", the same file): findings as towers of
              impact on a plinth; they rise where the pointer puts the
              effort, the tallest in red.
+
+  The same section serves another page in its light version (light: the
+  Technology Blueprint's three benefits, 2026-11-04): white, the dots and
+  the rail in ink, the cards in light greys (approach-stack.css, "Light").
+  Its steps name their Studio fields (field), may carry a small line
+  (tagline), and say which drawing each takes (schematics). A word in a
+  step's text written between two pairs of asterisks (**visibility**) is
+  set bold, and scrambles once in the red as it comes up the screen
+  (scramble-words.js).
 */
 import ArrowIcon from "./ArrowIcon.astro";
 
+type Schematic = "map" | "trace" | "rank";
 interface Props {
-  /** The three steps' words, from the Home page's Approach section (src/pages/index.astro): title and text, in order. */
-  steps: { title: string; text: string }[];
+  /** The three steps' words, from the Home page's Approach section (src/pages/index.astro): title and text, in order; a tagline where the page has one. */
+  steps: { title: string; text: string; tagline?: string }[];
   /** The heading over the steps, centred, at the cost heading's size (approach.heading). */
   heading?: string;
+  /** the Studio fields: the heading's, and the steps' list's */
+  headingField?: string;
+  field?: string;
+  /** which drawing each step takes, in order */
+  schematics?: Schematic[];
+  /** the light version: white, ink dots, light cards */
+  light?: boolean;
+  /** what the section is called, for screen readers */
+  label?: string;
 }
+const {
+  headingField = "approach.heading",
+  field = "approach.steps",
+  schematics = ["map", "trace", "rank"],
+  light = false,
+  label = "The ADDD approach",
+} = Astro.props;
 
 // The steps are data, so the copy (from Sanity, or the page's own words),
 // the layout and the script all read the same list; each step's drawing
 // and number stay here, by position.
-const SCHEMATICS = ["map", "trace", "rank"] as const;
-const steps = SCHEMATICS.map((schematic, i) => ({
+const steps = schematics.map((schematic, i) => ({
   n: String(i + 1).padStart(2, "0"),
   title: Astro.props.steps[i]?.title ?? "",
   text: Astro.props.steps[i]?.text ?? "",
+  tagline: Astro.props.steps[i]?.tagline,
   schematic,
 }));
+// a step's text in its parts: a word written **so** is the highlighted one
+const partsOf = (text: string) => text.split(/\*\*(.+?)\*\*/g).map((part, i) => ({ part, strong: i % 2 === 1 }));
 
 // Understand: Hairline's "settle", brought in from the package
 // (@lucasmarkes/hairline 0.5.1) with the ADDD mark on its hub, drawn
@@ -88,14 +116,14 @@ const FIGURES = {
 // dots, as the still one always is (approach-stack.js, placeCards).
 const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
 ---
-<section class="approach-stack" aria-label="The ADDD approach" data-approach-stack>
+<section class:list={["approach-stack", { "is--light": light }]} aria-label={label} data-approach-stack>
   <!-- the band's grid of dots (approach-stack.css), set out from the
        cards and the rail on the 12-Column Grid, and the odd one lighting
        red (approach-stack.js, dot-field.js) -->
   <div class="approach-stack__field" data-approach-stack-field aria-hidden="true">
     <span class="approach-stack__field-dots dot-grid band-field" data-approach-stack-field-dots></span>
   </div>
-  {Astro.props.heading && <h2 class="approach-stack__head" data-page-field="approach.heading">{Astro.props.heading}</h2>}
+  {Astro.props.heading && <h2 class="approach-stack__head" data-page-field={headingField}>{Astro.props.heading}</h2>}
   <div class="approach-stack__grid">
     <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
       <div class="approach-stack__window" data-approach-stack-window>
@@ -117,7 +145,7 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
           <article class="step-card" data-step-card>
             <header class="step-card__head">
               <span class="step-card__badge">{step.n}</span>
-              <h3 class="step-card__title" data-page-field={`approach.steps.${i}.title`}>{step.title}</h3>
+              <h3 class="step-card__title" data-page-field={`${field}.${i}.title`}>{step.title}</h3>
             </header>
 
             <div class="step-card__panel">
@@ -158,7 +186,8 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
             </div>
 
             <div class="step-card__foot">
-              <p class="step-card__p" data-page-field={`approach.steps.${i}.text`}>{step.text}</p>
+              {step.tagline && <p class="step-card__tagline" data-page-field={`${field}.${i}.tagline`}>{step.tagline}</p>}
+              <p class="step-card__p" data-page-field={`${field}.${i}.text`}>{partsOf(step.text).map(({ part, strong }) => (strong ? <strong class="step-card__em" data-scramble-word>{part}</strong> : part))}</p>
             </div>
           </article>
           </div>

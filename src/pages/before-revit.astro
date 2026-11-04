@@ -1,8 +1,10 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
-import ServiceHero from "../components/ServiceHero.astro";
+import SplitHero from "../components/SplitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import BookCall from "../components/BookCall.astro";
+import BookCallFloat from "../components/BookCallFloat.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 
@@ -25,15 +27,16 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
 >
 <main class="page--grid">
 
-  <!-- The deck's card for this service at the screen's size
-       (ServiceHero.astro): the homepage's card opens into it. -->
-  <ServiceHero index={1} name={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+  <!-- The opening (SplitHero.astro), as every service page's: the label
+       and the heading large on the left, the standfirst and the buttons on
+       a light panel on the right, the red block under it. "Inquire" goes to
+       the Contact page; "View Pricing" glides down to the prices. -->
+  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
     <Fragment slot="actions">
       <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
-      <ActionButton href="#pricing" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
+      <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
-  </ServiceHero>
-  <div class="band band--wide" id="overview"></div>
+  </SplitHero>
 
   <section class="section section--light" id="how-it-works">
     <div class="container">
@@ -105,10 +108,14 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
           <ActionButton href="workshops-audits.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{t("pricing.cards.1.button")}</span></ActionButton>
         </article>
       </div>
+      <BookCall />
     </div>
   </section>
 
   <ClosingCta />
+  <!-- Book a Call, floating at the screen's foot from past the hero to Book a
+       Free Call (BookCallFloat.astro) -->
+  <BookCallFloat />
 
 </main>
 </BaseLayout>

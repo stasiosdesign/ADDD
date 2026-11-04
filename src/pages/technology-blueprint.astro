@@ -1,9 +1,15 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Accordion from "../components/Accordion.astro";
+import FaqPanel from "../components/FaqPanel.astro";
 import ActionButton from "../components/ActionButton.astro";
-import ServiceHero from "../components/ServiceHero.astro";
+import SplitHero from "../components/SplitHero.astro";
+import BookingDialog from "../components/BookingDialog.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import Testimonials from "../components/Testimonials.astro";
+import ApproachStack from "../components/ApproachStack.astro";
+import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
+import BookCall from "../components/BookCall.astro";
+import BookCallFloat from "../components/BookCallFloat.astro";
 import LayersDiagram from "../components/LayersDiagram.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { blueprintPage as D } from "../sanity/defaults/blueprint";
@@ -16,11 +22,38 @@ import NavLinkLabel from "../components/NavLinkLabel.astro";
 // and where every button and link leads stay here. Each element names the
 // field it shows (data-page-field) so the Studio's Visual editor can
 // outline it and write drafts into it.
-const { t, list, bg } = reader(await pageDocument(Astro.locals.sanity, "blueprintPage"), D);
+const { t, list } = reader(await pageDocument(Astro.locals.sanity, "blueprintPage"), D);
 
 const benefits = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string; image?: unknown }>("benefits.tiles");
 const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("delivery.steps");
+// The roadmap: the eight weeks across the top, and each stage's weeks
+// (start, from 0, and how many, after its label) and photograph, the
+// page's own; its more from delivery.details, in the steps' order
+const WEEKS = Array.from({ length: 8 }, (_, i) => `Week ${i + 1}`);
+const SPANS = [{ start: 0, span: 1 }, { start: 1, span: 3 }, { start: 4, span: 3 }, { start: 7, span: 1 }];
+const ROADMAP_PHOTOS = [
+  "/assets/images/allister-gesture-warm-crop.webp",
+  "/assets/images/team-model-review.webp",
+  "/assets/images/allister-podium-portrait-crop.webp",
+  "/assets/images/allister-keynote-stage-crop.webp",
+];
+const details = list<{ _key: string; more?: string }>("delivery.details");
+const roadmap: Stage[] = steps.map((step, i) => ({
+  when: step.label,
+  title: step.title,
+  text: step.text,
+  more: details[i]?.more,
+  image: ROADMAP_PHOTOS[i] ? { src: ROADMAP_PHOTOS[i], alt: "" } : undefined,
+  ...SPANS[i],
+  fields: {
+    when: `delivery.steps.${i}.label`,
+    title: `delivery.steps.${i}.title`,
+    text: `delivery.steps.${i}.text`,
+    more: `delivery.details.${i}.more`,
+  },
+}));
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
+const tabs = list<{ _key: string; label?: string; title?: string; text?: string }>("examine.tabs");
 ---
 <BaseLayout
   title="Technology Blueprint — ADDD"
@@ -30,34 +63,45 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
 >
 <main class="page--grid">
 
-  <!-- The deck's card for this service at the screen's size
-       (ServiceHero.astro): the homepage's card opens into it. -->
-  <ServiceHero index={2} name={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+  <!-- The opening (SplitHero.astro), as the Workflow Workshop's: the label
+       and the heading large on the left, the standfirst and the buttons on
+       a light panel on the right, set down at the foot, the red block
+       under it showing across the screen's foot. "Start a Blueprint" opens the
+       booking calendar (a demonstration for now: BookingDialog.astro); the
+       second button goes down to the roadmap. -->
+  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
     <Fragment slot="actions">
-      <ActionButton href="contact.html"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
-      <a class="btn btn--link nav-link" href="#delivery"><NavLinkLabel data-page-field="hero.linkLabel">{t("hero.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <ActionButton type="button" data-booking-open="blueprint-booking" aria-haspopup="dialog" aria-controls="blueprint-booking"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+      <ActionButton href="#delivery" variant="secondary" arrow="down"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span></ActionButton>
     </Fragment>
-  </ServiceHero>
-  <div class="band band--wide" id="overview"></div>
+  </SplitHero>
 
-  <section class="section">
-    <div class="container">
-      <div class="grid grid--3" data-page-list="benefits.tiles">
-        {benefits.map((tile, i) => {
-          const picture = bg(`benefits.tiles.${i}.image`);
-          return (
-        <article class="stack stack--16" data-page-item={tile._key}>
-          <p class="tagline tagline--sm" data-page-item-field="number">{tile.number}</p>
-          <div class="ph" style={picture ? `aspect-ratio:4/3;${picture}` : "aspect-ratio:4/3"} data-page-item-field="image" data-page-item-bg></div>
-          <p class="tagline tagline--sm" data-page-item-field="tagline">{tile.tagline}</p>
-          <h2 class="h4" data-page-item-field="title">{tile.title}</h2>
-          <p data-page-item-field="text">{tile.text}</p>
-        </article>
-          );
-        })}
-      </div>
-    </div>
-  </section>
+  <BookingDialog
+    id="blueprint-booking"
+    label="Technology Blueprint"
+    title="Start your blueprint"
+    note="Pick a day and a time for a first conversation about your practice and where the blueprint would begin. This calendar is a preview: online booking opens soon."
+    slots={[
+      { name: "Morning", time: "10:00–12:00" },
+      { name: "Afternoon", time: "14:00–16:00" },
+    ]}
+    days={[1, 2, 3, 4, 5]}
+  />
+
+  <!-- The three benefits as the homepage's "How we work" (ApproachStack.astro)
+       in its light version: the cards zig-zag either side of the rail
+       on a field of ink dots, each with a live drawing (the hub settling
+       into one picture for coherence, the towers of impact for direction,
+       the layers opened for waste) -->
+  <ApproachStack
+    light
+    label="Why a technology blueprint"
+    heading={t("benefits.heading")}
+    headingField="benefits.heading"
+    field="benefits.tiles"
+    steps={benefits.map((tile) => ({ title: tile.title ?? "", text: tile.text ?? "" }))}
+    schematics={["map", "rank", "trace"]}
+  />
 
   <section class="section section--light">
     <div class="container">
@@ -69,74 +113,57 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
         </div>
       </div>
 
-      <div class="filters filters--tabs">
-        <button type="button" data-filter-status="active">Workflows</button>
-        <button type="button">Software</button>
-        <button type="button">Infrastructure</button>
-        <button type="button">Data &amp; security</button>
-        <button type="button">AI capability</button>
-        <button type="button">Costs</button>
-        <button type="button">Governance</button>
+      <!-- the tabs and their panels (tabs.js): every panel in the same cell,
+           so the panel keeps the tallest one's height whichever is shown -->
+      <div class="examine-tabs" data-tabs>
+      <div class="filters filters--tabs" role="tablist" aria-label={t("examine.heading")} data-page-list="examine.tabs">
+        {tabs.map((tab, i) => (
+        <button type="button" role="tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key}><span data-page-item-field="label">{tab.label}</span></button>
+        ))}
       </div>
 
       <div class="examine-panel">
-        <div class="examine-panel__text">
-          <h3 class="examine-panel__h" data-page-field="examine.cardHeading">{t("examine.cardHeading")}</h3>
-          <div class="examine-panel__row">
-            <p class="examine-panel__label"><span class="examine-panel__mark" aria-hidden="true"></span><span data-page-field="examine.cardTagline">{t("examine.cardTagline")}</span></p>
-            <p class="examine-panel__p" data-page-field="examine.cardText">{t("examine.cardText")}</p>
+        <div class="examine-panel__text examine-tabs__panels">
+          {tabs.map((tab, i) => (
+          <div class:list={["examine-tabs__panel", { "is--active": i === 0 }]} role="tabpanel" id={`examine-panel-${i + 1}`} aria-labelledby={`examine-tab-${i + 1}`} tabindex="0">
+            <h3 class="examine-panel__h" data-page-field={`examine.tabs.${i}.title`}>{tab.title}</h3>
+            <div class="examine-panel__row">
+              <p class="examine-panel__label"><span class="examine-panel__mark" aria-hidden="true"></span><span>{tab.label}</span></p>
+              <p class="examine-panel__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p>
+            </div>
           </div>
+          ))}
         </div>
         <div class="examine-panel__media">
           <LayersDiagram class="examine-panel__diagram" />
         </div>
       </div>
+      </div>
     </div>
   </section>
 
-  <section class="section" id="delivery">
+  <!-- From current reality to a clear roadmap: the four stages on the
+       shared timeline (StageTimeline.astro), a plan's chart: the eight
+       weeks across the top, each stage a row with its box over its weeks,
+       opening its card -->
+  <section class="section roadmap" id="delivery">
     <div class="container">
-      <div class="stack">
-        <p class="tagline" data-page-field="delivery.tagline">{t("delivery.tagline")}</p>
-        <h2 class="h2" data-split="heading" style="max-width:16ch" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
-        <div class="actions">
-          <ActionButton href="contact.html" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
-          <a class="btn btn--link nav-link" href="about.html"><NavLinkLabel data-page-field="delivery.linkLabel">{t("delivery.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+      <div class="roadmap__head">
+        <div>
+          <p class="tagline" data-page-field="delivery.tagline">{t("delivery.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
         </div>
+        <ActionButton href="contact.html" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
       </div>
-
-      <div class="steps" data-page-list="delivery.steps">
-        {steps.map((step) => (
-        <div class="steps__item" data-page-item={step._key}>
-          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
-          <div class="steps__body">
-            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
-            <p data-page-item-field="text">{step.text}</p>
-          </div>
-        </div>
-        ))}
+      <div class="roadmap__run">
+        <StageTimeline id="blueprint-stages" stages={roadmap} scale={WEEKS} />
       </div>
     </div>
   </section>
 
-  <section class="section section--light">
-    <div class="container">
-      <div class="case__panel" style="margin-top:0">
-        <div class="case__quote-wrap">
-          <div class="case__quote-inner">
-            <blockquote class="quote" data-page-field="quote.quote">&ldquo;{t("quote.quote")}&rdquo;</blockquote>
-            <div class="avatar">
-              <div class="avatar__img"></div>
-              <div>
-                <p class="avatar__name" data-page-field="quote.name">{t("quote.name")}</p>
-                <p data-page-field="quote.role">{t("quote.role")}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- the homepage's testimonials, the same block (Testimonials.astro):
+       its quotes are the Home page's -->
+  <Testimonials />
 
   <section class="section">
     <div class="container">
@@ -166,12 +193,19 @@ const faq = list<{ _key: string; question?: string; answer?: string }>("faq.ques
 
   <section class="section section--light">
     <div class="container">
-      <h2 class="h2" data-split="heading" data-page-field="faq.heading">{t("faq.heading")}</h2>
-      <Accordion id="faq" items={faq} field="faq.questions" />
+      <!-- the site's FAQ panel (FaqPanel.astro), each question with its
+           icon, and under them a line and Book a Free Call -->
+      <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
+        icons={["user","clock","folder","settings","compass"]} footLine={t("faq.footLine")} footField="faq.footLine">
+        <BookCall slot="foot" />
+      </FaqPanel>
     </div>
   </section>
 
   <ClosingCta />
+  <!-- Book a Call, floating at the screen's foot from past the hero to Book a
+       Free Call (BookCallFloat.astro) -->
+  <BookCallFloat />
 
 </main>
 </BaseLayout>

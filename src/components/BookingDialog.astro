@@ -4,9 +4,11 @@
   (data-booking-open="<id>"): the Workflow Workshop hero's "Start
   Workshop". A demonstration for now, until a real calendar is connected:
   the month and its days are drawn in the browser (booking.js), the days
-  that could take a workshop chosen by a simple rule (Tuesday to
-  Thursday, from a week ahead), a morning or an afternoon, and the
-  request only says thank you. Nothing is sent anywhere.
+  that can be picked chosen by a simple rule (the weekdays given, Tuesday
+  to Thursday for a workshop, from a week ahead), the times given (a
+  morning or an afternoon by default), and the request only says thank
+  you. Nothing is sent anywhere. "Book a Free Call" (BookCall.astro)
+  opens one of its own.
 
   A native modal dialog, so the browser keeps the keyboard inside it,
   closes it on Escape (animated by booking.js) and hands the focus back to
@@ -20,46 +22,61 @@ interface Props {
   label?: string;
   title?: string;
   note?: string;
+  /** the times a day offers, each a name and its hours */
+  slots?: { name: string; time: string }[];
+  /** the weekdays that can be picked (0 Sunday … 6 Saturday) */
+  days?: number[];
 }
 const {
   id,
   label = "Workflow Workshop · Half a day",
   title = "Book your workshop",
   note = "Choose a date for the half-day session with your team. This calendar is a preview: online booking opens soon.",
+  slots = [
+    { name: "Morning", time: "09:00–13:00" },
+    { name: "Afternoon", time: "13:30–17:30" },
+  ],
+  days = [2, 3, 4],
 } = Astro.props;
 ---
-<dialog class="booking" id={id} aria-labelledby={`${id}-title`} data-booking data-lenis-prevent>
+<dialog class="booking" id={id} aria-labelledby={`${id}-title`} data-booking data-booking-days={days.join(",")} data-lenis-prevent>
   <div class="booking__scrim" data-booking-close aria-hidden="true"></div>
   <div class="booking__card">
     <button type="button" class="booking__close" data-booking-close aria-label="Close">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" /></svg>
     </button>
-    <p class="booking__label">{label}</p>
-    <h2 class="booking__title" id={`${id}-title`}>{title}</h2>
-    <p class="booking__note">{note}</p>
-
-    <div class="booking__month">
-      <button type="button" class="booking__step" data-booking-step="-1" aria-label="Previous month">
-        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" /></svg>
-      </button>
-      <p class="booking__month-name" data-booking-month aria-live="polite"></p>
-      <button type="button" class="booking__step" data-booking-step="1" aria-label="Next month">
-        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6 4.5 9.5" /></svg>
-      </button>
-    </div>
-    <div class="booking__grid" data-booking-days>
-      {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => <span class="booking__weekday" aria-hidden="true">{d}</span>)}
+    <!-- landscape from 768px (booking.css): the words and the times on the
+         left, the calendar on the right -->
+    <div class="booking__intro">
+      <p class="booking__label">{label}</p>
+      <h2 class="booking__title" id={`${id}-title`}>{title}</h2>
+      <p class="booking__note">{note}</p>
     </div>
 
-    <div class="booking__slots" role="group" aria-label="Time">
-      <button type="button" class="booking__slot" data-booking-slot="Morning, 09:00–13:00" aria-pressed="false">Morning<span>09:00–13:00</span></button>
-      <button type="button" class="booking__slot" data-booking-slot="Afternoon, 13:30–17:30" aria-pressed="false">Afternoon<span>13:30–17:30</span></button>
+    <div class="booking__calendar">
+      <div class="booking__month">
+        <button type="button" class="booking__step" data-booking-step="-1" aria-label="Previous month">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M7.5 2.5 4 6l3.5 3.5" /></svg>
+        </button>
+        <p class="booking__month-name" data-booking-month aria-live="polite"></p>
+        <button type="button" class="booking__step" data-booking-step="1" aria-label="Next month">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M4.5 2.5 8 6 4.5 9.5" /></svg>
+        </button>
+      </div>
+      <div class="booking__grid" data-booking-days>
+        {["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"].map((d) => <span class="booking__weekday" aria-hidden="true">{d}</span>)}
+      </div>
     </div>
 
-    <div class="booking__foot">
-      <p class="booking__summary" data-booking-summary aria-live="polite">Choose a date and a time</p>
-      <ActionButton type="button" data-booking-confirm disabled>Request this date</ActionButton>
+    <div class="booking__times">
+      <div class="booking__slots" role="group" aria-label="Time">
+        {slots.map((slot) => <button type="button" class="booking__slot" data-booking-slot={`${slot.name}, ${slot.time}`} aria-pressed="false">{slot.name}<span>{slot.time}</span></button>)}
+      </div>
+      <div class="booking__foot">
+        <p class="booking__summary" data-booking-summary aria-live="polite">Choose a date and a time</p>
+        <ActionButton type="button" data-booking-confirm disabled>Request this date</ActionButton>
+      </div>
+      <p class="booking__done" data-booking-done hidden>Thank you. This calendar is a preview, so nothing has been booked yet: we will be in touch to confirm your date.</p>
     </div>
-    <p class="booking__done" data-booking-done hidden>Thank you. This calendar is a preview, so nothing has been booked yet: we will be in touch to confirm your date.</p>
   </div>
 </dialog>

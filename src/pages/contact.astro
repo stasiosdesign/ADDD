@@ -11,47 +11,61 @@ import { contactPage as D } from "../sanity/defaults/contact";
 // lead, stay here. Each element names the field it shows (data-page-field)
 // so the Studio's Visual editor can outline it and write drafts into it.
 //
-// Two columns (styles: pages.css, "Contact"): on the left, Allister's pass,
-// a flat ID card in its holder hung from an ADDD lanyard that runs up off
-// the page, with the logo, his photograph, his name, his role and how to
-// reach him; on the right, the enquiry form alone. Stacked below 992px, the
-// pass first.
+// Two columns on white (styles: pages.css, "Contact"): on the left,
+// Allister's pass hung on a lanyard that runs up off the page, as tall as
+// the form (after the studio pass of the references of 2026-11-04: a black holder, the printed card in it with the
+// ADDD mark on a dark tile, his name, his role, and his email and telephone
+// as links), turning slightly towards the pointer (lanyard.js); on the
+// right, the enquiry form alone. Stacked below 992px, the pass first.
 const { t } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
+// the year printed on the pass
+const year = new Date().getFullYear();
 ---
 <BaseLayout
   title="Contact — ADDD"
   description="Send your enquiry to ADDD. Tell us what you need."
   pageName="Contact"
-  theme="dark"
   doc={{ id: "contactPage" }}
 >
-<main class="page--dark page--grid page--contact">
+<main class="page--grid page--contact">
 
   <section class="contact">
     <div class="container">
       <div class="contact__grid">
 
         <div class="contact__pass">
-          <!-- the pass, face on: the lanyard running up off the page, its
-               clasp, the holder with its slot, and the card in it -->
-          <div class="pass">
-            <div class="pass__strap" aria-hidden="true"></div>
-            <div class="pass__clasp" aria-hidden="true"></div>
-            <div class="pass__holder">
-              <span class="pass__slot" aria-hidden="true"></span>
-              <div class="pass__card">
-                <div class="pass__head">
-                  <img class="pass__logo" src="/assets/logo.svg" width="40" height="40" alt="ADDD">
-                  <span class="pass__meta">addd.io</span>
+          <!-- Allister's pass on its lanyard, in markup (pages.css, "The
+               lanyard"), as tall as the form beside it: the strap running up
+               off the page, the hardware, the holder, and the printed card in
+               it, with his email and telephone as links. It hangs at rest;
+               with a fine pointer it swings and turns a little towards it
+               (lanyard.js). -->
+          <div class="lanyard" data-lanyard>
+            <div class="lanyard__rig" data-lanyard-rig>
+              <span class="lanyard__strap" aria-hidden="true"></span>
+              <!-- the hardware, after the reference: the strap's sewn end, a
+                   ring, a swivel and a lobster clasp, its claw through the
+                   slot in the holder's tab -->
+              <svg class="lanyard__hook" viewBox="0 0 120 196" aria-hidden="true" focusable="false">
+                <rect x="0" y="0" width="120" height="36" rx="3" />
+                <circle class="lanyard__ring" cx="60" cy="58" r="20" />
+                <circle cx="60" cy="86" r="8.5" />
+                <rect x="55" y="90" width="10" height="24" rx="2" />
+                <path d="M46 112h28l-4 44a10 10 0 0 1-20 0z" />
+                <path class="lanyard__claw" d="M53 152c-14 10-11 37 8 38c17 1 24-17 15-27" />
+              </svg>
+              <div class="lanyard__card" data-lanyard-card>
+                <span class="lanyard__tab" aria-hidden="true"><span class="lanyard__slot"></span></span>
+                <div class="lanyard__face">
+                  <p class="lanyard__top"><span>ADDD Pass</span><span>{year}</span></p>
+                  <span class="lanyard__tile"><img src="/assets/logo.svg" width="40" height="40" alt="ADDD"></span>
+                  <p class="lanyard__name">Allister Lewis</p>
+                  <p class="lanyard__role">Architect &amp; technology strategist</p>
+                  <p class="lanyard__foot">
+                    <a href="mailto:allister@addd.io" data-page-field="hero.email">{t("hero.email")}</a>
+                    <a href="tel:+442071833675" data-page-field="hero.phone">{t("hero.phone")}</a>
+                  </p>
                 </div>
-                <img class="pass__photo" src="/assets/images/allister-headshot-bw-crop.webp" width="560" height="700" alt="Allister Lewis" loading="eager" decoding="async">
-                <span class="pass__chip">Founder</span>
-                <p class="pass__name">Allister Lewis</p>
-                <p class="pass__role">Architect &amp; technology strategist</p>
-                <dl class="pass__rows">
-                  <div><dt>T</dt><dd><a href="tel:+442071833675" data-page-field="hero.phone">{t("hero.phone")}</a></dd></div>
-                  <div><dt>E</dt><dd><a href="mailto:allister@addd.io" data-page-field="hero.email">{t("hero.email")}</a></dd></div>
-                </dl>
               </div>
             </div>
           </div>

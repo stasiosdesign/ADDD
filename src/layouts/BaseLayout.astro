@@ -33,7 +33,7 @@ import Footer from "../components/Footer.astro";
 import DraftModeLabel from "../components/DraftModeLabel.astro";
 import HoldingPage from "../components/HoldingPage.astro";
 import { BUILD_STAMP } from "../build-stamp.js";
-import { HOLDING } from "../holding";
+import { HOLD } from "../holding";
 
 // Site stylesheets, bundled into one file in this order — the cascade order
 // the pages have always loaded them in, after the scaling system that sets
@@ -73,6 +73,9 @@ interface Props {
   /** The homepage: the one page the logo intro opens, since it plays out in
       the hero's own field (see ARRIVAL in src/scripts/site.js). */
   home?: boolean;
+  /** A page not published yet: it shows the holding page in place of its
+      own content while HOLD is on (src/holding.ts). */
+  held?: boolean;
   /** A page set on the site's near-black (its <main> carries .page--dark):
       the bar opens dark (nav.css). Light otherwise. */
   theme?: "light" | "dark";
@@ -82,11 +85,11 @@ interface Props {
   doc?: { id: string; type?: string };
 }
 
-const { title, description, pageName, home = false, theme: pageTheme = "light", doc } = Astro.props;
-// While the site is held (src/holding.ts), every page but the homepage
-// shows the holding page in place of its own, on black: the page's own
-// content is not rendered, and is back as it was once the switch is off
-const holding = HOLDING && !home;
+const { title, description, pageName, home = false, held = false, theme: pageTheme = "light", doc } = Astro.props;
+// A held page (src/holding.ts) shows the holding page in place of its own,
+// on black: the page's own content is not rendered, and is back as it was
+// once the switch is off or the page is no longer held
+const holding = HOLD && held && !home;
 const theme = holding ? "dark" : pageTheme;
 const docAttrs = doc ? { "data-page-doc": doc.id, "data-page-type": doc.type ?? doc.id } : {};
 // The page's name and theme on <html>, for the stylesheets that lay the

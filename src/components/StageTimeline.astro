@@ -1,75 +1,107 @@
 ---
 /*
-  Stages on a timeline, after a Gantt chart (references of 2026-11-04):
-  the stages side by side across the grid, each a column under its head
-  (a tick, its number, its name and its timing), the columns parted by
-  dotted lines and each divided by fainter ones; under each head a block
-  (a small photograph, the title and a line), the blocks stepping down
-  from one column to the next, each joined to the one before by a line
-  that runs along the column's edge, so the four read as one run.
+  Stages on a timeline, drawn as a plan's chart (after the "Process and
+  Pricing" chart of a reference of 2026-11-04, in the site's own type,
+  hairlines and restrained corners). One layout for every timeline on the
+  site, so a change here reaches them all: the Workflow Workshop's
+  "Workshop Process" (its four phases across the top) and the Technology
+  Blueprint's roadmap (its weeks across the top).
 
-  Each block is one button (its title's, stretched over it): pressed, it
-  opens to tell more, and closes again; the others stay as they are. The
-  room the opened blocks need is kept under the run from the start
-  (stage-timeline.js), so opening one never moves the page under it.
-  Styles: stage-timeline.css. Below 992px the stages stand one under
-  another.
+    - across the top, the scale: its units by name (weeks, phases), each
+      over a column, the columns parted by hairlines down the chart
+    - a row per stage, under a hairline, its number (and its name, where
+      it has one: lane) on a narrow strip at the row's start, read up the
+      strip as a plan's lanes are
+    - in each row, the stage's box over the units it takes (start, span),
+      as long as it lasts, overlapping another's where the two overlap:
+      when it runs (when), its title, and a fine plus; each box joined to
+      the one before by a line up the column's edge, a small square where
+      it meets the box
+    - a stage's box opened (pointed at, or pressed: stage-timeline.js)
+      shows its card under it, over the rows below: its photograph, its
+      line, and the more it tells; a line drops down the chart at the
+      stage's start, marking where in the run it stands
+
+  Styles: stage-timeline.css (dark: the version for an ink section). Below
+  992px the stages stand one under another, each card open under its box.
 
   fields: the Studio fields each stage's words come from, for the Visual
-  editor (the list item's, and the parallel list of details).
+  editor; a unit of the scale can name its own (field).
 */
 export interface Stage {
-  label?: string;
-  meta?: string;
+  /** the row's name, on its strip after the number */
+  lane?: string;
+  /** when it runs, over its title in the box (e.g. "Weeks 2–4") */
+  when?: string;
   title?: string;
   text?: string;
   more?: string;
   image?: { src: string; alt?: string };
-  fields?: { label?: string; meta?: string; title?: string; text?: string; more?: string };
+  /** the first unit the stage takes (from 0) and how many */
+  start?: number;
+  span?: number;
+  fields?: { lane?: string; when?: string; title?: string; text?: string; more?: string };
 }
+type Unit = string | { label?: string; field?: string };
 interface Props {
   id: string;
   stages: Stage[];
-  /** the label over the extra words, when a stage is open */
+  /** the units across the top, by name (e.g. Week 1 … Week 8) */
+  scale: Unit[];
+  /** the label over the extra words, in a card */
   moreLabel?: string;
+  /** on a dark ground: white lines and strips, the boxes faint on the ink */
+  dark?: boolean;
 }
-const { id, stages, moreLabel = "In more detail" } = Astro.props;
+const { id, stages, scale, moreLabel = "In more detail", dark = false } = Astro.props;
+const units = Math.max(1, scale.length);
+const unitOf = (u: Unit) => (typeof u === "string" ? { label: u, field: undefined } : u);
 const pad = (n: number) => String(n).padStart(2, "0");
-// the dotted lines: one at every stage's edge, three fainter between
-const SUB = 4;
-const lines = Array.from({ length: stages.length * SUB + 1 }, (_, i) => ({ at: (i / (stages.length * SUB)) * 100, major: i % SUB === 0 }));
+// each stage's columns (the first column is the strips'), and whether its
+// card hangs from the box's end rather than its start (a box in the right
+// half of the run, so the card stays inside it)
+const placed = stages.map((stage, i) => {
+  const start = Math.max(0, Math.min(units - 1, stage.start ?? i));
+  const span = Math.max(1, Math.min(units - start, stage.span ?? 1));
+  return { start, column: `${start + 2} / span ${span}`, end: start + span / 2 > units / 2 };
+});
 ---
-<div class="stage-timeline" data-stage-timeline style={`--tl-count:${stages.length}`}>
-  <div class="stage-timeline__lines" aria-hidden="true">
-    {lines.map((line) => <span class:list={["stage-timeline__line", { "is--major": line.major }]} style={`left:${line.at.toFixed(4)}%`}></span>)}
-  </div>
-  <ol class="stage-timeline__stages" role="list">
-    {stages.map((stage, i) => (
-    <li class="stage-timeline__stage" style={`--i:${i}`}>
-      <p class="stage-timeline__head">
-        <span class="stage-timeline__n">{pad(i + 1)}</span>
-        <span class="stage-timeline__name" data-page-field={stage.fields?.label}>{stage.label}</span>
-        {stage.meta && <span class="stage-timeline__meta" data-page-field={stage.fields?.meta}>{stage.meta}</span>}
-      </p>
-      <article class="stage-timeline__block" data-stage-block>
-        {stage.image && <img class="stage-timeline__photo" src={stage.image.src} alt={stage.image.alt ?? ""} width="112" height="112" loading="lazy" decoding="async" draggable="false" />}
-        <h3 class="stage-timeline__title">
-          <button type="button" class="stage-timeline__toggle" aria-expanded="false" aria-controls={`${id}-more-${i + 1}`} data-stage-toggle>
-            <span data-page-field={stage.fields?.title}>{stage.title}</span>
-          </button>
-        </h3>
-        <span class="stage-timeline__icon" aria-hidden="true"></span>
-        <p class="stage-timeline__text" data-page-field={stage.fields?.text}>{stage.text}</p>
-        {stage.more && (
-          <div class="stage-timeline__more" id={`${id}-more-${i + 1}`} data-stage-more>
-            <div class="stage-timeline__more-inner">
-              <p class="stage-timeline__more-label">{moreLabel}</p>
-              <p data-page-field={stage.fields?.more}>{stage.more}</p>
-            </div>
+<div class:list={["stage-timeline", { "is--dark": dark }]} data-stage-timeline style={`--tl-count:${units}`}>
+  <div class="stage-timeline__chart">
+    <!-- the columns' hairlines, the marker of the open stage's start -->
+    <span class="stage-timeline__columns" aria-hidden="true"></span>
+    <span class="stage-timeline__now" aria-hidden="true"></span>
+    <ol class="stage-timeline__scale" role="list" aria-hidden="true">
+      {scale.map((u) => {
+        const unit = unitOf(u);
+        return <li class="stage-timeline__unit" data-page-field={unit.field}>{unit.label}</li>;
+      })}
+    </ol>
+    <ol class="stage-timeline__stages" role="list">
+      {stages.map((stage, i) => (
+      <li class="stage-timeline__stage" style={`--i:${i};--at:${placed[i].start}`} data-stage>
+        <p class="stage-timeline__lane"><span>{pad(i + 1)}</span>{stage.lane && <span data-page-field={stage.fields?.lane}>{stage.lane}</span>}</p>
+        <article class="stage-timeline__block" style={`grid-column:${placed[i].column}`} data-stage-block>
+          <h3 class="stage-timeline__title">
+            {stage.when && <span class="stage-timeline__when" data-page-field={stage.fields?.when}>{stage.when}</span>}
+            <button type="button" class="stage-timeline__toggle" aria-expanded="false" aria-controls={`${id}-card-${i + 1}`} data-stage-toggle>
+              <span data-page-field={stage.fields?.title}>{stage.title}</span>
+            </button>
+          </h3>
+          <span class="stage-timeline__icon" aria-hidden="true"></span>
+          <div class:list={["stage-timeline__card", { "is--end": placed[i].end }]} id={`${id}-card-${i + 1}`} data-stage-card>
+            {stage.image && <img class="stage-timeline__photo" src={stage.image.src} alt={stage.image.alt ?? ""} width="112" height="112" loading="lazy" decoding="async" draggable="false" />}
+            <p class="stage-timeline__text" data-page-field={stage.fields?.text}>{stage.text}</p>
+            {stage.more && (
+              <div class="stage-timeline__more">
+                <p class="stage-timeline__more-label">{moreLabel}</p>
+                <p data-page-field={stage.fields?.more}>{stage.more}</p>
+              </div>
+            )}
           </div>
-        )}
-      </article>
-    </li>
-    ))}
-  </ol>
+        </article>
+      </li>
+      ))}
+    </ol>
+  </div>
 </div>

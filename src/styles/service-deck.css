@@ -459,7 +459,8 @@
   --paper: #ecece9;
   --paper-sheet: #d9d9d5;
   --folder-ink: var(--c-dark-fg);
-  --folder-r: 0.5rem;
+  /* the corners: a little rounded, held back (2026-11-04: from 0.5rem) */
+  --folder-r: 0.25rem;
   --folder-pad: 1.75rem;
   /* the notch in the front's top edge: how deep, and half how wide */
   --notch-d: 0.75rem;
@@ -634,7 +635,7 @@
 .deck-folder__kind {
   padding: 0.4375rem 0.75rem;
   border: 1px solid color-mix(in srgb, var(--folder-ink) 28%, transparent);
-  border-radius: 0.3125rem;
+  border-radius: 0.1875rem;
 }
 .deck-folder__go {
   display: inline-flex;
@@ -684,8 +685,9 @@
    opens further than the pointer opens it, and holds there until the
    document goes back in */
 .deck-folder.is--pulled {
-  --open-front: rotateX(-7deg) translate3d(0, 0.25rem, 1rem);
-  --open-sheet: translate3d(0, -1.75rem, 0);
+  /* a touch more held back than at first (2026-11-04) */
+  --open-front: rotateX(-5deg) translate3d(0, 0.1875rem, 0.75rem);
+  --open-sheet: translate3d(0, -1.25rem, 0);
   /* opened briskly as the paper is drawn out; it settles back at the
      folder's own pace */
   --folder-time: 0.32s;
@@ -704,8 +706,8 @@
 }
 
 /* ============================================================
-   From 992px, two columns: the section's title on the left, from Grid
-   Column 2, a step under the first card's top and held that far under
+   From 992px, two columns: the section's title on the left, from half
+   way into Grid Column 1, a step under the first card's top and held that far under
    the nav while the cards go by; the four cards from the middle, Grid
    Columns 6–10, one under another, a size that lets more than one show
    at once; and on Grid Column 12 a word of its own in the label face,
@@ -731,11 +733,15 @@
     padding: var(--sec-lg) var(--grid-margin);
   }
   .service-deck__hold {
-    grid-column: 2 / 6;
+    grid-column: 1 / 6;
     /* over every card but the last (ServiceDeck.astro sets the count) */
     grid-row: 1 / var(--deck-count, 4);
     align-self: stretch;
   }
+  /* the title (and what is held with it) half a Grid Column into Grid
+     Column 1: (column + gutter) / 2, of a hold five columns and four
+     gutters wide, is (its width + a gutter) / 10 */
+  .service-deck__hold:not(.is--aside) { padding-left: calc((100% + var(--grid-gutter)) / 10); }
   .service-deck__hold.is--aside { grid-column: 12; }
   .service-deck__title {
     position: sticky;
@@ -805,4 +811,14 @@
   .service-deck__lead { padding: var(--sec-lg) var(--deck-pad); text-align: center; }
   .service-deck__lead > .service-deck__title { padding: 0; }
   .service-deck__lede { margin-inline: auto; }
+}
+/* A button under the title (button): the site's CTA, on the deck's ink
+   in its turned-over look (action-button.css), the section headings'
+   step under the title; centred with it below 992px */
+.service-deck__actions {
+  display: flex;
+  margin-top: 2rem;
+}
+@media screen and (max-width: 991px) {
+  .service-deck__actions { justify-content: center; }
 }

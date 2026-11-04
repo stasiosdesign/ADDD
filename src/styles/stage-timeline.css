@@ -1,145 +1,205 @@
 /* ============================================================
    Stage timeline (StageTimeline.astro, stage-timeline.js)
    ------------------------------------------------------------
-   After a Gantt chart: the stages side by side, each a column under its
-   head (a solid tick down its left edge, its number, its name and its
-   timing), the columns parted by dotted lines in the ink and each
-   divided into four by fainter ones. Under each head a white block (a
-   small photograph, the title, a line), each a step lower than the one
-   before (--tl-step), so the run reads left to right and down, as a
-   plan's bars do; a line joins each block to the one before, along the
-   column's edge, a small square where it turns.
+   A plan's chart, after the "Process and Pricing" chart of a reference
+   of 2026-11-04, in the site's own type, hairlines and restrained
+   corners. The one layout of every timeline on the site (the Workflow
+   Workshop's Workshop Process, on the ink; the Technology Blueprint's
+   roadmap, on the off-white), so a change here reaches both.
 
-   A block opened (its button: stage-timeline.js) shows more under its
-   line, the room under it opening on the site's curve (grid rows from
-   0fr to 1fr) and the words fading in; its edge darkens a step and it
-   lifts a touch. The room every opened block needs is kept under the
-   run from the start, so nothing moves the page.
+     - the scale across the top, each unit's name over its column in the
+       label face; the columns parted by hairlines from the top of the
+       chart to its foot
+     - a row per stage between hairlines, its number (and its name) on a
+       narrow strip at its start, read up the strip
+     - the stage's box over its units, inset a step from the lines, a
+       faint ground and a hairline edge, its corners barely rounded: when
+       it runs in the label face, its title, a fine plus; each box joined
+       to the one before by a line up its column's edge, a small square
+       where it meets the box's row
+     - opened (pointed at, or pressed), the box's edge firms, the plus
+       turns to a cross, and its card drops in under it, over the rows
+       below: the photograph, the line, and the more it tells under a
+       hairline; a line runs down the chart at the stage's start, a
+       small square at its head, marking where in the run it stands. The
+       room the lowest cards need is kept under the chart (--tl-room,
+       stage-timeline.js), so opening one never moves the page.
 
-   Sizes are the design's px / 16 at the 1440 ideal (README, "Sizing"), so
-   the run keeps its shape as a laptop's screen shrinks it. Below 992px
-   the stages stand one under another, without the lines.
+   Sizes are the design's px / 16 at the 1440 ideal (README, "Sizing"),
+   so the chart keeps its shape as a laptop's screen shrinks it. Below
+   992px the stages stand one under another, each with its card open.
    ============================================================ */
 .stage-timeline {
-  /* the head's height, the step down from one block to the next, the
-     room either side of a block inside its column, and where the joining
-     line meets a block (the middle of its photograph) */
-  --tl-head: 4rem;
-  --tl-step: 3.5rem;
-  --tl-inset: 0.75rem;
-  --tl-pad: 0.875rem;
-  --tl-photo: 3rem;
-  --tl-join: calc(var(--tl-pad) + var(--tl-photo) / 2);
-  --tl-major: rgba(10, 10, 10, 0.24);
-  --tl-minor: rgba(10, 10, 10, 0.1);
-  --tl-link: rgba(10, 10, 10, 0.42);
+  /* the strips' column, the scale's height, a row's height, how far a box
+     stands in from the lines, a card's least width, the photograph */
+  --tl-lane: 1.875rem;
+  --tl-scale: 2.75rem;
+  --tl-row: 6.25rem;
+  --tl-inset: 0.375rem;
+  --tl-card-w: 20rem;
+  --tl-photo: 3.5rem;
   --tl-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  /* light (on the off-white or white) */
+  --tl-line: rgba(10, 10, 10, 0.1);
+  --tl-link: rgba(10, 10, 10, 0.4);
+  --tl-lane-bg: var(--c-text);
+  --tl-lane-ink: var(--c-white);
+  --tl-box: var(--c-white);
+  --tl-box-edge: rgba(10, 10, 10, 0.12);
+  --tl-box-hover: rgba(10, 10, 10, 0.3);
+  --tl-box-open: var(--c-text);
+  --tl-card: var(--c-white);
+  --tl-card-ink: var(--c-text);
+  --tl-card-edge: rgba(10, 10, 10, 0.12);
+  --tl-now: var(--c-text);
   position: relative;
+  color: var(--c-text);
+}
+/* On the ink (dark: the Workflow Workshop's Workshop Process): the lines
+   and strips in white, the boxes a faint lift off the ink, the cards on
+   the off-white */
+.stage-timeline.is--dark {
+  --tl-line: rgba(255, 255, 255, 0.13);
+  --tl-link: rgba(255, 255, 255, 0.45);
+  --tl-lane-bg: var(--c-white);
+  --tl-lane-ink: var(--c-text);
+  --tl-box: rgba(255, 255, 255, 0.045);
+  --tl-box-edge: rgba(255, 255, 255, 0.16);
+  --tl-box-hover: rgba(255, 255, 255, 0.36);
+  --tl-box-open: var(--c-white);
+  --tl-card: var(--c-light-bg);
+  --tl-card-ink: var(--c-text);
+  --tl-card-edge: transparent;
+  --tl-now: var(--c-white);
+  color: var(--c-white);
 }
 
-/* the dotted lines, from under the heads to the foot of the run */
-.stage-timeline__lines {
+.stage-timeline__chart {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: var(--tl-lane) repeat(var(--tl-count, 4), minmax(0, 1fr));
+  padding-bottom: var(--tl-room, 0px);
+}
+
+/* the columns' hairlines, down from the top to the last row's foot */
+.stage-timeline__columns {
   position: absolute;
-  inset: var(--tl-head) 0 0;
+  z-index: -1;
+  top: 0;
+  bottom: var(--tl-room, 0px);
+  left: var(--tl-lane);
+  right: 0;
+  border-right: 1px solid var(--tl-line);
+  background-image: linear-gradient(to right, var(--tl-line) 1px, transparent 1px);
+  background-size: calc(100% / var(--tl-count, 4)) 100%;
   pointer-events: none;
 }
-.stage-timeline__line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  margin-left: -0.5px;
-  background: linear-gradient(to bottom, var(--tl-minor) 1px, transparent 0) 0 0 / 1px 4px repeat-y;
-}
-.stage-timeline__line.is--major {
-  background-image: linear-gradient(to bottom, var(--tl-major) 1.5px, transparent 0);
-  background-size: 1px 5px;
-}
 
-.stage-timeline__stages {
-  position: relative;
+/* the scale */
+.stage-timeline__scale {
+  grid-column: 2 / -1;
   display: grid;
-  grid-template-columns: repeat(var(--tl-count, 4), minmax(0, 1fr));
-  align-items: start;
+  grid-template-columns: subgrid;
+  align-items: center;
+  height: var(--tl-scale);
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.stage-timeline__stage {
-  display: flex;
-  flex-direction: column;
+.stage-timeline__unit {
   min-width: 0;
-}
-
-/* the head: a solid tick down the column's edge, the number, the name,
-   the timing */
-.stage-timeline__head {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: 0.375rem;
-  height: var(--tl-head);
-  margin: 0;
-  padding: 0 0 0 var(--tl-inset);
-  border-left: 1px solid var(--c-text);
-}
-.stage-timeline__n,
-.stage-timeline__meta {
+  padding: 0 0.75rem;
   font-family: var(--font-mono);
   font-size: var(--t-xs);
   font-weight: var(--fw-label);
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
-  line-height: 1;
-  color: color-mix(in srgb, var(--c-text) 60%, transparent);
-}
-.stage-timeline__name {
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 1.5rem;
-  line-height: 1;
-  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  line-height: 1.2;
+  color: color-mix(in srgb, currentColor 62%, transparent);
 }
 
-/* the block: a step lower than the one before, inside its column */
+/* the rows */
+.stage-timeline__stages {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.stage-timeline__stage {
+  position: relative;
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  height: var(--tl-row);
+  border-top: 1px solid var(--tl-line);
+}
+.stage-timeline__stage:last-child { border-bottom: 1px solid var(--tl-line); }
+/* the open stage over the rows below, its card over their boxes */
+.stage-timeline__stage.is--open { z-index: 3; }
+
+/* the strip: the number (and the name), read up it */
+.stage-timeline__lane {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  width: calc(var(--tl-lane) - 0.5rem);
+  margin: 0.1875rem 0;
+  border-radius: 1px;
+  background: var(--tl-lane-bg);
+  color: var(--tl-lane-ink);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  writing-mode: vertical-rl;
+  rotate: 180deg;
+}
+.stage-timeline__lane span + span { opacity: 0.72; }
+
+/* the box */
 .stage-timeline__block {
   position: relative;
-  display: grid;
-  grid-template-columns: var(--tl-photo) minmax(0, 1fr) auto;
-  grid-template-areas:
-    "photo title icon"
-    "text text text"
-    "more more more";
-  column-gap: 0.875rem;
-  row-gap: 0.75rem;
-  margin: calc(1rem + var(--i, 0) * var(--tl-step)) var(--tl-inset) 0;
-  padding: var(--tl-pad);
-  border: 1px solid rgba(10, 10, 10, 0.08);
-  border-radius: 2px;
-  background: var(--c-white);
-  transition: border-color 0.3s ease, box-shadow 0.45s var(--tl-ease), translate 0.45s var(--tl-ease);
+  z-index: 1;
+  min-width: 0;
+  margin: calc(var(--tl-inset) + 0.25rem) var(--tl-inset);
+  padding: 0.75rem 2.25rem 0.75rem 0.875rem;
+  border: 1px solid var(--tl-box-edge);
+  border-radius: 0.1875rem;
+  background: var(--tl-box);
+  transition: border-color 0.3s ease, background-color 0.3s ease;
 }
-.stage-timeline__photo {
-  grid-area: photo;
-  display: block;
-  width: var(--tl-photo);
-  height: var(--tl-photo);
-  object-fit: cover;
-  border-radius: 1px;
-  filter: grayscale(1);
+@media (hover: hover) {
+  .stage-timeline__block:hover { border-color: var(--tl-box-hover); }
 }
+.is--open > .stage-timeline__block { border-color: var(--tl-box-open); }
 .stage-timeline__title {
-  grid-area: title;
-  align-self: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 1.125rem;
-  line-height: 1.15;
+  font-size: 1.0625rem;
+  line-height: 1.2;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
-/* the title's button is the block's: stretched over all of it */
+.stage-timeline__when {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in srgb, currentColor 60%, transparent);
+}
+/* the title's button is the box's: stretched over all of it */
 .stage-timeline__toggle {
   all: unset;
   cursor: pointer;
@@ -150,17 +210,16 @@
   position: absolute;
   inset: -1px;
   z-index: 1;
-  border-radius: 2px;
+  border-radius: 0.1875rem;
 }
-.stage-timeline__toggle:focus-visible::after { outline: 1px solid var(--c-text); outline-offset: 3px; }
+.stage-timeline__toggle:focus-visible::after { outline: 1px solid currentColor; outline-offset: 3px; }
 /* a fine plus, turned to a cross when open */
 .stage-timeline__icon {
-  grid-area: icon;
-  align-self: start;
-  position: relative;
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-top: 0.125rem;
+  position: absolute;
+  top: 0.8125rem;
+  right: 0.8125rem;
+  width: 0.625rem;
+  height: 0.625rem;
   transition: rotate 0.45s var(--tl-ease);
 }
 .stage-timeline__icon::before,
@@ -171,101 +230,178 @@
 }
 .stage-timeline__icon::before { left: 0; right: 0; top: calc(50% - 0.5px); height: 1px; }
 .stage-timeline__icon::after { top: 0; bottom: 0; left: calc(50% - 0.5px); width: 1px; }
-.stage-timeline__text {
-  grid-area: text;
-  margin: 0;
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--c-text) 76%, transparent);
-  text-wrap: pretty;
-}
-/* the more: its room opening on the curve, the words fading in */
-.stage-timeline__more {
-  grid-area: more;
-  display: grid;
-  grid-template-rows: 0fr;
-  margin-top: -0.75rem;
-  transition: grid-template-rows 0.5s var(--tl-ease);
-}
-.stage-timeline__more-inner {
-  min-height: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.stage-timeline__more-inner > p {
-  margin: 0;
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  text-wrap: pretty;
-}
-.stage-timeline__more-label {
-  margin: 0.75rem 0 0.5rem !important;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(10, 10, 10, 0.1);
-  font-family: var(--font-mono);
-  font-size: 0.6875rem !important;
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-  line-height: 1 !important;
-  color: color-mix(in srgb, var(--c-text) 56%, transparent);
-}
+.is--open .stage-timeline__icon { rotate: 45deg; }
 
-/* open */
-.stage-timeline__block.is--open {
-  border-color: rgba(10, 10, 10, 0.26);
-  box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.06);
-  translate: 0 -0.125rem;
-}
-.stage-timeline__block.is--open .stage-timeline__icon { rotate: 45deg; }
-.stage-timeline__block.is--open .stage-timeline__more { grid-template-rows: 1fr; }
-.stage-timeline__block.is--open .stage-timeline__more-inner { opacity: 1; transition-delay: 0.1s; }
-@media (hover: hover) {
-  .stage-timeline__block:hover { border-color: rgba(10, 10, 10, 0.2); }
-}
-
-/* the joins: from the block before (its right edge, level with its
-   photograph), along the column's edge and down a step, into this one,
-   a small square where it turns into it; the first block's from its
-   column's own edge */
-.stage-timeline__block::after {
-  content: "";
-  position: absolute;
-  top: calc(var(--tl-join) - 1px - 2.5px);
-  left: calc(-1 * var(--tl-inset) - 1px - 2.5px);
-  width: calc(var(--tl-inset) + 2.5px);
-  height: 5px;
-  background:
-    linear-gradient(var(--tl-link), var(--tl-link)) right center / calc(100% - 2.5px) 1px no-repeat,
-    linear-gradient(var(--c-text), var(--c-text)) left center / 5px 5px no-repeat;
-  pointer-events: none;
-}
+/* the joins: up the column's edge from this box's middle to the row
+   above's, a small square where it meets this box's row */
 .stage-timeline__stage + .stage-timeline__stage .stage-timeline__block::before {
   content: "";
   position: absolute;
-  top: calc(var(--tl-join) - 1px - var(--tl-step));
-  left: calc(-2 * var(--tl-inset) - 1px);
-  width: var(--tl-inset);
-  height: var(--tl-step);
-  border-top: 1px solid var(--tl-link);
-  border-right: 1px solid var(--tl-link);
+  left: calc(-1 * var(--tl-inset) - 1px);
+  bottom: 50%;
+  width: 1px;
+  height: var(--tl-row);
+  background: var(--tl-link);
   pointer-events: none;
 }
+.stage-timeline__stage + .stage-timeline__stage .stage-timeline__block::after {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--tl-inset) - 3px);
+  top: calc(50% - 2.5px);
+  width: 5px;
+  height: 5px;
+  background: var(--tl-box-open);
+  pointer-events: none;
+}
+
+/* the card, under its box: from the box's start (or, past the middle of
+   the run, its end), at least --tl-card-w wide */
+.stage-timeline__card {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 0.5rem);
+  left: -1px;
+  box-sizing: border-box;
+  width: max(100% + 2px, var(--tl-card-w));
+  display: grid;
+  grid-template-columns: var(--tl-photo) minmax(0, 1fr);
+  grid-template-areas:
+    "photo text"
+    "more more";
+  column-gap: 0.875rem;
+  padding: 1rem;
+  border: 1px solid var(--tl-card-edge);
+  border-radius: 0.25rem;
+  background: var(--tl-card);
+  color: var(--tl-card-ink);
+  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.14), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
+  cursor: auto;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 -0.25rem;
+  transition: opacity 0.2s ease, translate 0.3s var(--tl-ease), visibility 0s linear 0.3s;
+}
+.stage-timeline__card.is--end { left: auto; right: -1px; }
+.is--open .stage-timeline__card {
+  opacity: 1;
+  visibility: visible;
+  translate: none;
+  transition: opacity 0.25s ease, translate 0.4s var(--tl-ease), visibility 0s;
+}
+.stage-timeline__photo {
+  grid-area: photo;
+  display: block;
+  width: var(--tl-photo);
+  height: var(--tl-photo);
+  object-fit: cover;
+  border-radius: 1px;
+  filter: grayscale(1);
+}
+.stage-timeline__text {
+  grid-area: text;
+  align-self: center;
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+.stage-timeline__more {
+  grid-area: more;
+  margin-top: 0.875rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(10, 10, 10, 0.1);
+}
+.stage-timeline__more p {
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--tl-card-ink) 74%, transparent);
+  text-wrap: pretty;
+}
+.stage-timeline__more .stage-timeline__more-label {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: color-mix(in srgb, var(--tl-card-ink) 56%, transparent);
+}
+
+/* the marker: down the chart at the open stage's start, a small square at
+   its head on the scale */
+.stage-timeline__now {
+  position: absolute;
+  z-index: 0;
+  top: 0.5rem;
+  bottom: var(--tl-room, 0px);
+  left: calc(var(--tl-lane) + (100% - var(--tl-lane)) * var(--tl-at, 0) / var(--tl-count, 4));
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--tl-now);
+  opacity: 0;
+  transition: opacity 0.3s ease, left 0.5s var(--tl-ease);
+  pointer-events: none;
+}
+.stage-timeline__now::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -3px;
+  width: 7px;
+  height: 7px;
+  background: var(--tl-now);
+}
+.stage-timeline.is--marking .stage-timeline__now { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .stage-timeline__block,
   .stage-timeline__icon,
-  .stage-timeline__more,
-  .stage-timeline__more-inner { transition: none; }
+  .stage-timeline__card,
+  .is--open .stage-timeline__card,
+  .stage-timeline__now { transition: none; }
 }
 
-/* Below 992px: the stages one under another, each its head over its
-   block, without the lines and the joins */
+/* Below 992px: the stages one under another, the strip a label over each
+   box, each card open under its box's title, without the scale, the
+   lines and the marker */
 @media screen and (max-width: 991px) {
-  .stage-timeline__lines { display: none; }
-  .stage-timeline__stages { grid-template-columns: minmax(0, 1fr); row-gap: 2rem; min-height: 0 !important; }
-  .stage-timeline__head { height: auto; }
-  .stage-timeline__block { margin: 1rem 0 0; }
-  .stage-timeline__block::before,
-  .stage-timeline__block::after { display: none; }
+  .stage-timeline__chart { display: block; padding-bottom: 0; }
+  .stage-timeline__scale,
+  .stage-timeline__columns,
+  .stage-timeline__now,
+  .stage-timeline__icon { display: none; }
+  .stage-timeline__stages { display: flex; flex-direction: column; gap: 1.75rem; }
+  .stage-timeline__stage { display: block; height: auto; border: 0; }
+  .stage-timeline__stage:last-child { border: 0; }
+  .stage-timeline__lane {
+    display: inline-flex;
+    width: auto;
+    margin: 0 0 0.625rem;
+    padding: 0.375rem 0.5rem;
+    writing-mode: horizontal-tb;
+    rotate: none;
+  }
+  .stage-timeline__block { margin: 0; padding: 1rem; }
+  .stage-timeline__stage + .stage-timeline__stage .stage-timeline__block::before,
+  .stage-timeline__stage + .stage-timeline__stage .stage-timeline__block::after { display: none; }
+  .stage-timeline__toggle { cursor: default; }
+  .stage-timeline__card,
+  .stage-timeline__card.is--end {
+    position: static;
+    width: auto;
+    margin-top: 1rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    box-shadow: none;
+    opacity: 1;
+    visibility: visible;
+    translate: none;
+  }
+  .stage-timeline__more { border-top-color: var(--tl-line); }
+  .stage-timeline__more p,
+  .stage-timeline__more .stage-timeline__more-label { color: color-mix(in srgb, currentColor 70%, transparent); }
 }

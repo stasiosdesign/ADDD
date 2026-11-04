@@ -17,6 +17,7 @@ import { mountIsoField } from "./dot-field.js";
 import { mountWordCycle } from "./word-cycle.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { initTextScramble } from "./text-scramble.js";
+import { findGrounds, lastInDocument } from "./grounds.js";
 
 // the nav's change between its light and dark states (initNavTheme)
 CustomEase.create("navTheme", "0.45, 0, 0.25, 1");
@@ -1105,7 +1106,7 @@ function initNavReveal() {
    should decide for itself, a dark photograph with no background
    colour behind it, sets data-nav-theme="dark" or "light". Scrims and
    other overlays the pointer passes through (pointer-events: none)
-   are not grounds.
+   are not grounds. (grounds.js, shared with the Book a Call float.)
 
    An IntersectionObserver then watches them against one line across
    the screen at the middle of the bar, where the bar rests, so the
@@ -1134,35 +1135,11 @@ function initNavReveal() {
    ============================================================ */
 function initNavTheme(nav) {
   const bar = nav.querySelector(".mega-nav__bar") || nav;
-  // whole subtrees that can never be a section's ground
-  const SKIP = new Set(["svg", "SCRIPT", "STYLE", "CANVAS", "IMG", "PICTURE", "VIDEO", "IFRAME", "BR", "INPUT", "TEXTAREA", "SELECT"]);
-  const grounds = new Map(); // element → "dark" | "light"
+  let grounds = new Map(); // element → "dark" | "light"
   const onLine = new Set(); // the grounds crossing the line now
   let observer = null;
   let theme = null; // the state the bar shows
   let wanted = null; // the state the ground asks for
-
-  // a computed background colour as [r, g, b, a], each 0–1: rgb()/rgba(),
-  // and color(srgb …), which is how a color-mix() comes back
-  function parseColor(value) {
-    const m = value.match(/^(rgba?|color)\((.*)\)$/);
-    if (!m) return null;
-    const parts = m[2].replace(/^srgb\s+/, "").split(/[\s,/]+/).filter(Boolean).map(parseFloat);
-    if (parts.length < 3 || parts.some(Number.isNaN)) return null;
-    const [r, g, b, a = 1] = parts;
-    return m[1] === "color" ? [r, g, b, a] : [r / 255, g / 255, b / 255, a];
-  }
-
-  function groundOf(el, minWidth) {
-    const set = el.getAttribute("data-nav-theme");
-    if (set === "dark" || set === "light") return set;
-    const style = getComputedStyle(el);
-    if (style.pointerEvents === "none") return null;
-    const c = parseColor(style.backgroundColor);
-    if (!c || c[3] < 0.5) return null;
-    if (el.getBoundingClientRect().width < minWidth) return null;
-    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] < 0.5 ? "dark" : "light";
-  }
 
   const DURATION = 0.7;
   const state = { dark: 0 }; // how far into the dark state, 0–1
@@ -1214,10 +1191,7 @@ function initNavTheme(nav) {
   // page's (a light bar going dark) as the cover lifted.
   let covered = false;
   function decide() {
-    let top = null;
-    onLine.forEach((el) => {
-      if (!top || top.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) top = el;
-    });
+    const top = lastInDocument(onLine);
     apply(top ? grounds.get(top) : "light", covered);
     covered = false;
   }
@@ -1230,14 +1204,7 @@ function initNavTheme(nav) {
     const container = document.querySelector('[data-barba="container"]');
     if (!container) return;
 
-    const minWidth = document.documentElement.clientWidth / 2;
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
-      acceptNode: (el) => (SKIP.has(el.tagName) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
-    });
-    for (let el = container; el; el = walker.nextNode()) {
-      const ground = groundOf(el, minWidth);
-      if (ground) grounds.set(el, ground);
-    }
+    grounds = findGrounds(container);
 
     // the line: one pixel tall, at the middle of the bar
     const y = Math.round(bar.offsetHeight / 2);

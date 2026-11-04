@@ -14,10 +14,14 @@
   with the site's wipe, as every link does.
 
   Any other set of folders: pass them ready made (folders), with the
-  heading's field (headingField) and a line under the title (lede,
-  ledeField): the Workflow Workshop's three, each opening a document
-  (FolderDocument.astro).
+  heading's field (headingField): the Workflow Workshop's three, each
+  opening a document (FolderDocument.astro).
+
+  Under the title, held with it, a line (lede, ledeField) and a button
+  (button: the site's CTA, ActionButton.astro), either or both: the
+  homepage's "Free Tech Stacks".
 */
+import ActionButton from "./ActionButton.astro";
 import DeckFolder, { type Folder } from "./DeckFolder.astro";
 import { SERVICES } from "./services";
 
@@ -34,6 +38,8 @@ interface Props {
   /** a line under the title, held with it */
   lede?: string;
   ledeField?: string;
+  /** a button under the title (and its line), held with it */
+  button?: { href: string; label: string; field?: string };
   /** a word set beside the cards on the right, from 992px (held there as
       the title is) */
   aside?: string;
@@ -43,7 +49,7 @@ interface Props {
   /** or the folders themselves */
   folders?: Folder[];
 }
-const { heading, headingField = "routes.heading", lede, ledeField, aside, cards = [], hrefs = [], folders: own } = Astro.props;
+const { heading, headingField = "routes.heading", lede, ledeField, button, aside, cards = [], hrefs = [], folders: own } = Astro.props;
 const pad = (n: number) => String(n).padStart(2, "0");
 const folders: Folder[] = own ?? cards.map((card, i) => {
   const route = SERVICES[i];
@@ -68,10 +74,15 @@ const folders: Folder[] = own ?? cards.map((card, i) => {
 <div class="service-deck" style={`--deck-count:${folders.length}`}>
   {heading && (
     <div class="service-deck__hold">
-      {lede ? (
+      {lede || button ? (
         <div class="service-deck__lead">
           <h2 class="service-deck__title" data-split="heading" data-page-field={headingField}>{heading}</h2>
-          <p class="service-deck__lede" data-page-field={ledeField}>{lede}</p>
+          {lede && <p class="service-deck__lede" data-page-field={ledeField}>{lede}</p>}
+          {button && (
+            <div class="service-deck__actions">
+              <ActionButton href={button.href}><span data-page-field={button.field}>{button.label}</span></ActionButton>
+            </div>
+          )}
         </div>
       ) : (
         <h2 class="service-deck__title" data-split="heading" data-page-field={headingField}>{heading}</h2>

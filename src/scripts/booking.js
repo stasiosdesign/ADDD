@@ -3,7 +3,9 @@
 // -----------------------------------------
 //
 // A button marked data-booking-open="<id>" opens the BookingDialog.astro
-// with that id: a native modal dialog over a soft scrim, the card rising a
+// with that id (any number of buttons can open one: the service pages'
+// Book a Free Call and their floating Book a Call open the same calendar,
+// set up once): a native modal dialog over a soft scrim, the card rising a
 // little into place as the scrim fades in, and back the same way as it
 // closes (on its button, the scrim, or Escape). The page's scroll stops
 // while it is open and starts again after, where it was.
@@ -17,8 +19,9 @@ import { lenis } from "./scroll.js";
 import { motion, registerPageCleanup } from "./page.js";
 
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
-// the days that can be picked: Tuesday to Thursday (getDay), from LEAD days on
-const OPEN_DAYS = new Set([2, 3, 4]);
+// the days that can be picked: the dialog's weekdays (data-booking-days,
+// getDay numbers; Tuesday to Thursday by default), from LEAD days on
+const DEFAULT_DAYS = [2, 3, 4];
 const LEAD = 7;
 // how many months ahead the calendar goes
 const MONTHS_AHEAD = 6;
@@ -27,9 +30,12 @@ const monthName = (d) => d.toLocaleDateString("en-GB", { month: "long", year: "n
 const dayName = (d) => d.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
 
 export function initBooking(container) {
-  container.querySelectorAll("[data-booking-open]").forEach((opener) => {
-    const dialog = document.getElementById(opener.dataset.bookingOpen);
-    if (!dialog || opener.booking) return;
+  const openers = [...container.querySelectorAll("[data-booking-open]")];
+  const dialogs = new Set(openers.map((o) => document.getElementById(o.dataset.bookingOpen)).filter(Boolean));
+  dialogs.forEach((dialog) => {
+    if (dialog.booking) return;
+    // every button on the page that opens this one
+    const mine = openers.filter((o) => o.dataset.bookingOpen === dialog.id);
     const card = dialog.querySelector(".booking__card");
     const scrim = dialog.querySelector(".booking__scrim");
     const grid = dialog.querySelector("[data-booking-days]");
@@ -39,6 +45,8 @@ export function initBooking(container) {
     const summary = dialog.querySelector("[data-booking-summary]");
     const confirm = dialog.querySelector("[data-booking-confirm]");
     const done = dialog.querySelector("[data-booking-done]");
+    const openDays = new Set((dialog.dataset.bookingDays || "").split(",").filter(Boolean).map(Number));
+    if (!openDays.size) DEFAULT_DAYS.forEach((d) => openDays.add(d));
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -52,7 +60,7 @@ export function initBooking(container) {
     let scrollY = 0;
 
     // ---- the calendar -------------------------------------------------
-    const isOpenDay = (d) => d >= first && OPEN_DAYS.has(d.getDay());
+    const isOpenDay = (d) => d >= first && openDays.has(d.getDay());
     const sameDay = (a, b) => a && b && a.toDateString() === b.toDateString();
 
     function drawMonth() {
@@ -171,7 +179,7 @@ export function initBooking(container) {
       if (Math.abs(window.scrollY - scrollY) > 1) lenis.scrollTo(scrollY, { immediate: true, force: true });
     }
 
-    opener.addEventListener("click", show);
+    mine.forEach((o) => o.addEventListener("click", show));
     dialog.querySelectorAll("[data-booking-close]").forEach((el) => el.addEventListener("click", hide));
     dialog.addEventListener("cancel", (e) => {
       e.preventDefault();
@@ -184,14 +192,15 @@ export function initBooking(container) {
       stop();
       settle();
     });
-    opener.booking = { show, hide };
+    dialog.booking = { show, hide };
 
     registerPageCleanup(() => {
       stop();
       if (dialog.open) dialog.close();
       if (open) lenis.start();
       open = false;
-      opener.booking = null;
+      mine.forEach((o) => o.removeEventListener("click", show));
+      dialog.booking = null;
     });
   });
 }

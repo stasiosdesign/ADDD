@@ -1,11 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Accordion from "../components/Accordion.astro";
+import FaqPanel from "../components/FaqPanel.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
+import BookCall from "../components/BookCall.astro";
+import BookCallFloat from "../components/BookCallFloat.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ProblemCard from "../components/ProblemCard.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
+import SplitHero from "../components/SplitHero.astro";
 import FolderDocument from "../components/FolderDocument.astro";
 import BookingDialog from "../components/BookingDialog.astro";
 import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
@@ -28,7 +31,7 @@ type Step = { _key: string; label?: string; title?: string; text?: string };
 const symptoms = list<Tile>("symptoms.tiles");
 const methods = list<Tile>("method.tiles");
 const journey = list<Step>("journey.steps");
-// What to Expect: each step with its timing and its more (journey.details,
+// Workshop Process: each step with its timing and its more (journey.details,
 // in the steps' order), and a photograph from the library (the
 // page's own, not the Studio's)
 const details = list<{ _key: string; meta?: string; more?: string }>("journey.details");
@@ -38,21 +41,25 @@ const STAGE_PHOTOS = [
   { src: "/assets/images/allister-keynote-stage-crop.webp", alt: "" },
   { src: "/assets/images/team-model-review.webp", alt: "" },
 ];
+// On the chart (StageTimeline.astro): each step's timing a phase across
+// the top, the step a row of its own, its name on the row's strip, its box
+// in its own phase
 const expectStages: Stage[] = journey.map((step, i) => ({
-  label: step.label,
+  lane: step.label,
   title: step.title,
   text: step.text,
-  meta: details[i]?.meta,
   more: details[i]?.more,
   image: STAGE_PHOTOS[i],
+  start: i,
+  span: 1,
   fields: {
-    label: `journey.steps.${i}.label`,
+    lane: `journey.steps.${i}.label`,
     title: `journey.steps.${i}.title`,
     text: `journey.steps.${i}.text`,
-    meta: `journey.details.${i}.meta`,
     more: `journey.details.${i}.more`,
   },
 }));
+const expectScale = journey.map((_, i) => ({ label: details[i]?.meta, field: `journey.details.${i}.meta` }));
 const stages = list<Tile>("pricing.tiles");
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 
@@ -106,32 +113,21 @@ const parts = (line: string) => {
 >
 <main class="page--grid page--workshop">
 
-  <!-- The opening, after the reference of 2026-11-04: the label and the
-       heading large on the left (Grid Columns 1–8), the standfirst and the
-       two buttons on a light panel on the right (from Grid Column 9 to the
-       window's edge), both set down at the foot. The opening is a screen
-       tall less the red block's top, which shows under it. -->
-  <section class="ws-hero">
-    <div class="ws-hero__main">
-      <p class="ws-hero__label" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-      <h1 class="ws-hero__heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
-    </div>
-    <div class="ws-hero__aside">
-      <p class="ws-hero__lede" data-page-field="hero.lede">{t("hero.lede")}</p>
-      <div class="ws-hero__actions">
-        <!-- the booking calendar (a demonstration for now: BookingDialog.astro),
-             and the way down to the prices, clear of the nav (scroll.js) -->
-        <ActionButton type="button" data-booking-open="workshop-booking" aria-haspopup="dialog" aria-controls="workshop-booking"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
-        <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
-      </div>
-    </div>
-  </section>
+  <!-- The opening (SplitHero.astro, shared with the Technology Blueprint):
+       the label and the heading large on the left, the standfirst and the
+       two buttons on a light panel on the right, both set down at the
+       foot; the red block's top shows under it. -->
+  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+    <Fragment slot="actions">
+      <!-- the booking calendar (a demonstration for now: BookingDialog.astro),
+           and the way down to the prices, clear of the nav (scroll.js) -->
+      <ActionButton type="button" data-booking-open="workshop-booking" aria-haspopup="dialog" aria-controls="workshop-booking"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+      <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
+    </Fragment>
+  </SplitHero>
 
   <BookingDialog id="workshop-booking" />
 
-  <!-- the red block under the opening: a screen tall and the window's
-       width, its top showing under the opening (a plain red for now) -->
-  <div class="ws-red" aria-hidden="true"></div>
 
   <section class="section ws-section is--problems" id="overview">
     <div class="container">
@@ -163,8 +159,6 @@ const parts = (line: string) => {
   <ServiceDeck
     heading={t("method.heading")}
     headingField="method.heading"
-    lede={t("method.lede")}
-    ledeField="method.lede"
     aside={t("method.tagline")}
     folders={folders}
   />
@@ -183,10 +177,10 @@ const parts = (line: string) => {
   />
   ))}
 
-  <!-- What to Expect: the four stages on a timeline after a Gantt chart
-       (StageTimeline.astro), each opening to tell more, the whole a screen
-       tall or less on a laptop -->
-  <section class="section ws-section ws-expect" id="what-to-expect">
+  <!-- Workshop Process: the four stages on a timeline after a Gantt chart
+       (StageTimeline.astro), each opening to tell more, given room to
+       breathe rather than held to a screen's height -->
+  <section class="section ws-section section--dark ws-expect" id="what-to-expect">
     <div class="container">
       <div class="ws-expect__head">
         <div>
@@ -196,7 +190,7 @@ const parts = (line: string) => {
         <p class="ws-expect__lede" data-page-field="journey.lede">{t("journey.lede")}</p>
       </div>
       <div class="ws-expect__run">
-        <StageTimeline id="workshop-stages" stages={expectStages} />
+        <StageTimeline id="workshop-stages" stages={expectStages} scale={expectScale} dark />
       </div>
     </div>
   </section>
@@ -263,16 +257,23 @@ const parts = (line: string) => {
     </div>
   </section>
 
+  <!-- Common Questions: the site's FAQ panel (FaqPanel.astro), each
+       question with its icon, and under them a line and Book a Free Call -->
   <section class="section ws-section">
     <div class="container">
-      <h2 class="h2" data-split="heading" data-page-field="faq.heading">{t("faq.heading")}</h2>
-      <div class="ws-faq">
-        <Accordion id="faq" items={faq} field="faq.questions" variant="boxed" />
-      </div>
+      <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
+        icons={["user", "chat", "clipboard", "map-pin", "file"]} footLine={t("faq.footLine")} footField="faq.footLine">
+        <BookCall slot="foot" />
+      </FaqPanel>
     </div>
   </section>
 
-  <ClosingCta />
+  <!-- the site's closing call to action, with one button of this page's
+       own: on to the Technology Blueprint -->
+  <ClosingCta single={{ href: "technology-blueprint.html", label: t("closing.button"), field: "closing.button", doc: "workshopPage" }} />
+  <!-- Book a Call, floating at the screen's foot from past the hero to Book a
+       Free Call (BookCallFloat.astro) -->
+  <BookCallFloat />
 
 </main>
 </BaseLayout>

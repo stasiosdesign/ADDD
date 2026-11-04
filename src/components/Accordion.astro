@@ -22,7 +22,12 @@
   square before it: filled in the red (mark "fill") or drawn open ("open").
 
   variant "tiles" (the default) sets each item as a bordered tile; "boxed"
-  as a plain white box, a little apart from the next (the homepage's FAQ).
+  as a plain white box, a little apart from the next (the homepage's FAQ);
+  "panel" as a quiet box on the FAQ panel's grid (FaqPanel.astro), its
+  icon before the question (icon: a name from public/assets/icons/faq,
+  its number where it has none) and a plus that turns to a cross, the
+  open one lifted to white (every FAQ on the site; accordion.css,
+  "The FAQ panel").
 */
 interface Item {
   _key?: string;
@@ -30,6 +35,8 @@ interface Item {
   answer?: string;
   points?: string[];
   mark?: "fill" | "open";
+  /** "panel": the icon before the question, by name (faq-<icon>.svg) */
+  icon?: string;
   /** this item's own fields, where it is not from a list (data-page-field) */
   questionField?: string;
   pointsField?: string;
@@ -38,21 +45,30 @@ interface Props {
   id: string;
   items: Item[];
   field?: string;
-  variant?: "tiles" | "boxed";
+  variant?: "tiles" | "boxed" | "panel";
 }
 
 const { id, items, field, variant = "tiles" } = Astro.props;
 ---
-<div data-accordion-init data-accordion-close-siblings="true" class:list={["accordion", { "is--boxed": variant === "boxed" }]}>
+<div data-accordion-init data-accordion-close-siblings="true" class:list={["accordion", { "is--boxed": variant === "boxed", "is--panel": variant === "panel" }]}>
   <ul class="accordion__list" data-page-list={field}>
-    {items.map(({ _key, question, answer, points, mark = "fill", questionField, pointsField }, i) => {
+    {items.map(({ _key, question, answer, points, mark = "fill", icon, questionField, pointsField }, i) => {
       const answerId = `${id}-answer-${i + 1}`;
       return (
         <li data-accordion-status="not-active" class="accordion__item" data-page-item={field ? _key : undefined}>
           <h3 class="accordion__heading">
             <button type="button" data-accordion-toggle aria-expanded="false" aria-controls={answerId} class="accordion__toggle">
-              <span data-page-item-field={field ? "question" : undefined} data-page-field={questionField}>{question}</span>
-              <span class="accordion__icon" aria-hidden="true"><svg class="accordion__icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></span>
+              {variant === "panel" && (icon ? (
+                <span class="accordion__glyph" aria-hidden="true"><span style={`--glyph:url(/assets/icons/faq/faq-${icon}.svg)`}></span></span>
+              ) : (
+                <span class="accordion__glyph is--n" aria-hidden="true">{i + 1}</span>
+              ))}
+              <span class="accordion__q" data-page-item-field={field ? "question" : undefined} data-page-field={questionField}>{question}</span>
+              {variant === "panel" ? (
+                <span class="accordion__icon is--plus" aria-hidden="true"></span>
+              ) : (
+                <span class="accordion__icon" aria-hidden="true"><svg class="accordion__icon-svg" xmlns="http://www.w3.org/2000/svg" width="100%" viewBox="0 0 36 36" fill="none"><path d="M28.5 22.5L18 12L7.5 22.5" stroke="currentColor" stroke-width="3" stroke-miterlimit="10"></path></svg></span>
+              )}
             </button>
           </h3>
           <div id={answerId} class="accordion__panel">

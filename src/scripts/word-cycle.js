@@ -42,6 +42,50 @@ const CYCLE = {
   fit: 0.12,
 };
 
+// The scramble's letters and pace, shared with the Technology Blueprint's
+// card words (scramble-words.js)
+export const SCRAMBLE = { chars: CYCLE.chars, speed: CYCLE.speed };
+
+// The scrambling letters, spaced a touch closer or wider so the word
+// fills its box exactly: the random letters are seldom the width of the
+// word's own, and would otherwise leave a gap before the next word or run
+// past its box. Never more than a little either way. The letters are
+// measured in the element's own type on a canvas (the same shaping the
+// page lays its text out with) rather than off the layout: measured
+// there, every frame of a change had the line laid out twice. read() takes
+// the type once, before anything is written; fit() runs on each frame of
+// the scramble, against the width the element is held to (style.width).
+export function scrambleFitter(el, most = CYCLE.fit) {
+  const measure = document.createElement("canvas").getContext("2d");
+  let face = null;
+  const widthOfText = (text, spacing) => (text ? measure.measureText(text).width + spacing * text.length : 0);
+  return {
+    read() {
+      const style = getComputedStyle(el);
+      face = {
+        font: `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`,
+        // the element's own tracking (px), added after every letter as the
+        // layout adds it
+        spacing: parseFloat(style.letterSpacing) || 0,
+        size: parseFloat(style.fontSize),
+      };
+    },
+    fit() {
+      const scrambling = el.querySelector(".is--scrambling");
+      if (!scrambling || !face) return;
+      measure.font = face.font;
+      // the letters already resolved, in the element's spacing, then the
+      // scrambling ones in none
+      let width = widthOfText(scrambling.textContent, 0);
+      for (const node of el.childNodes) if (node !== scrambling) width += widthOfText(node.textContent, face.spacing);
+      const spare = parseFloat(el.style.width) - width;
+      const limit = face.size * most;
+      const each = gsap.utils.clamp(-limit, limit, spare / scrambling.textContent.length);
+      scrambling.style.letterSpacing = `${each}px`;
+    },
+  };
+}
+
 export function mountWordCycle(el) {
   const words = (el.dataset.wordCycle || "").split("|").filter(Boolean);
   if (words.length < 2 || !window.ScrambleTextPlugin) return { destroy() {} };
@@ -66,42 +110,9 @@ export function mountWordCycle(el) {
       return ruler.getBoundingClientRect().width;
     };
 
-    // The scrambling letters, spaced a touch closer or wider so the word
-    // fills its box exactly: the random letters are seldom the width of the
-    // word's own, and would otherwise leave a gap before the next word or
-    // run under the clip (styles.css). Never more than a little either way.
-    // The letters are measured in the heading's own type on a canvas (the
-    // same shaping the page lays its text out with) rather than off the
-    // layout: measured there, every frame of a change had the heading laid
-    // out twice, once for the measurement between the frame's writes and
-    // once for the frame. The type is read once per change, before anything
-    // has been written.
-    const measure = document.createElement("canvas").getContext("2d");
-    const type = () => {
-      const style = getComputedStyle(el);
-      return {
-        font: `${style.fontStyle} ${style.fontWeight} ${style.fontSize} ${style.fontFamily}`,
-        // the heading's own tracking (px), added after every letter as the
-        // layout adds it
-        spacing: parseFloat(style.letterSpacing) || 0,
-        size: parseFloat(style.fontSize),
-      };
-    };
-    let face = null;
-    const widthOfText = (text, spacing) => (text ? measure.measureText(text).width + spacing * text.length : 0);
-    const fit = () => {
-      const scrambling = el.querySelector(".is--scrambling");
-      if (!scrambling || !face) return;
-      measure.font = face.font;
-      // the letters already resolved, in the heading's spacing, then the
-      // scrambling ones in none
-      let width = widthOfText(scrambling.textContent, 0);
-      for (const node of el.childNodes) if (node !== scrambling) width += widthOfText(node.textContent, face.spacing);
-      const spare = parseFloat(el.style.width) - width;
-      const most = face.size * CYCLE.fit;
-      const each = gsap.utils.clamp(-most, most, spare / scrambling.textContent.length);
-      scrambling.style.letterSpacing = `${each}px`;
-    };
+    // the scrambling letters fitted to the word's box as it moves
+    // (scrambleFitter, above)
+    const fitter = scrambleFitter(el);
 
     let index = words.indexOf(written);
     if (index < 0) index = 0;
@@ -115,7 +126,7 @@ export function mountWordCycle(el) {
       if (!onScreen) return;
       index = (index + 1) % words.length;
       const word = words[index];
-      face = type();
+      fitter.read();
       const from = el.getBoundingClientRect().width;
       const to = widthOf(word);
       change = gsap.timeline({
@@ -142,7 +153,7 @@ export function mountWordCycle(el) {
             revealDelay: CYCLE.scrambled,
             oldClass: "is--scrambling",
           },
-          onUpdate: fit,
+          onUpdate: fitter.fit,
         }, 0);
     };
     const hold = () => {

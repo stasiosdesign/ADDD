@@ -75,6 +75,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
   description={item.summary ?? item.standfirst ?? ""}
   pageName={item.title}
   doc={{ id: item._id, type: "report" }}
+  held
 >
 <main class="page--grid">
 

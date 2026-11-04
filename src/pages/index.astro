@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Accordion from "../components/Accordion.astro";
+import FaqPanel from "../components/FaqPanel.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ClosingCta from "../components/ClosingCta.astro";
@@ -277,7 +277,8 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        The four routes as folder cards, one under another, beside the
        section's title held on the left (ServiceDeck.astro). The panel that takes the routes in turn
        (ServiceTabs.astro) now lives on the AEC Tech Partners page. -->
-  <ServiceDeck heading={t("routes.heading")} aside="Services" cards={routeCards} hrefs={routeHrefs} />
+  <ServiceDeck heading={t("routes.heading")} aside="Services" cards={routeCards} hrefs={routeHrefs}
+    button={{ href: "stack-diagnostic.html", label: t("routes.button"), field: "routes.button" }} />
 
   <!-- ========== 6. TESTIMONIALS ========== -->
   <!-- The slider alone (Testimonials.astro, shared with the Workflow
@@ -315,21 +316,19 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
 
   <!-- ========== 8. FAQ ==========
        Who ADDD is for and who it is not, as questions (the fit section's
-       own lists, fit.forItems and fit.notItems, as the answers): the
-       heading on Grid Columns 1–5, the questions on Grid Columns 7–12,
-       each opening to its answer (Accordion.astro, "boxed"), then the
-       section's further questions (fit.questions), each with its answer.
-       All start closed. -->
+       own lists, fit.forItems and fit.notItems, as the answers), in the
+       site's FAQ panel (FaqPanel.astro), each with its icon and opening to
+       its answer, then the section's further questions (fit.questions),
+       each with its answer. All start closed. -->
   <section class="section section--light faq-home" id="faq">
     <div class="container">
-      <h2 class="h2 faq-home__h" data-split="heading" data-page-field="fit.faqHeading">{t("fit.faqHeading")}</h2>
-      <div class="faq-home__list">
-        <Accordion id="home-faq" variant="boxed" items={[
+      <FaqPanel id="home-faq" heading={t("fit.faqHeading")} headingField="fit.faqHeading"
+        icons={["check-circle", "blocked", "store", "flag-triangle", "calendar", "headset"]}
+        items={[
           { question: t("fit.forQuestion"), questionField: "fit.forQuestion", points: lines("fit.forItems"), pointsField: "fit.forItems", mark: "fill" },
           { question: t("fit.notQuestion"), questionField: "fit.notQuestion", points: lines("fit.notItems"), pointsField: "fit.notItems", mark: "open" },
           ...list<{ _key: string; question?: string; answer?: string }>("fit.questions").map(({ question, answer }) => ({ question, answer })),
         ]} />
-      </div>
     </div>
   </section>
 

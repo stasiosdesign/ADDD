@@ -449,3 +449,67 @@
   .step-card__foot { --foot-pad: 1.625rem; }
   .step-card__figure { max-width: none; }
 }
+
+/* ============================================================
+   Light: the same section in white (ApproachStack.astro, light: the
+   Technology Blueprint's three benefits, 2026-11-04)
+   ------------------------------------------------------------
+   Everything the dark band has, turned over: the ground white, the field
+   of dots and the rail's dots in ink and as faint as the white ones are
+   on the ink, the heading and the copy in ink, the cards four light greys
+   stepping down from the number to the drawing's ground just as the dark
+   ones step, and the figures' lines in ink with their one bright stroke
+   still the site's red. A shorter run under the last card than the
+   homepage's, where the band runs on. A step may carry a small line over
+   its copy (step-card__tagline), on the copy's left edge.
+   ============================================================ */
+.approach-stack.is--light {
+  --stack-line: rgba(10, 10, 10, 0.12);
+  --stack-dot: rgba(10, 10, 10, 0.4);
+  --label-ink: color-mix(in srgb, var(--c-text) 60%, transparent);
+  padding-bottom: calc(var(--sec-lg) * 1.5);
+  background: var(--c-white);
+  color: var(--c-text);
+}
+.approach-stack.is--light .approach-stack__head { color: var(--c-text); }
+.approach-stack.is--light .dot-grid.band-field { --dot-grid-ink: rgba(10, 10, 10, 0.14); }
+.approach-stack.is--light .step-card {
+  --tone-number: #e9e9e6;
+  --tone-title: #eeeeeb;
+  --tone-copy: #f2f2f0;
+  --tone-media: #f6f6f4;
+}
+.approach-stack.is--light .step-card__p { width: 100%; color: var(--c-text); }
+.approach-stack.is--light .step-card__pattern { --iso-line: rgba(10, 10, 10, 0.1); }
+.approach-stack.is--light .step-card__stage {
+  --hairline-edge: rgba(10, 10, 10, 0.6);
+  --hairline-mid: rgba(10, 10, 10, 0.34);
+  --hairline-lo: rgba(10, 10, 10, 0.12);
+}
+.approach-stack.is--light .step-card__stage .logo .rim { stroke: rgba(0, 0, 0, 0.25); }
+.step-card__tagline {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0 auto 0.75rem;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--label-ink);
+}
+.step-card.is--even .step-card__tagline { max-width: none; margin-inline: 0; }
+
+/* The light version's heading (the Technology Blueprint's "When
+   Technology Has Direction"): in ink, centred, on two lines from 992px */
+.approach-stack.is--light .approach-stack__head {
+  margin: 0 auto var(--sec-md);
+  max-width: 9.5em;
+  color: var(--c-text);
+}
+/* A step's highlighted word (**word** in its text): its own size, in the
+   medium (500: firmer than the text round it, short of the bold), and
+   while it scrambles (scramble-words.js) its letters in the red */
+.step-card__em { font-weight: 500; }
+.step-card__em .is--scrambling { color: var(--c-red); }

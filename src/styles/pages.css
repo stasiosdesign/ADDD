@@ -256,6 +256,35 @@
   overflow: hidden;
 }
 .examine-panel__diagram { display: block; width: 100%; max-width: 26rem; height: auto; }
+/* The tabs' panels (tabs.js): every one in the same cell of the panel's
+   words, so the panel is as tall as the tallest and never moves; the one
+   shown fades up a touch into place, the one left fades out. The tab
+   buttons themselves are the filters' (above), the selected one red. */
+.examine-tabs__panels { display: grid; padding: 0; }
+.examine-tabs__panel {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 3rem;
+  padding-top: 2.5rem;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 0.5rem;
+  transition: opacity 0.25s ease, translate 0.45s var(--ease-osmo, ease), visibility 0s linear 0.25s;
+}
+.examine-tabs__panel.is--active {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition: opacity 0.35s ease 0.08s, translate 0.45s var(--ease-osmo, ease) 0.08s, visibility 0s;
+}
+.examine-tabs__panel:focus-visible { outline: 1px solid var(--c-text); outline-offset: -4px; }
+.filters--tabs button:focus-visible { outline: 1px solid var(--c-text); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .examine-tabs__panel,
+  .examine-tabs__panel.is--active { transition: none; translate: none; }
+}
 
 @media (max-width: 767px) {
   .filters--tabs { justify-content: flex-start; }
@@ -263,6 +292,8 @@
   .examine-panel__media { border-left: 0; border-top: 1px solid var(--c-border); }
   .examine-panel__h { padding: 0 1.5rem; }
   .examine-panel__text { padding-top: 1.75rem; }
+  .examine-tabs__panels { padding-top: 0; }
+  .examine-tabs__panel { padding-top: 1.75rem; }
   .examine-panel__row { padding: 1.25rem 1.5rem 1.75rem; }
 }
 
@@ -536,15 +567,16 @@
 /* ------------------------------------------------------------
    Contact (src/pages/contact.astro)
    ------------------------------------------------------------
-   Two columns on the 12-Column Grid, the pass on Grid Columns 1–6
-   and the form on 7–11, on a ground a step lighter than the other
-   dark pages. The pass is flat and face on: an ADDD lanyard in the
-   red running up off the page, a clasp, a grey holder with its slot,
-   and in it a white card. The form's labels are in the body face,
-   its boxes a shade darker than the ground, and a focused box only
-   brightens its edge. Stacked below 992px, the pass first.
+   Two columns on the 12-Column Grid, on white (2026-11-04): the pass on
+   Grid Columns 1–6 and the form on 7–11, the two in one row centred in
+   the first screen, the pass's lanyard as tall as the form (from the
+   strap's sewn end to the card's foot), so the two read as a pair. The
+   pass turns slightly towards the pointer (lanyard.js). The form's labels
+   are in the body face, its boxes a breath off white with a hairline
+   edge, and a focused box only firms its edge. Stacked below 992px, the
+   pass first.
    ------------------------------------------------------------ */
-.page--contact { --contact-ground: #141414; background: var(--contact-ground); }
+.page--contact { --contact-ground: var(--c-white); background: var(--contact-ground); }
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -556,190 +588,188 @@
 .contact {
   /* the lanyard runs up off the top of the page: the section crops it */
   overflow: clip;
-  padding: calc(var(--nav-h) + 2.5rem) var(--page-pad) var(--sec-lg);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 100svh;
+  padding: calc(var(--nav-h) + 2.5rem) var(--page-pad) 4rem;
 }
 .contact__grid {
   display: grid;
   grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
   column-gap: var(--grid-gutter);
-  align-items: center;
-  /* the first screen under the nav, less a little room at its foot, the
-     pass and the form centred in it */
-  min-height: calc(100svh - var(--nav-h) - 2.5rem - 2rem);
+  /* one row as tall as the form: the pass's column stretched to it */
+  align-items: stretch;
 }
-.contact__pass { grid-column: 1 / 7; display: flex; justify-content: center; }
-.contact__form { grid-column: 7 / 12; }
+.contact__pass { grid-column: 1 / 7; position: relative; }
+.contact__form { grid-column: 7 / 12; align-self: center; }
 
-/* The pass: a woven lanyard in the red running up off the page, a
-   gunmetal clasp, and a moulded grey holder with its slot, the card
-   behind a clear sleeve in it. Its width (--pass-w) is held to the
-   screen's height from 992px, so the whole of it, strap to foot, stands
-   in the first screen; everything in it but the type scales with it.
-   Every material is a few gradients and shadows, never an image. */
-.pass {
-  --pass-w: 20rem;
-  /* how much of the strap shows above the clasp */
-  --pass-drop: 5.5rem;
+/* The lanyard (contact.astro; lanyard.js), after the studio pass of the
+   references of 2026-11-04, drawn as one clean object in one black: the
+   strap running up off the page into a sewn end, a ring hung from it, a
+   swivel and a lobster clasp whose claw goes through the slot in the
+   holder's tab, and the holder round the printed card. Little shading:
+   a lit rim and a soft shadow give it its depth.
+
+   The whole is as tall as the form (its column, stretched to the form's
+   row: a size container), and everything in it is measured from the
+   card's width (--w), found from that height: the strap a sixth of it,
+   the hardware a fifth, the card 0.73 as wide as it is tall, as the
+   reference's. The card's type is measured by the card itself (cqw). */
+.lanyard,
+.lanyard__rig { height: 100%; }
+.lanyard__rig {
+  container-type: size;
   position: relative;
-  width: var(--pass-w);
-  padding-top: var(--pass-drop);
+  /* from the strap's end to the card's foot: the hardware (0.356 of the
+     card's width) and the card (1/0.73 of it) */
+  --w: calc(100cqh / 1.726);
+  --ink: #111111;
+  min-height: 24rem;
 }
-@media screen and (min-width: 992px) {
-  .pass { --pass-w: clamp(15rem, calc(100svh - 30rem), 20rem); }
-}
-/* the strap: a red band with a fine weave, its edges rolled darker and
-   lit along its middle, the logo's forms printed down it */
-.pass__strap {
+.lanyard__card,
+.lanyard__hook,
+.lanyard__strap {
   position: absolute;
-  bottom: calc(100% - var(--pass-drop) - 0.6rem);
-  left: 50%;
-  width: 2.75rem;
-  height: 100vh;
-  transform: translateX(-50%);
+  /* a little left of the column's middle */
+  left: 46%;
+  translate: -50% 0;
+}
+/* the strap: one black, a faint print of the mark down it */
+.lanyard__strap {
+  bottom: calc(var(--w) * 1.69);
+  width: calc(var(--w) * 0.168);
+  height: 120vh;
   background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='120' viewBox='0 0 44 120'%3E%3Cg fill='%23fff' fill-opacity='.42' transform='translate(33.7 30) rotate(90) scale(1.3)'%3E%3Cpolygon points='0,12 6.1,12 3.05,6'/%3E%3Cpolygon points='6.1,6 11.7,9 6.1,12'/%3E%3Cpolygon points='12.1,6 18,9 12.1,12'/%3E%3Cpolygon points='18.2,6 24,9 18.2,12'/%3E%3C/g%3E%3C/svg%3E") center top / 2.75rem 7.5rem repeat-y,
-    linear-gradient(to right, rgba(0, 0, 0, 0.32), rgba(255, 255, 255, 0.07) 30%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.04) 70%, rgba(0, 0, 0, 0.34)),
-    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.12) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(to right, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
-    var(--c-red);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='120' viewBox='0 0 44 120'%3E%3Cg fill='%23fff' fill-opacity='.06' transform='translate(33.7 30) rotate(90) scale(1.3)'%3E%3Cpolygon points='0,12 6.1,12 3.05,6'/%3E%3Cpolygon points='6.1,6 11.7,9 6.1,12'/%3E%3Cpolygon points='12.1,6 18,9 12.1,12'/%3E%3Cpolygon points='18.2,6 24,9 18.2,12'/%3E%3C/g%3E%3C/svg%3E") center bottom / 100% auto repeat-y,
+    var(--ink);
 }
-/* the clasp: gunmetal, lit on its top edge, a seam across it */
-.pass__clasp {
-  position: absolute;
-  top: calc(var(--pass-drop) - 1.15rem);
-  left: 50%;
+/* the hardware: the sewn end, the ring, the swivel, the clasp and its
+   claw (an svg in the one black), its claw's foot in the tab's slot */
+.lanyard__hook {
+  bottom: calc(var(--w) * 1.397);
   z-index: 1;
-  width: 3.5rem;
-  height: 1.65rem;
-  transform: translateX(-50%);
-  border-radius: 4px;
-  background:
-    linear-gradient(to bottom, transparent 48%, rgba(0, 0, 0, 0.45) 48% 54%, rgba(255, 255, 255, 0.08) 54% 58%, transparent 58%),
-    linear-gradient(to bottom, #6a6a6a, #3a3a3a 35%, #262626 70%, #343434);
+  width: calc(var(--w) * 0.2016);
+  height: auto;
+  overflow: visible;
+  fill: var(--ink);
+}
+.lanyard__hook .lanyard__ring,
+.lanyard__hook .lanyard__claw { fill: none; stroke: var(--ink); stroke-linecap: round; }
+.lanyard__hook .lanyard__ring { stroke-width: 11; }
+.lanyard__hook .lanyard__claw { stroke-width: 10; }
+/* the holder: the one black, its rim lit, a soft shadow on the white,
+   a tab over its top with the slot the claw goes through */
+.lanyard__card {
+  bottom: 0;
+  /* its inside (the printed card's width) the measure of the card's type */
+  container-type: inline-size;
+  box-sizing: border-box;
+  width: var(--w);
+  aspect-ratio: 0.73;
+  /* the black round the card: a twelfth of its width (a percentage here
+     would be of the lanyard's whole column) */
+  padding: calc(var(--w) * 0.082);
+  border-radius: 5.4% / 4%;
+  background: var(--ink);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.35),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
-    0 2px 4px rgba(0, 0, 0, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 1.25rem 2.25rem -0.75rem rgba(0, 0, 0, 0.3);
 }
-/* the holder: moulded grey plastic, lit along its top edge and darker to
-   its foot, a little deeper at its rim, casting a soft shadow; the card
-   behind a clear sleeve in it (::after, its sheen) */
-.pass__holder {
-  position: relative;
-  padding: 2.4rem 0.7rem 0.7rem;
-  border-radius: 14px;
-  background: linear-gradient(170deg, #b3b3b1 0%, #9d9d9b 45%, #8c8c8a 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
-    inset 0 -2px 3px rgba(0, 0, 0, 0.22),
-    0 1px 2px rgba(0, 0, 0, 0.5),
-    0 14px 24px -10px rgba(0, 0, 0, 0.55),
-    0 40px 70px -30px rgba(0, 0, 0, 0.7);
-}
-.pass__holder::after {
-  content: "";
+.lanyard__tab {
   position: absolute;
-  inset: 2.4rem 0.7rem 0.7rem;
-  border-radius: 9px;
-  background: linear-gradient(118deg, transparent 30%, rgba(255, 255, 255, 0.13) 37%, rgba(255, 255, 255, 0.03) 43%, transparent 48%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-  pointer-events: none;
-}
-/* the slot, cut through: its far wall in shadow, a lit lip below */
-.pass__slot {
-  position: absolute;
-  top: 0.85rem;
   left: 50%;
-  width: 4.5rem;
-  height: 0.85rem;
-  transform: translateX(-50%);
+  bottom: calc(100% - 1px);
+  width: 23%;
+  height: calc(var(--w) * 0.072);
+  translate: -50% 0;
+  border-radius: calc(var(--w) * 0.032) calc(var(--w) * 0.032) 0 0;
+  background: var(--ink);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.lanyard__slot {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: 34%;
+  height: 34%;
+  translate: -50% 0;
   border-radius: 999px;
   background: var(--contact-ground);
-  box-shadow:
-    inset 0 2px 3px rgba(0, 0, 0, 0.8),
-    0 1px 0 rgba(255, 255, 255, 0.45);
 }
-/* the card: a printed white card with a faint grain, set into the sleeve
-   (a soft shadow round it) */
-.pass__card {
-  position: relative;
+/* the printed card: a white a breath off white, set into the holder (a
+   shade in at its top), the reference's order and proportions */
+.lanyard__face {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  padding: 1.1rem 1.15rem 1rem;
-  border-radius: 9px;
-  background:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .045 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E"),
-    linear-gradient(to bottom, #ffffff, #f6f6f4);
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.12),
-    0 1px 3px rgba(0, 0, 0, 0.25);
-  color: var(--c-text);
+  height: 100%;
+  padding: 4.6cqw 4.7cqw 4.4cqw;
+  border-radius: 2px;
+  background: linear-gradient(to bottom, #fafaf8, #f2f2ef);
+  box-shadow: inset 0 0.2rem 0.4rem rgba(0, 0, 0, 0.08);
+  color: #141414;
 }
-.pass__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.85rem; }
-.pass__logo { display: block; width: 2.25rem; height: 2.25rem; }
-.pass__meta,
-.pass__chip,
-.pass__role,
-.pass__rows {
-  font-family: var(--font-mono);
-  font-weight: var(--fw-label);
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-}
-.pass__meta { font-size: var(--t-xs); color: color-mix(in srgb, var(--c-text) 60%, transparent); }
-/* the photograph printed on the card: a hair inset from its edge */
-.pass__photo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 1;
-  height: auto;
-  object-fit: cover;
-  object-position: 50% 20%;
-  border-radius: 4px;
-  filter: grayscale(1) contrast(1.03);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
-}
-.pass__chip {
-  align-self: flex-start;
-  margin-top: 0.95rem;
-  padding: 0.3rem 0.55rem;
-  border-radius: 999px;
-  background: #efefed;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-  font-size: 0.6875rem;
-  line-height: 1;
-}
-.pass__name {
-  margin: 0.5rem 0 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 2.125rem;
-  line-height: 0.95;
-  letter-spacing: calc(var(--primary-tracking) - 0.03em);
-}
-.pass__role {
-  margin: 0.5rem 0 0;
-  font-size: var(--t-xs);
-  color: color-mix(in srgb, var(--c-text) 62%, transparent);
-}
-.pass__rows { margin: 0.95rem 0 0; font-size: var(--t-xs); }
-.pass__rows > div {
+.lanyard__face p { margin: 0; }
+.lanyard__top,
+.lanyard__foot {
   display: flex;
-  gap: 0.75rem;
-  padding: 0.55rem 0;
-  border-top: 1px solid #e6e6e3;
+  justify-content: space-between;
+  gap: 1rem;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  color: #4a4a48;
 }
-.pass__rows > div:last-child { border-bottom: 1px solid #e6e6e3; }
-.pass__rows dt { color: var(--c-red); }
-.pass__rows dd { margin: 0; text-transform: none; }
-.pass__rows a { color: inherit; text-decoration: none; }
-.pass__rows a:hover { text-decoration: underline; text-underline-offset: 0.2em; }
+.lanyard__top { font-size: 2.6cqw; text-transform: uppercase; }
+.lanyard__tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46cqw;
+  aspect-ratio: 1;
+  margin: 11cqw auto 0;
+  border-radius: 17%;
+  background: linear-gradient(#1c1c1d, #111112);
+  box-shadow:
+    inset 0 0 0 1.6cqw #2c2c2e,
+    inset 0 0.4cqw 0 1.6cqw #4a4a4d,
+    0.6cqw 1.4cqw 2.4cqw rgba(0, 0, 0, 0.28);
+}
+.lanyard__tile img { width: 44%; height: auto; }
+.lanyard__name {
+  margin-top: auto !important;
+  font-family: var(--font-display);
+  font-size: 10cqw;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  -webkit-text-stroke: 0.01em currentColor;
+}
+.lanyard__role {
+  margin-top: 1.8cqw !important;
+  font-size: 4.3cqw;
+  color: #5a5a58;
+}
+/* the foot: under a hairline, his email and his telephone, links in the
+   label face */
+.lanyard__foot {
+  margin-top: 6cqw !important;
+  padding-top: 3.4cqw;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 3.1cqw;
+}
+.lanyard__foot a {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 0.25em;
+  transition: color 0.2s ease;
+}
+.lanyard__foot a:hover { color: #141414; text-decoration: underline; }
+.lanyard__foot a:focus-visible { outline: 1px solid #141414; outline-offset: 0.3em; color: #141414; }
 
-/* The form: labels in the body face, the boxes a shade darker than the
-   ground with a hairline edge, focus a brighter edge and a faint lift,
-   never the browser's bright ring. */
+/* The form, on white: labels in the body face, the boxes a breath off
+   white with a hairline edge, focus a firmer edge, never the browser's
+   bright ring. */
 .contact-form { gap: 1.25rem; }
 .contact-form .field { gap: 0.45rem; }
 .contact-form .field > label {
@@ -748,37 +778,55 @@
   font-weight: var(--fw-body);
   letter-spacing: normal;
   text-transform: none;
-  color: rgba(255, 255, 255, 0.68);
+  color: color-mix(in srgb, var(--c-text) 70%, transparent);
 }
 .page--contact .contact-form .field input:not([type="radio"]):not([type="checkbox"]),
 .page--contact .contact-form .field select,
 .page--contact .contact-form .field textarea {
   padding: 0.8rem 0.9rem;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(10, 10, 10, 0.1);
   border-radius: 3px;
-  background: #0c0c0c;
-  color: var(--c-white);
+  background: #f7f7f5;
+  color: var(--c-text);
   transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
 }
-.page--contact .contact-form .field :is(input, select, textarea):not([type="radio"]):not([type="checkbox"]):hover { border-color: rgba(255, 255, 255, 0.14); }
+.page--contact .contact-form .field :is(input, select, textarea):not([type="radio"]):not([type="checkbox"]):hover { border-color: rgba(10, 10, 10, 0.2); }
 .page--contact .contact-form .field :is(input, select, textarea):not([type="radio"]):not([type="checkbox"]):is(:focus, :focus-visible) {
   outline: none;
-  border-color: rgba(255, 255, 255, 0.3);
-  background: #101010;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.04);
+  border-color: rgba(10, 10, 10, 0.45);
+  background: var(--c-white);
+  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.04);
 }
 .contact-form .field textarea { min-height: 9rem; }
-.contact-form .field textarea::placeholder { color: rgba(255, 255, 255, 0.32); }
-.contact-form .checkbox { color: rgba(255, 255, 255, 0.68); }
+.contact-form .field textarea::placeholder { color: color-mix(in srgb, var(--c-text) 40%, transparent); }
+.contact-form .checkbox { color: color-mix(in srgb, var(--c-text) 70%, transparent); }
 .contact-form .checkbox input { accent-color: var(--c-red); }
 
 @media screen and (max-width: 991px) {
-  .contact { padding-top: calc(var(--nav-h) + 2.5rem); }
-  .contact__grid { min-height: 0; row-gap: 3.5rem; }
+  .contact { min-height: 0; padding-top: calc(var(--nav-h) + 2.5rem); }
+  .contact__grid { row-gap: 3.5rem; }
   .contact__pass, .contact__form { grid-column: 1 / -1; }
-  .pass { --pass-w: 19rem; }
+  /* stacked, the pass its own height: the composition 34rem tall */
+  .lanyard__rig { height: 34rem; }
 }
-@media screen and (max-width: 479px) {
-  .pass { --pass-w: min(19rem, 100%); }
-  .pass__name { font-size: 2rem; }
+
+/* ============================================================
+   The Technology Blueprint's roadmap (technology-blueprint.astro): the
+   heading on the left and its button on the right, on one row, and the
+   shared timeline (StageTimeline.astro, its Gantt layout) across the
+   whole grid under them
+   ============================================================ */
+.roadmap__head,
+.roadmap__run { grid-column: 1 / -1; }
+.roadmap__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+.roadmap__head .tagline { margin: 0 0 0.875rem; }
+.roadmap__head .h2 { max-width: 14ch; }
+@media screen and (max-width: 767px) {
+  .roadmap__head { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
 }

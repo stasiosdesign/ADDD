@@ -8,8 +8,8 @@ export const beforeRevitPage = {
     tagline: 'Before Revit',
     heading: 'Early-stage design workflow',
     lede: 'An engagement for practices reviewing what happens in the early stages of design, before the work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.',
-    primaryButton: 'Enquire',
-    secondaryButton: 'Investment',
+    primaryButton: 'Inquire',
+    secondaryButton: 'View Pricing',
   },
   method: {
     lede: 'The ADDD approach, applied to the start of the design process rather than the whole practice.',

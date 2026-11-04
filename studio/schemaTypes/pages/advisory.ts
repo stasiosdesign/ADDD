@@ -1,4 +1,4 @@
-import {defineType} from 'sanity'
+import {defineField, defineType} from 'sanity'
 import {UsersIcon} from '@sanity/icons/Users'
 import {headingField, heroSection, imageField, itemsField, leadField, pageSection, quoteSection, sectionHead} from '../shared/fields'
 
@@ -48,6 +48,7 @@ export const advisoryPage = defineType({
     pageSection('faq', 'Answers', 'The heading and the questions that end the page, each with its answer.', [
       headingField(),
       itemsField('questions', 'Questions', 'faqItem', 'The questions, in order; all start closed.'),
+      defineField({name: 'footLine', title: 'Line under the questions', type: 'string', description: 'Over the Book a Free Call button.'}),
     ]),
   ],
   preview: {prepare: () => ({title: 'Ongoing Advisory page'})},

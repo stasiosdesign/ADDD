@@ -195,21 +195,21 @@
    hairline round it. The closing CTA is always on the off-white, a dark
    page's included, so its pair never inverts (:where keeps the
    exception from outweighing the hover below). */
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button:where(:not(.cta *)) {
   --action-button-color-focus: var(--c-white);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)):not(.is--secondary) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button:where(:not(.cta *)):not(.is--secondary) {
   /* black would vanish into a dark ground, so the arrow block keeps the red */
   --action-button-accent: var(--c-red);
   --action-button-color: var(--c-text);
   --action-button-color-background: var(--c-white);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)).is--secondary {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button:where(:not(.cta *)).is--secondary {
   --action-button-color: var(--c-white);
   --action-button-color-background: rgba(255, 255, 255, 0.1);
   --action-button-hover-color-background: rgba(255, 255, 255, 0.18);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button:where(:not(.cta *)).is--secondary .action-button__bg {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button:where(:not(.cta *)).is--secondary .action-button__bg {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
@@ -449,7 +449,7 @@
 
 /* on a dark ground the secondary's see-through lift would show the neck
    where it overlaps the pill and the circle, so the pill's is solid */
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button.is--pill:where(:not(.cta *)).is--secondary {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button.is--pill:where(:not(.cta *)).is--secondary {
   --action-button-color-background: #303030;
 }
 
@@ -565,6 +565,33 @@
   stroke-linejoin: miter;
 }
 
+/* A photograph at the start (photo): the box's whole height, flush with
+   its top, foot and start (its corners the box's own there), a square as
+   wide as the box is tall, cropped to the face (the photo's position), in
+   black and white like the site's portraits; the label a little closer to
+   it than to the box's edge. The picture is laid over its square rather
+   than sizing it, so the photograph's own pixels never size the box. */
+.action-button.is--frame.has--photo { align-items: stretch; }
+.action-button__photo {
+  position: relative;
+  flex: none;
+  width: var(--action-button-height);
+  min-height: var(--action-button-height);
+  overflow: hidden;
+  border-radius: var(--frame-r) 0 0 var(--frame-r);
+}
+.action-button__photo img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 20%;
+  filter: grayscale(1) contrast(1.05);
+}
+.action-button.is--frame.has--photo .action-button__body { padding-left: 0.875rem; }
+
 /* pointing down the page (arrow="down") */
 .action-button.is--frame .action-button__arrow.is--down { rotate: 90deg; }
 
@@ -588,12 +615,12 @@
 /* On a dark ground the black would vanish, so the pair inverts, as the
    site's buttons do there: the primary a white block in ink, the
    secondary a solid block a few steps up from the dark, set in white. */
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button.is--frame:where(:not(.cta *)):not(.is--secondary) {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button.is--frame:where(:not(.cta *)):not(.is--secondary) {
   --frame-ground: var(--c-white);
   --frame-ground-hover: #e6e6e3;
   --frame-ink: var(--c-text);
 }
-:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .hero--centred, .price-card--dark, .sticky-title) .action-button.is--frame:where(:not(.cta *)).is--secondary {
+:is(.page--dark, .section--dark, .pg-hero--dark, .service-hero, .service-deck, .hero--centred, .price-card--dark, .sticky-title, [data-ground="dark"]) .action-button.is--frame:where(:not(.cta *)).is--secondary {
   --frame-scramble: var(--frame-ink);
   --frame-ground: #2a2a29;
   --frame-ground-hover: #363635;

@@ -1,20 +1,20 @@
 ---
 /*
   The closing call to action every content page ends on, on the site's
-  off-white, set the way the hero and the routes intro are: a label
-  holding the left edge, the heading and its buttons set in from it, and
-  the arrow out on the right gutter. The newsletter signup is in the
-  footer (Footer.astro).
+  off-white: the heading, a line under it where the page has one, and the
+  buttons, all centred (2026-11-04: the label on the left and the arrow
+  on the right were taken out). The newsletter signup is in the footer
+  (Footer.astro).
 
   The words are the Closing call to action section of the Home page document
   in Sanity (src/sanity/defaults/home.ts while nothing is published), so one
   edit there changes every page that ends with it. A page with its own call
   to action — For AEC Tech Firms, with its partnership routes — passes its
-  own `doc` and field, so the two audiences never share one. Where the
-  buttons lead stays here.
+  own `doc` and field, so the two audiences never share one. A page can
+  set one button of its own in place of the pair (single: the Workflow
+  Workshop's "Start a Tech Blueprint"). Where the buttons lead stays here.
 */
 import ActionButton, { type ActionButtonShape } from "./ActionButton.astro";
-import ArrowIcon from "./ArrowIcon.astro";
 import { pageDocument, reader, type Doc } from "../sanity/content";
 import { homePage } from "../sanity/defaults/home";
 
@@ -27,6 +27,10 @@ interface Props {
   accent?: "red" | "blue";
   /** The buttons' form (ActionButton.astro): the site's block, the pill, or the frame. */
   shape?: ActionButtonShape;
+  /** One button in place of the pair (the Workflow Workshop's "Start a Tech
+      Blueprint"): where it leads, its words, and the page's own field and
+      document they come from, for the Visual editor. */
+  single?: { href: string; label: string; field?: string; doc?: string };
 }
 
 const {
@@ -35,6 +39,7 @@ const {
   secondary = { href: "contact.html" },
   accent = "red",
   shape,
+  single,
 } = Astro.props;
 const field = (doc as { field?: string }).field ?? "closingCta";
 const { t } = reader(await pageDocument(Astro.locals.sanity, doc.id), doc.defaults);
@@ -46,15 +51,19 @@ const lede = t(`${field}.lede`);
 ---
 <section class:list={["cta", { "cta--blue": accent === "blue" }]} {...scope}>
   <div class="cta__grid">
-    <p class="tagline tagline--sm cta__label" data-page-field={`${field}.label`}>{t(`${field}.label`)}</p>
     <div class="cta__body">
       <h2 class="h1 cta__heading" data-split="heading" data-page-field={`${field}.heading`}>{t(`${field}.heading`)}</h2>
       {lede && <p class="text-md cta__lede" data-page-field={`${field}.lede`}>{lede}</p>}
+      {single ? (
+      <div class="actions">
+        <ActionButton href={single.href} shape={shape}><span data-page-field={single.field} data-page-doc={single.doc} data-page-type={single.doc}>{single.label}</span></ActionButton>
+      </div>
+      ) : (
       <div class="actions actions--pair">
         <ActionButton {...primary} shape={shape}><span data-page-field={`${field}.primaryButton`}>{t(`${field}.primaryButton`)}</span></ActionButton>
         <ActionButton {...secondary} variant="secondary" shape={shape}><span data-page-field={`${field}.secondaryButton`}>{t(`${field}.secondaryButton`)}</span></ActionButton>
       </div>
+      )}
     </div>
-    <span class="cta__mark" aria-hidden="true"><ArrowIcon /></span>
   </div>
 </section>

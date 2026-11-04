@@ -1412,7 +1412,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    204.2 (measured 2026-11-04, @lucasmarkes/hairline 0.5.1) */
 .problem-card__figure[data-problem-figure="turntable"] { --fig-k: 0.4295cqh; --fig-cx: 200; --fig-cy: 174.4; }
 .problem-card__figure[data-problem-figure="format"] { --fig-k: 0.4016cqh; --fig-cx: 200; --fig-cy: 163.9; }
-.problem-card__figure[data-problem-figure="plug"] { --fig-k: 0.382cqh; --fig-cx: 248.6; --fig-cy: 161.7; }
+/* the plug's cord runs off its own frame's right edge (its end at x 398):
+   set so that edge lies just past ours, the cord leaving the frame rather
+   than stopping short in it (x 400 at 0.5 frame + (400 − 178) × 0.382cqh,
+   a little over the frame's width for its 5:3), the socket and the plug
+   left of the middle */
+.problem-card__figure[data-problem-figure="plug"] { --fig-k: 0.382cqh; --fig-cx: 178; --fig-cy: 161.7; }
 
 /* The band of words under the field. It takes the row's slack, so
    three cards of different words still end level. */
@@ -1896,7 +1901,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   display: grid;
   grid-template-columns: subgrid;
   align-content: start;
-  padding: var(--slider-pad) 0;
+  padding: var(--slider-pad) 0 var(--slider-foot, var(--slider-pad));
 }
 /* a stack: every member in the one cell, the cell the size of the
    largest */
@@ -1988,7 +1993,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: flex-start;
   gap: var(--slider-controls-gap, 4.5rem);
   align-items: flex-start;
-  padding: var(--slider-pad) 0;
+  padding: var(--slider-pad) 0 var(--slider-foot, var(--slider-pad));
 }
 /* the site's dotted rule, stood upright on the line, from the section's
    top (the band above) to its foot (the section after) */
@@ -2103,7 +2108,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
     justify-content: space-between;
     align-items: center;
     margin-top: 2.5rem;
-    padding: 2.5rem 0 var(--slider-pad);
+    padding: 2.5rem 0 var(--slider-foot, var(--slider-pad));
   }
   /* the rule across the grid, from Grid Column 1 to the last */
   .testimonial-slider__side::before {
@@ -2228,20 +2233,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ============================================================
-   8 — FAQ (index.astro; Accordion.astro, "boxed")
+   8 — FAQ (index.astro; the site's FAQ panel, FaqPanel.astro)
    ============================================================ */
 /* A step roomier than a standard section, as the comparison it replaced
-   was, scaled from the token so it closes up on smaller screens. The
-   heading over the questions below 992px; beside them from 992px
-   (page-grid.css: Grid Columns 1–5 and 7–12). */
+   was, scaled from the token so it closes up on smaller screens. */
 .section.faq-home {
   padding-top: calc(var(--sec-lg) * 135 / 112);
   padding-bottom: calc(var(--sec-lg) * 135 / 112);
 }
-/* on two lines at every size: a measure narrower than the whole heading
-   and wider than its first two words, filled line by line, so it breaks
-   after "asked" */
-.faq-home__h { max-width: 10em; margin: 0 0 3rem; text-wrap: wrap; }
 
 /* ============================================================
    9 — insight cards + the insight slider
@@ -2505,6 +2504,175 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ============================================================
+   Book a free call (BookCall.astro): the button on its own, a step
+   under the section's last content, on that content's left edge
+   ============================================================ */
+.book-call {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 3rem;
+}
+
+/* ------------------------------------------------------------
+   Split hero (SplitHero.astro): a service page's opening in two
+   columns set down at the foot, the next section's top showing under
+   them (the Workflow Workshop's reference of 2026-11-04; the Technology
+   Blueprint's after it)
+   ------------------------------------------------------------
+   On the 12-Column Grid (column-grid.css): the label and the heading on
+   Grid Columns 1–8, on white; the panel from the middle of the gutter
+   before Grid Column 9 out to the window's edge, on the light grey with a
+   hairline down its left side, its words in from that edge as the
+   reference sets them. Both sides end the same distance over the red.
+   The opening is a screen tall less the red block's top (--split-peek), so
+   on arrival the red shows as a band across the foot of the screen. */
+.split-hero {
+  /* how much of the red block shows under the opening (2026-11-04: a
+     little less of it than at first) */
+  --split-peek: 5rem;
+  /* one Grid Column, of the opening's full width */
+  --split-col: calc((100% - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+  --split-foot: 2.5rem;
+  display: grid;
+  grid-template-columns: calc(var(--grid-margin) + 8 * (var(--split-col) + var(--grid-gutter)) - var(--grid-gutter) / 2) minmax(0, 1fr);
+  height: calc(100svh - var(--split-peek));
+  min-height: 38rem;
+  background: var(--c-white);
+}
+.split-hero__main,
+.split-hero__aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-bottom: var(--split-foot);
+}
+.split-hero__main { padding: calc(var(--nav-h) + 3rem) 2rem var(--split-foot) var(--grid-margin); }
+.split-hero__aside {
+  padding: calc(var(--nav-h) + 3rem) var(--grid-margin) var(--split-foot) calc(var(--grid-gutter) / 2 + 2rem);
+  background: var(--c-light-bg);
+  border-left: 1px solid rgba(10, 10, 10, 0.08);
+}
+/* the label: a small red square, then the name in the label face */
+/* the label: an editorial tag, its words in the label face in a small
+   off-white box, a hairline round it, the corners barely rounded */
+.split-hero__label {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0.5rem 0.625rem 0.4375rem;
+  border: 1px solid rgba(10, 10, 10, 0.06);
+  border-radius: 3px;
+  background: var(--c-light-bg);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--c-text);
+}
+/* the heading large and closed up, a step nearer the homepage hero's
+   scale than the reference's (2026-11-04): its lines evened out, so no
+   word is left alone on the last */
+.split-hero__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 6rem;
+  line-height: 0.95;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-wrap: balance;
+}
+/* on three lines from 992px: a measure narrower than "Find out where
+   your" and wider than "your practice is" */
+@media screen and (min-width: 992px) {
+  .split-hero__heading { max-width: var(--split-hero-measure, 8.1em); }
+}
+/* the standfirst at the site's standfirst size (--t-md), the homepage
+   hero's a step under it */
+/* the standfirst at the homepage hero's standfirst size (1rem, Hero.astro,
+   "text-md" in its lede column), a little more open in its lines here,
+   where it runs longer */
+.split-hero__lede {
+  max-width: 25rem;
+  margin-bottom: 2.75rem;
+  font-size: var(--t-rg);
+  line-height: 1.45;
+}
+.split-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+/* the red block under it: the window's width and a screen tall (a plain
+   red for now) */
+.split-hero__red {
+  height: 100svh;
+  background: var(--c-red);
+}
+/* on a dark page: the ink, the panel a charcoal a step off it */
+.split-hero.is--dark { background: var(--c-dark-fg); color: var(--c-white); }
+.split-hero.is--dark .split-hero__aside { background: #161616; border-left-color: rgba(255, 255, 255, 0.08); }
+@media screen and (max-width: 991px) {
+  .split-hero__red { height: 50svh; }
+  /* the opening stacks: the heading, then the panel under it */
+  .split-hero { grid-template-columns: minmax(0, 1fr); height: auto; min-height: 0; }
+  .split-hero__main { padding-right: var(--grid-margin); }
+  .split-hero__aside { padding-top: 2.5rem; padding-left: var(--grid-margin); border-left: 0; }
+  .split-hero__heading { font-size: 3.75rem; }
+}
+@media screen and (max-width: 767px) {
+  .split-hero__heading { font-size: 2.875rem; }
+  .split-hero__lede { font-size: var(--t-rg); }
+}
+
+/* ============================================================
+   Book a Call, floating (BookCallFloat.astro, book-float.js): the
+   same button, held at the screen's foot on the nav's right edge (the
+   grid's margin), and as far up from the foot as it stands in from the
+   side (the same margin), under the nav. Hidden,
+   it waits a little lower and clear; shown, it fades and rises into
+   place on the site's curve, and goes back the same way a little
+   quicker. A soft shadow parts it from the page going by under it; over
+   a dark section it turns over to white (data-ground="dark",
+   action-button.css) and its colours change on the frame's own time.
+   ============================================================ */
+.book-float {
+  position: fixed;
+  right: var(--grid-margin);
+  bottom: max(var(--grid-margin), env(safe-area-inset-bottom, 0px));
+  z-index: 90;
+  display: flex;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 0.75rem;
+  pointer-events: none;
+  transition: opacity 0.3s ease, translate 0.4s var(--ease-osmo), visibility 0s linear 0.4s;
+}
+.book-float.is--shown {
+  opacity: 1;
+  visibility: visible;
+  translate: none;
+  pointer-events: auto;
+  transition: opacity 0.45s ease, translate 0.6s var(--ease-osmo), visibility 0s;
+}
+.book-float .action-button.is--frame {
+  /* a few per cent over the site's button (action-button.css), every
+     measure of it together */
+  --action-button-height: 2.5rem;
+  --action-button-inset: 1.1875rem;
+  font-size: 0.7275rem;
+}
+.book-float .action-button.is--frame .action-button__arrow { width: 0.8rem; height: 0.8rem; }
+.book-float .action-button.is--frame {
+  box-shadow: 0 0.5rem 1.5rem rgba(10, 10, 10, 0.12), 0 0.125rem 0.375rem rgba(10, 10, 10, 0.08);
+  transition: background-color 0.3s var(--action-button-ease-hover), color 0.3s var(--action-button-ease-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .book-float,
+  .book-float.is--shown { translate: none; transition: opacity 0.2s ease, visibility 0s linear 0.2s; }
+  .book-float.is--shown { transition: opacity 0.2s ease, visibility 0s; }
+}
+
+/* ============================================================
    10 — CTA
    ============================================================ */
 /* On the site's off-white, the page's own ground, in ink. */
@@ -2519,44 +2687,27 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    call gives back the research's share: its words stand as far under the
    research as the footer stands under its buttons. */
 .research + .cta { padding-top: calc(var(--cta-pad) - var(--sec-lg)); }
-/* The page's closing composition, set the way the hero and the routes
-   intro are rather than as a centred stack: a label holding the left
-   edge, the heading and its buttons set in from it, and the mark out on
-   the right gutter. */
+/* The page's closing composition, centred: the heading, its line and the
+   buttons one stack down the page's middle (2026-11-04; it was set off a
+   label on the left, with a mark on the right). */
 .cta__grid {
   display: flex;
-  align-items: flex-start;
-  gap: 4rem;
+  justify-content: center;
   width: 100%;
   max-width: var(--container);
   margin: 0 auto;
-  text-align: left;
+  text-align: center;
 }
-/* The hero's own lede width, so the closing heading starts on roughly
-   the line the opening one does. */
-.cta__label { flex: 0 0 21.6rem; margin-top: 0.2em; }
-/* Takes the slack, so the mark is carried out to the right edge while
-   the heading and the buttons stay on one left edge of their own. */
 .cta__body {
   flex: 0 1 auto;
-  margin-right: auto;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   /* Text-led now that the portrait is gone, so the buttons sit a
      normal heading-to-actions step below the line rather than the
      clearance the picture used to need. */
   gap: 3rem;
 }
-/* The same mark the approach cards carry, at the same size, turned to
-   point down into the buttons. */
-.cta__mark {
-  flex: none;
-  display: block;
-  width: 3.6rem;
-  transform: rotate(90deg);
-}
-.cta__mark svg { width: 100%; height: auto; display: block; }
 /* One line of copy carrying the section on its own. A step under the
    --t-h1 it was set at, with the leading closed up so the three lines
    read as one block, and capped so it breaks there rather than running
@@ -2566,16 +2717,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   font-size: 3.625rem;
   line-height: 1.08;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
-  /* Optical top alignment with the label opposite: the heading's line
-   box opens further above its caps than the 13px label's does, so the
-   difference is taken off here rather than trusting the two boxes. */
-  margin-top: -0.045em;
+  text-wrap: balance;
 }
 .cta .btn,
 .cta .action-button { position: relative; z-index: 2; }
-/* The pair of blocks wrap within the body, out to the heading's right
-   edge, and start on its left edge. */
-.cta .actions { align-self: stretch; }
+/* The pair of buttons centred under the heading, wrapping about the
+   middle where they must */
+.cta .actions { justify-content: center; }
 
 /* ============================================================
    11 — footer
@@ -2924,10 +3072,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .cta { --cta-pad: 7.5rem; }
   /* The split is a desktop composition, as it is in the hero: stacked,
      the label leads and the mark has no gutter left to sit in. */
-  .cta__grid { flex-direction: column; gap: 2rem; }
-  .cta__label { flex: none; }
-  .cta__body { margin-right: 0; gap: 2.5rem; }
-  .cta__mark { display: none; }
+  .cta__body { gap: 2.5rem; }
   .cta__heading { max-width: none; }
 
   .case__quote-wrap { padding: 3.5rem 2rem 2.5rem; min-height: 0; }

@@ -1,0 +1,59 @@
+---
+/*
+  Every FAQ on the site, in one design (after the Workflow Workshop's
+  Common Questions, 2026-11-04): a panel on a fine square grid (the
+  Services dropdown's Workflow Workshop grid), the heading centred in it,
+  the questions on a narrower measure set out on the grid's lines, each
+  with an icon before it and a plus after it, opening to its answer one
+  at a time (Accordion.astro, variant "panel"; styles: accordion.css,
+  "The FAQ panel"). Under them, where the page has them, a line and a
+  button (foot: Book a Free Call on the service pages).
+
+  Each page brings its own heading, questions and icons. icons: a name
+  per question, in order, from public/assets/icons/faq (faq-<name>.svg,
+  a set of line icons kept whole in source-assets/svg-collection); they
+  follow the questions by position, as a timeline's photographs do, so
+  a question added in the Studio past the last shows its number instead.
+  On a dark page the panel takes the ink (a .section--dark or .page--dark
+  round it).
+
+  field: the Studio list the questions come from, for the Visual editor;
+  headingField and footField the heading's and the line's.
+*/
+import Accordion from "./Accordion.astro";
+
+interface Item {
+  _key?: string;
+  question?: string;
+  answer?: string;
+  points?: string[];
+  mark?: "fill" | "open";
+  questionField?: string;
+  pointsField?: string;
+}
+interface Props {
+  id: string;
+  heading?: string;
+  headingField?: string;
+  items: Item[];
+  field?: string;
+  icons?: string[];
+  footLine?: string;
+  footField?: string;
+}
+const { id, heading, headingField, items, field, icons = [], footLine, footField } = Astro.props;
+const questions = items.map((item, i) => ({ ...item, icon: icons[i] }));
+const foot = Boolean(footLine) || Astro.slots.has("foot");
+---
+<div class="faq-panel">
+  {heading && <h2 class="h2 faq-panel__heading" data-split="heading" data-page-field={headingField}>{heading}</h2>}
+  <div class="faq-panel__list">
+    <Accordion id={id} items={questions} field={field} variant="panel" />
+  </div>
+  {foot && (
+    <div class="faq-panel__foot">
+      {footLine && <p data-page-field={footField}>{footLine}</p>}
+      <slot name="foot" />
+    </div>
+  )}
+</div>

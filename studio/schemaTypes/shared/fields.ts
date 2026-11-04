@@ -62,6 +62,31 @@ export const itemsField = (name: string, title: string, of: string, description?
     of: [defineArrayMember({type: of})],
   })
 
+/**
+ * A timeline's stage details (StageTimeline.astro on the Workflow Workshop
+ * and Technology Blueprint pages): for each stage, in the stages' order, its
+ * timing and the more its block tells when opened.
+ */
+export const stageDetailsField = (description = 'For each stage, in the same order: its timing, and what its block tells when opened.') =>
+  defineField({
+    name: 'details',
+    title: 'Stage details',
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'object',
+        name: 'stageDetail',
+        title: 'Stage detail',
+        fields: [
+          defineField({name: 'meta', title: 'Timing', type: 'string', description: 'E.g. “Before the session” or “Weeks 2–4”.'}),
+          defineField({name: 'more', title: 'More', type: 'text', rows: 3, description: 'What the block tells when opened.'}),
+        ],
+        preview: {select: {title: 'meta', subtitle: 'more'}},
+      }),
+    ],
+  })
+
 /** A list of lines of text (a check-list, the rows of a comparison side). */
 export const linesField = (name: string, title: string, description?: string) =>
   defineField({

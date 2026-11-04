@@ -547,6 +547,10 @@
    ground, which stops a line just short of the letters and leaves the
    grid untouched everywhere else. */
 .service-card__grid {
+  /* a step quieter than the line grid's own weights (styles.css): a
+     ground under the name, not a drawing of its own */
+  --line-grid-minor: 5.5%;
+  --line-grid-major: 12%;
   position: absolute;
   inset: 0;
   width: 100%;

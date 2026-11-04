@@ -40,8 +40,9 @@ export const homePage = defineType({
       ...sectionHead('The standfirst on the left.'),
       itemsField('cards', 'Cards', 'tile', 'The three cards, left to right: the picture, the title and the line of text.'),
     ]),
-    pageSection('routes', 'Ways to work with ADDD', 'The heading row and the four route cards. Where each card leads stays in the code.', [
+    pageSection('routes', 'Ways to work with ADDD', 'The heading held on the left with the button under it, and the four route cards. Where the button and each card lead stays in the code.', [
       ...sectionHead(),
+      buttonField('Under the heading; links to the Free Tech Stacks page.'),
       itemsField('cards', 'Cards', 'tile', 'The four routes, left to right: the small label, the title and the line of text.'),
     ]),
     pageSection('testimonials', 'Testimonials', 'The title and the quotes, in the order they turn through.', [
@@ -74,7 +75,9 @@ export const homePage = defineType({
       headingField('The signup’s heading.', 'signupHeading', 'Signup heading'),
     ]),
     pageSection('closingCta', 'Closing call to action', 'The block that ends this page and most others: a change here shows on all of them. AEC Tech Partners has its own.', [
-      taglineField('The small label on the left.', 'label', 'Label'),
+      // the label on the left, no longer shown (2026-11-04); kept so the
+      // code on main can still read it, hidden from the form
+      {...taglineField('No longer shown.', 'label', 'Label'), hidden: true},
       headingField(),
       buttonField('Links to Free Tech Stacks.', 'primaryButton', 'First button label'),
       buttonField('Links to the Contact page.', 'secondaryButton', 'Second button label'),

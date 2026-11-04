@@ -21,7 +21,6 @@ export const workshopPage = {
     ]),
   },
   method: {
-    lede: 'One structured half-day on a real project, and what your practice takes away from it.',
     tagline: 'Outcomes',
     heading: 'Inside the Workshop',
     tiles: keyed('method', [
@@ -36,39 +35,58 @@ export const workshopPage = {
         kicker: 'Why one real project',
         lede: 'The workshop starts from a project your team has just delivered or is working on now. Because the evidence is your own, the findings describe how your practice actually works, not how a template says it should.',
         body: [
+          '## Choosing the project',
           'Before the session, a short questionnaire helps you choose a project that exposed workflow problems or delays: one where deadlines slipped, information had to be chased or work was done twice. You also receive guidance on who should attend and how to prepare.',
+          'A good choice is recent enough that people remember it clearly and broad enough to have passed through several teams and tools. It does not need to be a troubled project, only a typical one: the patterns it shows are the ones every project shares.',
+          '## In the room',
           'In the room, the project becomes a shared reference point. Rather than discussing workflows in the abstract, the team walks through what really happened, step by step, with the people who did the work.',
+          'Working from one project keeps the session concrete. Each stage is checked against what the project actually produced, the drawings, models, emails and meeting notes, so gaps show up as facts rather than opinions. Where people remember a stage differently, the difference itself is often the finding.',
+          '## What it gives you',
+          'Because every observation is tied to something the team can point at, the findings are hard to dismiss and easy to act on. The project also becomes a baseline: it can be revisited after changes are made, to see what has improved.',
         ],
         points: [
           'Findings grounded in your own work, not general advice',
           'A shared reference everyone in the room recognises',
           'Problems named precisely enough to act on',
+          'Evidence drawn from what the project actually produced',
         ],
       },
       {
         kicker: 'Where the time goes',
         lede: 'With the project laid out, the workshop pinpoints where time is lost: the duplicated effort, the information that disappears between stages, the decisions nobody recorded and the responsibilities that blur.',
         body: [
+          '## Seeing it all at once',
           'Most practices already sense these problems; they rarely see them all at once, in context, or understand why they keep returning. The session separates symptoms from causes, so the conversation moves from frustration to specifics.',
+          '## Tracing the causes',
+          'Each friction point is traced back to where it starts: a missing standard, an unclear owner, a tool that does not pass information to the next, or a step that survives only out of habit. Small, frequent losses are counted alongside the visible crises, because together they usually cost the most.',
+          'Where it helps, the time involved is estimated with the team: how often a problem occurs, how long it takes each time and who it affects. Rough numbers are enough to show which issues are worth solving first.',
+          '## Agreeing what matters',
           'The friction points are then prioritised together, so the team agrees which matter most before anything changes. The written report that follows within two weeks sets them out with practical recommendations and next steps.',
         ],
         points: [
           'A prioritised list of friction points, agreed by the team',
           'The causes behind recurring delays, not just the symptoms',
           'A clear starting point for change, without a larger commitment',
+          'Small, everyday losses counted alongside the visible ones',
         ],
       },
       {
         kicker: 'How work really moves',
         lede: 'Over four hours, the team traces how information, decisions and work move through the practice, from brief to completion, and draws the flow as it really is, not as the process documents describe it.',
         body: [
+          '## Drawing the flow',
           'Mapping the actual flow shows where the handoffs are, which tools each stage depends on and where the same information is entered more than once. It makes the unseen parts of the process visible to everyone at the same time.',
+          'The map is drawn live, stage by stage: who does what, with which tools, and what passes to the next person. Loops, workarounds and waiting time are marked where they happen, so the team can see at a glance where the flow slows down or breaks.',
+          '## What the map reveals',
+          'Seen whole, the flow usually shows a few places where most of the trouble gathers: a stage that waits on another, a tool only one person fully understands, or an approval that holds everything up. These become the focus of the recommendations.',
+          '## Using it afterwards',
           'The map becomes a shared picture the whole team can return to. It is the foundation for the findings, priorities and recommendations in the report, and a reference for any change that follows.',
         ],
         points: [
           'One shared view of how work moves through the practice',
           'Every handoff, tool and duplication made visible',
           'A foundation for decisions about workflows and tools',
+          'Loops, workarounds and waiting time marked where they occur',
         ],
       },
     ]),
@@ -76,11 +94,11 @@ export const workshopPage = {
   journey: {
     lede: 'Four stages, from a short questionnaire before the session to a written report and a clear place to start.',
     tagline: 'Journey',
-    heading: 'What to Expect',
+    heading: 'Workshop Process',
     steps: keyed('step', [
       { label: 'Prepare', title: 'You complete the questionnaire', text: 'A short questionnaire helps you choose a project that exposed real workflow problems, and tells you who should attend.' },
       { label: 'Attend', title: 'Half a day in the room', text: 'Four hours tracing how work, information and decisions move through your practice, around your chosen project.' },
-      { label: 'Review', title: 'The report arrives', text: 'A tailored written report, delivered within two weeks: findings, priority areas and practical recommendations.' },
+      { label: 'Review', title: 'The report arrives', text: 'A tailored written report, delivered within one week: findings, priority areas and practical recommendations.' },
       { label: 'Act', title: 'What you leave with', text: 'A clear map of where time disappears, which problems to address first, and a practical starting point for change.' },
     ]),
     // each step's timing and the more it tells when opened (StageTimeline.astro),
@@ -88,7 +106,7 @@ export const workshopPage = {
     details: keyed('detail', [
       { meta: 'Before the session', more: 'The questionnaire arrives with guidance on choosing the project and on who should come: four to eight people, such as a director or partner, the project lead and whoever owns BIM, IT or operations. Nothing else needs to be produced in advance.' },
       { meta: 'Half a day · four hours', more: 'ADDD facilitates a structured session in person, with everyone in the room working through the real project. Together you map the actual flow, identify where friction occurs and agree on what matters most.' },
-      { meta: 'Within two weeks', more: 'The report is specific to your practice and the project examined, with suggested next steps. An optional executive readout presents the findings to leadership.' },
+      { meta: 'Within one week', more: 'The report is specific to your practice and the project examined, with suggested next steps. An optional executive readout presents the findings to leadership.' },
       { meta: 'After the report', more: 'Quick wins and next steps are set out, so the team can begin with what matters most, without a larger commitment or further investment.' },
     ]),
   },
@@ -136,12 +154,18 @@ export const workshopPage = {
   },
   faq: {
     heading: 'Common Questions',
+    footLine: 'Have any other questions?',
     questions: keyed('question', [
-      { question: 'Who should attend the workshop?', answer: 'Anyone who shapes how work moves through the practice — a director or partner, the project lead for the chosen project, and whoever owns BIM, IT or operations.' },
-      { question: 'How many people should come?', answer: 'Between four and eight. Enough perspectives to see the whole flow, few enough that everyone contributes.' },
-      { question: 'What preparation is required?', answer: 'A short questionnaire and the selection of one real project. Nothing else needs to be produced in advance.' },
-      { question: 'Does it have to be in person?', answer: 'Yes. The workshop works because people are in the room together, working through a real project. Remote doesn’t create the same clarity.' },
-      { question: 'When do we get the report?', answer: 'Within two weeks of the session.' },
+      { question: 'Who should attend the workshop?', answer: 'Anyone who shapes how work moves through the practice — a director or partner, the project lead for the chosen project, and whoever owns BIM, IT or operations. Between them they should be able to describe every stage of the project, from the brief to the last issue of drawings.' },
+      { question: 'How many people should come?', answer: 'Between four and eight. Enough perspectives to see the whole flow, few enough that everyone contributes. If more people want a say, their views can be gathered through the questionnaire before the session.' },
+      { question: 'What preparation is required?', answer: 'A short questionnaire and the selection of one real project. Nothing else needs to be produced in advance: the session works from what the project already holds, and the questionnaire helps you choose one that shows the problems clearly.' },
+      { question: 'Does it have to be in person?', answer: 'Yes. The workshop works because people are in the room together, working through a real project. Remote doesn’t create the same clarity. The session takes place at your office, so the team can bring the drawings, models and records it refers to.' },
+      { question: 'When do we get the report?', answer: 'Within two weeks of the session. It sets out the findings, the priority areas and practical recommendations, and an optional readout can present them to your leadership.' },
     ]),
+  },
+  // the closing call to action's one button (the site's closing CTA,
+  // ClosingCta.astro: its heading is the Home page's)
+  closing: {
+    button: 'Start a Tech Blueprint',
   },
 };
