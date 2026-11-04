@@ -783,8 +783,17 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
 .resource-block__signup { max-width: none; gap: .75rem; }
 .resource-block__signup .newsletter-form { --signup-h: 2.75rem; max-width: none; }
 .resource-block__signup :is(input[type="email"], .newsletter-form__submit) { font-size: .9375rem; }
-.resource-block__signup .newsletter-form__submit { padding: 0 1.25rem; }
-.resource-block__signup .newsletter-audience { font-size: .8125rem; }
+/* Its submit in the ink, white words on it, as the site's primary buttons
+   and the footer's signup are (2026-11-04; the accent red before). On the
+   dark nav, where the block is near-black, a charcoal a step off it, so
+   the button still stands off the field. Hover lightens it from within. */
+.resource-block__signup .newsletter-form__submit {
+  padding: 0 1.25rem;
+  background: color-mix(in oklab, var(--c-text), #3a3a3a var(--nav-dark, 0%));
+  color: var(--c-white);
+}
+.resource-block__signup .newsletter-form__submit:hover { box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.14); }
+.resource-block__signup .newsletter-form__submit:focus-visible { outline-color: var(--c-white); }
 /* On touch the pair steps up to the body size — below 16px iOS zooms
    the page in when the field takes focus — and so to a 44px row. */
 @media (pointer: coarse) {

@@ -248,54 +248,76 @@
    every FAQ on the site, after the Workflow Workshop's Common Questions
    (2026-11-04)
    ------------------------------------------------------------
-   A panel on the Services dropdown's Workflow Workshop grid (LineGrid,
-   nav.css): small squares (--cell) in faint lines, every fourth line a
-   step darker (--major), the panel's middle on a major line. What stands
-   on it is set out on the same lines rather than laid over them: the
-   heading's band two majors tall from a major line; the questions a
-   measure of whole majors either side of the middle (so their edges run
-   down major lines), each a major tall when shut and a cell apart; in
-   each, the icon a two-cell square a cell in, the question a cell after
-   it, the plus a two-cell square a cell in from the end, the answer from
-   the question's own start.
+   Set out on a measure of small squares (--cell) and every fourth of
+   them (--major), from the panel's middle: the heading's band two majors
+   tall; the questions a measure of whole majors either side of the
+   middle, each a major tall when shut and a cell apart; in each, the
+   icon a two-cell square a cell in, the question a cell after it, the
+   plus a two-cell square a cell in from the end, the answer from the
+   question's own start. Since 2026-11-04 the panel has no ground of its
+   own (it was a rounded grey panel on a fine square grid, inside the
+   container): it stands on its section's field of dots, run to the
+   window's edges (FaqSection.astro, "The FAQ section" below), fitted to
+   this measure.
 
-   The questions are quiet boxes a breath lighter than the grid, without
-   an edge; pointed at, the plus turns a quarter round and lightens, and
-   the box lifts a shade; open, the box is white with a soft shadow, the
-   plus a cross on white, and the answer opens on the site's curve. On a
-   dark page (Ongoing Advisory) the same in the ink: white lines, charcoal
-   boxes.
+   The questions are quiet boxes a step under the white, without an
+   edge; pointed at, the plus turns a quarter round and lightens, and
+   the box steps a shade deeper; open, the box is white with a soft
+   shadow, the plus a cross on white, and the answer opens on the site's
+   curve. On a dark page (Ongoing Advisory) the same in the ink: white
+   dots, charcoal boxes.
    ============================================================ */
+/* The FAQ section (FaqSection.astro), since 2026-11-04 the panel's ground:
+   the light ApproachStack's (the Technology Blueprint's "When Technology
+   Has Direction"), white under its field of fine ink dots (.dot-grid
+   band-field: 1.5px, rgba(10, 10, 10, 0.14)), run to the window's edges
+   and over the section's whole height. The field's pitch is fitted to
+   the panel, as the approach's is to its cards: four to a cell (0.8rem,
+   the approach's 13px or so at 1440), so the questions' measure, whole
+   majors either side of the middle, is a whole number of steps, and its
+   columns stand either side of the page's middle so the boxes' sides run
+   midway between two; its rows are counted from the panel's top. On a
+   dark page the same field in white, as the homepage's ink band. */
+.faq-section {
+  --faq-dot: 0.8rem;
+  position: relative;
+  isolation: isolate;
+  background: var(--c-white);
+}
+.faq-section .faq-section__dots.dot-grid {
+  --dot-pitch: var(--faq-dot);
+  --dot-x: calc(50% + var(--faq-dot) / 2);
+  --dot-y: calc(var(--faq-section-top, var(--sec-lg)) + var(--faq-dot) / 2);
+  --dot-grid-ink: rgba(10, 10, 10, 0.14);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+.faq-section.section--dark { background: var(--c-dark-bg); }
+.faq-section.section--dark .faq-section__dots.dot-grid { --dot-grid-ink: rgba(255, 255, 255, 0.09); }
+
 .faq-panel {
   --cell: 1rem;
   --major: calc(4 * var(--cell));
-  --faq-ground: #ededeb;
-  --faq-minor: rgba(10, 10, 10, 0.038);
-  --faq-major: rgba(10, 10, 10, 0.075);
-  --faq-box: rgba(255, 255, 255, 0.72);
-  --faq-box-hover: rgba(255, 255, 255, 0.92);
+  /* the questions' boxes, a step under the white they stand on (the
+     light approach cards' tones), lifting a shade when pointed at, white
+     when open */
+  --faq-box: #f2f2f0;
+  --faq-box-hover: #ebebe8;
   --faq-box-open: var(--c-white);
   --faq-tile: var(--c-white);
   --faq-ink: var(--c-text);
+  /* the ground's colour (the plus's mark on its ink square) and the
+     hairline round the icons' tiles */
+  --faq-ground: var(--c-white);
+  --faq-major: rgba(10, 10, 10, 0.075);
   grid-column: 1 / -1;
   padding: var(--major) var(--cell);
-  border-radius: 0.375rem;
-  background-color: var(--faq-ground);
-  background-image:
-    linear-gradient(to right, var(--faq-major) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--faq-major) 1px, transparent 1px),
-    linear-gradient(to right, var(--faq-minor) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--faq-minor) 1px, transparent 1px);
-  background-size: var(--major) var(--major), var(--major) var(--major), var(--cell) var(--cell), var(--cell) var(--cell);
-  /* a major line, and so a minor one, down the panel's middle; both from
-     its top */
-  background-position: calc(50% + var(--major) / 2) 0, 0 0, calc(50% + var(--cell) / 2) 0, 0 0;
   color: var(--faq-ink);
   text-align: center;
 }
 :is(.section--dark, .page--dark) .faq-panel {
-  --faq-ground: #111111;
-  --faq-minor: rgba(255, 255, 255, 0.03);
+  --faq-ground: var(--c-dark-bg);
   --faq-major: rgba(255, 255, 255, 0.065);
   --faq-box: rgba(255, 255, 255, 0.045);
   --faq-box-hover: rgba(255, 255, 255, 0.07);

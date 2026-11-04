@@ -53,6 +53,7 @@ import { initFolderDocs } from "./folder-docs.js";
 import { initBooking } from "./booking.js";
 import { initStageTimelines } from "./stage-timeline.js";
 import { initTabs } from "./tabs.js";
+import { initBlueprintHero } from "./blueprint-hero.js";
 import { initBookFloat } from "./book-float.js";
 import { initLanyard } from "./lanyard.js";
 import { initScrambleWords } from "./scramble-words.js";
@@ -499,6 +500,7 @@ const PAGE_COMPONENTS = [
   ["[data-booking-open]", initBooking],
   ["[data-stage-timeline]", initStageTimelines],
   ["[data-tabs]", initTabs],
+  ["[data-blueprint-hero]", initBlueprintHero],
   ["[data-book-float]", initBookFloat],
   ["[data-lanyard]", initLanyard],
   ["[data-scramble-word]", initScrambleWords],

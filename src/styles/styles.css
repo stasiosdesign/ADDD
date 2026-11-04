@@ -2238,7 +2238,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* A step roomier than a standard section, as the comparison it replaced
    was, scaled from the token so it closes up on smaller screens. */
 .section.faq-home {
-  padding-top: calc(var(--sec-lg) * 135 / 112);
+  /* (its dots' rows are counted from the panel's top: FaqSection.astro) */
+  --faq-section-top: calc(var(--sec-lg) * 135 / 112);
+  padding-top: var(--faq-section-top);
   padding-bottom: calc(var(--sec-lg) * 135 / 112);
 }
 

@@ -1,8 +1,9 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
-import SplitHero from "../components/SplitHero.astro";
+import BlueprintHero from "../components/BlueprintHero.astro";
 import BookingDialog from "../components/BookingDialog.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Testimonials from "../components/Testimonials.astro";
@@ -63,18 +64,18 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
 >
 <main class="page--grid">
 
-  <!-- The opening (SplitHero.astro), as the Workflow Workshop's: the label
-       and the heading large on the left, the standfirst and the buttons on
-       a light panel on the right, set down at the foot, the red block
-       under it showing across the screen's foot. "Start a Blueprint" opens the
-       booking calendar (a demonstration for now: BookingDialog.astro); the
-       second button goes down to the roadmap. -->
-  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+  <!-- The opening (BlueprintHero.astro, 2026-11-04, after the reference):
+       the words and the buttons on the left, and on the right the network
+       of the practices' systems on the Blueprint's dash-dot lattice, the red
+       block under it showing across the screen's foot. "Start a Blueprint"
+       opens the booking calendar (a demonstration for now:
+       BookingDialog.astro); the second button goes down to the roadmap. -->
+  <BlueprintHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
     <Fragment slot="actions">
       <ActionButton type="button" data-booking-open="blueprint-booking" aria-haspopup="dialog" aria-controls="blueprint-booking"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
       <ActionButton href="#delivery" variant="secondary" arrow="down"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span></ActionButton>
     </Fragment>
-  </SplitHero>
+  </BlueprintHero>
 
   <BookingDialog
     id="blueprint-booking"
@@ -191,16 +192,14 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
     </div>
   </section>
 
-  <section class="section section--light">
-    <div class="container">
+  <FaqSection>
       <!-- the site's FAQ panel (FaqPanel.astro), each question with its
            icon, and under them a line and Book a Free Call -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
         icons={["user","clock","folder","settings","compass"]} footLine={t("faq.footLine")} footField="faq.footLine">
         <BookCall slot="foot" />
       </FaqPanel>
-    </div>
-  </section>
+  </FaqSection>
 
   <ClosingCta />
   <!-- Book a Call, floating at the screen's foot from past the hero to Book a

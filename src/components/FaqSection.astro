@@ -1,0 +1,25 @@
+---
+/*
+  The section every FAQ stands in (2026-11-04): the ground of the
+  Technology Blueprint's "When Technology Has Direction" (the light
+  ApproachStack.astro's), white under a field of fine ink dots (the site's
+  .dot-grid, 1.5px, drawn by dot-field.js), run to the window's edges and
+  the section's top and foot, behind the page's container and its FAQ
+  panel (FaqPanel.astro, the slot). On a dark page (class section--dark)
+  the same field in the ink: white dots, as the homepage's approach band.
+  Styles: accordion.css ("The FAQ section").
+
+  id and class go on the section (a page's anchor, its own spacing).
+*/
+interface Props {
+  id?: string;
+  class?: string;
+}
+const { id, class: className } = Astro.props;
+---
+<section class:list={["section", "faq-section", className]} id={id}>
+  <span class="faq-section__dots dot-grid band-field" aria-hidden="true"></span>
+  <div class="container">
+    <slot />
+  </div>
+</section>

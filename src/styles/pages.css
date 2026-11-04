@@ -898,6 +898,112 @@
 }
 
 /* ============================================================
+   Technology Blueprint hero (BlueprintHero.astro, blueprint-hero.js,
+   network-figure.js), after the reference of 2026-11-04: on an off-white
+   ground under the Blueprint's own dash-dot lattice (in a faint ink, set
+   out from the figure's ground), the words on Grid Columns 1–5 and the
+   network on 6–12, the two centred in what the screen shows under the
+   nav. A screen tall less the red block's peek, as the other service
+   pages' openings (SplitHero.astro). Below 992px the network stands
+   under the words.
+   ============================================================ */
+.bp-hero {
+  --bp-ground: #f7f7f5;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
+  column-gap: var(--grid-gutter);
+  align-items: center;
+  height: calc(100svh - 5rem);
+  min-height: 40rem;
+  padding: var(--nav-h) var(--grid-margin) 0;
+  overflow: clip;
+  background: var(--bp-ground);
+}
+.bp-hero__ground {
+  --iso-line: rgba(10, 10, 10, 0.12);
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.bp-hero__ground > canvas { display: block; }
+.bp-hero__text { grid-column: 1 / 6; align-self: center; }
+.bp-hero__heading {
+  margin: 0;
+  max-width: 7.5em;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: 4.5rem;
+  line-height: 0.98;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-wrap: balance;
+}
+.bp-hero__lede {
+  max-width: 26rem;
+  margin: 1.75rem 0 2.25rem;
+  font-size: var(--t-rg);
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--c-text) 74%, transparent);
+}
+.bp-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.bp-hero__figure { grid-column: 6 / -1; align-self: center; }
+
+/* The figure: the kernel's palette set to the reference's, in the site's
+   inks: white keys with grey edges, routes a light grey a little heavier
+   than the edges, the coins dark with the practices' marks in white, the
+   tags in the ink with their words in white, and the site's red for the
+   one bright stroke, the signal (a soft glow under it) and a lit tag. */
+.bp-hero__stage {
+  --hairline-plate: #ffffff;
+  --hairline-edge: rgba(10, 10, 10, 0.5);
+  --hairline-mid: rgba(10, 10, 10, 0.3);
+  --hairline-lo: rgba(10, 10, 10, 0.14);
+  --hairline-hi: var(--c-red);
+  --hairline-stroke: 1;
+  /* a little under its columns' width, centred in them: the network
+     about as wide as the reference's against the words */
+  width: 90%;
+  margin-inline: auto;
+}
+.bp-hero__stage .route { stroke: rgba(10, 10, 10, 0.17); stroke-width: 2; }
+.bp-hero__stage .route.hi { stroke: var(--c-red); stroke-width: 1.5; }
+.bp-hero__stage .pulse { stroke: var(--c-red); stroke-width: 2.25; transition: none; }
+.bp-hero__stage .pulse-glow { stroke: var(--c-red); stroke-opacity: 0.16; stroke-width: 9; transition: none; }
+.bp-hero__stage .coin .sil { fill: #5c5c5c; stroke: #3a3a3a; }
+.bp-hero__stage .coin-top { fill: #222222; stroke: #222222; }
+.bp-hero__stage .coin-ring { stroke: rgba(255, 255, 255, 0.22); }
+.bp-hero__stage .coin-ring.hi { stroke: var(--c-red); stroke-width: 1.5; }
+.bp-hero__stage .tag { fill: #141414; stroke: #141414; transition: fill 260ms ease, stroke 260ms ease; }
+.bp-hero__stage .tag-edge { fill: #3a3a3a; stroke: #3a3a3a; }
+.bp-hero__stage .tag.is--lit { fill: var(--c-red); stroke: var(--c-red); }
+.bp-hero__stage .tag-word {
+  fill: #ffffff;
+  stroke: none;
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  pointer-events: none;
+}
+
+@media screen and (max-width: 991px) {
+  .bp-hero {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 0;
+    padding-top: calc(var(--nav-h) + 3rem);
+    padding-bottom: 2rem;
+  }
+  .bp-hero__text,
+  .bp-hero__figure { grid-column: 1 / -1; }
+  .bp-hero__heading { font-size: 3.75rem; }
+  .bp-hero__figure { margin-top: 2rem; }
+}
+@media screen and (max-width: 767px) {
+  .bp-hero__heading { font-size: 2.875rem; }
+}
+
+/* ============================================================
    The Technology Blueprint's roadmap (technology-blueprint.astro): the
    heading on the left and its button on the right, on one row, and the
    shared timeline (StageTimeline.astro, its Gantt layout) across the

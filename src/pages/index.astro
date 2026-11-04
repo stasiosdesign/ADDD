@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import ClosingCta from "../components/ClosingCta.astro";
@@ -320,8 +321,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        site's FAQ panel (FaqPanel.astro), each with its icon and opening to
        its answer, then the section's further questions (fit.questions),
        each with its answer. All start closed. -->
-  <section class="section section--light faq-home" id="faq">
-    <div class="container">
+  <FaqSection class="faq-home" id="faq">
       <FaqPanel id="home-faq" heading={t("fit.faqHeading")} headingField="fit.faqHeading"
         icons={["check-circle", "blocked", "store", "flag-triangle", "calendar", "headset"]}
         items={[
@@ -329,8 +329,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
           { question: t("fit.notQuestion"), questionField: "fit.notQuestion", points: lines("fit.notItems"), pointsField: "fit.notItems", mark: "open" },
           ...list<{ _key: string; question?: string; answer?: string }>("fit.questions").map(({ question, answer }) => ({ question, answer })),
         ]} />
-    </div>
-  </section>
+  </FaqSection>
 
   <!-- ========== 9. RESEARCH & INSIGHT ==========
        The newsletter signup that closed it is in the footer

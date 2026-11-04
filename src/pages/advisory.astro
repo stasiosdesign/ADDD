@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import SplitHero from "../components/SplitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
@@ -212,16 +213,14 @@ const blueprint = card(1);
     </div>
   </section>
 
-  <section class="section section--dark">
-    <div class="container">
+  <FaqSection class="section--dark">
       <!-- the site's FAQ panel (FaqPanel.astro), each question with its
            icon, and under them a line and Book a Free Call -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
         icons={["user","question","settings","monitor","map"]} footLine={t("faq.footLine")} footField="faq.footLine">
         <BookCall slot="foot" />
       </FaqPanel>
-    </div>
-  </section>
+  </FaqSection>
 
   <ClosingCta />
   <!-- Book a Call, floating at the screen's foot from past the hero to Book a
