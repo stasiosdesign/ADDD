@@ -13,7 +13,7 @@ export const blueprintPage = {
     button: 'Start a Blueprint',
     linkLabel: 'Learn more',
     // one line here is one line of the set block (BlueprintHero.astro)
-    statement: 'A collection of tools isn’t a strategy.\nWhat matters is how your people,\nsystems and workflows work together.',
+    statement: 'A collection of tools isn’t\na strategy. What matters is\nhow your people, systems\nand workflows work together.',
   },
   benefits: {
     heading: 'When Technology Has Direction',

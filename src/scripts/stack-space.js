@@ -64,18 +64,20 @@ const CARD_MAX = 400;
 const CARD_RATIO = 0.64;
 const RADIUS = 0.018;
 // the row: about this many cards across the screen's diagonal at rest,
-// never closer than SPACING_MIN card widths; the gap either side of the
-// card in the middle; how much the fan widens the row at speed
+// never closer than SPACING_MIN card widths, every card the same step from
+// the next (fourth pass, 2026-11-04: no gap round the middle card, which
+// left it standing alone); how much the fan widens the row at speed, all
+// of it alike
 const VISIBLE = 18;
 const SPACING_MIN = 0.22;
-const GAP = 0.6;
-const FAN = 0.9;
+const FAN = 0.5;
 const FAN_SPEED = 16; // cards per second for the full fan
 // a stack chosen: its cards this far apart (card widths), how near the
 // middle it must be (slots past its ends) before it opens out, how high
 // its cards lift (share of their height), one after the next (ms apart),
 // and how long after the choice the sheet opens (ms)
 const GROUP_SP = 0.5;
+const GROUP_GAP = 0.35;
 const GROUP_REACH = 3;
 const SEL_LIFT = 0.1;
 const SEL_STAGGER = 45;
@@ -83,12 +85,10 @@ const SHEET_AFTER = 430;
 // where the row leaves the screen: this share of the width in from the
 // bottom-left and the top-right corners
 const CORNER_IN = 0.07;
-// the hover: the card lifts (share of its height), its neighbours lean
-// away (deg) and part (card widths), the nearest most
-const LIFT = 0.16;
-const LEAN = 7;
-const PART = 0.07;
-const REACH = 2;
+// the hover: the card under the pointer lifts (share of its height), on
+// its own rate; its neighbours stay where they are (fourth pass)
+const LIFT = 0.26;
+const RATE_LIFT = 9;
 // the wheel: px to a card; after a pause, the row settles on a card (ms)
 const WHEEL_STEP = 90;
 const SETTLE_MS = 140;
@@ -107,7 +107,7 @@ const FACE_GAP = 0.045;
 const FACE_NAME = 0.068;
 const SHADOW = 0.09;
 const SHADOW_BLUR = 0.045;
-const SHADOW_INK = "rgba(20, 20, 16, 0.16)";
+const SHADOW_INK = "rgba(20, 20, 16, 0.11)";
 // the bracket beside a stack: how far out from the cards' edge it runs and
 // how long its ends turn in (card widths), its dots' spacing (px)
 const BRACKET_X = 0.11;
@@ -230,7 +230,7 @@ export function initStackSpace(container) {
       view.half = Math.hypot(r.width, r.height) / 2;
       // the spacing that puts VISIBLE cards across the diagonal, the end
       // ones at the corners, so the row always runs on past both
-      const reach = view.half / view.along - view.cw * GAP;
+      const reach = view.half / view.along;
       view.sp = Math.max(view.cw * SPACING_MIN, (2 * reach) / (VISIBLE - 1));
       // each name's size, shrunk where a long one would run off its card
       ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -253,14 +253,13 @@ export function initStackSpace(container) {
       return { a, b, c, near: gather.amount * smooth(1 - off / GROUP_REACH) };
     }
     // where a card at d (its slot less the reading position) stands along
-    // the row: the runs either side, a gap round the middle (or round the
-    // chosen stack, its cards opened out, when it is there), widened by the
-    // fan
+    // the row: one step a card, widened alike by the fan; round the chosen
+    // stack, its cards opened out and a little room at its ends
     function along(d, g = groupAt()) {
       const sp = view.sp * (1 + FAN * fan);
-      const gap = view.cw * GAP;
+      const gap = view.cw * GROUP_GAP;
       const near = g ? g.near : 0;
-      let s = d * sp + gap * Math.tanh(2.6 * d) * (1 - near);
+      let s = d * sp;
       if (near > 0) {
         const { a, b, c } = g;
         const inside = a + softplus(d - a) - softplus(d - b);
@@ -550,7 +549,7 @@ export function initStackSpace(container) {
       for (const c of cards) places.push(...placesOf(c, g));
       // back to front: the farthest up the row first
       places.sort((p, q) => q.s - p.s);
-      for (const p of places) drawCard(p.c, corners(p.s, p.c.lift, p.c.lean));
+      for (const p of places) if (!p.c.group?.hidden) drawCard(p.c, corners(p.s, p.c.lift, p.c.lean));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
@@ -578,7 +577,30 @@ export function initStackSpace(container) {
       say(`${g.name}: ${g.toolCount} tools`);
       wake();
       clearTimeout(sheetTimer);
-      sheetTimer = setTimeout(() => (sheet ? sheet.open(g, release) : release()), reduced ? 0 : SHEET_AFTER);
+      sheetTimer = setTimeout(() => (sheet ? sheet.open(g, release, morphOf(g)) : release()), reduced ? 0 : SHEET_AFTER);
+    }
+    // What the sheet needs to grow out of the stack's cards and go back into
+    // them (stack-sheet.js): each card's four corners on the screen where it
+    // stands now (the nearest of its places), in the cards' order, and a way
+    // to take the cards out of the row while their containers are out.
+    function morphOf(g) {
+      return {
+        quads() {
+          const r = stage.getBoundingClientRect();
+          const gAt = groupAt();
+          return cards.filter((c) => c.group === g).map((c) => {
+            const p = placesOf(c, gAt).sort((x, y) => Math.abs(x.s) - Math.abs(y.s))[0];
+            const q = p ? corners(p.s, c.lift, c.lean) : corners(0);
+            return q.map(([x, y]) => [x + r.left, y + r.top]);
+          });
+        },
+        // drawn at once, so the row and the sheet change in the same frame
+        hide(on) {
+          g.hidden = on;
+          draw();
+          wake();
+        },
+      };
     }
     // the sheet closed: the stack settles back into the row
     function release() {
@@ -713,8 +735,7 @@ export function initStackSpace(container) {
         }
       }
       // per card: its paling, and its lift: the chosen stack's, one after
-      // the next, or the hover's, with its neighbours' lean and parting
-      const hoverSlot = hover ? hover.slot : 0;
+      // the next, or the hover's, the card under the pointer alone
       for (const c of cards) {
         const dp = c.paleT - c.pale;
         if (dp) {
@@ -722,27 +743,15 @@ export function initStackSpace(container) {
           if (Math.abs(dp) < 0.004) c.pale = c.paleT;
           else moving = true;
         }
-        let lift = 0, lean = 0, part = 0;
+        let lift = 0;
         if (chosen) {
           if (c.liftAt && now >= c.liftAt) lift = SEL_LIFT;
           else if (c.liftAt) moving = true;
-        } else if (hover) {
-          const gap = Math.round(wrap(c.slot - hoverSlot));
-          if (c === hover) lift = LIFT;
-          else if (Math.abs(gap) <= REACH && !reduced) {
-            const near = 1 - (Math.abs(gap) - 1) / REACH;
-            lean = Math.sign(gap) * ((LEAN * Math.PI) / 180) * near;
-            part = Math.sign(gap) * PART * view.cw * near;
-          }
-        }
-        const rate = k(RATE_HOVER);
-        for (const [key, to] of [["lift", lift], ["lean", lean], ["part", part]]) {
-          const v = c[key];
-          if (v !== to) {
-            const nv = v + (to - v) * rate;
-            c[key] = Math.abs(to - nv) < 0.0005 ? to : nv;
-            if (c[key] !== to) moving = true;
-          }
+        } else if (c === hover) lift = LIFT;
+        if (c.lift !== lift) {
+          const nv = c.lift + (lift - c.lift) * k(RATE_LIFT);
+          c.lift = Math.abs(lift - nv) < 0.0005 ? lift : nv;
+          if (c.lift !== lift) moving = true;
         }
       }
       draw();

@@ -42,7 +42,9 @@
    leaves empty */
 .sd__head {
   position: absolute;
-  left: var(--grid-margin);
+  /* a little in from the grid's margin (2026-11-04), as the other
+     heroes' words are */
+  left: calc(var(--grid-margin) + 3rem);
   top: calc(var(--nav-h) + 2rem);
   z-index: 2;
   max-width: 30rem;
@@ -351,6 +353,7 @@
    across, the Free Stack under it; the sheet's close button over the
    column's corner */
 @media screen and (max-width: 767px) {
+  .sd__head { left: var(--grid-margin); }
   .sd__title { font-size: 2.75rem; margin-bottom: 0.75rem; }
   .sd__legend { font-size: 0.875rem; max-width: 17rem; }
   .sd__index {

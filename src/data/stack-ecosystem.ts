@@ -147,6 +147,10 @@ export const SAMPLE_STACKS: Stack[] = [
   { id: "sample-space-planning", name: "Early layouts", workflow: "Space planning", summary: "Test commercial floor plates and workplace options before the model.", toolCount: 4, preview: ["laiout", "Spaciv"], url: APP_SIGN_UP, sample: true },
   { id: "sample-documentation", name: "Documentation", workflow: "BIM documentation", summary: "Take the repetitive work out of Revit, and check drawings before issue.", toolCount: 6, preview: ["Ideatura", "Markedup"], url: APP_SIGN_UP, sample: true },
   { id: "sample-operations", name: "Practice operations", workflow: "Practice management", summary: "Resourcing, timesheets and meeting notes, joined up.", toolCount: 4, preview: ["Synergy", "Cogram"], url: APP_SIGN_UP, sample: true },
+  // three more (2026-11-04), so the row reads as stacks end to end
+  { id: "sample-information", name: "Project information", workflow: "BIM management", summary: "Keep models, documents and information requirements in one place, and checked.", toolCount: 5, preview: ["Plannerly", "Sofidus.tech"], url: APP_SIGN_UP, sample: true },
+  { id: "sample-knowledge", name: "Practice knowledge", workflow: "Knowledge and search", summary: "Find what the practice already knows, across BIM, CAD and PDF files.", toolCount: 3, preview: ["ARKI", "DTOAEC"], url: APP_SIGN_UP, sample: true },
+  { id: "sample-site", name: "Site and delivery", workflow: "Construction stage", summary: "Site reports, snags and reviews, from the visit to the sign-off.", toolCount: 4, preview: ["There", "zipBoard"], url: APP_SIGN_UP, sample: true },
 ];
 
 /** a stack from the Studio, as the page previews it */

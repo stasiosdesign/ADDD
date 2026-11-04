@@ -24,8 +24,8 @@
      sets everything: up to LAND the frame comes down, slowly at first and
      faster as it nears the platform (a cube, for its weight); at LAND it
      is down, and from there the landing plays out over the rest of the
-     hold: a small rebound, a ring running out over the platform, a flash
-     on its top, the light under it swelling and fading. Stopped, it all
+     hold: a small rebound and a quiet pulse of light at the platform's
+     foot, swelling a little and fading (third pass: no ring, no flash). Stopped, it all
      stops where it is; scrolled back, it all runs back, the pulse
      included, since every part of it is a function of p. Transforms and
      opacities, and the frame's own few paths (figure.lift); nothing is
@@ -45,8 +45,11 @@ const NS = "http://www.w3.org/2000/svg";
 // and how much of what follows the rebound takes
 const LAND = 0.72;
 const BOUNCE = 0.12;
-// the rebound's height (the figure's units)
-const REBOUND = 2.4;
+// the rebound's height (the figure's units), and the pulse of light at the
+// platform's foot: its brightest, and how much it swells
+const REBOUND = 1.2;
+const PULSE = 0.42;
+const SWELL = 0.12;
 
 const el = (tag, attrs, parent) => {
   const node = document.createElementNS(NS, tag);
@@ -105,18 +108,11 @@ export function initBeforeRevitHero(container) {
     grad("br-top", [[0, "#5e0606"], [0.55, "#b8120d"], [1, "#ff3b2a"]], 0.35, 1);
     grad("br-side", [[0, "#d21a12"], [1, "#4a0303"]]);
 
-    let flash = null;
-    let ring = null;
     const figure = PRESS.mount({
       stage,
       svg,
       read: { textContent: "" },
       labels: (g, P, { B, T, G, F, FT }) => {
-        // under the frame: the flash on the platform's top, and the ring
-        const sq = (s, z) => [[-s / 2, -s / 2, z], [s / 2, -s / 2, z], [s / 2, s / 2, z], [-s / 2, s / 2, z]];
-        flash = el("path", { d: HL.poly(sq(B - 2, T).map((p) => P(...p))), class: "br-flash" }, g);
-        ring = el("path", { d: HL.poly(sq(F + 6, T).map((p) => P(...p))), class: "br-ring" }, g);
-        ring.style.opacity = "0";
         // the light's middle under the platform, in shares of the stage
         const [gx, gy] = P(0, 0, T / 2);
         stage.style.setProperty("--glow-x", `${((gx / 400) * 100).toFixed(2)}%`);
@@ -141,16 +137,14 @@ export function initBeforeRevitHero(container) {
     let field = null;
     if (ground && figure.origin) {
       svg.dataset.ground = figure.origin.map((v) => v.toFixed(2)).join(" ");
-      ground.dataset.isoModule = String(figure.cell);
+      // half the drawing's cell: a finer lattice (third pass), its lines
+      // still through the platform's and the ground square's edges
+      ground.dataset.isoModule = String(figure.cell / 2);
       ground.dataset.isoAxis = figure.axis.map((v) => v.toFixed(5)).join(" ");
       field = mountIsoField(ground);
     }
 
     const pulse = stage.querySelector("[data-press-pulse]");
-    if (ring) {
-      ring.style.transformBox = "fill-box";
-      ring.style.transformOrigin = "50% 50%";
-    }
 
     // ---- the frame, from the scroll ---------------------------------------
     const FLOAT = PRESS.range[1];
@@ -178,22 +172,17 @@ export function initBeforeRevitHero(container) {
           figure.lift(null);
         }
       } else lift(u < 0 ? FLOAT * (1 - fall * fall * fall) : u < BOUNCE ? REBOUND * Math.sin((Math.PI * u) / BOUNCE) : 0);
+      // the pulse: up quickly from the contact, then fading slowly
       const on = u >= 0 && u < 1;
-      if (ring) {
-        ring.style.opacity = on ? (0.9 * (1 - out(u))).toFixed(3) : "0";
-        ring.style.scale = on ? (1 + 0.9 * out(u)).toFixed(4) : "1";
-      }
-      if (flash) flash.style.opacity = on ? (0.38 * (1 - out(u / 0.6))).toFixed(3) : "0";
       if (pulse) {
-        pulse.style.opacity = on ? (1 - out(u)).toFixed(3) : "0";
-        pulse.style.scale = on ? (0.85 + 0.45 * out(u)).toFixed(4) : "0.85";
+        const rise = Math.min(1, u / 0.08);
+        pulse.style.opacity = on ? (PULSE * rise * (1 - out((u - 0.08) / 0.92))).toFixed(3) : "0";
+        pulse.style.scale = on ? (1 + SWELL * out(u)).toFixed(4) : "1";
       }
     }
     // the same, without the motion: up before LAND, down after
     function snap(p) {
       lift(p < LAND ? FLOAT : 0);
-      if (ring) ring.style.opacity = "0";
-      if (flash) flash.style.opacity = "0";
       if (pulse) pulse.style.opacity = "0";
     }
 
@@ -221,7 +210,12 @@ export function initBeforeRevitHero(container) {
       },
     );
 
+    // the grain's motion only while the hero is on the screen
+    const seen = new IntersectionObserver(([entry]) => hero.classList.toggle("is--still", !entry.isIntersecting));
+    seen.observe(hero);
+
     registerPageCleanup(() => {
+      seen.disconnect();
       mm.revert();
       field?.destroy();
       figure.destroy();

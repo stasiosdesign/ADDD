@@ -1113,6 +1113,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   inset: 0;
 }
 .logos.is--light .dot-grid.band-field { --dot-grid-ink: rgba(10, 10, 10, 0.14); }
+/* the stack after it on its band (the Technology Blueprint's benefits) not led
+   by a held statement: a section's step over its first card, not the
+   three it takes after one (approach-stack.css), so the wall and the
+   heading under it read as one passage (2026-11-04) */
+.dot-band .approach-stack:not(.is--led) { --stack-top: var(--sec-lg); }
 .logos.is--light .logo-wall__card { background: var(--c-white); }
 .logos.is--light .logo-wall__card img { filter: brightness(0); opacity: 0.78; }
 

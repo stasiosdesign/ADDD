@@ -148,9 +148,9 @@ function mountStatement(hero, p) {
   const text = p.textContent;
   let lines = text.split(/\n+/).map((s) => s.trim()).filter(Boolean);
   // written as one line (the Studio's field without its breaks): set on
-  // three, broken where the three come out most even, as the statement
-  // is always set (fourth pass)
-  if (lines.length === 1) lines = inThree(lines[0], p);
+  // four, broken where the four come out most even, as the statement is
+  // set (four lines since the fifth pass)
+  if (lines.length === 1) lines = inLines(lines[0], p, 4);
   // the Studio's preview writes into the statement as it is edited: there
   // it stays as written
   const draft = document.documentElement.hasAttribute("data-draft");
@@ -206,27 +206,30 @@ function mountStatement(hero, p) {
   };
 }
 
-// A line of words as three: the two breaks that leave the three lines'
-// widths (in the statement's own face, measured on a canvas) closest to one
-// another.
-function inThree(text, p) {
+// A line of words as n lines: the breaks that leave the lines' widths (in
+// the statement's own face, measured on a canvas) closest to one another,
+// found by trying every set of breaks (a statement is a few dozen words).
+function inLines(text, p, n) {
   const words = text.split(/\s+/).filter(Boolean);
-  if (words.length < 3) return [text];
+  if (words.length < n) return [text];
   const cs = getComputedStyle(p);
   const ctx = document.createElement("canvas").getContext("2d");
   ctx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
   const width = (a, b) => ctx.measureText(words.slice(a, b).join(" ")).width;
-  let best = [1, 2];
+  let best = null;
   let least = Infinity;
-  for (let i = 1; i < words.length - 1; i++) {
-    for (let j = i + 1; j < words.length; j++) {
-      const ws = [width(0, i), width(i, j), width(j, words.length)];
+  const tryFrom = (start, left, cuts) => {
+    if (left === 1) {
+      const ends = [...cuts, words.length];
+      const ws = ends.map((end, i) => width(i ? ends[i - 1] : 0, end));
       const spread = Math.max(...ws) - Math.min(...ws);
-      if (spread < least) { least = spread; best = [i, j]; }
+      if (spread < least) { least = spread; best = ends; }
+      return;
     }
-  }
-  const [i, j] = best;
-  return [words.slice(0, i), words.slice(i, j), words.slice(j)].map((w) => w.join(" "));
+    for (let i = start + 1; i <= words.length - left + 1; i++) tryFrom(i, left - 1, [...cuts, i]);
+  };
+  tryFrom(0, n, []);
+  return best.map((end, i) => words.slice(i ? best[i - 1] : 0, end).join(" "));
 }
 
 // The block set (BlueprintHero.astro, pages.css): each line's width without

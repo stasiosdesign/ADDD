@@ -53,7 +53,10 @@ const COIN_R = 0.25, COIN_H = 0.075, BEND = 0.22, SPEED = 3.1, PULSE = 0.8, GAP 
 // the scroll's stir: the most it lifts a key (a share of the pointer's
 // lift), how fast it dies away once the scroll stops (per second), and how
 // fast the keys follow it, the uppermost quickest, the lowest slowest
-const STIR = 0.7, STIR_DECAY = 3.2, STIR_FAST = 9, STIR_SLOW = 4;
+// (fifth pass: a little higher, 1 of the pointer's lift; and the routes
+// glow red with it: a copy of them in the bright stroke, its opacity the
+// stir's, and the svg marked is--stirred while it is strong)
+const STIR = 1, STIR_DECAY = 3.2, STIR_FAST = 9, STIR_SLOW = 4;
 // each key's middle, in cells: every one the middle of a cell (a half), so
 // its sides lie on the lattice's lines
 const NODES = [
@@ -132,6 +135,11 @@ function mount({ stage, svg, read }, value) {
     return { ...rt, r, el };
   });
   const pulse = mk("path", { class: "nf hi pulse" }, signal);
+  // the routes' glow under the scroll's stir: their copies in the red, as
+  // faint as the stir is (one value on the group, which its few paths take)
+  const glow = mk("g", { class: "route-glow" }, ground);
+  routes.forEach((rt) => mk("path", { d: rt.el.getAttribute("d"), class: "nf" }, glow));
+  glow.style.strokeOpacity = "0";
 
   // the keys, back to front
   const nodes = NODES.map((n, i) => ({ ...n, i, lift: tween(0), kick: tween(0), stir: 0, drawn: null }));
@@ -140,6 +148,7 @@ function mount({ stage, svg, read }, value) {
   const [d0, d1] = [Math.min(...depth), Math.max(...depth)];
   nodes.forEach((n, i) => (n.pace = STIR_FAST + (STIR_SLOW - STIR_FAST) * ((depth[i] - d0) / (d1 - d0 || 1))));
   let energy = 0;
+  let shownLit = 0;
   // a lift of one unit up the world, on the screen (straight up)
   const rise = P(0, 0, 1)[1] - P(0, 0, 0)[1];
   nodes
@@ -195,6 +204,13 @@ function mount({ stage, svg, read }, value) {
     // (the kernel gives dt in seconds)
     const sec = Math.min(dt, 0.064);
     energy = energy < 0.002 ? 0 : energy * Math.exp(-STIR_DECAY * sec);
+    // in tenths: the glow repaints the routes, so it changes in steps
+    const lit = Math.round(energy * 10) / 10;
+    if (lit !== shownLit) {
+      shownLit = lit;
+      glow.style.strokeOpacity = String(Math.min(1, lit * 0.9));
+      svg.classList.toggle("is--stirred", lit > 0.25);
+    }
     nodes.forEach((n) => {
       if (tdone(n.kick, now) && n.kick.to > 0) tset(n.kick, 0, now, 0);
       const to = energy * STIR * lift;

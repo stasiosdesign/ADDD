@@ -7,7 +7,9 @@
   Diagnostic page's endless row in miniature. The card in the middle stands
   alone, the two stacks either side fanned a little away from it, each long
   enough to run on out of a box the figure is cropped by (2026-11-04: the
-  cards carry no marks at all, and the row is thirteen long, not seven). The card
+  cards carry no marks at all, and the row is thirteen long, not seven;
+  then twenty-five, twelve either side, so wherever the box crops it the
+  row runs on past both its ends, as the page's endless row does). The card
   nearest the pointer stands up and lifts; the ones behind it lean back and
   the ones in front lean forward, staggered outwards from it on the 700ms lift
   curve: a riffle through the row. The slider is how far they move.
@@ -29,14 +31,28 @@ const {
 
 // the cards: width, height, thickness, corner; where each stands along the
 // row (two stacks of three, and the one in the middle with a gap either side)
-const N = 13, W = 74, H = 47, TK = 1.5, R = 3.4;
-const Y = [0, 13, 26, 39, 52, 65, 95, 125, 138, 151, 164, 177, 190], MID = 6;
-// the rest lean of each card (degrees: negative leans back), the pulled
-// card's lift, and how far the others lean away, at amount 1
-const REST = [-13, -11.5, -10, -8.5, -7, -5.5, 0, 4, 5.5, 7, 8.5, 10, 11.5];
+const W = 74, H = 47, TK = 1.5, R = 3.4;
+// each run SIDE cards long, STEP apart, a GAP either side of the middle
+// card; the rest lean of each card (degrees: negative leans back), more
+// the farther from the middle, held from the sixth on
+const SIDE = 12, STEP = 13, GAP = 30;
+const Y = [], REST = [];
+for (let k = 0; k < SIDE; k++) {
+  Y.push(k * STEP);
+  REST.push(-Math.min(13, 5.5 + 1.5 * (SIDE - 1 - k)));
+}
+const MID = SIDE;
+Y.push((SIDE - 1) * STEP + GAP);
+REST.push(0);
+for (let k = 0; k < SIDE; k++) {
+  Y.push(Y[MID] + GAP + k * STEP);
+  REST.push(Math.min(11.5, 4 + 1.5 * k));
+}
+const N = Y.length;
+// the pulled card's lift, and how far the others lean away, at amount 1
 const LIFT = 9, BACK = -20, FWD = 15, STAG = 45;
 // the guide the row stands on: from before the first card to past the last
-const G0 = -24, G1 = 214;
+const G0 = -24, G1 = Y[N - 1] + 24;
 
 /** Card i leaning th degrees and lifted by `lift`: its paths. */
 function pose(P, i, shape, th, lift) {
@@ -54,7 +70,10 @@ function mount({ stage, svg, read, hover }, value) {
   let amt = value;
 
   // fitted to the row in its widest poses, so nothing leaves the frame
-  const C = Cam(45, 0.5, 1.2);
+  // drawn farther out than the seven-card row was (1.52, then 1.2 for
+  // thirteen), so the whole row stays in the frame: the page shows the
+  // middle of it, larger (nav.css)
+  const C = Cam(45, 0.5, 0.78);
   const lean = (y, th, v, z = 0) => [0, y + v * Math.sin(rad(th)), v * Math.cos(rad(th)) + z];
   fit(C, [[0, G0, 0], [W, G1, 0], [W, Y[0], 0], lean(Y[0], BACK, H), lean(Y[N - 1], FWD, H), [W / 2, Y[MID], H + LIFT], [W, G0, 0]], 200, 160);
   const P = proj(C);

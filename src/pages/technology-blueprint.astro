@@ -55,6 +55,23 @@ const roadmap: Stage[] = steps.map((step, i) => ({
 }));
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 const tabs = list<{ _key: string; label?: string; title?: string; text?: string }>("examine.tabs");
+
+// each tab's icon (2026-11-04), from the SVG Collection (source-assets/
+// svg-collection: activity, browser, cloud, lock-closed, zap, wallet,
+// flag-square, and layout for a tab it does not know), by the first word
+// of the tab's label; drawn in the tab's ink (currentColor)
+const ICONS: Record<string, string> = {
+  workflows: '<path d="M1.5 12H5.5L9.5 3L14.5 21L18.5 12H22.5"/>',
+  software: '<path d="M2 9V20H22V7H13.5L11 9H2Z"/><path d="M2 9V4H22V7"/><path d="M4.5 6V7"/><path d="M7 6V7"/><path d="M9.5 6V7"/>',
+  infrastructure: '<path d="M18.6 18C19.7498 18.0003 20.8541 17.5505 21.6764 16.7468C22.4988 15.9432 22.9739 14.8495 23 13.7C23 12.5331 22.5364 11.4139 21.7113 10.5887C20.8861 9.76358 19.767 9.30001 18.6 9.30001H18.1C17.648 8.04348 16.8201 6.95665 15.7286 6.18728C14.6372 5.41792 13.3353 5.00337 12 5.00001C10.6747 4.99456 9.38148 5.4072 8.30426 6.17921C7.22704 6.95121 6.42072 8.04327 6 9.30001H5.4C4.23305 9.30001 3.11389 9.76358 2.28873 10.5887C1.46357 11.4139 1 12.5331 1 13.7C1.02613 14.8495 1.50121 15.9432 2.32356 16.7468C3.1459 17.5505 4.25017 18.0003 5.4 18H18.6Z"/>',
+  data: '<path d="M20.5 10.5H3.5V21.5H20.5V10.5Z"/><path d="M12 14.5V17"/><path d="M18 10.5V8C18 6.4087 17.3679 4.88258 16.2426 3.75736C15.1174 2.63214 13.5913 2 12 2C10.4087 2 8.88258 2.63214 7.75736 3.75736C6.63214 4.88258 6 6.4087 6 8V10.5"/>',
+  ai: '<path d="M13 3L4 14H12L11 21L20 10H12L13 3Z"/>',
+  costs: '<path d="M21 7H3V21H21V7Z"/><path d="M21 11H17C16.2044 11 15.4413 11.3161 14.8787 11.8787C14.3161 12.4413 14 13.2044 14 14C14 14.7956 14.3161 15.5587 14.8787 16.1213C15.4413 16.6839 16.2044 17 17 17H21"/><path d="M17 14H18"/><path d="M5 7L13 3L15 7"/><path d="M14 5L17 4L18 7"/>',
+  governance: '<path d="M6 21V4H20V14H6"/>',
+  other: '<path d="M22 4H2V21H22V4Z"/><path d="M8 9V21"/><path d="M2 9H22"/>',
+};
+const iconOf = (label = "") => ICONS[label.toLowerCase().split(/[^a-z]+/).find(Boolean) ?? ""] ?? ICONS.other;
+const pad = (n: number) => String(n).padStart(2, "0");
 ---
 <BaseLayout
   title="Technology Blueprint — ADDD"
@@ -118,40 +135,38 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
   />
   </div>
 
-  <section class="section section--light">
+  <!-- What we look at (2026-11-04, after the user's tab reference): on
+       black, the heading centred over one bar of tabs, an off-black tray
+       with each tab an icon and its label and the open one raised in it on
+       a lighter pill that glides from tab to tab (tabs.js); under it the
+       open tab's panel, its words on the left and the layers drawing on
+       the right, inked for the dark. The tabs and their words are the
+       Studio's (examine.tabs). -->
+  <section class="section examine-sec" aria-labelledby="examine-heading">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="examine.lede">{t("examine.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="examine.tagline">{t("examine.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="examine.heading">{t("examine.heading")}</h2>
-        </div>
-      </div>
-
-      <!-- the tabs and their panels (tabs.js; pages.css, "What we look
-           at"): on a dark ground, the open tab's title at the top and the
-           tabs as rows at the foot, the open row's words under it; the
-           drawing on the right. Each tab and its words take their own rows
-           of the left's grid (grid-row), so the words open under their tab
-           while the tabs stay one tablist. -->
+      <h2 class="h2 examine-sec__heading" id="examine-heading" data-split="heading" data-page-field="examine.heading">{t("examine.heading")}</h2>
       <div class="examine" data-tabs>
-        <div class="examine__text">
-          <div class="examine__list" role="tablist" aria-orientation="vertical" aria-label={t("examine.heading")} data-page-list="examine.tabs">
+        <div class="examine__bar">
+          <div class="examine__list" role="tablist" aria-orientation="horizontal" aria-label={t("examine.heading")} data-page-list="examine.tabs">
+            <span class="examine__glider" data-tabs-glider aria-hidden="true"></span>
             {tabs.map((tab, i) => (
-            <button type="button" role="tab" class="examine__tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key} style={`grid-row:${2 * i + 3}`}><span class="examine__mark" aria-hidden="true"></span><span data-page-item-field="label">{tab.label}</span></button>
+            <button type="button" role="tab" class="examine__tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key}><svg class="examine__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-miterlimit="10" aria-hidden="true" set:html={iconOf(tab.label)}></svg><span data-page-item-field="label">{tab.label}</span></button>
             ))}
           </div>
+        </div>
+        <div class="examine__stage">
           <div class="examine__panels">
             {tabs.map((tab, i) => (
             <div class:list={["examine__panel", { "is--active": i === 0 }]} role="tabpanel" id={`examine-panel-${i + 1}`} aria-labelledby={`examine-tab-${i + 1}`}>
+              <p class="examine__n" aria-hidden="true">{pad(i + 1)} / {pad(tabs.length)}</p>
               <h3 class="examine__title" data-page-field={`examine.tabs.${i}.title`}>{tab.title}</h3>
-              <div class="examine__body" style={`grid-row:${2 * i + 4}`}><div class="examine__clip"><p class="examine__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p></div></div>
+              <p class="examine__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p>
             </div>
             ))}
           </div>
-        </div>
-        <div class="examine__media">
-          <LayersDiagram class="examine__diagram" />
+          <div class="examine__media">
+            <LayersDiagram class="examine__diagram" />
+          </div>
         </div>
       </div>
     </div>
@@ -161,7 +176,7 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
        shared timeline (StageTimeline.astro), a plan's chart: the eight
        weeks across the top, each stage a row with its box over its weeks,
        opening its card -->
-  <section class="section roadmap" id="delivery">
+  <section class="section roadmap is--dark" id="delivery">
     <div class="container">
       <div class="roadmap__head">
         <div>
@@ -171,7 +186,7 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
         <ActionButton href="contact.html" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
       </div>
       <div class="roadmap__run">
-        <StageTimeline id="blueprint-stages" stages={roadmap} scale={WEEKS} />
+        <StageTimeline id="blueprint-stages" stages={roadmap} scale={WEEKS} dark />
       </div>
     </div>
   </section>

@@ -156,186 +156,176 @@
   .filters button.filters__reset:hover { background: transparent; color: var(--c-text); text-decoration: underline; }
 }
 
-/* "What we look at" (the Technology Blueprint; tabs.js), after the
-   reference of 2026-11-04: one panel, on its left (three fifths) a dark
-   ground with the open tab's title large at its top and, at its foot,
-   the tabs as rows parted by hairlines, each a small square with its
-   plus and its label; the open row's square red with a minus, its words
-   open under it in a quiet grey. On its right (two fifths), on a light
-   ground, the section's drawing (LayersDiagram.astro), centred.
-
-   The tabs keep their roles (a vertical tablist, tabs.js unchanged); so
-   that each tab's words open right under its row, the list, the panels
-   and each panel lend their boxes to the left's one grid (display:
-   contents): every title in its first row, one over another, the one
-   shown fading up into place; then a flexible row, so the list stands at
-   the foot and the panel keeps one height whichever is open; then each
-   tab's row with its words' row after it (their grid-row, set in the
-   page). The words open and close by their row's height (0fr to 1fr). */
-.examine {
-  --ex-ground: var(--c-dark-bg);
-  --ex-line: rgba(255, 255, 255, 0.14);
-  --ex-mark: 1.125rem;
-  --ex-mark-gap: 0.875rem;
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-  /* tall enough for the longest title and words, so the flexible row
-     takes up the difference and the panel never changes height */
-  min-height: 41rem;
-  margin-top: 3.5rem;
-}
-.examine__text {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto minmax(2.5rem, 1fr);
-  grid-auto-rows: auto;
-  padding: 2.75rem 2.75rem 1.5rem;
-  border-radius: var(--radius) 0 0 var(--radius);
-  background: var(--ex-ground);
+/* "What we look at" (the Technology Blueprint; tabs.js), 2026-11-04, after
+   the user's reference of a tab bar: the section on black, its heading
+   centred; under it one bar of tabs, an off-black tray, each tab an icon
+   (the SVG Collection's) and its label in a quiet grey; the open one
+   raised in the tray on a lighter pill that glides from tab to tab (a
+   transform and a width, tabs.js), its label white and its icon the
+   site's red; the pointer brightens the rest. Under the bar, the open
+   tab's panel on an off-black ground: its number, title and words on the
+   left (every panel in one cell, so the panel keeps the height of the
+   tallest; the open one fades up), the layers drawing on the right, its
+   inks turned for the dark. The roadmap after it is on the same black. */
+.examine-sec {
+  --ex-black: #0a0a0a;
+  --ex-tray: #151515;
+  --ex-pill: #262626;
+  --ex-stage: #121212;
+  --ex-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  background: var(--ex-black);
   color: var(--c-white);
 }
-.examine__list,
-.examine__panels,
-.examine__panel { display: contents; }
-
-/* the open tab's title, every one in the same cell */
-.examine__title {
-  grid-area: 1 / 1;
-  align-self: start;
+.examine-sec__heading {
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+.examine { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
+/* the bar: the tray, centred, scrolling across where it is wider than the
+   screen */
+.examine__bar { display: flex; justify-content: center; width: 100%; }
+.examine__list {
+  position: relative;
+  display: flex;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0.375rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-radius: 999px;
+  background: var(--ex-tray);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.5), 0 1.25rem 2.5rem -1.5rem rgba(0, 0, 0, 0.9);
+}
+.examine__list::-webkit-scrollbar { display: none; }
+/* the open tab's pill, under the tabs, gliding to the open one */
+.examine__glider {
+  position: absolute;
+  top: 0.375rem;
+  bottom: 0.375rem;
+  left: 0;
+  width: var(--glider-w, 0px);
+  border-radius: 999px;
+  background: var(--ex-pill);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0.375rem 1rem -0.25rem rgba(0, 0, 0, 0.7);
+  transform: translateX(var(--glider-x, 0px));
+  transition: transform 0.5s var(--ex-ease), width 0.5s var(--ex-ease);
+  pointer-events: none;
+}
+.examine__glider.is--instant { transition: none; }
+.examine__tab {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   margin: 0;
+  padding: 0.75rem 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: rgba(255, 255, 255, 0.5);
+  font: inherit;
+  font-size: var(--t-rg);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+.examine__icon { flex: none; width: 1.125rem; height: 1.125rem; transition: color 0.3s ease, filter 0.3s ease; }
+@media (hover: hover) {
+  .examine__tab:hover { color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.035); }
+}
+.examine__tab[aria-selected="true"] { color: var(--c-white); background: none; }
+.examine__tab[aria-selected="true"] .examine__icon { color: var(--c-red); filter: drop-shadow(0 0 0.35rem rgba(224, 25, 15, 0.55)); }
+.examine__tab:focus-visible { outline: 1px solid rgba(255, 255, 255, 0.7); outline-offset: -3px; }
+
+/* the open tab's panel: its words on the left, the drawing on the right */
+.examine__stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 3rem;
+  width: 100%;
+  padding: 3.5rem;
+  border-radius: 1.25rem;
+  background: var(--ex-stage);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+.examine__panels { display: grid; align-content: center; }
+.examine__panel {
+  grid-area: 1 / 1;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 0.75rem;
+  transition: opacity 0.25s ease, translate 0.45s var(--ex-ease), visibility 0s linear 0.25s;
+}
+.examine__panel.is--active {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition: opacity 0.4s ease 0.1s, translate 0.55s var(--ex-ease) 0.1s, visibility 0s;
+}
+.examine__n {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--label-tracking);
+  color: rgba(255, 255, 255, 0.4);
+}
+.examine__title {
   max-width: 14em;
+  margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
   font-size: var(--t-h3);
   line-height: 1.1;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
-  opacity: 0;
-  visibility: hidden;
-  translate: 0 0.5rem;
-  transition: opacity 0.25s ease, translate 0.45s var(--ease-osmo, ease), visibility 0s linear 0.25s;
 }
-.examine__panel.is--active > .examine__title {
-  opacity: 1;
-  visibility: visible;
-  translate: 0 0;
-  transition: opacity 0.35s ease 0.08s, translate 0.45s var(--ease-osmo, ease) 0.08s, visibility 0s;
-}
-
-/* a row: the hairline over it, its square and its label */
-.examine__tab {
-  grid-column: 1;
-  display: flex;
-  align-items: center;
-  gap: var(--ex-mark-gap);
-  width: 100%;
-  margin: 0;
-  padding: 0.875rem 0;
-  border: 0;
-  border-top: 1px solid var(--ex-line);
-  border-radius: 0;
-  background: none;
-  color: rgba(255, 255, 255, 0.72);
-  font: inherit;
-  font-size: var(--t-rg);
-  line-height: 1.3;
-  text-align: left;
-  cursor: pointer;
-  transition: color 0.3s ease;
-}
-.examine__tab:hover,
-.examine__tab[aria-selected="true"] { color: var(--c-white); }
-.examine__tab:focus-visible { outline: 1px solid var(--c-white); outline-offset: 2px; }
-/* the square: a faint white with a plus; open, the red with a minus (the
-   plus's upright folds away) */
-.examine__mark {
-  flex: none;
-  position: relative;
-  width: var(--ex-mark);
-  height: var(--ex-mark);
-  background: rgba(255, 255, 255, 0.12);
-  transition: background-color 0.3s ease;
-}
-.examine__mark::before,
-.examine__mark::after {
-  content: "";
-  position: absolute;
-  left: 25%;
-  right: 25%;
-  top: calc(50% - 1px);
-  height: 2px;
-  background: var(--c-white);
-  transition: transform 0.35s var(--ease-osmo, ease);
-}
-.examine__mark::after { transform: rotate(90deg); }
-.examine__tab:hover .examine__mark { background: rgba(255, 255, 255, 0.22); }
-.examine__tab[aria-selected="true"] .examine__mark { background: var(--c-red); }
-.examine__tab[aria-selected="true"] .examine__mark::after { transform: rotate(90deg) scaleX(0); }
-
-/* the open row's words, under its label, opening by their row's height */
-.examine__body {
-  grid-column: 1;
-  display: grid;
-  grid-template-rows: 0fr;
-  visibility: hidden;
-  transition: grid-template-rows 0.45s var(--ease-osmo, ease), visibility 0s linear 0.45s;
-}
-.examine__panel.is--active > .examine__body {
-  grid-template-rows: 1fr;
-  visibility: visible;
-  transition: grid-template-rows 0.45s var(--ease-osmo, ease), visibility 0s;
-}
-.examine__clip { min-height: 0; overflow: hidden; }
 .examine__p {
-  margin: 0;
-  max-width: 36em;
-  padding: 0 0 1.125rem calc(var(--ex-mark) + var(--ex-mark-gap));
-  color: rgba(255, 255, 255, 0.6);
+  max-width: 34em;
+  margin: 1.25rem 0 0;
   font-size: var(--t-rg);
-  line-height: 1.45;
-  opacity: 0;
-  transition: opacity 0.25s ease;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.62);
 }
-.examine__panel.is--active .examine__p { opacity: 1; transition: opacity 0.35s ease 0.12s; }
-
-/* the drawing's half: the light ground, a hairline round it */
+/* the drawing, its inks turned for the dark: its light faces the stage's
+   ground a step up, its dark ones and its lines a warm white */
 .examine__media {
+  --c-text: #e9e8e5;
+  --c-white: #1c1c1c;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2.5rem;
-  border: 1px solid var(--c-border);
-  border-left: 0;
-  border-radius: 0 var(--radius) var(--radius) 0;
-  background: color-mix(in srgb, var(--c-text) 4%, var(--c-paper));
-  overflow: hidden;
+  min-height: 20rem;
 }
 .examine__diagram { display: block; width: 100%; max-width: 24rem; height: auto; }
 
 @media (prefers-reduced-motion: reduce) {
-  .examine__title,
-  .examine__panel.is--active > .examine__title { transition: none; translate: none; }
-  .examine__body,
-  .examine__panel.is--active > .examine__body,
-  .examine__p,
-  .examine__panel.is--active .examine__p,
-  .examine__mark::after { transition: none; }
+  .examine__glider,
+  .examine__panel,
+  .examine__panel.is--active { transition: none; translate: none; }
 }
-
-/* a tablet's narrower words wrap to a line more */
-@media (min-width: 768px) and (max-width: 991px) {
-  .examine { min-height: 42rem; }
-}
-@media (max-width: 767px) {
-  .examine { grid-template-columns: minmax(0, 1fr); min-height: 0; margin-top: 2.5rem; }
-  .examine__text { padding: 1.75rem 1.5rem 1rem; border-radius: var(--radius) var(--radius) 0 0; }
-  .examine__media {
-    padding: 2rem 1.5rem;
-    border-left: 1px solid var(--c-border);
-    border-top: 0;
-    border-radius: 0 0 var(--radius) var(--radius);
-  }
+@media (max-width: 991px) {
+  .examine__bar { justify-content: flex-start; }
+  .examine__stage { grid-template-columns: minmax(0, 1fr); padding: 2.5rem; }
+  .examine__media { min-height: 0; }
   .examine__diagram { max-width: 18rem; }
 }
+@media (max-width: 767px) {
+  .examine-sec__heading { margin-bottom: 2rem; }
+  .examine__tab { padding: 0.65rem 0.95rem; }
+  .examine__stage { padding: 1.75rem 1.5rem; border-radius: 1rem; }
+}
+
+/* The roadmap after it (technology-blueprint.astro, is--dark): on the same
+   black, its timeline in its dark version (StageTimeline dark); the
+   testimonials after it back on white */
+.roadmap.is--dark {
+  background: #0a0a0a;
+  color: var(--c-white);
+}
+.roadmap.is--dark .tagline { color: rgba(255, 255, 255, 0.55); }
+.roadmap.is--dark + .testimonials { background: var(--c-white); }
 
 /* A filtered item. Opacity only — the card's own hover lift owns its
    transform, and a fade is the site's register anyway. Out of flow when
@@ -1078,7 +1068,10 @@
   padding: 0 var(--grid-margin) 0 calc(var(--grid-margin) + var(--bp-inset));
 }
 .bp-hero__statement {
-  --bp-measure: calc(5 * var(--bp-col) + 4 * var(--grid-gutter) - var(--bp-inset));
+  /* four lines since the fifth pass (2026-11-04): Grid Columns 1–4 and
+     their gutters from the words' inset, so the type keeps about its size
+     and stands further from the network than before */
+  --bp-measure: calc(4 * var(--bp-col) + 4 * var(--grid-gutter));
   --bp-lh: 1.04;
   width: var(--bp-measure);
   margin: 0;
@@ -1125,11 +1118,16 @@
 .bp-hero__stage .route { stroke: rgba(10, 10, 10, 0.2); stroke-width: 1.1; transition: stroke 0.9s ease; }
 .bp-hero__stage .route.hi { stroke: var(--c-red); stroke-width: 1.1; }
 .bp-hero.is--together .bp-hero__stage .route { stroke: color-mix(in srgb, var(--c-red) 52%, var(--bp-ground)); }
+/* the scroll's red (fifth pass): a copy of the routes in the red over them,
+   as strong as the stir (network-figure.js sets its stroke-opacity, one
+   value on a few paths, nothing else restyled) */
+.bp-hero__stage .route-glow path { stroke: var(--c-red); stroke-width: 1.2; transition: none; }
 .bp-hero__stage .pulse { stroke: var(--c-red); stroke-width: 1.5; transition: none; }
 .bp-hero__stage .coin .sil { fill: #5c5c5c; stroke: #3a3a3a; }
 .bp-hero__stage .coin-top { fill: #222222; stroke: #222222; }
-.bp-hero__stage .coin-ring { stroke: rgba(255, 255, 255, 0.22); transition: stroke 0.9s ease; }
+.bp-hero__stage .coin-ring { stroke: rgba(255, 255, 255, 0.22); transition: stroke 0.4s ease; }
 .bp-hero__stage .coin-ring.hi,
+.bp-hero__svg.is--stirred .coin-ring,
 .bp-hero.is--together .bp-hero__stage .coin-ring { stroke: var(--c-red); stroke-width: 1.5; }
 
 @media screen and (max-width: 991px) {
@@ -1194,14 +1192,18 @@
   height: 100svh;
 }
 /* the light: black in the upper left, the red coming up from the foot and
-   pooling round the drawing on the right, as the reference's blue does */
+   pooling round the drawing on the right, as the reference's blue does.
+   Third pass (2026-11-04): the glow from the bottom-left corner a little
+   less strong at the corner and spread wider and more gradually (more,
+   softer stops), so it lights the ground round the foot without reaching
+   the words */
 .br-hero__light {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
     radial-gradient(58% 64% at 76% 66%, rgba(214, 22, 12, 0.78) 0%, rgba(160, 12, 6, 0.5) 30%, rgba(90, 5, 3, 0.22) 56%, transparent 78%),
-    radial-gradient(46% 42% at 2% 106%, rgba(240, 52, 34, 0.7) 0%, rgba(170, 14, 8, 0.32) 46%, transparent 74%),
+    radial-gradient(62% 52% at 0% 108%, rgba(225, 44, 28, 0.46) 0%, rgba(190, 26, 14, 0.3) 24%, rgba(150, 14, 8, 0.16) 48%, rgba(100, 8, 4, 0.06) 68%, transparent 86%),
     linear-gradient(170deg, #050505 32%, #170202 58%, #400404 86%, #5c0606 100%);
 }
 /* the drawing: its platform's middle about 70% across and a little under
@@ -1223,7 +1225,8 @@
    slope: nothing left of it across the heading and the standfirst); the
    two masks met, so it fades out softly, with no edge of its own. */
 .br-hero__ground {
-  --iso-line: rgba(255, 150, 130, 0.3);
+  /* third pass: quieter, its cells half the size (before-revit-hero.js) */
+  --iso-line: rgba(255, 150, 130, 0.17);
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -1244,12 +1247,32 @@
    nothing under it repaints it as the frame comes down. */
 .br-hero__grain {
   position: absolute;
-  inset: 0;
+  /* a tile's width past every edge, so its steps never show an edge */
+  inset: -128px;
   z-index: 2;
   pointer-events: none;
   background: url("/assets/graphics/grain-noise.png") 0 0 / 128px 128px repeat;
   opacity: 0.45;
   will-change: transform;
+  /* Third pass (2026-11-04): alive, barely. The tile itself never changes;
+     the layer jumps to a new place a few times a second (steps, not a
+     glide), so the grain shifts like film without any noise being made:
+     a transform on its own layer, the compositor's alone. Stopped while
+     the hero is off the screen (is--still, before-revit-hero.js) and
+     under reduced motion. */
+  animation: br-grain 0.9s steps(1) infinite;
+}
+.br-hero.is--still .br-hero__grain { animation-play-state: paused; }
+@keyframes br-grain {
+  0% { transform: translate(0, 0); }
+  17% { transform: translate(-37px, 23px); }
+  33% { transform: translate(29px, -51px); }
+  50% { transform: translate(-61px, -19px); }
+  67% { transform: translate(47px, 41px); }
+  83% { transform: translate(-13px, 59px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .br-hero__grain { animation: none; }
 }
 /* The figure's palette: its lines a warm white, bright outside and dim
    inside; the platform's faces red gradients (defs in
@@ -1269,8 +1292,6 @@
 .br-hero__stage .plinth .lo { stroke: rgba(255, 220, 210, 0.55); }
 .br-hero__stage .top { fill: url(#br-top); stroke: rgba(255, 226, 218, 0.75); }
 .br-hero__stage .dash { stroke: rgba(255, 228, 222, 0.5); }
-.br-hero__stage .br-flash { fill: #fff; stroke: none; opacity: 0; }
-.br-hero__stage .br-ring { fill: none; stroke: rgba(255, 140, 120, 0.95); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
 .br-hero__stage .br-tagbox {
   fill: rgba(255, 70, 50, 0.08);
   stroke: rgba(255, 214, 206, 0.55);
@@ -1296,9 +1317,12 @@
   background: radial-gradient(closest-side, rgba(255, 46, 26, 0.6), rgba(210, 18, 10, 0.26) 58%, transparent);
   pointer-events: none;
 }
+/* the landing's pulse (third pass): a quiet light at the platform's foot,
+   tighter than the glow, warm white at its heart */
 .br-hero__glow.is--pulse {
+  width: 58%;
   opacity: 0;
-  background: radial-gradient(closest-side, rgba(255, 110, 86, 0.75), rgba(240, 34, 20, 0.28) 60%, transparent);
+  background: radial-gradient(closest-side, rgba(255, 170, 150, 0.7), rgba(240, 40, 24, 0.22) 55%, transparent);
 }
 
 /* the words: over the hold; only what is read or pressed takes the pointer */
@@ -1316,7 +1340,9 @@
   align-items: flex-start;
   height: 100vh;
   height: 100svh;
-  padding: calc(var(--nav-h) + 2.75rem) var(--grid-margin) calc(var(--grid-margin) + 1.25rem);
+  /* the words a little in from the grid's margin (third pass), as the
+     Technology Blueprint's are, the drawing well clear on the right */
+  padding: calc(var(--nav-h) + 2.75rem) var(--grid-margin) calc(var(--grid-margin) + 1.25rem) calc(var(--grid-margin) + 3rem);
 }
 .br-hero__screen > * { pointer-events: auto; }
 /* the room the drawing is held for once the words have gone: the scroll
@@ -1380,7 +1406,7 @@
     -webkit-mask-image: radial-gradient(60% 50% at 50% 50%, #000 30%, transparent 90%);
     mask-image: radial-gradient(60% 50% at 50% 50%, #000 30%, transparent 90%);
   }
-  .br-hero__screen { height: auto; padding-top: 1rem; }
+  .br-hero__screen { height: auto; padding-top: 1rem; padding-left: var(--grid-margin); }
   .br-hero__after { display: none; }
   .br-hero__heading { font-size: 3.5rem; }
   .br-hero__trust { margin-top: 3rem; }

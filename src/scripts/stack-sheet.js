@@ -17,20 +17,35 @@
    stack's own place in the app: the app enforces the access). The column
    scrolls inside the dialog where it is longer than the window.
 
-   Opening, the containers rise into place one after the next while the
-   scrim comes up; closing, they sink a little and fade together, the
-   scrim going, and the dialog closes. Transforms and opacity only, on the
-   Web Animations API; one direction cut short by the other starts from
-   wherever things are. Under reduced motion it opens and closes at once.
+   Opening (since 2026-11-04, a morph): the containers grow out of the
+   stack's own cards. Each starts exactly over its card as it stands in the
+   row, lifted and slanted (one transform maps the container's box onto
+   the card's four corners), the cards themselves taken out of the row at
+   that moment, and travels to its place in the column, square and full
+   size, one after the next, its words coming in once it is most of the
+   way; the head comes from the stack's middle card, the way in from its
+   last. The scrim comes up behind them. Closing is the way back: the words
+   go, each container goes back onto its card where the card stands now,
+   and as they land the cards are back in the row and the dialog closes.
+   Transforms and opacity only, on the Web Animations API. Under reduced
+   motion it opens and closes at once.
    ============================================================ */
 import { lenis } from "./scroll.js";
 import { motion } from "./page.js";
 
-const EASE_OPEN = "cubic-bezier(0.22, 1, 0.36, 1)";
-const EASE_CLOSE = "cubic-bezier(0.5, 0, 0.75, 0)";
-const RISE_MS = 560;
-const STAGGER_MS = 55;
-const CLOSE_MS = 240;
+const EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
+const EASE_BACK = "cubic-bezier(0.55, 0, 0.25, 1)";
+const MORPH_MS = 680;
+const BACK_MS = 520;
+const STAGGER_MS = 40;
+
+// the transform that sets a box (its rect on the screen, untransformed,
+// transform-origin at its top left) exactly onto a card's four corners
+function onto(r, q) {
+  const [tl, tr, , bl] = q;
+  const m = [(tr[0] - tl[0]) / r.width, (tr[1] - tl[1]) / r.width, (bl[0] - tl[0]) / r.height, (bl[1] - tl[1]) / r.height, tl[0] - r.left, tl[1] - r.top];
+  return `matrix(${m.map((v) => v.toFixed(4)).join(",")})`;
+}
 
 const pad = (n) => String(n).padStart(2, "0");
 function el(tag, cls, text) {
@@ -57,6 +72,7 @@ export function mountStackSheet(dialog, data) {
   let state = "closed";
   let running = [];
   let done = null;
+  let morph = null;
 
   // the containers for one stack
   function build(g) {
@@ -147,9 +163,21 @@ export function mountStackSheet(dialog, data) {
     return true;
   }
 
-  async function open(g, onClosed) {
+  // which card each container grows from: the head from the stack's middle
+  // card, each tool (named or locked) from its own, the way in from the last
+  function sourcesOf(list, quads) {
+    if (!quads.length) return list.map(() => null);
+    return list.map((card, i) => {
+      if (card.classList.contains("is--head")) return quads[Math.floor((quads.length - 1) / 2)];
+      if (card.classList.contains("is--cta")) return quads[quads.length - 1];
+      return quads[i - 1] ?? quads[quads.length - 1];
+    });
+  }
+
+  async function open(g, onClosed, from) {
     if (state !== "closed") return;
     done = onClosed;
+    morph = from ?? null;
     build(g);
     state = "opening";
     lenis?.stop();
@@ -157,23 +185,32 @@ export function mountStackSheet(dialog, data) {
     scroller.scrollTop = 0;
     scroller.focus({ preventScroll: true });
     if (motion.reduced) {
+      morph?.hide(true);
       state = "open";
       return;
     }
     const list = cards();
-    const ok = await play([
-      scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: "ease-out", fill: "both" }),
-      closer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: 260, easing: "ease-out", fill: "both" }),
-      ...list.map((card, i) =>
-        card.animate(
-          [
-            { opacity: 0, transform: "translateY(1.75rem) scale(0.985)" },
-            { opacity: 1, transform: "none" },
-          ],
-          { duration: RISE_MS, delay: Math.min(i, 7) * STAGGER_MS, easing: EASE_OPEN, fill: "both" },
-        ),
-      ),
-    ]);
+    const sources = sourcesOf(list, morph?.quads() ?? []);
+    const anims = [
+      scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MORPH_MS * 0.7, easing: "ease-out", fill: "both" }),
+      closer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: MORPH_MS * 0.6, easing: "ease-out", fill: "both" }),
+    ];
+    list.forEach((card, i) => {
+      const q = sources[i];
+      const r = card.getBoundingClientRect();
+      const timing = { duration: MORPH_MS, delay: Math.min(i, 8) * STAGGER_MS, fill: "both" };
+      if (!q || !r.width || !r.height) {
+        anims.push(card.animate([{ opacity: 0, transform: "translateY(1.75rem)" }, { opacity: 1, transform: "none" }], { ...timing, easing: EASE_OUT }));
+        return;
+      }
+      card.style.transformOrigin = "0 0";
+      anims.push(card.animate([{ transform: onto(r, q) }, { transform: "none" }], { ...timing, easing: EASE_OUT }));
+      // its words once it is most of the way there
+      [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1 }], { ...timing, easing: "linear" })));
+    });
+    // the cards out of the row as their containers take their place
+    morph?.hide(true);
+    const ok = await play(anims);
     if (ok) {
       settle();
       state = "open";
@@ -184,29 +221,38 @@ export function mountStackSheet(dialog, data) {
     if (state === "closed" || state === "closing") return;
     state = "closing";
     if (!motion.reduced) {
-      const now = cards().map((card) => getComputedStyle(card).opacity);
       const scrimNow = getComputedStyle(scrim).opacity;
       settle();
-      const ok = await play([
+      const list = cards();
+      const targets = sourcesOf(list, morph?.quads() ?? []);
+      const anims = [
         closer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in", fill: "both" }),
-        scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: CLOSE_MS + 60, easing: "ease-in", fill: "both" }),
-        ...cards().map((card, i) =>
-          card.animate(
-            [
-              { opacity: now[i] },
-              { opacity: 0, transform: "translateY(1rem)" },
-            ],
-            { duration: CLOSE_MS, easing: EASE_CLOSE, fill: "both" },
-          ),
-        ),
-      ]);
+        scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: BACK_MS, easing: "ease-in-out", fill: "both" }),
+      ];
+      list.forEach((card, i) => {
+        const q = targets[i];
+        const r = card.getBoundingClientRect();
+        const timing = { duration: BACK_MS, delay: Math.min(list.length - 1 - i, 8) * (STAGGER_MS / 2), fill: "both" };
+        if (!q || !r.width || !r.height) {
+          anims.push(card.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(1rem)" }], { ...timing, easing: EASE_BACK }));
+          return;
+        }
+        card.style.transformOrigin = "0 0";
+        anims.push(card.animate([{ transform: "none" }, { transform: onto(r, q) }], { ...timing, easing: EASE_BACK }));
+        [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 1 }, { opacity: 0, offset: 0.35 }, { opacity: 0 }], { ...timing, easing: "linear" })));
+      });
+      const ok = await play(anims);
       if (!ok) return;
     }
     finish();
   }
 
-  // closed: the dialog gone, the page as it was, the row told
+  // closed: the cards back in the row (drawn there at once, in the same
+  // frame as the containers go), the dialog gone, the page as it was, the
+  // row told
   function finish() {
+    morph?.hide(false);
+    morph = null;
     column.style.opacity = "0";
     state = "closed";
     if (dialog.open) dialog.close();

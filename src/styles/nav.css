@@ -884,7 +884,10 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   inset: auto;
   left: 72.4%;
   top: 58.7%;
-  width: 110%;
+  /* the frame half again as large as the box: the row in it is long enough
+     (twelve cards either side of the middle) to run on past the box at
+     both ends, whatever its shape, as the page's endless row does */
+  width: 170%;
   max-width: none;
   height: auto;
   aspect-ratio: 5 / 4;
@@ -905,7 +908,7 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
     height: calc(8 * var(--sc-step));
     margin: calc(.25 * var(--sc-step)) calc(-1 * var(--sc-pad)) calc(-1 * var(--sc-step));
   }
-  .resource-tile__figure > svg { left: calc(100% - 9rem); top: 56%; width: clamp(20rem, 165%, 36rem); }
+  .resource-tile__figure > svg { left: calc(100% - 9rem); top: 56%; width: clamp(31rem, 255%, 55.5rem); }
 }
 
 /* Blocks — the bar from 992px up. Every functional area is a block of
