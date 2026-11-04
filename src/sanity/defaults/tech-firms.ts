@@ -2,8 +2,10 @@ import { keyed } from './types';
 
 /* The AEC Tech Partners page's own words and pictures
    (src/pages/tech-firms.astro), section by section, as the page's document is
-   shaped (studio/schemaTypes/pages/tech-firms.ts). The cards' tone and crop
-   stay in the page, by position; so does where every button leads. */
+   shaped (studio/schemaTypes/pages/tech-firms.ts). Where every button
+   leads stays in the page. The objectives (routes) are not shown since
+   2026-11-04 (they said again what Ways to work with ADDD says); kept
+   while the live site still reads them. */
 export const techFirmsPage = {
   hero: {
     tagline: 'AEC Tech Partners',
@@ -180,6 +182,9 @@ export const techFirmsPage = {
       { number: '03', title: 'Produce and deliver', text: 'ADDD produces and distributes the content, or delivers the intelligence briefing.' },
       { number: '04', title: 'Report', text: 'You receive reporting against the measures agreed at the start.' },
     ]),
+    // the phases across the top of the timeline (2026-11-04), one to a
+    // step, from the heading's own words: from first call to reporting
+    phases: ['First call', 'Agreement', 'Production', 'Reporting'],
     measurementTitle: 'How success is measured',
     measurement: 'For promotional partnerships, tracked links are agreed and set up before anything is published, and trial sign-ups are reported monthly where they apply. Views and impressions give context, but they are not treated as the only measure of commercial success. ADDD does not guarantee sign-ups or sales.',
     intelligenceMeasurement: 'Practice intelligence is measured differently: briefings arrive every quarter, against a scope agreed at the start, rather than against conversion figures.',

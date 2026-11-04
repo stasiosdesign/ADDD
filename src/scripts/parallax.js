@@ -28,6 +28,10 @@ import { registerPageCleanup } from "./page.js";
    itself), so it runs back exactly on the way up. One tween, a
    transform only. Not under reduced motion, nor below 992px, where the
    cards stand one under another.
+
+   A row may set its own step (data-problem-parallax-step, rem): the
+   Ongoing Advisory's four gains take a shorter one, so the fourth card's
+   three steps stay within the band.
    ============================================================ */
 // the step between two cards (rem)
 const PROBLEM_STAIR = { step: 4.5 };
@@ -35,9 +39,10 @@ const PROBLEM_STAIR = { step: 4.5 };
 export function initProblemParallax(container) {
   container.querySelectorAll("[data-problem-parallax]").forEach((grid) => {
     const cards = [...grid.children];
+    const stepRem = parseFloat(grid.dataset.problemParallaxStep) || PROBLEM_STAIR.step;
     const mm = gsap.matchMedia();
     mm.add("(min-width: 992px) and (prefers-reduced-motion: no-preference)", () => {
-      const step = () => PROBLEM_STAIR.step * parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const step = () => stepRem * parseFloat(getComputedStyle(document.documentElement).fontSize);
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: grid,
@@ -386,11 +391,18 @@ function initParallaxCover(container, name, { leaving = false, shade = 0.5, reac
     const scrim = wrap.querySelector(`[data-${name}-parallax-dark]`);
     if (!inner && !scrim) return;
 
+    // A wrap may say where its way out starts (data-<name>-parallax-start,
+    // e.g. "bottom bottom": the Technology Blueprint's hero, held on the
+    // screen until its foot reaches the screen's, leaves only from there),
+    // and that its travel is measured in screens (-screen) rather than its
+    // own height, which a held hero's is not
+    const from = wrap.getAttribute(`data-${name}-parallax-start`);
+    const byScreen = screen || wrap.hasAttribute(`data-${name}-parallax-screen`);
     const scroll = {
       trigger: wrap,
       // coming in, while the wrap rises from the foot of the viewport to
       // its top; going out, while it carries on until it has left
-      start: leaving ? "clamp(top top)" : "clamp(top bottom)",
+      start: leaving ? `clamp(${from || "top top"})` : "clamp(top bottom)",
       end: leaving ? "clamp(bottom top)" : "clamp(top top)",
       scrub: true,
       // re-reads the travel below when the layout changes; both ends of
@@ -403,7 +415,7 @@ function initParallaxCover(container, name, { leaving = false, shade = 0.5, reac
 
     // coming in, the panel settles out of its offset and its shadow; going
     // out, it runs the same way backwards, from rest into both
-    const offset = screen
+    const offset = byScreen
       ? [{ y: () => (window.innerHeight / 4) * reach * (leaving ? 1 : -1) }, { y: 0 }]
       : [{ yPercent: travel }, { yPercent: 0 }];
     const fade = [{ opacity: shade }, { opacity: 0 }];

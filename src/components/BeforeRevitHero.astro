@@ -42,37 +42,136 @@
   The words come from the page's Studio fields (headingField, ledeField,
   statementField); the buttons are the slot (actions). Styles: pages.css
   ("Before Revit hero").
+
+  Shared since 2026-11-04 with the Workflow Workshop, whose opening is
+  this one in its own light (tone "white": the glow, the platform's faces
+  and the lattice in whites and greys instead of the reds), with its own
+  label over the heading (label), its own words in the drawing (words:
+  taken from its own page) and no row of practices (marks false). Without
+  a statement, the room the drawing is held for after the words is a
+  plain one (.br-hero__after), the frame landing as the words go.
+
+  And with the Ongoing Advisory (2026-11-04), whose drawing is its own
+  (figure "cycle": the practice's parts on one loop and a session going
+  round it as the page scrolls, each part stepping up as it is reached;
+  cycle-figure.js), in Before Revit's red, its words its page's own; and
+  (second pass) its statement in the hold as Before Revit's is, its one
+  paragraph in the Studio set on even lines here.
 */
 import { CLIENTS } from "../sanity/defaults/clients";
 import { logoShape } from "../sanity/logo-balance";
 
+interface FigureWords {
+  frame?: string;
+  note?: string[];
+  platform?: string;
+  tags?: string[];
+}
 interface Props {
   heading?: string;
   lede?: string;
   statement?: string;
+  /** a small label over the heading (the Workflow Workshop's tagline) */
+  label?: string;
   headingField?: string;
   ledeField?: string;
   statementField?: string;
+  labelField?: string;
+  /** the light the opening takes: Before Revit's reds, or whites */
+  tone?: "red" | "white";
+  /** the drawing's words; Before Revit's own by default */
+  words?: FigureWords;
+  /** the row of practices' marks at the screen's foot */
+  marks?: boolean;
+  /** the drawing: Before Revit's press, or the Ongoing Advisory's cycle (cycle-figure.js) */
+  figure?: "press" | "cycle";
 }
-const { heading = "", lede, statement = "", headingField = "hero.heading", ledeField = "hero.lede", statementField = "hero.statement" } = Astro.props;
+const {
+  heading = "",
+  lede,
+  statement = "",
+  label,
+  headingField = "hero.heading",
+  ledeField = "hero.lede",
+  statementField = "hero.statement",
+  labelField = "hero.tagline",
+  tone = "red",
+  words: givenWords,
+  marks: showMarks = true,
+  figure = "press",
+} = Astro.props;
 
 // The heading on two lines, both the heading's one size (2026-11-04, third
 // pass: "Early-stage / design workflow"): where the Studio's field has a
 // line break, there; otherwise the first half of the words, then the rest
 // (the second line taking the odd word)
+// (a heading of six words or more, the Workflow Workshop's, on three
+// lines, broken where their lengths come out most even, so no line runs
+// into the drawing)
 const [given, ...rest] = heading.trim().split(/\s*\n+\s*/);
 const words = given.split(/\s+/).filter(Boolean);
+const balanced = (ws: string[], k: number) => {
+  let best: string[] = [ws.join(" ")];
+  let least = Infinity;
+  for (let i = 1; i < ws.length - 1; i++) {
+    for (let j = i + 1; j < ws.length; j++) {
+      const lines = [ws.slice(0, i), ws.slice(i, j), ws.slice(j)].map((l) => l.join(" "));
+      // the most even: the least sum of the lines' squared lengths
+      const cost = lines.reduce((sum, l) => sum + l.length * l.length, 0);
+      if (cost < least) { least = cost; best = lines; }
+    }
+  }
+  return k === 3 ? best : [ws.join(" ")];
+};
 const cut = rest.length ? words.length : Math.max(1, Math.floor(words.length / 2));
-const first = words.slice(0, cut).join(" ");
-const last = rest.length ? rest.join(" ") : words.slice(cut).join(" ");
+const headingLines = rest.length
+  ? [given, ...rest]
+  : words.length >= 6
+    ? balanced(words, 3)
+    : [words.slice(0, cut).join(" "), words.slice(cut).join(" ")].filter(Boolean);
+// a line longer than Before Revit's longest (the Ongoing Advisory's), the
+// heading a step smaller, so it stays clear of the drawing
+const longLines = Math.max(...headingLines.map((l) => l.length)) > 18;
 
-// the statement's lines, one per line of the Studio's field
-const statementLines = statement.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+// the statement's lines, one per line of the Studio's field; or, where the
+// field is one paragraph (the Ongoing Advisory's), its words set on as
+// many lines as come out near Before Revit's measure (STATEMENT_MEASURE
+// characters a line), cut where the lines' lengths come out most even:
+// the least sum of their squared lengths, over every way of cutting them
+const STATEMENT_MEASURE = 26;
+const evenLines = (ws: string[], k: number) => {
+  const n = ws.length;
+  const len = (i: number, j: number) => ws.slice(i, j).join(" ").length;
+  const cost = Array.from({ length: k + 1 }, () => Array<number>(n + 1).fill(Infinity));
+  const from = Array.from({ length: k + 1 }, () => Array<number>(n + 1).fill(0));
+  cost[0][0] = 0;
+  for (let l = 1; l <= k; l++) {
+    for (let j = l; j <= n; j++) {
+      for (let i = l - 1; i < j; i++) {
+        const c = cost[l - 1][i] + len(i, j) ** 2;
+        if (c < cost[l][j]) { cost[l][j] = c; from[l][j] = i; }
+      }
+    }
+  }
+  const lines: string[] = [];
+  for (let l = k, j = n; l > 0; l--) {
+    const i = from[l][j];
+    lines.unshift(ws.slice(i, j).join(" "));
+    j = i;
+  }
+  return lines;
+};
+const statementGiven = statement.split(/\n+/).map((s) => s.trim()).filter(Boolean);
+const statementWords = statementGiven.length === 1 ? statementGiven[0].split(/\s+/) : [];
+const statementEven = statementGiven.length === 1 && statementGiven[0].length > STATEMENT_MEASURE * 1.4;
+const statementLines = statementEven
+  ? evenLines(statementWords, Math.min(statementWords.length, Math.round(statementGiven[0].length / STATEMENT_MEASURE)))
+  : statementGiven;
 
 // the drawing's words, from the standfirst (the tools, information and
 // decisions that shape a project before it is modelled, in Revit or
 // Archicad)
-const figureWords = {
+const figureWords: FigureWords = givenWords ?? {
   frame: "Revit · Archicad",
   note: ["What shapes a project", "before it is modelled"],
   platform: "Early-stage design",
@@ -83,7 +182,7 @@ const figureWords = {
 // its ink asks (the homepage strip's balance: the same area of ink each,
 // nudged for light and heavy drawing; logo-balance.ts), so the wide
 // wordmarks and the compact marks weigh alike
-const marks = await Promise.all(
+const marks = !showMarks ? [] : await Promise.all(
   ["client-adam", "client-epr", "client-studio-seilern", "client-haworth-tompkins"]
     .map((id) => CLIENTS.find((c) => c._id === id))
     .filter((c): c is NonNullable<typeof c> => Boolean(c))
@@ -93,7 +192,7 @@ const marks = await Promise.all(
     }),
 );
 ---
-<section class="br-hero" data-br-hero data-ground="dark">
+<section class:list={["br-hero", { "is--white": tone === "white", "has--marks": showMarks }]} data-br-hero data-tone={tone} data-figure={figure} data-ground="dark">
   <!-- the hold: the light, and the drawing, held while the words go by -->
   <div class="br-hero__hold">
     <div class="br-hero__light" aria-hidden="true"></div>
@@ -113,24 +212,29 @@ const marks = await Promise.all(
   <!-- the words: the opening's screen, then the room the drawing is held for -->
   <div class="br-hero__flow">
     <div class="br-hero__screen">
-      <h1 class="br-hero__heading" data-page-field={headingField}><span class="br-hero__first">{first}</span>{last && <> <span class="br-hero__first">{last}</span></>}</h1>
+      {label && <p class="br-hero__label" data-page-field={labelField}>{label}</p>}
+      <h1 class:list={["br-hero__heading", { "is--long": longLines }]} data-page-field={headingField}>{headingLines.map((line, i) => <>{i > 0 && " "}<span class="br-hero__first">{line}</span></>)}</h1>
       {lede && <p class="br-hero__lede" data-page-field={ledeField}>{lede}</p>}
       <div class="br-hero__actions"><slot name="actions" /></div>
+      {showMarks && (
       <div class="br-hero__trust">
         <p class="br-hero__trust-label">Practices we’ve worked with</p>
         <ul class="br-hero__marks" role="list">
           {marks.map((m) => <li><img src={`/${m.logo.path}`} alt={m.name} style={m.style} loading="lazy" decoding="async" draggable="false"></li>)}
         </ul>
       </div>
+      )}
     </div>
     <!-- the statement's screen: its lines one size, each in a mask it
          rises out of with the scroll (before-revit-hero.js) -->
+    {statementLines.length > 0 ? (
     <div class="br-hero__next">
-      {statementLines.length > 0 && (
-      <p class="br-hero__statement" data-page-field={statementField} data-br-statement aria-label={statementLines.join(" ")}>
-        {statementLines.map((line) => <span class="br-hero__line" aria-hidden="true"><span class="br-hero__ink">{line}</span></span>)}
+      <p class:list={["br-hero__statement", { "is--even": statementEven }]} data-page-field={statementField} data-br-statement aria-label={statementLines.join(" ")}>
+        {statementLines.map((line, i) => <>{i > 0 && " "}<span class="br-hero__line" aria-hidden="true"><span class="br-hero__ink">{line}</span></span></>)}
       </p>
-      )}
     </div>
+    ) : (
+    <div class="br-hero__after" aria-hidden="true"></div>
+    )}
   </div>
 </section>

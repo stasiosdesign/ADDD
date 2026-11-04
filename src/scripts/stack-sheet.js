@@ -36,12 +36,22 @@
 import { lenis } from "./scroll.js";
 import { motion } from "./page.js";
 
-// out: a long, soft arrival; back: picked up gently, set down firmly
+// Second pass (2026-11-04): each container is first lifted a little out of
+// the row, as a card is picked up (LIFT_PX, over the first LIFT_AT of its
+// time, eased in and out), and then carried to its place on one long,
+// soft arrival; the one from the card pressed goes first, the others after
+// it by how far their cards stood from it. Going back, the same way round:
+// carried back to just over its card, then set down into the row.
 const EASE_OUT = "cubic-bezier(0.2, 0.9, 0.24, 1)";
-const EASE_BACK = "cubic-bezier(0.5, 0, 0.2, 1)";
-const MORPH_MS = 720;
-const BACK_MS = 540;
-const STAGGER_MS = 36;
+const EASE_PICK = "cubic-bezier(0.3, 0, 0.25, 1)";
+const EASE_CARRY = "cubic-bezier(0.16, 1, 0.3, 1)";
+const EASE_RETURN = "cubic-bezier(0.45, 0, 0.2, 1)";
+const EASE_SET = "cubic-bezier(0.3, 0, 0.3, 1)";
+const MORPH_MS = 780;
+const BACK_MS = 600;
+const STAGGER_MS = 34;
+const LIFT_PX = 14;
+const LIFT_AT = 0.16;
 
 // the transform that sets a box (its rect on the screen, untransformed,
 // transform-origin at its top left) exactly onto a card's four corners
@@ -176,14 +186,20 @@ export function mountStackSheet(dialog, data) {
 
   // where each container grows from (the morph's quads: the head's, each
   // tool's, named then locked, in order, and the way in's)
+  // where each container grows from (the morph's quads: the head's, each
+  // tool's, named then locked, in order, and the way in's), and how many
+  // cards from the one pressed it stood (for its turn)
   function sourcesOf(list, q) {
     if (!q?.items?.length) return list.map(() => null);
+    const n = q.items.length;
+    const origin = Math.min(n - 1, Math.max(0, q.origin ?? Math.floor((n - 1) / 2)));
     return list.map((card, i) => {
-      if (card.classList.contains("is--head")) return q.head;
-      if (card.classList.contains("is--cta")) return q.cta;
-      return q.items[i - 1] ?? q.cta;
+      const at = card.classList.contains("is--head") ? Math.floor((n - 1) / 2) : card.classList.contains("is--cta") ? n - 1 : Math.min(n - 1, i - 1);
+      const quad = card.classList.contains("is--head") ? q.head : card.classList.contains("is--cta") ? q.cta : q.items[i - 1] ?? q.cta;
+      return { quad, away: Math.abs(at - origin) };
     });
   }
+  const raised = (quad) => quad.map(([x, y]) => [x, y - LIFT_PX]);
   // the stack's colour, for the containers to start (and end) in
   let tone = null;
 
@@ -191,7 +207,9 @@ export function mountStackSheet(dialog, data) {
     if (state !== "closed") return;
     done = onClosed;
     morph = from ?? null;
-    tone = g.tone?.ground ?? null;
+    // the colour its cards stand in as it opens (stack-space.js: a little
+    // faded, if it was not the stack read), else the stack's own
+    tone = morph?.colour?.() ?? g.tone?.ground ?? null;
     build(g);
     state = "opening";
     lenis?.stop();
@@ -210,13 +228,14 @@ export function mountStackSheet(dialog, data) {
     const list = cards();
     const sources = sourcesOf(list, morph?.quads());
     const anims = [
-      scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MORPH_MS * 0.7, easing: "ease-out", fill: "both" }),
-      closer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: MORPH_MS * 0.6, easing: "ease-out", fill: "both" }),
+      scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MORPH_MS * 0.65, easing: "ease-out", fill: "both" }),
+      closer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 240, delay: MORPH_MS * 0.6, easing: "ease-out", fill: "both" }),
     ];
     list.forEach((card, i) => {
-      const q = sources[i];
+      const src = sources[i];
+      const q = src?.quad;
       const r = card.getBoundingClientRect();
-      const timing = { duration: MORPH_MS, delay: Math.min(i, 8) * STAGGER_MS, fill: "both" };
+      const timing = { duration: MORPH_MS, delay: Math.min(src ? src.away : i, 8) * STAGGER_MS, fill: "both" };
       if (!q || !r.width || !r.height) {
         anims.push(card.animate([{ opacity: 0, transform: "translateY(1.75rem)" }, { opacity: 1, transform: "none" }], { ...timing, easing: EASE_OUT }));
         return;
@@ -226,9 +245,13 @@ export function mountStackSheet(dialog, data) {
       const own = getComputedStyle(card).backgroundColor;
       const from = tone ? { backgroundColor: tone } : {};
       const to = tone ? { backgroundColor: own } : {};
-      anims.push(card.animate([{ transform: onto(r, q), ...from }, { transform: "none", ...to }], { ...timing, easing: EASE_OUT }));
-      // its words once it is most of the way there
-      [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1 }], { ...timing, easing: "linear" })));
+      anims.push(card.animate([
+        { transform: onto(r, q), ...from, easing: EASE_PICK },
+        { transform: onto(r, raised(q)), ...from, offset: LIFT_AT, easing: EASE_CARRY },
+        { transform: "none", ...to },
+      ], { ...timing, easing: "linear" }));
+      // its words as it settles, in before it has quite come to rest
+      [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 0 }, { opacity: 0, offset: 0.45 }, { opacity: 1, offset: 0.85 }, { opacity: 1 }], { ...timing, easing: "linear" })));
     });
     // the cards out of the row as their containers take their place
     morph?.hide(true);
@@ -251,20 +274,27 @@ export function mountStackSheet(dialog, data) {
         closer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in", fill: "both" }),
         scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: BACK_MS, easing: "ease-in-out", fill: "both" }),
       ];
+      const far = Math.max(0, ...targets.map((t) => (t ? t.away : 0)));
       list.forEach((card, i) => {
-        const q = targets[i];
+        const tgt = targets[i];
+        const q = tgt?.quad;
         const r = card.getBoundingClientRect();
-        const timing = { duration: BACK_MS, delay: Math.min(list.length - 1 - i, 8) * (STAGGER_MS / 2), fill: "both" };
+        // the farthest first, the pressed card's last, back into its place
+        const timing = { duration: BACK_MS, delay: Math.min(tgt ? far - tgt.away : list.length - 1 - i, 8) * (STAGGER_MS / 2), fill: "both" };
         if (!q || !r.width || !r.height) {
-          anims.push(card.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(1rem)" }], { ...timing, easing: EASE_BACK }));
+          anims.push(card.animate([{ opacity: 1 }, { opacity: 0, transform: "translateY(1rem)" }], { ...timing, easing: EASE_RETURN }));
           return;
         }
         card.style.transformOrigin = "0 0";
         const own = getComputedStyle(card).backgroundColor;
         const from = tone ? { backgroundColor: own } : {};
         const to = tone ? { backgroundColor: tone } : {};
-        anims.push(card.animate([{ transform: "none", ...from }, { transform: onto(r, q), ...to }], { ...timing, easing: EASE_BACK }));
-        [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 1 }, { opacity: 0, offset: 0.35 }, { opacity: 0 }], { ...timing, easing: "linear" })));
+        anims.push(card.animate([
+          { transform: "none", ...from, easing: EASE_RETURN },
+          { transform: onto(r, raised(q)), ...to, offset: 1 - LIFT_AT, easing: EASE_SET },
+          { transform: onto(r, q), ...to },
+        ], { ...timing, easing: "linear" }));
+        [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 1 }, { opacity: 0, offset: 0.3 }, { opacity: 0 }], { ...timing, easing: "linear" })));
       });
       const ok = await play(anims);
       if (!ok) return;

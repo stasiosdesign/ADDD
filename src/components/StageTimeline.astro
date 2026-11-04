@@ -103,7 +103,7 @@ const placed = stages.map((stage, i) => {
             </button>
           </h3>
           <span class="stage-timeline__icon" aria-hidden="true"></span>
-          <div class:list={["stage-timeline__card", { "is--end": placed[i].end, "is--up": placed[i].up }]} id={`${id}-card-${i + 1}`} data-stage-card>
+          <div class:list={["stage-timeline__card", { "is--end": placed[i].end, "is--up": placed[i].up, "is--plain": !stage.image }]} id={`${id}-card-${i + 1}`} data-stage-card>
             {stage.image && <img class="stage-timeline__photo" src={stage.image.src} alt={stage.image.alt ?? ""} width="112" height="112" loading="lazy" decoding="async" draggable="false" />}
             <p class="stage-timeline__text" data-page-field={stage.fields?.text}>{stage.text}</p>
             {stage.more && (

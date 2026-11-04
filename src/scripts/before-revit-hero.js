@@ -40,6 +40,7 @@
    ============================================================ */
 import { HL } from "./vendor/hairline-kernel.js";
 import { PRESS } from "./press-figure.js";
+import { CYCLE } from "./cycle-figure.js";
 import { mountIsoField } from "./dot-field.js";
 import { registerPageCleanup } from "./page.js";
 
@@ -117,15 +118,43 @@ export function initBeforeRevitHero(container) {
       const lg = el("linearGradient", { id, x1: 0, y1: 0, x2, y2 }, defs);
       stops.forEach(([at, color, a = 1]) => el("stop", { offset: at, "stop-color": color, "stop-opacity": a }, lg));
     };
-    // (fourth pass: a deeper, less saturated red, as the light round it)
-    grad("br-top", [[0, "#3a0a08"], [0.55, "#7a1c15"], [1, "#b8402f"]], 0.35, 1);
-    grad("br-side", [[0, "#94251b"], [1, "#2e0806"]]);
+    // (fourth pass: a deeper, less saturated red, as the light round it;
+    // the white tone, the Workflow Workshop's, in greys rising to a soft
+    // white at the lit edge)
+    const white = hero.dataset.tone === "white";
+    grad("br-top", white ? [[0, "#1a1a1a"], [0.55, "#4a4a4a"], [1, "#c4c4c2"]] : [[0, "#3a0a08"], [0.55, "#7a1c15"], [1, "#b8402f"]], 0.35, 1);
+    grad("br-side", white ? [[0, "#8a8a88"], [1, "#151515"]] : [[0, "#94251b"], [1, "#2e0806"]]);
 
-    const figure = PRESS.mount({
+    // Which drawing (2026-11-04): Before Revit's press (the frame landing on
+    // the platform), or the Ongoing Advisory's cycle (a session going round
+    // the practice's parts, cycle-figure.js), with its own words in its
+    // planes; the rest of the hero (the light, the lattice, the grain, the
+    // hold, the statement) the same for both.
+    const cycle = hero.dataset.figure === "cycle";
+    const FIG = cycle ? CYCLE : PRESS;
+    const cycleWords = (g, P, { PARTS, SB, HB, HT, F, FT }) => {
+      // the light's middle under the middle platform
+      const [gx, gy] = P(0, 0, HT / 2);
+      stage.style.setProperty("--glow-x", `${((gx / 400) * 100).toFixed(2)}%`);
+      stage.style.setProperty("--glow-y", `${((gy / 320) * 100).toFixed(2)}%`);
+      // each part's name on the ground before it, in a box; the middle's
+      // on its top, riding with it; the session's on the frame
+      (words.tags || []).forEach((text, i) => {
+        const [x, y] = PARTS[i] || [0, 0];
+        if (text) word(g, P, [x - SB / 2, y + SB / 2 + 7, 0], text.toUpperCase(), 3.2, "br-word", true);
+      });
+      const hubWord = words.platform ? word(g, P, [-HB / 2 + 6, HB / 2 - 4, HT], words.platform.toUpperCase(), 3, "br-word", false) : null;
+      const frameWord = words.frame ? word(g, P, [0, 0, 0], words.frame.toUpperCase(), 2.6, "br-word is--bright", false) : null;
+      return {
+        hub: (h) => hubWord?.setAttribute("transform", planeMatrix(P, [-HB / 2 + 6, HB / 2 - 4, h], X, Y)),
+        frame: (x, y, z) => frameWord?.setAttribute("transform", planeMatrix(P, [x - F / 2 + 2.5, y - F / 2 + 5.5, z], X, Y)),
+      };
+    };
+    const figure = FIG.mount({
       stage,
       svg,
       read: { textContent: "" },
-      labels: (g, P, { B, T, G, F, FT }) => {
+      labels: cycle ? cycleWords : (g, P, { B, T, G, F, FT }) => {
         // the light's middle under the platform, in shares of the stage
         const [gx, gy] = P(0, 0, T / 2);
         stage.style.setProperty("--glow-x", `${((gx / 400) * 100).toFixed(2)}%`);
@@ -143,7 +172,7 @@ export function initBeforeRevitHero(container) {
         const riders = ride.map((r) => ({ ...r, g: word(g, P, [r.at[0], r.at[1], T + 80], r.text, r.size, r.cls, false) }));
         return (z) => riders.forEach((r) => r.g.setAttribute("transform", planeMatrix(P, [r.at[0], r.at[1], z + FT], X, Y)));
       },
-    }, PRESS.range[1]);
+    }, FIG.range[1]);
 
     // the lattice under it, from the drawing's own ground and camera
     const ground = hero.querySelector("[data-br-ground]");
@@ -153,7 +182,8 @@ export function initBeforeRevitHero(container) {
       // two thirds of the drawing's cell (fourth pass: a step larger than
       // the third pass's half), its lines still through the platform's and
       // the ground square's edges (six and nine cells across)
-      ground.dataset.isoModule = String((figure.cell * 2) / 3);
+      // (the cycle gives its own: its lattice's module)
+      ground.dataset.isoModule = String(figure.module ?? (figure.cell * 2) / 3);
       ground.dataset.isoAxis = figure.axis.map((v) => v.toFixed(5)).join(" ");
       field = mountIsoField(ground);
     }
@@ -161,7 +191,7 @@ export function initBeforeRevitHero(container) {
     const pulse = stage.querySelector("[data-press-pulse]");
 
     // ---- the frame, from the scroll ---------------------------------------
-    const FLOAT = PRESS.range[1];
+    const FLOAT = FIG.range[1];
     let shownZ = null;
     const lift = (z) => {
       const r = Math.round(z * 100) / 100;
@@ -180,7 +210,12 @@ export function initBeforeRevitHero(container) {
       // at the very top the frame is the figure's own again (it floats
       // where it rests, and the pointer can lift it); scrolled at all, it
       // is the scroll's
-      if (q === 0) {
+      if (cycle) {
+        // the cycle: the session's way round as far as the page has come,
+        // eased in and out over the whole hold; at the very top the frame is
+        // the figure's own again (the pointer can send it to a part)
+        figure.progress(q === 0 ? null : easeInOut(Math.min(1, q / LAND)));
+      } else if (q === 0) {
         if (shownZ !== "free") {
           shownZ = "free";
           figure.lift(null);
@@ -196,7 +231,8 @@ export function initBeforeRevitHero(container) {
     }
     // the same, without the motion: up before LAND, down after
     function snap(p) {
-      lift(p < LAND ? FLOAT : 0);
+      if (cycle) figure.progress(p < LAND ? null : 1);
+      else lift(p < LAND ? FLOAT : 0);
       if (pulse) pulse.style.opacity = "0";
     }
 

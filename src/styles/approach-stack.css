@@ -473,6 +473,8 @@
 }
 .approach-stack.is--light .approach-stack__head { color: var(--c-text); }
 .approach-stack.is--light .dot-grid.band-field { --dot-grid-ink: rgba(10, 10, 10, 0.14); }
+/* The cards in four light greys (2026-11-04: turned black like the
+   homepage's for a while, then back to these at the user's word) */
 .approach-stack.is--light .step-card {
   --tone-number: #e9e9e6;
   --tone-title: #eeeeeb;

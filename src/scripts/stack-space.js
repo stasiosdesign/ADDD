@@ -15,10 +15,13 @@
    cards), so moving through it never meets a last card.
 
    Stacks in the row: a stack's cards stand together at the row's own
-   spacing (no gap between stacks: the colour tells them apart), each in
-   the stack's own colour (a solid block, by the stack's place: white,
-   black, the greys, a muted blue…; STACK_TONES), with a dotted bracket on
-   the ground beside them and the stack's name at its near end. A card is
+   spacing, with no gap between stacks, every card in the one colour
+   (sixth pass, 2026-11-04: before, a colour or a grey of each stack's
+   own). The stack being read tells them apart: the one at the row's
+   middle, or the one under the pointer, at full strength, and the others
+   a little faded, each with a dotted bracket on the ground beside it and
+   its name at the bracket's near end. The pointer on a stack also brings
+   up its name and what it is for beside the row, over the Free Stack. A card is
    laid out as a business card: its mark (the product's own, or its
    initials in a plain square) and its name at the top, its role under
    them, its number in the stack at the top right, a hairline, and at its
@@ -87,12 +90,28 @@ const SPACING = 0.3;
 // rises (share of its height) on its own rate; its neighbours stay put
 const LIFT = 0.26;
 const RATE_LIFT = 9;
+// the rest of its stack a little with it (2026-11-04), each a touch later
+// the farther it stands from the card under the pointer (its rate divided
+// by 1 + KIN_LAG a card away), so the stack answers as one piece
+const LIFT_KIN = 0.07;
+const KIN_LAG = 0.22;
+// the stack being read (sixth pass, 2026-11-04): every card the one colour,
+// the stack read at full strength and the others faded to FADED (a veil of
+// the ground over each card, so the cards behind never show through, as
+// they would through a card made see-through), each stack easing between
+// the two at RATE_READ. It is the stack at the row's middle, which holds
+// until the middle is HOLD of a card past its end (no flicker at a join),
+// or, over it, the stack under the pointer, which stays the one read for
+// HOVER_HOLD s after the pointer leaves its cards (no dip across a gap)
+const FADED = 0.55;
+const RATE_READ = 7;
+const HOLD = 0.3;
+const HOVER_HOLD = 0.18;
 // the scroll: the row is moved by Lenis (fifth pass), the site's own smooth
 // scroll and lerp, on a scroller of its own over the canvas (endless:
 // infinite), this many px of it to a card
 const STEP = 80;
 const LERP = 0.08;
-const RATE_HOVER = 12;
 // the face, in card widths: its margin, the mark's square, the gap to the
 // name, the name's size, the small type's, the band's height (card heights)
 const FACE_M = 0.055;
@@ -107,7 +126,7 @@ const BRACKET_X = 0.1;
 const BRACKET_END = 0.05;
 const BRACKET_DOT = 5;
 // software in no stack (production, while no stack is published)
-const TONE_FREE = { ground: "#f2f2ef", ink: "#0a0a0a" };
+const TONE_FREE = { ground: "#ffffff", ink: "#0a0a0a" };
 // the SVG Collection's lock (no. 026, dash-type-btn__locked, 18 × 18)
 const LOCK = [
   "M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9C3.75 8.17125 4.42125 7.5 5.25 7.5H12.75C13.5788 7.5 14.25 8.17125 14.25 9V14.25C14.25 15.0787 13.5788 15.75 12.75 15.75Z",
@@ -153,6 +172,8 @@ export function initStackSpace(container) {
       display: css.getPropertyValue("--font-display").trim() || "sans-serif",
       mono: css.getPropertyValue("--font-mono").trim() || "monospace",
     };
+    // the page's ground, for the veil over the stacks not being read
+    const sdGround = css.getPropertyValue("--sd-ground").trim() || "#dcdcd8";
 
     // ---- the data: the stacks' cards (or, with none, the software) ------
     // Each stack's cards stand together in the row, its named tools first
@@ -161,7 +182,7 @@ export function initStackSpace(container) {
     // which is the one it opens. Software stands on its own only where no
     // stack is published (production, for now).
     const data = JSON.parse(dataEl.textContent);
-    const groups = (data.stacks ?? []).map((s, i) => ({ ...s, index: i, hov: 0, rgb: rgbOf(s.tone.ground) }));
+    const groups = (data.stacks ?? []).map((s, i) => ({ ...s, index: i, read: 0, rgb: rgbOf(s.tone.ground) }));
     const cards = [];
     groups.forEach((g) => {
       g.a = cards.length;
@@ -202,6 +223,24 @@ export function initStackSpace(container) {
     // the stack open (its sheet up, or on its way), and the view shown
     let chosen = null;
     let viewing = "3d";
+    // the stack being read: the one at the row's middle, and the pointer's
+    // (held a moment after the pointer leaves its cards)
+    let centre = null;
+    let held = null;
+    let heldFor = 0;
+    // The stack at the row's middle: the stack of the card there, the one
+    // already read holding until the middle is HOLD of a card past either
+    // of its ends. Plain arithmetic on the reading position: nothing laid
+    // out, nothing measured.
+    function centreOf() {
+      if (!groups.length) return null;
+      if (centre) {
+        const lo = wrap(centre.a - 0.5 - pos);
+        const hi = lo + centre.b - centre.a + 1;
+        if (lo <= HOLD && hi >= -HOLD) return centre;
+      }
+      return cards[((Math.round(pos) % N) + N) % N].group ?? null;
+    }
 
     // ---- the view: the screen's size, the card, the row --------------------
     const view = {};
@@ -224,6 +263,9 @@ export function initStackSpace(container) {
       view.cx = r.width / 2;
       view.cy = r.height / 2;
       view.sp = view.cw * SPACING;
+      // a card's outline on its own plane, for its veil
+      view.cardPath = new Path2D();
+      view.cardPath.roundRect(0, 0, view.cw, view.ch, view.cw * RADIUS);
       // how far along the row (its own units) the screen reaches from the
       // middle, a card's size past it
       view.along = R2 * Math.sqrt(1 + tan * tan);
@@ -519,6 +561,14 @@ export function initStackSpace(container) {
         const m = cw * FACE_M;
         ctx.fillText(`${pad2(c.n)}/${pad2(c.group.toolCount)}`, cw - m, ch * (1 - FACE_BAND / 2));
       }
+      // a stack not being read, a little faded into the ground
+      const veil = c.group ? (1 - c.group.read) * (1 - FADED) : 0;
+      if (veil > 0.002) {
+        ctx.globalAlpha = veil;
+        ctx.fillStyle = sdGround;
+        ctx.fill(view.cardPath);
+        ctx.globalAlpha = 1;
+      }
     }
     // A stack's bracket: a dotted line on the ground beside its cards' right
     // edges, from its first card to its last, its ends turned in towards
@@ -546,14 +596,17 @@ export function initStackSpace(container) {
       run(near, P(xo, -s1, z));
       run(P(xo, -s1, z), P(xi, -s1, z));
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = `rgba(10, 10, 10, ${(0.3 + 0.4 * g.hov).toFixed(3)})`;
+      ctx.fillStyle = `rgba(10, 10, 10, ${(0.28 + 0.42 * g.read).toFixed(3)})`;
       ctx.fill(dots);
       if (g.label) {
         const { sy, w, h } = g.label;
         const x = near[0] + 0.5 * view.rem;
         const y = near[1] + 0.25 * view.rem;
+        // the name in the ink, as strong as its stack is read
         ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.drawImage(labels, 0, sy + (g.hov > 0.5 ? h : 0), w, h, Math.round(x * dpr), Math.round(y * dpr), w, h);
+        ctx.globalAlpha = (0.5 + 0.42 * g.read) / 0.92;
+        ctx.drawImage(labels, 0, sy + h, w, h, Math.round(x * dpr), Math.round(y * dpr), w, h);
+        ctx.globalAlpha = 1;
       }
     }
     function draw() {
@@ -596,7 +649,9 @@ export function initStackSpace(container) {
     // the reading position at the scroll's start: the first stack's middle
     const startAt = groups.length ? Math.round((groups[0].a + groups[0].b) / 2) : 0;
     pos = startAt;
-    const rowLenis = scroller && scrollRoom
+    // the stack at the middle read from the start, without a fade
+    centre = centreOf();
+    if (centre) centre.read = 1;    const rowLenis = scroller && scrollRoom
       ? new Lenis({ wrapper: scroller, content: scrollRoom, lerp: reduced ? 1 : LERP, infinite: true, syncTouch: true, gestureOrientation: "both", touchMultiplier: 1.4 })
       : null;
     const onRowScroll = () => {
@@ -622,8 +677,12 @@ export function initStackSpace(container) {
       // straight out of the cards (or the list's rows) as they stand
       rowLenis?.stop();
       listLenis?.stop();
+      showInfo(null);
       say(`${g.name}: ${g.toolCount} tools`);
-      sheet.open(g, release, from ?? rowMorph(g));
+      // the card pressed (or, from the keys, the one read), for the sheet
+      // to start from
+      const pressed = hover?.group === g ? hover : cardAt(Math.round(pos));
+      sheet.open(g, release, from ?? rowMorph(g, pressed));
       // the card under the pointer stays up while its container leaves it
       stop();
     }
@@ -633,7 +692,7 @@ export function initStackSpace(container) {
     // (the head from the stack's middle card, each tool from its own, the
     // way in from its last), and a way to take the cards out of the row
     // while their containers are out.
-    function rowMorph(g) {
+    function rowMorph(g, pressed) {
       return {
         quads() {
           const r = stage.getBoundingClientRect();
@@ -642,12 +701,19 @@ export function initStackSpace(container) {
             const q = p ? corners(p.s, c.lift) : corners(0);
             return q.map(([x, y]) => [x + r.left, y + r.top]);
           });
-          return { head: items[Math.floor((items.length - 1) / 2)], items, cta: items[items.length - 1], tone: g.tone };
+          const mine = cards.filter((c) => c.group === g);
+          const origin = Math.max(0, mine.indexOf(pressed));
+          return { head: items[Math.floor((items.length - 1) / 2)], items, cta: items[items.length - 1], tone: g.tone, origin };
         },
         // drawn at once, so the row and the sheet change in the same frame
         hide(on) {
           g.hidden = on;
           draw();
+        },
+        // the colour its cards stand in now (a little faded, if it was not
+        // the stack read), for its containers to start from and end in
+        colour() {
+          return mix(g.rgb, rgbOf(sdGround), (1 - g.read) * (1 - FADED));
         },
       };
     }
@@ -689,6 +755,7 @@ export function initStackSpace(container) {
       viewButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.viewSet === v)));
       if (v === "flat") {
         setHover(null);
+        showInfo(null);
         flat.hidden = false;
         stage.setAttribute("aria-hidden", "true");
         stage.tabIndex = -1;
@@ -759,6 +826,30 @@ export function initStackSpace(container) {
     };
     const onViewSet = (e) => setView(e.currentTarget.dataset.viewSet);
 
+    // ---- the stack under the pointer, in a few words -------------------
+    // Its name and what it is for (its summary: the Studio's words, or the
+    // sample's), in a small box on the ground over the Free Stack, out of
+    // the row's way (stack-space.css: .sd__info): up while the pointer is on
+    // one of its cards (and the moment after), its words changed in place
+    // when the pointer moves on to another stack. Written only when the
+    // stack changes, never in a frame that merely moves.
+    const info = root.querySelector("[data-stack-info]");
+    const infoBody = info?.querySelector("[data-info-body]");
+    const infoName = info?.querySelector("[data-info-name]");
+    const infoText = info?.querySelector("[data-info-text]");
+    let infoFor = null;
+    function showInfo(g) {
+      if (!info || g === infoFor) return;
+      const was = infoFor;
+      infoFor = g;
+      info.classList.toggle("is--shown", Boolean(g));
+      if (!g) return;
+      infoName.textContent = g.name;
+      infoText.textContent = g.summary || g.workflow || "";
+      // from one stack to the next: its words come in where the last were
+      if (was && !reduced) infoBody.animate([{ opacity: 0, transform: "translateY(0.25rem)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: "cubic-bezier(0.2, 0.9, 0.24, 1)" });
+    }
+
     // ---- the loop ------------------------------------------------------
     let running = false;
     let lastSaid = null;
@@ -777,20 +868,37 @@ export function initStackSpace(container) {
           stage.style.cursor = c?.group ? "pointer" : "";
         }
       }
-      // per stack: its bracket lit while the pointer is on one of its cards
+      // the stack read: the pointer's (held a moment once it leaves its
+      // cards), else the one at the row's middle; each stack easing to full
+      // strength or to faded
+      const pointed = hover?.group ?? null;
+      if (pointed) {
+        held = pointed;
+        heldFor = HOVER_HOLD;
+      } else if (held) {
+        heldFor -= dt;
+        if (heldFor <= 0) held = null;
+        else moving = true;
+      }
+      centre = centreOf();
+      const lead = chosen ?? held ?? centre;
       for (const g of groups) {
-        const to = hover?.group === g ? 1 : 0;
-        if (g.hov !== to) {
-          g.hov += (to - g.hov) * (reduced ? 1 : ease(RATE_HOVER, dt));
-          if (Math.abs(to - g.hov) < 0.01) g.hov = to;
+        const to = g === lead ? 1 : 0;
+        if (g.read !== to) {
+          g.read += (to - g.read) * (reduced ? 1 : ease(RATE_READ, dt));
+          if (Math.abs(to - g.read) < 0.004) g.read = to;
           else moving = true;
         }
       }
-      // per card: its lift, up under the pointer
+      showInfo(chosen ? null : held);
+      // per card: its lift, up under the pointer, and its stack's others a
+      // little up with it, the farther ones a touch behind
       for (const c of cards) {
-        const to = c === hover ? LIFT : 0;
+        const kin = hover && c !== hover && hover.group && c.group === hover.group;
+        const to = c === hover ? LIFT : kin ? LIFT_KIN : 0;
+        const away = kin ? Math.abs(wrap(c.slot - hover.slot)) : 0;
         if (c.lift === to) continue;
-        const nv = c.lift + (to - c.lift) * (reduced ? 1 : ease(RATE_LIFT, dt));
+        const nv = c.lift + (to - c.lift) * (reduced ? 1 : ease(RATE_LIFT / (1 + KIN_LAG * away), dt));
         c.lift = Math.abs(to - nv) < 0.0005 ? to : nv;
         if (c.lift !== to) moving = true;
       }

@@ -156,22 +156,28 @@
   .filters button.filters__reset:hover { background: transparent; color: var(--c-text); text-decoration: underline; }
 }
 
-/* "What we look at" (the Technology Blueprint; tabs.js), 2026-11-04, after
-   the user's reference of a tab bar: the section on black, its heading
-   centred; under it one bar of tabs, an off-black tray, each tab an icon
-   (the SVG Collection's) and its label in a quiet grey; the open one
-   raised in the tray on a lighter pill that glides from tab to tab (a
-   transform and a width, tabs.js), its label white and its icon the
-   site's red; the pointer brightens the rest. Under the bar, the open
-   tab's panel on an off-black ground: its number, title and words on the
-   left (every panel in one cell, so the panel keeps the height of the
-   tallest; the open one fades up), the layers drawing on the right, its
-   inks turned for the dark. The roadmap after it is on the same black. */
+/* "What we look at" (the Technology Blueprint; tabs.js), 2026-11-04,
+   second pass, after the user's reference of a menu beside a dark panel:
+   the section on black, its heading centred; under it one panel in two
+   halves, edge to edge, its corners the site's.
+     - the tabs, on the left: a column of rows on a light ground, parted by
+       hairlines, each its number small at the top left, its name large in
+       the display face and its icon in a fine ring at the right; the
+       pointer shades a row; the open row takes the panel's dark, its words
+       white and its name stepped a little in, so the row and the panel
+       read as one
+     - the panel, on the right, in the same dark: the open tab's heading
+       and words at the top (all the panels in one cell, the open one
+       fading up), its icon in a ring in the corner, the layers drawing in
+       the middle, inked for the dark; at the foot a hairline, the tab's
+       number large on the right, and under it in small type the section's
+       name and the page's. */
 .examine-sec {
   --ex-black: #0a0a0a;
-  --ex-tray: #151515;
-  --ex-pill: #262626;
-  --ex-stage: #121212;
+  --ex-light: #f6f6f4;
+  --ex-light-hover: #ededea;
+  --ex-dark: #1c1c1c;
+  --ex-line: rgba(10, 10, 10, 0.12);
   --ex-ease: cubic-bezier(0.32, 0.72, 0, 1);
   background: var(--ex-black);
   color: var(--c-white);
@@ -180,80 +186,97 @@
   margin: 0 auto 3rem;
   text-align: center;
 }
-.examine { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; }
-/* the bar: the tray, centred, scrolling across where it is wider than the
-   screen */
-.examine__bar { display: flex; justify-content: center; width: 100%; }
+.examine {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  overflow: hidden;
+  border-radius: var(--radius-sm, 4px);
+}
+
+/* the tabs: a column of rows */
 .examine__list {
-  position: relative;
-  display: flex;
-  gap: 0.25rem;
-  max-width: 100%;
-  padding: 0.375rem;
-  overflow-x: auto;
-  scrollbar-width: none;
-  border-radius: 999px;
-  background: var(--ex-tray);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.5), 0 1.25rem 2.5rem -1.5rem rgba(0, 0, 0, 0.9);
+  display: grid;
+  grid-auto-rows: minmax(5.25rem, 1fr);
+  background: var(--ex-light);
+  color: var(--c-text);
 }
-.examine__list::-webkit-scrollbar { display: none; }
-/* the open tab's pill, under the tabs, gliding to the open one */
-.examine__glider {
-  position: absolute;
-  top: 0.375rem;
-  bottom: 0.375rem;
-  left: 0;
-  width: var(--glider-w, 0px);
-  border-radius: 999px;
-  background: var(--ex-pill);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), 0 0.375rem 1rem -0.25rem rgba(0, 0, 0, 0.7);
-  transform: translateX(var(--glider-x, 0px));
-  transition: transform 0.5s var(--ex-ease), width 0.5s var(--ex-ease);
-  pointer-events: none;
-}
-.examine__glider.is--instant { transition: none; }
 .examine__tab {
   position: relative;
-  z-index: 1;
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  margin: 0;
-  padding: 0.75rem 1.15rem;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: rgba(255, 255, 255, 0.5);
-  font: inherit;
-  font-size: var(--t-rg);
-  line-height: 1;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: color 0.3s ease, background-color 0.3s ease;
-}
-.examine__icon { flex: none; width: 1.125rem; height: 1.125rem; transition: color 0.3s ease, filter 0.3s ease; }
-@media (hover: hover) {
-  .examine__tab:hover { color: rgba(255, 255, 255, 0.85); background: rgba(255, 255, 255, 0.035); }
-}
-.examine__tab[aria-selected="true"] { color: var(--c-white); background: none; }
-.examine__tab[aria-selected="true"] .examine__icon { color: var(--c-red); filter: drop-shadow(0 0 0.35rem rgba(224, 25, 15, 0.55)); }
-.examine__tab:focus-visible { outline: 1px solid rgba(255, 255, 255, 0.7); outline-offset: -3px; }
-
-/* the open tab's panel: its words on the left, the drawing on the right */
-.examine__stage {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  gap: 3rem;
-  width: 100%;
-  padding: 3.5rem;
-  border-radius: 1.25rem;
-  background: var(--ex-stage);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  grid-template-columns: 2.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  margin: 0;
+  padding: 0 1.75rem 0 1.5rem;
+  border: 0;
+  border-top: 1px solid var(--ex-line);
+  background: var(--ex-light);
+  color: var(--c-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
-.examine__panels { display: grid; align-content: center; }
+.examine__tab:first-child { border-top: 0; }
+/* the number, small, level with the top of the name */
+.examine__tab-n {
+  align-self: start;
+  margin-top: 1.25rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1;
+  color: color-mix(in srgb, currentColor 70%, transparent);
+}
+.examine__tab-label {
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: 2.5rem;
+  /* room for the descenders under the clip the ellipsis needs */
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: translate 0.5s var(--ex-ease);
+}
+/* the icon in a fine ring: at a row's right, and in the panel's corner */
+.examine__ring {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 50%;
+  transition: border-color 0.35s ease, background-color 0.35s ease;
+}
+.examine__icon { width: 0.875rem; height: 0.875rem; }
+@media (hover: hover) {
+  .examine__tab:not([aria-selected="true"]):hover { background: var(--ex-light-hover); }
+  .examine__tab:not([aria-selected="true"]):hover .examine__ring { border-color: color-mix(in srgb, currentColor 55%, transparent); }
+}
+/* the open row: the panel's dark, its name stepped in, its ring lit */
+.examine__tab[aria-selected="true"] {
+  border-top-color: var(--ex-dark);
+  background: var(--ex-dark);
+  color: var(--c-white);
+}
+.examine__tab[aria-selected="true"] + .examine__tab { border-top-color: var(--ex-dark); }
+.examine__tab[aria-selected="true"] .examine__tab-label { translate: 1.5rem 0; }
+.examine__tab[aria-selected="true"] .examine__ring { border-color: color-mix(in srgb, currentColor 45%, transparent); }
+.examine__tab:focus-visible { outline: 2px solid var(--c-red); outline-offset: -2px; }
+
+/* the panel: every tab's in one cell over the drawing, the open one shown */
+.examine__stage {
+  position: relative;
+  display: grid;
+  min-height: 100%;
+  background: var(--ex-dark);
+  color: var(--c-white);
+}
 .examine__panel {
   grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2.75rem 2.75rem 2.25rem;
   opacity: 0;
   visibility: hidden;
   translate: 0 0.75rem;
@@ -265,56 +288,99 @@
   translate: 0 0;
   transition: opacity 0.4s ease 0.1s, translate 0.55s var(--ex-ease) 0.1s, visibility 0s;
 }
-.examine__n {
-  margin: 0 0 1.25rem;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  letter-spacing: var(--label-tracking);
-  color: rgba(255, 255, 255, 0.4);
+.examine__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem;
 }
 .examine__title {
-  max-width: 14em;
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
-  font-size: var(--t-h3);
-  line-height: 1.1;
+  font-size: calc(var(--t-h3) * 0.86);
+  line-height: 1.05;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
+.examine__ring.is--corner { flex: none; }
 .examine__p {
-  max-width: 34em;
+  max-width: 30em;
   margin: 1.25rem 0 0;
   font-size: var(--t-rg);
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.62);
+  color: rgba(255, 255, 255, 0.66);
 }
-/* the drawing, its inks turned for the dark: its light faces the stage's
-   ground a step up, its dark ones and its lines a warm white */
+/* the foot: a hairline, the tab's number large on the right, and under it
+   the section's name and the page's, small, at either end */
+.examine__foot {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+}
+.examine__big {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: 4.5rem;
+  line-height: 0.9;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-align: right;
+}
+.examine__big span { color: rgba(255, 255, 255, 0.36); }
+.examine__small {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.55);
+}
+/* the drawing, on the right just over the foot's hairline (clear of the
+   heading and words above it), its inks turned for the dark: its light
+   faces the panel's ground a step up, its dark ones and its lines a warm
+   white */
 .examine__media {
   --c-text: #e9e8e5;
-  --c-white: #1c1c1c;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 20rem;
+  --c-white: #262626;
+  position: absolute;
+  right: 2.75rem;
+  bottom: 10.75rem;
+  width: min(12.5rem, 34%);
+  pointer-events: none;
+  opacity: 0.9;
 }
-.examine__diagram { display: block; width: 100%; max-width: 24rem; height: auto; }
+.examine__diagram { display: block; width: 100%; height: auto; }
 
 @media (prefers-reduced-motion: reduce) {
-  .examine__glider,
   .examine__panel,
-  .examine__panel.is--active { transition: none; translate: none; }
+  .examine__panel.is--active,
+  .examine__tab-label { transition: none; }
 }
+/* a tablet and a phone: the rows over the panel, each a step smaller */
 @media (max-width: 991px) {
-  .examine__bar { justify-content: flex-start; }
-  .examine__stage { grid-template-columns: minmax(0, 1fr); padding: 2.5rem; }
-  .examine__media { min-height: 0; }
-  .examine__diagram { max-width: 18rem; }
+  .examine { grid-template-columns: minmax(0, 1fr); }
+  .examine__list { grid-auto-rows: 4.25rem; }
+  .examine__tab-label { font-size: 2rem; }
+  .examine__stage { min-height: 30rem; }
+  .examine__media { width: min(11rem, 30%); }
 }
 @media (max-width: 767px) {
   .examine-sec__heading { margin-bottom: 2rem; }
-  .examine__tab { padding: 0.65rem 0.95rem; }
-  .examine__stage { padding: 1.75rem 1.5rem; border-radius: 1rem; }
+  .examine__list { grid-auto-rows: 3.5rem; }
+  .examine__tab { grid-template-columns: 1.75rem minmax(0, 1fr) auto; padding: 0 1.125rem 0 1rem; }
+  .examine__tab-n { margin-top: 0.875rem; font-size: 0.75rem; }
+  .examine__tab-label { font-size: 1.5rem; }
+  .examine__tab[aria-selected="true"] .examine__tab-label { translate: 0.75rem 0; }
+  .examine__ring { width: 1.75rem; height: 1.75rem; }
+  .examine__panel { padding: 1.75rem 1.5rem 1.5rem; }
+  .examine__stage { min-height: 0; }
+  .examine__media { display: none; }
+  .examine__foot { margin-top: 2.5rem; }
+  .examine__big { font-size: 3.25rem; }
 }
 
 /* The roadmap after it (technology-blueprint.astro, is--dark): on the same
@@ -975,7 +1041,10 @@
 .bp-hero__ground {
   --iso-line: rgba(10, 10, 10, 0.13);
   --bp-oval: radial-gradient(62% 92svh at 68% var(--bp-fig-mid, 50%), #000 48%, transparent 96%);
-  --bp-slope: linear-gradient(32deg, transparent 34%, rgba(0, 0, 0, 0.5) 48%, #000 64%);
+  /* (2026-11-04: turned from 32deg and begun a step sooner, so the lattice
+     runs on a little further under the network's lower left, while the
+     words, further up the screen, stay clear of it) */
+  --bp-slope: linear-gradient(60deg, transparent 32%, rgba(0, 0, 0, 0.5) 46%, #000 62%);
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -1027,7 +1096,8 @@
 .bp-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .bp-hero__lede {
   max-width: 25rem;
-  margin: 1.5rem 0 2.25rem;
+  /* a little more room either side (2026-11-04: 1.5rem and 2.25rem) */
+  margin: 1.875rem 0 2.75rem;
   font-size: var(--t-rg);
   line-height: 1.45;
   color: color-mix(in srgb, var(--c-text) 74%, transparent);
@@ -1059,12 +1129,28 @@
    size, tracking and leading (sixth pass, 2026-11-04: each line was
    fitted to one width by its own size, which read as mixed sizes): the
    lines as written, ragged on the right, the block as wide as its longest. */
+/* Its screen (2026-11-04, sixth pass): shorter than the window, so the
+   statement comes up close behind the opening's words rather than a whole
+   empty screen after them. Seventh pass: the statement's top stands a
+   clear step (--bp-stmt-gap) under the foot of the first screen, so on
+   arrival nothing of it shows, whatever the window's height (sixth pass
+   set its top on the foot itself, and the tops of its letters showed);
+   and the screen is as long as puts the statement's middle in the middle
+   of the window at the very moment the hold lets go (the hold lets go once
+   the page has gone this screen's height past the first): half the window,
+   half the statement and the step. The statement's height is measured
+   (--bp-stmt-h, blueprint-hero.js); until then its four lines at its size. */
 .bp-hero__next {
-  display: flex;
-  align-items: center;
-  height: 100vh;
-  height: 100svh;
-  padding: 0 var(--grid-margin) 0 calc(var(--grid-margin) + var(--bp-inset));
+  --bp-stmt-gap: 3rem;
+  --bp-next: calc(50vh + var(--bp-stmt-h, 4 * 1.08 * min(2.625rem, 5.6vh)) / 2 + var(--bp-stmt-gap));
+  --bp-next: calc(50svh + var(--bp-stmt-h, 4 * 1.08 * min(2.625rem, 5.6svh)) / 2 + var(--bp-stmt-gap));
+  position: relative;
+  height: var(--bp-next);
+}
+.bp-hero__next > .bp-hero__statement {
+  position: absolute;
+  left: calc(var(--grid-margin) + var(--bp-inset));
+  top: var(--bp-stmt-gap);
 }
 .bp-hero__statement {
   /* four lines (fifth pass), at the Before Revit statement's size: about
@@ -1137,6 +1223,7 @@
   .bp-hero__text { height: auto; padding: 0 var(--grid-margin); }
   .bp-hero__heading { font-size: 3.75rem; }
   .bp-hero__next { height: auto; padding: var(--sec-md) var(--grid-margin) var(--sec-lg); }
+  .bp-hero__next > .bp-hero__statement { position: static; }
   .bp-hero__statement { max-width: none; font-size: 2.25rem; }
 }
 @media screen and (max-width: 767px) {
@@ -1344,6 +1431,30 @@
   padding: calc(var(--nav-h) + min(8.5rem, 15svh)) var(--grid-margin) calc(var(--grid-margin) + 1.25rem) calc(var(--grid-margin) + 3rem);
 }
 .br-hero__screen > * { pointer-events: auto; }
+/* With no row of practices at the foot (the Workflow Workshop's), the
+   words stand in the middle of the screen under the nav instead */
+.br-hero:not(.has--marks) .br-hero__screen {
+  justify-content: center;
+  padding-top: var(--nav-h);
+  padding-bottom: 0;
+}
+/* the room the drawing is held for after the words where there is no
+   statement (the Workflow Workshop's): the frame lands as the words go */
+.br-hero__after { height: 70vh; height: 70svh; }
+/* a small label over the heading (the Workflow Workshop's tagline): the
+   site's chip, turned over for the dark */
+.br-hero__label {
+  margin: 0 0 1.75rem;
+  padding: 0.375rem 0.625rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-sm, 1px);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.78);
+}
 /* The statement's screen (fourth pass, after the Technology Blueprint's):
    the window's height, the statement in its middle, on the words' inset,
    the drawing still held on the right. The scroll through it brings the
@@ -1392,6 +1503,11 @@
 }
 .br-hero__heading,
 .br-hero__first { color: #ffffff; }
+/* a heading with a line longer than Before Revit's (the Ongoing
+   Advisory's): a step smaller, so it stays clear of the drawing */
+@media screen and (min-width: 992px) {
+  .br-hero__heading.is--long { font-size: min(4.25rem, 10svh); }
+}
 .br-hero__first { display: block; }
 .br-hero__lede {
   max-width: 29rem;
@@ -1439,6 +1555,8 @@
   }
   .br-hero__screen { height: auto; padding-top: 1rem; padding-left: var(--grid-margin); }
   .br-hero__next { height: auto; padding: 4rem var(--grid-margin) 5rem; }
+  .br-hero__after { display: none; }
+  .br-hero:not(.has--marks) .br-hero__screen { padding-bottom: 4rem; }
   .br-hero__statement { font-size: 2.25rem; }
   .br-hero__heading { font-size: 3.5rem; }
   .br-hero__trust { margin-top: 3rem; }
@@ -1449,6 +1567,46 @@
   .br-hero__statement { font-size: 1.75rem; }
   .br-hero__line { white-space: normal; }
 }
+/* a statement the page set on even lines itself (one paragraph in the
+   Studio: the Ongoing Advisory's) runs on as one paragraph where nothing
+   is held and its lines do not rise (below 992px), so it never breaks
+   twice */
+@media screen and (max-width: 991px) {
+  .br-hero__statement.is--even .br-hero__line,
+  .br-hero__statement.is--even .br-hero__ink { display: inline; padding: 0; margin: 0; white-space: normal; }
+}
+
+/* ------------------------------------------------------------
+   The same opening in white (tone "white": the Workflow Workshop's,
+   2026-11-04): the Before Revit hero's black, its drawing and its lattice
+   and grain, but its light a soft white instead of the red: a quiet white
+   bloom round the drawing and up from the lower left, the platform's
+   faces greys rising to a soft white at the lit edge (before-revit-
+   hero.js), the lattice and the drawing's lines in neutral whites, and
+   the light at the platform's foot white.
+   ------------------------------------------------------------ */
+.br-hero.is--white .br-hero__light {
+  background:
+    radial-gradient(58% 64% at 76% 66%, rgba(255, 255, 255, 0.13) 0%, rgba(230, 230, 228, 0.07) 30%, rgba(200, 200, 198, 0.03) 56%, transparent 78%),
+    radial-gradient(62% 52% at 0% 108%, rgba(255, 255, 255, 0.08) 0%, rgba(220, 220, 218, 0.045) 26%, rgba(200, 200, 198, 0.02) 50%, transparent 80%),
+    linear-gradient(170deg, #060606 34%, #0c0c0c 60%, #141414 86%, #181818 100%);
+}
+.br-hero.is--white .br-hero__ground { --iso-line: rgba(255, 255, 255, 0.11); }
+.br-hero.is--white .br-hero__stage {
+  --hairline-edge: rgba(255, 255, 255, 0.78);
+  --hairline-mid: rgba(255, 255, 255, 0.48);
+  --hairline-lo: rgba(255, 255, 255, 0.26);
+}
+.br-hero.is--white .br-hero__stage .plinth .sil { stroke: rgba(255, 255, 255, 0.5); }
+.br-hero.is--white .br-hero__stage .plinth .lo { stroke: rgba(255, 255, 255, 0.42); }
+.br-hero.is--white .br-hero__stage .top { stroke: rgba(255, 255, 255, 0.62); }
+.br-hero.is--white .br-hero__stage .dash { stroke: rgba(255, 255, 255, 0.45); }
+.br-hero.is--white .br-hero__stage .br-tagbox { fill: rgba(255, 255, 255, 0.05); stroke: rgba(255, 255, 255, 0.45); }
+.br-hero.is--white .br-hero__stage .br-word { fill: rgba(255, 255, 255, 0.82); }
+.br-hero.is--white .br-hero__stage .br-word.is--faint { fill: rgba(255, 255, 255, 0.34); }
+.br-hero.is--white .br-hero__stage .br-note { fill: rgba(255, 255, 255, 0.62); }
+.br-hero.is--white .br-hero__glow { background: radial-gradient(closest-side, rgba(255, 255, 255, 0.22), rgba(220, 220, 218, 0.08) 58%, transparent); }
+.br-hero.is--white .br-hero__glow.is--pulse { background: radial-gradient(closest-side, rgba(255, 255, 255, 0.6), rgba(230, 230, 228, 0.16) 55%, transparent); }
 
 /* ============================================================
    The Technology Blueprint's roadmap (technology-blueprint.astro): the
@@ -1469,4 +1627,396 @@
 .roadmap__head .h2 { max-width: 14ch; }
 @media screen and (max-width: 767px) {
   .roadmap__head { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+}
+
+/* ============================================================
+   Ongoing Advisory (advisory.astro; second pass, 2026-11-04)
+   ------------------------------------------------------------
+   The page brought into the service pages' family: a light page under
+   its dark opening, its grounds taking turns. Most of it is the site's
+   own pieces (Before Revit's steps, the homepage's banded cards, the
+   Workshop's price cards, the testimonials, the FAQ); these are the parts
+   of its own: the captioned theme squares, the gains' row, the
+   comparison and the pair of prices.
+   ============================================================ */
+
+/* Themes Covered: four squares, a picture filling each (set in the
+   Studio; the light grey until then), each captioned under a hairline
+   with its number in the label face and the theme's name */
+/* the white sections between the light grey and the dark (the page's
+   ground is the light grey) */
+.adv-themes,
+.adv-pricing { background: var(--c-white); }
+
+.adv-themes__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2rem;
+  margin: 5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.adv-theme { display: flex; flex-direction: column; min-width: 0; }
+.adv-theme__picture {
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  background-color: var(--c-light-bg);
+  background-size: cover;
+  background-position: center;
+}
+.adv-theme__caption {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 1.25rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--c-border);
+}
+.adv-theme__n {
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  color: var(--label-ink);
+}
+.adv-theme__name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+
+/* The gains: the homepage's banded cards (approach-stack.css, .step-card:
+   the number's square and the title's block along the top, the label and
+   the line in the copy's block under them), four in a row, the same
+   height, the copy set from the top and to the left, as the cards are
+   short; the stair the scroll sets them on (parallax.js) wants room under
+   the band */
+/* the band on the ink, as the homepage's cards and the Blueprint's dark
+   sections stand on it, so the cards' tones read */
+.adv-gains,
+.adv-compare-sec { background: var(--c-dark-fg); }
+.adv-gains .tagline,
+.adv-compare-sec .tagline { color: rgba(255, 255, 255, 0.55); }
+.adv-gains { padding-bottom: calc(var(--sec-lg) + 2rem); }
+.adv-gains__row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 5rem;
+  align-items: stretch;
+}
+.adv-gain { grid-template-rows: auto 1fr; }
+.adv-gain .step-card__title { padding-block: 1rem; font-size: 1.5rem; }
+.adv-gain .step-card__foot {
+  justify-content: flex-start;
+  padding: 1.75rem 1.5rem 2rem;
+}
+.adv-gain .step-card__tagline { max-width: none; margin: 0 0 1rem; }
+.adv-gain .step-card__p { width: auto; max-width: none; margin: 0; font-size: var(--t-rg); line-height: 1.45; color: rgba(255, 255, 255, 0.78); }
+
+/* The comparison, on the same dark: the rows on the site's dotted rule
+   (--dotted-rule, as Before Revit's steps), the Ongoing Advisory column
+   lit a tone up (the cards' #1a1a1a) and opened at its head by the red
+   rule the timelines light their columns with, its answers each marked
+   with a small red square; the other column quieter */
+.adv-compare-sec { padding-top: 0; }
+/* a table whose rows are laid out as grids (its roles set in the markup,
+   so it is still read as a table), so each row can carry the dotted rule */
+.adv-compare {
+  --compare-cols: minmax(0, 1fr) 15rem 13rem;
+  display: block;
+  width: 100%;
+  margin-top: 5rem;
+}
+.adv-compare thead,
+.adv-compare tbody { display: block; }
+.adv-compare tr {
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--compare-cols);
+  align-items: stretch;
+}
+.adv-compare th,
+.adv-compare td {
+  display: flex;
+  align-items: center;
+  padding: 1.375rem 1.5rem;
+  text-align: left;
+  font-weight: inherit;
+}
+.adv-compare thead th {
+  padding-block: 1.25rem;
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--label-ink);
+}
+.adv-compare thead th:first-child { padding-left: 0; }
+.adv-compare tbody th {
+  padding-left: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  line-height: 1.3;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.adv-compare tbody tr::after,
+.adv-compare tbody tr:first-child::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--dotted-rule-bleed));
+  right: calc(-1 * var(--dotted-rule-bleed));
+  bottom: 0;
+  height: 2px;
+  background: var(--dotted-rule);
+}
+.adv-compare tbody tr:first-child::before { top: 0; bottom: auto; }
+.adv-compare .is--ours { background: #1a1a1a; color: var(--c-white); }
+.adv-compare thead .is--ours { color: var(--c-white); box-shadow: inset 0 2px 0 var(--c-red); }
+.adv-compare td:not(.is--ours) { color: rgba(255, 255, 255, 0.55); }
+.adv-compare__mark {
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  margin-right: 0.875rem;
+  flex: 0 0 auto;
+  background: var(--c-red);
+}
+
+/* The prices: the Workshop's cards (workshop.css, .ws-price) side by
+   side, in the Workshop's light grey, their lines one to a row */
+.adv-pricing { --ws-card: var(--c-light-bg); }
+.adv-pricing__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem;
+  margin-top: 5rem;
+  align-items: stretch;
+}
+/* in the pair, each card's name over its price (the Workshop's single card
+   has room for them side by side), the date under the price */
+.adv-pricing .ws-price__head { flex-direction: column; gap: 2rem; }
+.adv-pricing .ws-price__includes { flex: 1 0 auto; }
+.adv-pricing .ws-checks { grid-template-columns: 1fr; }
+.adv-pricing__note { margin: -1.25rem 0 0; color: color-mix(in srgb, var(--c-text) 62%, transparent); }
+
+@media screen and (max-width: 991px) {
+  .adv-themes__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 3rem; }
+  .adv-gains__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adv-gains { padding-bottom: var(--sec-lg); }
+  .adv-pricing__grid { grid-template-columns: 1fr; }
+  .adv-compare { --compare-cols: minmax(0, 1fr) 11rem 9rem; }
+}
+@media screen and (max-width: 767px) {
+  .adv-themes__grid { gap: 2.5rem 1rem; }
+  .adv-theme__name { font-size: 1.25rem; }
+  .adv-gains__row { grid-template-columns: 1fr; }
+  .adv-compare { --compare-cols: minmax(0, 1fr) 6.5rem 5rem; }
+  .adv-compare th, .adv-compare td { padding: 1.125rem 0.75rem; }
+  .adv-compare tbody th { font-size: 1.0625rem; }
+  .adv-compare__mark { display: none; }
+}
+
+/* ============================================================
+   AEC Tech Partners (tech-firms.astro; second pass, 2026-11-04)
+   ------------------------------------------------------------
+   The sections after Ways to Work in the site's family, the page's blue
+   the accent throughout: the homepage's problem cards (Why ADDD),
+   Before Revit's steps (the episode), the Workshop's price cards (the
+   partnerships) and its timeline (the process). These are the joins:
+   the grounds, the cards' numbers, the rules and marks of the benefits
+   and the commitments, the prices three across, the placements and the
+   terms under the timeline.
+   ============================================================ */
+
+/* the grounds taking turns under the ink of the opening and Ways to
+   Work: Why ADDD on the light grey (the page's), the episode on the
+   white, the partnerships on the light grey (section--light), the process
+   on the ink, its timeline's red (lit columns, rule) the page's blue */
+.tf-episode { background: var(--c-white); }
+/* the format's rows an ordered list: no indent of the list's own, so the
+   rows and their rules stand where Before Revit's do */
+.tf-episode .steps { margin-bottom: 0; padding-left: 0; list-style: none; }
+.tf-process { --c-red: var(--c-blue); background: var(--c-dark-fg); color: var(--c-white); }
+.tf-process .tagline { color: rgba(255, 255, 255, 0.55); }
+
+/* Why ADDD: the problem cards close under the heading row; each card's
+   number in its field's top band, on the frame's left edge, in an ink
+   that reads on its field */
+.tf-why__cards { margin: 5rem 0 0; }
+/* the three photographs in black and white, as the homepage's cards'
+   are, so the strip reads as one set */
+.tf-why__cards .problem-card__image { filter: grayscale(1); }
+.tf-why__num {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--pc-step) / 2);
+  left: var(--pc-step);
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--label-tracking);
+  line-height: 1;
+  color: rgba(10, 10, 10, 0.55);
+}
+.problem-card:nth-child(2) .tf-why__num { color: rgba(255, 255, 255, 0.6); }
+.problem-card:nth-child(3) .tf-why__num { color: rgba(255, 255, 255, 0.72); }
+
+/* What that gives a technology company: its heading where the heading
+   row's lede stands, the benefits where its heading stands, each on the
+   site's dotted rule and marked in the blue, the note under them */
+.tf-gives { margin-top: 6rem; }
+.tf-gives__title,
+.tf-terms__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h4);
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.tf-gives__note {
+  max-width: 34rem;
+  margin: 1.5rem 0 0;
+  font-size: var(--t-sm);
+  line-height: 1.5;
+  color: color-mix(in srgb, currentColor 62%, transparent);
+}
+.tf-rules { margin: 0; padding: 0; list-style: none; }
+.tf-rules li {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 1.25rem 0;
+  font-size: var(--t-md);
+  line-height: 1.4;
+}
+.tf-rules li::after,
+.tf-rules li:first-child::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--dotted-rule-bleed));
+  right: calc(-1 * var(--dotted-rule-bleed));
+  bottom: 0;
+  height: 2px;
+  background: var(--dotted-rule);
+}
+.tf-rules li:first-child::before { top: 0; bottom: auto; }
+.tf-mark {
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--c-blue);
+  transform: translateY(-0.12em);
+}
+
+/* The partnerships: the Workshop's price cards, white on the light grey,
+   three across, the same height; each its name, who it suits and what it
+   is over its price, a rule, what you receive (one to a row), a rule, its
+   conditions and its button at the foot */
+.tf-options { --ws-card: var(--c-white); }
+.tf-offers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 5rem;
+  align-items: stretch;
+}
+/* the three cards' parts on shared rows (subgrid), so their prices, rules,
+   lists, conditions and buttons line up across the row */
+.tf-offers .tf-offer {
+  /* not a size container here (the Workshop's card is one, though nothing
+     queries it): containment keeps a grid from being a subgrid */
+  container-type: normal;
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+}
+/* the button at the foot of its row, at its own height */
+.tf-offers .tf-offer > .action-button { align-self: end; }
+.tf-offer .ws-price__head { flex-direction: column; justify-content: space-between; gap: 2rem; }
+.tf-offer .ws-price__name { gap: 1.25rem; }
+.tf-offer__fit { display: flex; flex-direction: column; gap: 0.5rem; }
+.tf-offer__fit p { margin: 0; }
+.tf-offer__fit .tagline { color: var(--label-ink); }
+.tf-offer__what { margin: 0; color: color-mix(in srgb, var(--c-text) 68%, transparent); }
+.tf-offer .ws-price__amount { flex-wrap: wrap; white-space: normal; row-gap: 0.25rem; }
+.tf-offer .ws-price__figure { font-size: 2.75rem; white-space: nowrap; }
+.tf-offer__note { margin: 0.625rem 0 0; font-size: var(--t-sm); color: color-mix(in srgb, var(--c-text) 62%, transparent); }
+.tf-offer .ws-price__includes { flex: 1 0 auto; gap: 1.25rem; justify-content: flex-start; }
+.tf-offer .ws-price__includes > .tagline { margin: 0; color: var(--label-ink); }
+.tf-offer .ws-checks { grid-template-columns: 1fr; gap: 0.875rem; }
+.tf-offer__conditions {
+  margin: 0 0 1.75rem;
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--c-text) 62%, transparent);
+}
+
+/* the smaller placements: the same cards, two across, the name and the
+   price side by side as the Workshop's card has them */
+.tf-more__title {
+  margin: 6rem 0 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: var(--t-h4);
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.tf-more {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin-top: 2rem;
+  align-items: stretch;
+}
+.tf-offer.is--small .ws-price__head { flex-direction: row; gap: 2rem; padding-bottom: 2rem; }
+.tf-offer.is--small .ws-price__name { gap: 0.75rem; }
+.tf-offer.is--small .ws-price__amount { flex-wrap: nowrap; white-space: nowrap; }
+.tf-offer.is--small .ws-price__figure { font-size: 2.25rem; }
+.tf-offer.is--small .tf-offer__fit { flex: 1 0 auto; padding: 1.75rem 0; }
+
+/* The process: the timeline across the whole grid, as the Workshop's;
+   under it the terms, how success is measured where the heading row's
+   lede stands and the commitments where its heading stands */
+.tf-process__run { margin-top: 5rem; }
+.tf-terms { margin-top: 7rem; }
+.tf-terms__title { margin-bottom: 1.5rem; }
+.tf-terms__measure p {
+  max-width: 34rem;
+  margin: 0 0 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media screen and (min-width: 992px) {
+  .page--grid .tf-gives,
+  .page--grid .tf-terms {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    align-items: start;
+  }
+  .page--grid .tf-gives__title,
+  .page--grid .tf-terms__measure { grid-column: 2 / 6; }
+  .page--grid .tf-gives__body,
+  .page--grid .tf-terms__independence { grid-column: 7 / 12; }
+  .page--grid .tf-process__run { grid-column: 1 / -1; }
+}
+@media screen and (max-width: 991px) {
+  .tf-offers { grid-template-columns: 1fr; }
+  .tf-offers .tf-offer { display: flex; grid-row: auto; }
+  .tf-gives__title { margin-bottom: 1.5rem; }
+  .tf-terms { display: flex; flex-direction: column; gap: 3rem; margin-top: 4rem; }
+}
+@media screen and (max-width: 767px) {
+  .tf-more { grid-template-columns: 1fr; }
+  .tf-offer.is--small .ws-price__head { flex-direction: column; gap: 1rem; }
+  .tf-gives { margin-top: 4rem; }
+  .tf-rules li { font-size: var(--t-rg); }
 }

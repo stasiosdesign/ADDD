@@ -88,13 +88,23 @@ const pad = (n: number) => String(n).padStart(2, "0");
        foot); the network held in place while the words scroll away and the
        statement comes up after them, then going on up with it. "Start a
        Blueprint" opens the booking calendar (a demonstration for now:
-       BookingDialog.astro); the second button goes down to the roadmap. -->
+       BookingDialog.astro); the second button goes down to the roadmap.
+       In a clipping wrap, as the homepage's hero is (2026-11-04), so the
+       band of the practices closes over it as it leaves, the hero falling
+       back a little into shadow under it (initHeroParallax); from the
+       moment its hold lets go (data-hero-parallax-start: its foot at the
+       screen's), so the network stays exactly still while it is held. -->
+  <div class="hero-wrap" data-hero-parallax data-hero-parallax-start="bottom bottom" data-hero-parallax-screen>
+  <div data-hero-parallax-inner>
   <BlueprintHero heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
       <ActionButton type="button" data-booking-open="blueprint-booking" aria-haspopup="dialog" aria-controls="blueprint-booking"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
       <ActionButton href="#delivery" variant="secondary" arrow="down"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span></ActionButton>
     </Fragment>
   </BlueprintHero>
+  </div>
+  <div data-hero-parallax-dark class="hero-wrap__dark"></div>
+  </div>
 
   <BookingDialog
     id="blueprint-booking"
@@ -118,8 +128,15 @@ const pad = (n: number) => String(n).padStart(2, "0");
        and the benefits. The two share one band of dots (data-dot-band), as
        the homepage's wall and approach share its ink band: the benefits'
        field sets the pitch and the lattice (approach-stack.js), and the
-       wall is placed on it exactly as the homepage's is. -->
-  <div class="dot-band" data-dot-band>
+       wall is placed on it exactly as the homepage's is. Its entrance is
+       the homepage's too (2026-11-04): the band's top edge in pieces, two
+       Grid Columns each, rising over the hero at their own rates as it
+       comes up (initBandSteps, parallax.js), here in the band's white with
+       its dots in ink. -->
+  <div class="dot-band band-steps-host" data-dot-band>
+  <div class="band-steps" data-band-steps aria-hidden="true">
+    {Array.from({ length: 6 }, (_, i) => <span class="band-steps__seg" style={`--i:${i}`}><span class="band-steps__dots dot-grid band-field"></span></span>)}
+  </div>
   <PracticesWall />
 
   <ApproachStack
@@ -135,38 +152,46 @@ const pad = (n: number) => String(n).padStart(2, "0");
   />
   </div>
 
-  <!-- What we look at (2026-11-04, after the user's tab reference): on
-       black, the heading centred over one bar of tabs, an off-black tray
-       with each tab an icon and its label and the open one raised in it on
-       a lighter pill that glides from tab to tab (tabs.js); under it the
-       open tab's panel, its words on the left and the layers drawing on
-       the right, inked for the dark. The tabs and their words are the
-       Studio's (examine.tabs). -->
+  <!-- What we look at (2026-11-04, second pass, after the user's reference
+       of a menu beside a dark panel): on black, the heading centred over
+       one panel in two halves. On the left the tabs as a column of rows on
+       a light ground, each its number, its name large and its icon in a
+       ring at the right, parted by hairlines; the open row the panel's
+       dark, its name stepped in. On the right the dark panel of the open
+       tab: its heading and words at the top, its icon in a ring in the
+       corner, the layers drawing, and at the foot under a hairline its
+       number large, with the section's name and the page's in small type.
+       The tabs and their words are the Studio's (examine.tabs; tabs.js). -->
   <section class="section examine-sec" aria-labelledby="examine-heading">
     <div class="container">
       <h2 class="h2 examine-sec__heading" id="examine-heading" data-split="heading" data-page-field="examine.heading">{t("examine.heading")}</h2>
       <div class="examine" data-tabs>
-        <div class="examine__bar">
-          <div class="examine__list" role="tablist" aria-orientation="horizontal" aria-label={t("examine.heading")} data-page-list="examine.tabs">
-            <span class="examine__glider" data-tabs-glider aria-hidden="true"></span>
-            {tabs.map((tab, i) => (
-            <button type="button" role="tab" class="examine__tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key}><svg class="examine__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-miterlimit="10" aria-hidden="true" set:html={iconOf(tab.label)}></svg><span data-page-item-field="label">{tab.label}</span></button>
-            ))}
-          </div>
+        <div class="examine__list" role="tablist" aria-orientation="vertical" aria-label={t("examine.heading")} data-page-list="examine.tabs">
+          {tabs.map((tab, i) => (
+          <button type="button" role="tab" class="examine__tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key}>
+            <span class="examine__tab-n" aria-hidden="true">{i + 1}</span>
+            <span class="examine__tab-label" data-page-item-field="label">{tab.label}</span>
+            <span class="examine__ring" aria-hidden="true"><svg class="examine__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-miterlimit="10" set:html={iconOf(tab.label)}></svg></span>
+          </button>
+          ))}
         </div>
         <div class="examine__stage">
-          <div class="examine__panels">
-            {tabs.map((tab, i) => (
-            <div class:list={["examine__panel", { "is--active": i === 0 }]} role="tabpanel" id={`examine-panel-${i + 1}`} aria-labelledby={`examine-tab-${i + 1}`}>
-              <p class="examine__n" aria-hidden="true">{pad(i + 1)} / {pad(tabs.length)}</p>
-              <h3 class="examine__title" data-page-field={`examine.tabs.${i}.title`}>{tab.title}</h3>
-              <p class="examine__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p>
-            </div>
-            ))}
-          </div>
-          <div class="examine__media">
+          <div class="examine__media" aria-hidden="true">
             <LayersDiagram class="examine__diagram" />
           </div>
+          {tabs.map((tab, i) => (
+          <div class:list={["examine__panel", { "is--active": i === 0 }]} role="tabpanel" id={`examine-panel-${i + 1}`} aria-labelledby={`examine-tab-${i + 1}`}>
+            <div class="examine__top">
+              <h3 class="examine__title" data-page-field={`examine.tabs.${i}.title`}>{tab.title}</h3>
+              <span class="examine__ring is--corner" aria-hidden="true"><svg class="examine__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-miterlimit="10" set:html={iconOf(tab.label)}></svg></span>
+            </div>
+            <p class="examine__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p>
+            <div class="examine__foot">
+              <p class="examine__big" aria-hidden="true">{pad(i + 1)}<span>/{pad(tabs.length)}</span></p>
+              <p class="examine__small"><span>* {t("examine.heading")}</span><span>Technology Blueprint</span></p>
+            </div>
+          </div>
+          ))}
         </div>
       </div>
     </div>

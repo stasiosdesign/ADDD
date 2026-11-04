@@ -314,6 +314,14 @@
   translate: 0 -0.25rem;
   transition: opacity 0.2s ease, translate 0.3s var(--tl-ease), visibility 0s linear 0.3s;
 }
+/* a card with no photograph (the AEC Tech Partners' process): its words
+   the card's whole width, with no empty column kept for one */
+.stage-timeline__card.is--plain {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "text"
+    "more";
+}
 .stage-timeline__card.is--end { left: auto; right: -1px; }
 .stage-timeline__card.is--up { top: auto; bottom: calc(100% + 0.5rem); translate: 0 0.25rem; }
 .is--open .stage-timeline__card {

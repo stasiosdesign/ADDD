@@ -21,7 +21,7 @@ export const techFirmsPage = defineType({
       linesField('benefits', 'Benefits', 'One line per benefit.'),
       textField('The note under the benefits, separating practice clients, content participants and sponsors.', 'note', 'Note', 3),
     ]),
-    pageSection('routes', 'Objectives', 'The three cards that pin in turn as the page scrolls. Each card’s colour, the crop of its picture and the offer its link leads to stay in the code, by position.', [
+    pageSection('routes', 'Objectives (no longer shown)', 'Not shown on the page since 2026-11-04: the three cards said again what Ways to work with ADDD says. Kept while the live site still reads them.', [
       itemsField('items', 'Objectives', 'tile', 'The three cards, in order: the title, the text, the link label and the picture. There are always three.'),
     ]),
     pageSection('services', 'Ways to work with ADDD', 'The heading over the blue panel that takes its statements in turn as the page scrolls, one large statement at a time, each with its number under it. The drawings beside them stay in the code, by position.', [
@@ -41,9 +41,10 @@ export const techFirmsPage = defineType({
       headingField(),
       itemsField('cards', 'Placements', 'priceCard', 'The two cards: newsletter placement, event coverage.'),
     ]),
-    pageSection('process', 'Process and independence', 'The four steps of a partnership, how success is measured, and the editorial independence statement.', [
+    pageSection('process', 'Process and independence', 'The four steps of a partnership on a timeline, how success is measured, and the editorial independence statement.', [
       ...sectionHead(),
-      itemsField('tiles', 'Steps', 'tile', 'The four steps, left to right.'),
+      itemsField('tiles', 'Steps', 'tile', 'The four steps, in order: each a box on the timeline, its title on the box and its text when it opens.'),
+      linesField('phases', 'Phases', 'The names across the top of the timeline, one per line, one for each step, in order.'),
       headingField('The heading over how success is measured.', 'measurementTitle', 'Measurement heading'),
       textField('How promotional partnerships are measured.', 'measurement', 'Measurement'),
       textField('How practice intelligence is measured.', 'intelligenceMeasurement', 'Intelligence measurement', 3),

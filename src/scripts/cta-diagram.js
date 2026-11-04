@@ -1,6 +1,5 @@
 /* ============================================================
-   The closing call's diagram (ClosingCta.astro): held to the dots, and
-   drawn in, once
+   The closing call's diagram (ClosingCta.astro): held to the dots
    ------------------------------------------------------------
    Held to the dots: the drawing is set out on the section's field of dots,
    its bus along a row. After a light FAQ the field carries on that
@@ -11,23 +10,13 @@
    (--cta-snap; styles.css). The first time at once; after that (an answer
    opening above, the window resized) once the field has settled, gliding.
 
-   Drawn in: as the call comes into view, the ADDD mark in the middle
-   settles into place, then the lines draw out from it to the rings, the
-   shortest first; each ring and its name comes up as its line reaches it,
-   and last the lines run on out past the rings, off the screen or up out
-   of the call. About two seconds in all, on the site's soft eases, then it
-   is still. Each line is drawn by its dash. The lines keep a hairline
-   whatever the drawing's scale (vector-effect: non-scaling-stroke), and a
-   dash then counts in the screen's pixels, not the drawing's units: a dash
-   the path's own length (as pathLength="1" made it, until 2026-11-04) fell
-   short of its end wherever the drawing is scaled up, and every line
-   stopped short of its ring. So each dash is the path's length at the
-   drawing's scale, and once drawn the dash is taken off altogether.
-
-   Under reduced motion, or without the script, the diagram is simply
-   there: its hidden start is set here, never in the stylesheet.
+   Not drawn in (2026-11-04, at the user's word): it used to settle its
+   mark, draw its lines and bring up its rings over about two seconds once
+   the call was well up the screen, and a fast scroll went past it before
+   anything had appeared. Now everything in the call is simply there, as
+   soon as it is on the screen; only the snap to the dots glides.
    ============================================================ */
-import { motion, registerPageCleanup } from "./page.js";
+import { registerPageCleanup } from "./page.js";
 
 // how long the field must be still before the drawing glides to its row
 const SETTLE_MS = 140;
@@ -67,55 +56,10 @@ export function initCtaDiagram(container) {
     dots?.addEventListener("dotgrid:set", onSet);
     if (dots?.dotGrid?.lattice) onSet({ detail: dots.dotGrid.lattice });
 
-    let release = () => {};
     registerPageCleanup(() => {
       clearTimeout(settle);
       dots?.removeEventListener("dotgrid:set", onSet);
-      release();
       svg.ctaDiagram = false;
     });
-    if (motion.reduced) return;
-
-    // ---- drawn in ----------------------------------------------------------
-    const hub = svg.querySelector("[data-cta-hub]");
-    const routes = [...svg.querySelectorAll("[data-cta-route]")];
-    const outs = [...svg.querySelectorAll("[data-cta-out]")];
-    const nodes = [...svg.querySelectorAll("[data-cta-node]")];
-    if (!hub || !routes.length) return;
-    const lines = [...routes, ...outs];
-
-    // each line's dash: its length at the drawing's scale (or its own,
-    // whichever is longer), so a whole dash always reaches its end
-    const scale = Math.max(1, svg.getScreenCTM()?.a || 1);
-    const dash = new Map(lines.map((path) => [path, Math.ceil(path.getTotalLength() * scale) + 2]));
-    lines.forEach((path) => {
-      const l = dash.get(path);
-      gsap.set(path, { strokeDasharray: `${l} ${l}`, strokeDashoffset: l });
-    });
-    gsap.set(nodes, { opacity: 0, scale: 0.86, transformOrigin: "50% 50%" });
-    gsap.set(hub, { opacity: 0, y: 10, transformOrigin: "50% 50%" });
-
-    // routes, rings and outs in the same order (ClosingCta.astro: the
-    // shortest route first), each a step after the last
-    const step = 0.07;
-    const undash = (path) => () => gsap.set(path, { clearProps: "strokeDasharray,strokeDashoffset" });
-    const tl = gsap.timeline({ paused: true });
-    tl.to(hub, { opacity: 1, y: 0, duration: 0.8, ease: "power3.out" }, 0);
-    routes.forEach((path, i) => tl.to(path, { strokeDashoffset: 0, duration: 1.05, ease: "power2.inOut", onComplete: undash(path) }, 0.3 + i * step));
-    nodes.forEach((node, i) => tl.to(node, { opacity: 1, scale: 1, duration: 0.55, ease: "power2.out" }, 1.05 + i * step));
-    outs.forEach((path, i) => tl.to(path, { strokeDashoffset: 0, duration: 1.1, ease: "power2.out", onComplete: undash(path) }, 1.3 + i * step));
-
-    const trigger = ScrollTrigger.create({
-      trigger: svg.closest("section") || svg,
-      start: "top 72%",
-      once: true,
-      onEnter: () => tl.play(),
-    });
-
-    release = () => {
-      trigger.kill();
-      tl.kill();
-      gsap.set([hub, ...lines, ...nodes], { clearProps: "all" });
-    };
   });
 }

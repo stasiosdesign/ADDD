@@ -23,6 +23,7 @@
 import ArrowIcon from "./ArrowIcon.astro";
 import NavLinkLabel from "./NavLinkLabel.astro";
 import ServiceCard from "./ServiceCard.astro";
+import StackThumb from "./StackThumb.astro";
 import { lineGridRatio, type LineGridShape } from "./line-grid";
 import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
 
@@ -158,14 +159,16 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
                square and its name beside it, its lead link, and a feature
                on the field's tone). -->
 
-          <!-- Free Tech Stacks: its name in the top left, and the Stack
-               Diagnostic's row of cards in miniature, a Hairline figure
-               (stack-preview.js) that riffles while the pointer is anywhere
-               over the box. The whole box is the link. -->
-          <a data-menu-fade href="/stack-diagnostic.html" class="resource-tile is--stacks" data-stack-preview-box>
+          <!-- Free Tech Stacks: its name in the top left, and behind it the
+               Free Tech Stacks page's own row of cards in miniature
+               (StackThumb.astro: the page's geometry, stacks and greys, run
+               on past the box and clipped by it); the pointer over the box
+               only lifts its middle card a little. The whole box is the
+               link. -->
+          <a data-menu-fade href="/stack-diagnostic.html" class="resource-tile is--stacks">
             <span class="resource-tile__name">Free Tech Stacks</span>
             <span class="resource-tile__desc">See how software fits together across architecture workflows.</span>
-            <span class="resource-tile__figure" data-hairline data-stack-preview aria-hidden="true"><svg viewBox="0 0 400 320" fill="none" focusable="false" aria-hidden="true"></svg></span>
+            <StackThumb />
           </a>
           <!-- the Software Database, the landscape under the stacks: kept
                plain for now -->

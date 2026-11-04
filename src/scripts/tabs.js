@@ -4,11 +4,11 @@
 //
 // A [data-tabs] group: buttons with role="tab", each naming its panel
 // (aria-controls), the panels role="tabpanel". The Technology Blueprint's
-// "What we look at" (pages.css, "What we look at": since 2026-11-04 a bar
-// of tabs, the open one raised on a pill that glides to it: a
-// [data-tabs-glider] in the tablist, given the open tab's offset and width
-// as --glider-x and --glider-w, from the tab's own box, when a tab is
-// chosen and whenever the list changes size). Pressed (or reached by the arrow keys,
+// "What we look at" (pages.css, "What we look at": since 2026-11-04 a
+// column of rows beside a dark panel). A group may have a pill that glides
+// to the open tab (a [data-tabs-glider] in the tablist, given the open
+// tab's offset and width as --glider-x and --glider-w, from the tab's own
+// box, when a tab is chosen and whenever the list changes size). Pressed (or reached by the arrow keys,
 // Home and End, which move along the tabs and open each as it is reached),
 // a tab is selected and its panel shown: the tab marked aria-selected
 // (and data-filter-status), the only one in the tab order; its panel

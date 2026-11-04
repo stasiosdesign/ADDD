@@ -19,18 +19,22 @@ export const advisoryPage = defineType({
   icon: UsersIcon,
   fields: [
     heroSection('The opening: the tagline and headline on the left, the standfirst and its two buttons on the right.', 'Links to the Contact page.', 'Scrolls down to the pricing on this page.'),
-    pageSection('statement', 'Statement', 'The single large line under the opening.', [leadField('The statement.', 'statement', 'Statement', 3)]),
+    pageSection('statement', 'Statement', 'The large statement that comes up in the opening as its words scroll away.', [leadField('The statement. Written as one paragraph, the page sets it on even lines; a line break starts a new line where it is.', 'statement', 'Statement', 3)]),
     pageSection('structure', 'How it works', 'The heading row and the five cards describing how the membership works.', [
       ...sectionHead(),
       itemsField('tiles', 'Cards', 'tile', 'The five cards, left to right: a title and a line of text each.'),
     ]),
-    pageSection('themes', 'Themes covered', 'The heading row and the four square pictures under it.', [
+    pageSection('themes', 'Themes covered', 'The heading row and the four square pictures under it, each with its theme’s name.', [
       leadField(),
       headingField(),
       imageField('The first square, on the left.', 'image1', 'Picture 1'),
+      defineField({name: 'title1', title: 'Theme 1', type: 'string', description: 'The name under the first square.'}),
       imageField('The second square.', 'image2', 'Picture 2'),
+      defineField({name: 'title2', title: 'Theme 2', type: 'string', description: 'The name under the second square.'}),
       imageField('The third square.', 'image3', 'Picture 3'),
+      defineField({name: 'title3', title: 'Theme 3', type: 'string', description: 'The name under the third square.'}),
       imageField('The fourth square, on the right.', 'image4', 'Picture 4'),
+      defineField({name: 'title4', title: 'Theme 4', type: 'string', description: 'The name under the fourth square.'}),
     ]),
     pageSection('impact', 'Impact', 'The heading row and the four numbered cards on what the practice gains.', [
       ...sectionHead(),
@@ -44,7 +48,7 @@ export const advisoryPage = defineType({
       ...sectionHead(),
       itemsField('cards', 'Cards', 'priceCard', 'The two cards: the membership on the left, the Technology Blueprint on the right. There are always two.'),
     ]),
-    quoteSection('The testimonial between the pricing and the questions: the quote, and who said it.'),
+    quoteSection('Not shown on the page since 2026-11-04: the site’s testimonials (the Home page’s, which open on this quote) stand between the pricing and the questions. Kept for later.'),
     pageSection('faq', 'Answers', 'The heading and the questions that end the page, each with its answer.', [
       headingField(),
       itemsField('questions', 'Questions', 'faqItem', 'The questions, in order; all start closed.'),

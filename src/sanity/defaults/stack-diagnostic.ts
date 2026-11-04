@@ -6,8 +6,8 @@ import { keyed } from './types';
 export const stackDiagnosticPage = {
   hero: {
     tagline: 'Resources · Free Tech Stacks',
-    heading: 'Stack Diagnostic',
-    lede: 'A short, focused assessment of the technology your practice actually runs—what each tool is for, who depends on it, where two tools do the same job, and which parts of the stack no longer earn their place.',
+    heading: 'Free Tech Stacks',
+    lede: 'Explore curated combinations of software built for specific architectural workflows.',
     button: 'Access the Free Stack',
     linkLabel: 'How it works',
     legend: 'Each card is a piece of software. Cards that stand together in one tone are a curated stack, tools chosen to work together on one workflow: open any of them to see the stack.',

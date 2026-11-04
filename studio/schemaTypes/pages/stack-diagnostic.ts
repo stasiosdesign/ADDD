@@ -18,7 +18,7 @@ export const stackDiagnosticPage = defineType({
     pageSection('hero', 'Opening', 'The opening: the tagline and headline on the left, the standfirst, its button and the text link beside it on the right.', [
       taglineField(),
       headingField(),
-      leadField(),
+      leadField('The line under the title: what the page is, in one sentence.'),
       buttonField('Opens the Free Stack sign-up (app.addd.io) in a new tab.', 'button'),
       defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'The text link beside the button; it scrolls down to How it works on this page.'}),
       defineField({name: 'legend', title: 'How to read the cards', type: 'text', rows: 2, description: 'Not shown on the page since 2026-11-04 (the cards and the stacks say it themselves); kept for later.'}),

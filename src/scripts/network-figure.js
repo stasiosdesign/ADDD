@@ -30,6 +30,11 @@
   the page calls it as it scrolls (blueprint-hero.js), each key following
   at its own pace, the upper ones first, so the lift runs down the network
   and settles once the scroll stops.
+  
+  Sixth pass (2026-11-04): an eighth key, Studio Seilern's, on the right,
+  where the drawing stood empty: in ADAM's column across the screen, level
+  with SHH's row, its route up the column two cells to the hub's row and
+  along it into EPR's key, on the line ADAM's and SHH's routes come in on.
 
    A Hairline figure (the hairline-create skill, .claude/skills/) on the
    vendored kernel, after the reference's composition rather than every
@@ -67,6 +72,7 @@ const NODES = [
   { name: "SHH", logo: "SHH-logo.svg", ar: 234 / 300, at: [1.5, 2.5] },
   { name: "Ackroyd Lowrie", logo: "ackroyd-lowrie-logo.svg", ar: 300 / 300, at: [3.5, 4.5] },
   { name: "Architecture PLB", logo: "Architecture-PLB-Logo.svg", ar: 889 / 300, at: [3.5, 6.5] },
+  { name: "Studio Seilern", logo: "studio-seilern-logo.svg", ar: 2416 / 300, at: [5.5, 1.5] },
 ];
 const HUB = 3;
 // each route from a key to another through its turns, in cells, every turn
@@ -79,6 +85,7 @@ const ROUTES = [
   { from: 2, to: 3, pts: [[-1.5, 2.5], [-0.5, 2.5], [-0.5, 1.5], [2.5, 1.5], [2.5, -0.5]] },
   { from: 5, to: 3, pts: [[3.5, 4.5], [3.5, -0.5], [2.5, -0.5]] },
   { from: 6, to: 5, pts: [[3.5, 6.5], [3.5, 4.5]] },
+  { from: 7, to: 3, pts: [[5.5, 1.5], [5.5, -0.5], [2.5, -0.5]] },
 ];
 
 /** A polyline (in sides) with its inner corners rounded by BEND: points in world units, and the length to each. */
@@ -283,7 +290,7 @@ function mount({ stage, svg, read }, value) {
 
 export const NETWORK = {
   name: "network",
-  means: "Seven practices' systems as keys joined by routes: a signal runs to the hub, and the key you point at rises and lights its routes.",
+  means: "Eight practices' systems as keys joined by routes: a signal runs to the hub, and the key you point at rises and lights its routes.",
   rules: [1, 5, 6, 9],
   range: [3, 6, 9],
   tour: [[118, 118], [270, 230], [196, 92], null],

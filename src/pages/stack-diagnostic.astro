@@ -4,16 +4,18 @@ import ActionButton from "../components/ActionButton.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { TECH_STACKS_QUERY } from "../sanity/queries";
 import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
-import { APP_SIGN_UP, CATEGORIES, PLATFORMS, SAMPLE_STACKS, TOOLS, stackOf, toneOf, type StackDocument } from "../data/stack-ecosystem";
+import { APP_SIGN_UP, CATEGORIES, PLATFORMS, SAMPLE_STACKS, STACK_TONE, TOOLS, stackOf, type StackDocument } from "../data/stack-ecosystem";
 
 // Free Tech Stacks, as one screen (2026-11-04, fourth pass, after the
 // user's brief and a reference of CD cases standing in a row): one
 // continuous row of cards in 3D, every card a piece of software and every
 // card in a curated stack, the row running across the screen from off its
 // bottom-left to off its top-right and going round as it is scrolled
-// through. A stack's cards stand together at the row's own spacing, in the
-// stack's own colour (a solid block: white, black, the greys, a muted blue,
-// stone…), a dotted bracket on the ground beside them with the stack's
+// through. A stack's cards stand together at the row's own spacing, every
+// card in the one colour (sixth pass: the stack being read, at the row's
+// middle or under the pointer, at full strength and the others a little
+// faded, with its name and purpose beside the row while the pointer is on
+// it), a dotted bracket on the ground beside them with the stack's
 // name; the tools it holds back until the visitor is in the ADDD app are
 // cards with a lock and no name. The card under the pointer slides out of
 // the row to the right, as a card pulled from a stack does; pressing any
@@ -61,7 +63,7 @@ const shown = (name: string) => {
   return { name: tool?.name ?? name, category: home ? categoryName[home] : "", note: tool && home ? tool.notes[home] ?? "" : "", logo: tool?.logo ?? null };
 };
 const data = {
-  stacks: stacks.map((s, i) => ({ ...s, tone: toneOf(i), preview: s.preview.map(shown) })),
+  stacks: stacks.map((s) => ({ ...s, tone: STACK_TONE, preview: s.preview.map(shown) })),
   // the inventory's software, for the plain row production shows while no
   // stack is published (with stacks, every card is a stack's)
   tools: stacks.length ? [] : TOOLS.map((tool) => shown(tool.name)),
@@ -132,6 +134,7 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
 
   <header class="sd__head">
     <h1 class="sd__title" data-page-field="hero.heading">{t("hero.heading")}</h1>
+    <p class="sd__lede" data-page-field="hero.lede">{t("hero.lede")}</p>
     {data.stacks.length > 0 && (
     <div class="sd__views" role="group" aria-label="How to show the stacks">
       <button type="button" class="sd__view" data-view-set="3d" aria-pressed="true">3D</button>
@@ -140,8 +143,19 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
     )}
   </header>
 
-  <!-- the page's one call: the Free Stack, in the screen's bottom-right corner -->
+  <!-- the page's one call: the Free Stack, in the screen's bottom-right
+       corner; over it, the stack under the pointer in a few words (its
+       name and what it is for: stack-space.js), on the ground beside the
+       row -->
   <div class="sd__cta">
+    {data.stacks.length > 0 && (
+    <div class="sd__info" data-stack-info aria-hidden="true">
+      <div class="sd__info-body" data-info-body>
+        <p class="sd__info-name" data-info-name></p>
+        <p class="sd__info-text" data-info-text></p>
+      </div>
+    </div>
+    )}
     <ActionButton href={APP_SIGN_UP} target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
   </div>
 

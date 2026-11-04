@@ -1,21 +1,31 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
-import ArrowIcon from "../components/ArrowIcon.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
+import ProblemCard from "../components/ProblemCard.astro";
 import ServiceTabs from "../components/ServiceTabs.astro";
+import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 
 // Every section's words and pictures come from the AEC Tech Partners page
 // document in Sanity (studio/schemaTypes/pages/tech-firms.ts), each element
 // falling back to its own (src/sanity/defaults/tech-firms.ts): see
-// src/sanity/content.ts. The hero's pattern, the cards' tones and crops and
+// src/sanity/content.ts. The hero's pattern, the cards' photographs and
 // where every button leads stay here. Each element names the field it shows
 // (data-page-field) so the Studio's Visual editor can outline it and write
 // drafts into it.
-const { t, list, lines, img } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
+//
+// Second pass (2026-11-04): the sections after Ways to Work brought into
+// the site's family, their order and words kept: Why ADDD in the
+// homepage's problem cards, each with a photograph of its own; the episode
+// format in Before Revit's numbered rows; the partnerships in the Workflow
+// Workshop's price cards; the process on the Workshop's timeline, in this
+// page's blue, with measurement and independence under it on the ink. The
+// three pinned objective cards that followed Why ADDD are gone (they said
+// again what Ways to Work says). Styles: pages.css, "AEC Tech Partners".
+const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
 
 type Offer = { _key: string; title?: string; audience?: string; subtitle?: string; price?: string; priceSuffix?: string; note?: string; includesLabel?: string; includes?: string[]; conditions?: string; button?: string };
 
@@ -27,19 +37,32 @@ const placements = list<Offer>("more.cards");
 // the blue panel's statements, one at a time (ServiceTabs.astro)
 const statements = lines("services.statements");
 
-// The three objectives, one pinned card each (initApproachSlides, site.js),
-// the last closed over by the shutter. Bound by position, since the pinning
-// animates them by position; each card's tone, crop and the offer it leads
-// to stay here.
-const routes = list<{ _key: string; title?: string; text?: string; linkLabel?: string; image?: unknown }>("routes.items");
-const tones = ["is--ink", "is--dark", "is--grey"];
-const crops = ["is--crop-left", "is--crop-centre", "is--crop-right"];
+// Why ADDD's photographs, one to a card, in the cards' order, from the
+// site's own files (as the homepage's problem cards take theirs): a
+// practice's team round a model (insight from practice work), a talk on
+// real projects (content about real work), and an audience (distribution)
+const WHY_PHOTOS = [
+  { src: "/assets/images/team-model-review.webp", width: 450, height: 268 },
+  { src: "/assets/images/allister-keynote-stage-crop.webp", width: 600, height: 400 },
+  { src: "/assets/images/conference-keynote-crop.webp", width: 640, height: 478 },
+];
+
+// The process on the Workshop's timeline (StageTimeline.astro): each step
+// a phase of its own across the top, named by the Studio's phases, its box
+// in its own phase, opening to its line
+const processStages: Stage[] = processTiles.map((step, i) => ({
+  title: step.title,
+  text: step.text,
+  start: i,
+  span: 1,
+  fields: { title: `process.tiles.${i}.title`, text: `process.tiles.${i}.text` },
+}));
+const processScale = processTiles.map((_, i) => ({ label: lines("process.phases")[i] ?? "", field: `process.phases.${i}` }));
 
 // Each offer's anchor and the name it carries into the enquiry form
 // (contact.html?offer=…, initEnquiryOffer in site.js), by position
 const offerIds = ["sponsorship", "episode", "intelligence"];
 const placementIds = ["newsletter", "events"];
-const routeHrefs = offerIds.map((id) => `#offer-${id}`);
 const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(offer ?? "partnership")}`;
 ---
 <BaseLayout
@@ -48,7 +71,7 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
   pageName="AEC Tech Partners"
   doc={{ id: "techFirmsPage" }}
 >
-<main class="page--grid">
+<main class="page--grid page--partners">
 
   <!-- The hero for the AEC technology market: the first screen in the
        ink, its words on the page's centre line, the AEC Tech Firms blue as
@@ -78,8 +101,15 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
     </div>
   </section>
 
-  <!-- ========== WHY ADDD ========== -->
-  <section class="section" id="why">
+  <!-- ========== WHY ADDD ==========
+       The heading row, then the homepage's problem cards (ProblemCard.astro):
+       the white, black and grey fields of dots each with a photograph in its
+       frame and its number in the corner, the title and line in the band
+       under it, set out as a stair by the scroll (data-problem-parallax).
+       Then what that gives a technology company: its heading on the left,
+       the benefits on the right on the site's dotted rule, each marked in
+       the page's blue, and the note under them. -->
+  <section class="section tf-why" id="why">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="why.lede">{t("why.lede")}</p>
@@ -89,73 +119,36 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt" data-page-list="why.tiles">
-        {whyTiles.map((item) => (
-        <article class="tile" data-page-item={item._key}>
-          <p class="tile__num" data-page-item-field="number">{item.number}</p>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
-        </article>
+      <div data-problem-parallax class="problem-grid tf-why__cards">
+        {whyTiles.map((item, i) => (
+        <ProblemCard title={item.title} text={item.text} titleField={`why.tiles.${i}.title`} textField={`why.tiles.${i}.text`}>
+          <span class="tf-why__num" data-page-field={`why.tiles.${i}.number`}>{item.number}</span>
+          <div class="problem-card__frame">
+            <img class="problem-card__image" src={WHY_PHOTOS[i % WHY_PHOTOS.length].src} width={WHY_PHOTOS[i % WHY_PHOTOS.length].width} height={WHY_PHOTOS[i % WHY_PHOTOS.length].height} alt="" loading="lazy" decoding="async" draggable="false">
+          </div>
+        </ProblemCard>
         ))}
       </div>
 
-      <div class="partner-benefits">
-        <h3 class="h4" data-page-field="why.benefitsTitle">{t("why.benefitsTitle")}</h3>
-        <div class="stack">
-          <ul class="check-list">
+      <div class="tf-gives">
+        <h3 class="tf-gives__title" data-page-field="why.benefitsTitle">{t("why.benefitsTitle")}</h3>
+        <div class="tf-gives__body">
+          <ul class="tf-rules" role="list">
             {lines("why.benefits").map((line, i) => (
-            <li data-page-field={`why.benefits.${i}`}>{line}</li>
+            <li><span class="tf-mark" aria-hidden="true"></span><span data-page-field={`why.benefits.${i}`}>{line}</span></li>
             ))}
           </ul>
-          <p class="text-sm partner-note" data-page-field="why.note">{t("why.note")}</p>
+          <p class="tf-gives__note" data-page-field="why.note">{t("why.note")}</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ========== THREE OBJECTIVES ==========
-       The approach cards that used to open the homepage: each pinned in
-       turn and tipped away as the next arrives, the last closed over by
-       the shutter (initApproachSlides and initShutterScrollTransition in
-       src/scripts/site.js). Each leads to its offer below. -->
-  <section class="approach" id="objectives">
-    <div data-approach-slides-init class="approach__slides">
-      {routes.map((item, i) => {
-        const last = i === routes.length - 1;
-        const picture = img(`routes.items.${i}.image`, 1200, D.routes.items[i]?.image);
-        return (
-          <div class="approach__slide" data-shutter-scroll-section={last ? "" : undefined}>
-            <div class="approach__slide-wrapper">
-              <div class={`approach__card ${tones[i] ?? tones[tones.length - 1]}`}>
-                <div class="approach__card-top">
-                  <h3 class="approach__card-h" data-page-field={`routes.items.${i}.title`}>{item.title}</h3>
-                  <a class="approach__card-link" href={routeHrefs[i] ?? "#options"}>
-                    <span data-page-field={`routes.items.${i}.linkLabel`}>{item.linkLabel}</span>
-                    <span class="approach__card-mark" aria-hidden="true"><ArrowIcon /></span>
-                  </a>
-                </div>
-                <div class="approach__card-bottom">
-                  <p class="approach__card-p" data-page-field={`routes.items.${i}.text`}>{item.text}</p>
-                  <div class="approach__card-aside">
-                    <p class="approach__card-num">({String(i + 1).padStart(2, "0")})</p>
-                    <img src={picture.src} width={picture.width} height={picture.height} loading="lazy" alt="" class={`approach__card-image ${crops[i] ?? crops[crops.length - 1]}`} data-page-field={`routes.items.${i}.image`} data-page-width="1200">
-                  </div>
-                </div>
-              </div>
-            </div>
-            {last && (
-              <div data-shutter-scroll-transition="" data-rows="22" data-rows-tablet="14" data-rows-mobile="10" data-scroll-start="bottom bottom+=40%" class="shutter-scroll-transition"></div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  </section>
-
   <!-- ========== WHAT AN EPISODE LOOKS LIKE ==========
        The format, labelled as such: no completed episode is shown as a
-       case study until one exists. -->
-  <section class="section">
+       case study until one exists. Before Revit's numbered rows on the
+       site's dotted rule (.steps), on the white. -->
+  <section class="section tf-episode">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="example.lede">{t("example.lede")}</p>
@@ -180,10 +173,12 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
   </section>
 
   <!-- ========== PARTNERSHIP OPTIONS ==========
-       The three partnerships side by side, each set out the same way so
-       they compare at a glance: who it is for, what it is, the price, what
-       you receive, its conditions. Then the two smaller placements. -->
-  <section class="section section--light" id="options">
+       The three partnerships side by side in the Workflow Workshop's price
+       cards (workshop.css, .ws-price), white on the light grey, each set
+       out the same way so they compare at a glance: who it is for, what
+       it is, the price, what you receive, its conditions. Then the two
+       smaller placements, in the same cards, smaller. -->
+  <section class="section section--light tf-options" id="options">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="options.lede">{t("options.lede")}</p>
@@ -193,49 +188,61 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt offer-grid">
+      <div class="tf-offers">
         {offers.map((offer, i) => (
-        <article class="price-card offer" id={`offer-${offerIds[i] ?? i}`}>
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field={`options.cards.${i}.title`}>{offer.title}</h3>
-            <div class="offer__fit">
-              <p class="tagline tagline--sm">Best suited to</p>
-              <p data-page-field={`options.cards.${i}.audience`}>{offer.audience}</p>
+        <article class="ws-price tf-offer" id={`offer-${offerIds[i] ?? i}`}>
+          <div class="ws-price__head">
+            <div class="ws-price__name">
+              <h3 class="ws-card__title" data-page-field={`options.cards.${i}.title`}>{offer.title}</h3>
+              <div class="tf-offer__fit">
+                <p class="tagline tagline--sm">Best suited to</p>
+                <p data-page-field={`options.cards.${i}.audience`}>{offer.audience}</p>
+              </div>
+              <p class="tf-offer__what" data-page-field={`options.cards.${i}.subtitle`}>{offer.subtitle}</p>
             </div>
-            <p class="text-sm" data-page-field={`options.cards.${i}.subtitle`}>{offer.subtitle}</p>
+            <div class="tf-offer__price">
+              <div class="ws-price__amount">
+                <span class="ws-price__figure" data-page-field={`options.cards.${i}.price`}>{offer.price}</span>
+                {offer.priceSuffix && <span class="ws-price__affix" data-page-field={`options.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}
+              </div>
+              {offer.note && <p class="tf-offer__note" data-page-field={`options.cards.${i}.note`}>{offer.note}</p>}
+            </div>
           </div>
-          <div class="stack stack--16">
-            <div class="price"><span class="price__amount" data-page-field={`options.cards.${i}.price`}>{offer.price}</span>{offer.priceSuffix && <span data-page-field={`options.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}</div>
-            {offer.note && <p class="text-sm" data-page-field={`options.cards.${i}.note`}>{offer.note}</p>}
-          </div>
-          <div class="stack stack--16">
+          <div class="ws-price__includes">
             {offer.includesLabel && <p class="tagline tagline--sm" data-page-field={`options.cards.${i}.includesLabel`}>{offer.includesLabel}</p>}
-            <ul class="check-list">
+            <ul class="ws-checks">
               {(offer.includes ?? []).map((line, j) => (
-              <li data-page-field={`options.cards.${i}.includes.${j}`}>{line}</li>
+              <li data-page-field={`options.cards.${i}.includes.${j}`}><span>{line}</span></li>
               ))}
             </ul>
           </div>
-          {offer.conditions && <p class="text-sm offer__conditions" data-page-field={`options.cards.${i}.conditions`}>{offer.conditions}</p>}
+          <!-- always there (empty without conditions), so the card keeps
+               its four rows on the row's subgrid (pages.css) -->
+          <p class="tf-offer__conditions" data-page-field={`options.cards.${i}.conditions`}>{offer.conditions}</p>
           <ActionButton href={enquire(offer.title)}><span data-page-field={`options.cards.${i}.button`}>{offer.button}</span></ActionButton>
         </article>
         ))}
       </div>
 
-      <h3 class="h4 offer-more__title" data-page-field="more.heading">{t("more.heading")}</h3>
-      <div class="grid grid--2 offer-more">
+      <h3 class="tf-more__title" data-page-field="more.heading">{t("more.heading")}</h3>
+      <div class="tf-more">
         {placements.map((offer, i) => (
-        <article class="tile tile--outline offer offer--small" id={`offer-${placementIds[i] ?? i}`}>
-          <div class="offer__row">
-            <h4 class="h4" data-page-field={`more.cards.${i}.title`}>{offer.title}</h4>
-            <div class="price"><span class="offer__amount" data-page-field={`more.cards.${i}.price`}>{offer.price}</span>{offer.priceSuffix && <span data-page-field={`more.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}</div>
+        <article class="ws-price tf-offer is--small" id={`offer-${placementIds[i] ?? i}`}>
+          <div class="ws-price__head">
+            <div class="ws-price__name">
+              <h4 class="ws-card__title" data-page-field={`more.cards.${i}.title`}>{offer.title}</h4>
+              <p data-page-field={`more.cards.${i}.subtitle`}>{offer.subtitle}</p>
+            </div>
+            <div class="ws-price__amount">
+              <span class="ws-price__figure" data-page-field={`more.cards.${i}.price`}>{offer.price}</span>
+              {offer.priceSuffix && <span class="ws-price__affix" data-page-field={`more.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}
+            </div>
           </div>
-          <p data-page-field={`more.cards.${i}.subtitle`}>{offer.subtitle}</p>
-          <div class="offer__fit">
+          <div class="tf-offer__fit">
             <p class="tagline tagline--sm">Best suited to</p>
-            <p class="text-sm" data-page-field={`more.cards.${i}.audience`}>{offer.audience}</p>
+            <p data-page-field={`more.cards.${i}.audience`}>{offer.audience}</p>
           </div>
-          {offer.conditions && <p class="text-sm offer__conditions" data-page-field={`more.cards.${i}.conditions`}>{offer.conditions}</p>}
+          {offer.conditions && <p class="tf-offer__conditions" data-page-field={`more.cards.${i}.conditions`}>{offer.conditions}</p>}
           <ActionButton href={enquire(offer.title)} variant="secondary"><span data-page-field={`more.cards.${i}.button`}>{offer.button}</span></ActionButton>
         </article>
         ))}
@@ -243,8 +250,13 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
     </div>
   </section>
 
-  <!-- ========== PROCESS, MEASUREMENT AND INDEPENDENCE ========== -->
-  <section class="section" id="process">
+  <!-- ========== PROCESS, MEASUREMENT AND INDEPENDENCE ==========
+       On the ink: the four steps on the Workflow Workshop's timeline
+       (StageTimeline.astro, dark), each step a phase across the top and
+       opening to its line, its lit columns and rule in the page's blue;
+       under it how success is measured, and the editorial independence
+       commitments on the site's dotted rule, each marked in the blue. -->
+  <section class="section tf-process" id="process">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="process.lede">{t("process.lede")}</p>
@@ -254,27 +266,21 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
         </div>
       </div>
 
-      <div class="grid grid--4 grid--mt" data-page-list="process.tiles">
-        {processTiles.map((item) => (
-        <article class="tile" data-page-item={item._key}>
-          <p class="tile__num" data-page-item-field="number">{item.number}</p>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
-        </article>
-        ))}
+      <div class="tf-process__run">
+        <StageTimeline id="partner-stages" stages={processStages} scale={processScale} dark />
       </div>
 
-      <div class="grid grid--2 grid--mt">
-        <div class="stack">
-          <h3 class="h4" data-page-field="process.measurementTitle">{t("process.measurementTitle")}</h3>
+      <div class="tf-terms">
+        <div class="tf-terms__measure">
+          <h3 class="tf-terms__title" data-page-field="process.measurementTitle">{t("process.measurementTitle")}</h3>
           <p data-page-field="process.measurement">{t("process.measurement")}</p>
           <p data-page-field="process.intelligenceMeasurement">{t("process.intelligenceMeasurement")}</p>
         </div>
-        <div class="tile tile--outline" id="independence">
-          <h3 class="h4" data-page-field="process.independenceTitle">{t("process.independenceTitle")}</h3>
-          <ul class="check-list">
+        <div class="tf-terms__independence" id="independence">
+          <h3 class="tf-terms__title" data-page-field="process.independenceTitle">{t("process.independenceTitle")}</h3>
+          <ul class="tf-rules" role="list">
             {lines("process.independence").map((line, i) => (
-            <li data-page-field={`process.independence.${i}`}>{line}</li>
+            <li><span class="tf-mark" aria-hidden="true"></span><span data-page-field={`process.independence.${i}`}>{line}</span></li>
             ))}
           </ul>
         </div>

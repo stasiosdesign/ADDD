@@ -6,7 +6,10 @@
   thin lines turning in to the ADDD mark alone in the middle, all set out
   on the dots, and under the mark the heading, a
   line where the page has one, and the buttons, all centred (styles:
-  styles.css, "CTA"; drawn in by cta-diagram.js). The newsletter signup is
+  styles.css, "CTA"; held to the dots by cta-diagram.js). Since 2026-11-04
+  nothing in it is drawn in or revealed: the drawing, the heading and the
+  buttons are all there as soon as the section is on the screen, so a fast
+  scroll never passes it empty. The newsletter signup is
   in the footer (Footer.astro).
 
   After a light FAQ (the Technology Blueprint, the Workflow Workshop) the
@@ -61,8 +64,8 @@ const field = (doc as { field?: string }).field ?? "closingCta";
 // out of the call towards the section above, fading as it goes. In the
 // reference's own units: the bus 240 down from the call's top, the rings 22
 // round, the mark 68 across. styles.css sizes a unit (--u) so the whole
-// stands on the section's field of dots; cta-diagram.js draws it in when it
-// comes into view.
+// stands on the section's field of dots (cta-diagram.js holds its bus to a
+// row of them).
 //
 // Third pass (2026-11-04): no longer two mirror images. The two sides
 // balance but differ: on each, the line that leaves the bus first climbs
@@ -127,7 +130,7 @@ const nodes = LAYOUT.map((n) => ({
   dOut: rounded(n.out.map(at)),
   reach: length(n.route),
 }));
-// the order they are drawn in: the shortest route first, whichever side
+// the order they are set down in: the shortest route first, whichever side
 const order = nodes.map((_, i) => i).sort((a, b) => nodes[a].reach - nodes[b].reach);
 const { t } = reader(await pageDocument(Astro.locals.sanity, doc.id), doc.defaults);
 // The block names its document for the Visual editor: the Home page's,
@@ -170,7 +173,7 @@ const lede = t(`${field}.lede`);
   </svg>
   <div class="cta__grid">
     <div class="cta__body">
-      <h2 class="h1 cta__heading" data-split="heading" data-page-field={`${field}.heading`}>{t(`${field}.heading`)}</h2>
+      <h2 class="h1 cta__heading" data-page-field={`${field}.heading`}>{t(`${field}.heading`)}</h2>
       {lede && <p class="text-md cta__lede" data-page-field={`${field}.lede`}>{lede}</p>}
       {single ? (
       <div class="actions">

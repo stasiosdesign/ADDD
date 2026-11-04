@@ -876,7 +876,19 @@ export function mountDotGrid(el) {
     draw(true);
   });
   resized.observe(el);
-  const restyled = new MutationObserver(() => draw(true));
+  // Its style or class rewritten (the band's lattice set on it, its ink
+  // changed): drawn afresh. Not when all that changed is how it is moved
+  // (2026-11-04): the band steps' dots are moved every frame of the band's
+  // rise by a transform GSAP writes into their style, and each write used
+  // to redraw all six of them, every frame.
+  const styleKey = () => `${el.className}|${(el.getAttribute("style") || "").replace(/(?:^|;)\s*(?:transform|translate|will-change)\s*:[^;]*/g, "")}`;
+  let lastStyle = styleKey();
+  const restyled = new MutationObserver(() => {
+    const key = styleKey();
+    if (key === lastStyle) return;
+    lastStyle = key;
+    draw(true);
+  });
   restyled.observe(el, { attributes: true, attributeFilter: ["style", "class"] });
   let density = null;
   const watchDensity = () => {

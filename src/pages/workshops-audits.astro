@@ -8,7 +8,7 @@ import BookCallFloat from "../components/BookCallFloat.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ProblemCard from "../components/ProblemCard.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
-import SplitHero from "../components/SplitHero.astro";
+import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import FolderDocument from "../components/FolderDocument.astro";
 import BookingDialog from "../components/BookingDialog.astro";
 import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
@@ -113,18 +113,35 @@ const parts = (line: string) => {
 >
 <main class="page--grid page--workshop">
 
-  <!-- The opening (SplitHero.astro, shared with the Technology Blueprint):
-       the label and the heading large on the left, the standfirst and the
-       two buttons on a light panel on the right, both set down at the
-       foot; the red block's top shows under it. -->
-  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+  <!-- The opening (2026-11-04): the Before Revit hero's composition and
+       its red light (BeforeRevitHero.astro; first set in a white light, then
+       in the red at the user's word, and without the label over the
+       heading): on black, the heading, the standfirst and the two buttons
+       on the left, and on the right the exploded drawing on its lattice,
+       its frame coming down as the page scrolls. The drawing's words are
+       this page's own: the workshop on the platform, the project held over
+       it (a project of the participant's own: the outcome folders' "Your
+       project"), the standfirst's half-day session, and the stages it runs
+       through (the Workshop Process's first three). No red block under it
+       any more, and no row of practices. -->
+  <BeforeRevitHero
+    heading={t("hero.heading")}
+    lede={t("hero.lede")}
+    marks={false}
+    words={{
+      frame: "Your project",
+      note: ["A half-day session", "around a real project"],
+      platform: t("hero.tagline") || "Workflow Workshop",
+      tags: journey.slice(0, 3).map((step) => step.label ?? "").filter(Boolean),
+    }}
+  >
     <Fragment slot="actions">
       <!-- the booking calendar (a demonstration for now: BookingDialog.astro),
            and the way down to the prices, clear of the nav (scroll.js) -->
       <ActionButton type="button" data-booking-open="workshop-booking" aria-haspopup="dialog" aria-controls="workshop-booking"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
-  </SplitHero>
+  </BeforeRevitHero>
 
   <BookingDialog id="workshop-booking" />
 

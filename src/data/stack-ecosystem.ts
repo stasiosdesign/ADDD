@@ -32,9 +32,9 @@
   ChatGPT) can stand in a stack beside them, each with its own mark only.
 
   Every card on the page belongs to a stack (2026-11-04): the row and the
-  list show the stacks' tools, never a tool on its own. Each stack has a
-  colour of its own (STACK_TONES, by its place in the list), the one the
-  row's cards, the list's block and the sheet's title all take.
+  list show the stacks' tools, never a tool on its own. Every stack takes
+  the one colour (STACK_TONE: the row's cards, the list's blocks and the
+  sheet's title); the row tells them apart by the stack being read.
 
   Shaped so it can move into the Studio as three document types (tool,
   category, stack) without the page or its script changing.
@@ -76,28 +76,17 @@ export interface Stack {
   sample?: boolean;
 }
 
-/** A stack's colour: its cards' ground and the ink on it. Solid blocks.
-    Since 2026-11-04 (fifth pass, at the user's word: the colours were too
-    unlike one another) close shades of one light grey, white to a step
-    over the page's ground, all with the ink on them; neighbouring stacks a
-    light shade and a deeper one in turn, so each still reads as a group. */
+/** The stacks' colour: their cards' ground and the ink on it. Since
+    2026-11-04 (sixth pass, at the user's word) one colour for every stack:
+    the stacks are told apart by which is being read, the one at the row's
+    middle or under the pointer at full strength and the others a little
+    faded (stack-space.js), not by a shade of their own. (Before: close
+    greys in turn, and before that solid colours.) */
 export interface Tone {
   ground: string;
   ink: string;
 }
-export const STACK_TONES: Tone[] = [
-  { ground: "#ffffff", ink: "#0a0a0a" },
-  { ground: "#e6e6e3", ink: "#0a0a0a" },
-  { ground: "#f5f5f3", ink: "#0a0a0a" },
-  { ground: "#eaeae7", ink: "#0a0a0a" },
-  { ground: "#fbfbfa", ink: "#0a0a0a" },
-  { ground: "#e3e3e0", ink: "#0a0a0a" },
-  { ground: "#f1f1ef", ink: "#0a0a0a" },
-  { ground: "#e8e8e5", ink: "#0a0a0a" },
-  { ground: "#f8f8f6", ink: "#0a0a0a" },
-  { ground: "#ededea", ink: "#0a0a0a" },
-];
-export const toneOf = (index: number): Tone => STACK_TONES[index % STACK_TONES.length];
+export const STACK_TONE: Tone = { ground: "#ffffff", ink: "#0a0a0a" };
 
 /** where a stack without its own link sends a visitor: the app's sign-up */
 export const APP_SIGN_UP = "https://app.addd.io/sign-up";

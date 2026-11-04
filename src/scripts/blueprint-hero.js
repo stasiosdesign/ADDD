@@ -102,13 +102,28 @@ export function initBlueprintHero(container) {
       hero.style.setProperty("--bp-fig-mid", `${(y + (drawn.y + drawn.height / 2) * k).toFixed(1)}px`);
     };
     place();
+    // The statement's height, for its screen's length (pages.css,
+    // .bp-hero__next: the screen ends where the statement's middle meets
+    // the window's, so the hold lets go just as it is centred, and it
+    // starts wholly under the first screen): measured now, once the face
+    // has loaded and whenever the window changes size. From 992px, where
+    // the hold holds.
+    const sizeStatement = () => {
+      if (!statement || !wide.matches) return hero.style.removeProperty("--bp-stmt-h");
+      const h = statement.offsetHeight;
+      if (h > 0) hero.style.setProperty("--bp-stmt-h", `${h}px`);
+    };
+    sizeStatement();
+    document.fonts?.ready.then(() => hero.blueprintHero && sizeStatement());
     const field = ground ? mountIsoField(ground) : null;
     const sized = new ResizeObserver(() => {
       place();
+      sizeStatement();
       field?.layout?.();
     });
     if (hold) sized.observe(hold);
     wide.addEventListener("change", place);
+    wide.addEventListener("change", sizeStatement);
 
     // The scroll stirs the network (fourth pass): its keys lift a little as
     // the pointer lifts one, by how fast the page is going either way, and
@@ -128,6 +143,8 @@ export function initBlueprintHero(container) {
       stirs?.kill();
       sized.disconnect();
       wide.removeEventListener("change", place);
+      wide.removeEventListener("change", sizeStatement);
+      hero.style.removeProperty("--bp-stmt-h");
       set?.destroy();
       field?.destroy();
       figure.destroy();

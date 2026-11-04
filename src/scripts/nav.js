@@ -15,7 +15,6 @@ import { lenis, glideTo } from "./scroll.js";
 import { parallaxTravel } from "./parallax.js";
 import { mountIsoField } from "./dot-field.js";
 import { mountWordCycle } from "./word-cycle.js";
-import { mountStackPreview } from "./stack-preview.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { initTextScramble } from "./text-scramble.js";
 import { findGrounds, lastInDocument } from "./grounds.js";
@@ -101,9 +100,6 @@ function initMegaNav() {
   // and each time the dropdown opens the word stands a while before it
   // turns.
   menuWrap.querySelectorAll("[data-word-cycle]").forEach((el) => mountWordCycle(el));
-  // The Free Tech Stacks box's row of cards (stack-preview.js): mounted once
-  // too; it riffles while the pointer is over the box and sleeps otherwise.
-  menuWrap.querySelectorAll("[data-stack-preview-box]").forEach((el) => mountStackPreview(el));
 
   // State
   const state = {

@@ -3,7 +3,9 @@ import { keyed } from './types';
 /* The Ongoing Advisory page's own words (src/pages/advisory.astro), section by
    section, as the Ongoing Advisory page document is shaped
    (studio/schemaTypes/pages/advisory.ts). The four picture slots under
-   Themes Covered are empty until pictures are set in the Studio. */
+   Themes Covered are empty until pictures are set in the Studio; each
+   has its theme's name under it. The quote is not shown since 2026-11-04
+   (the site's testimonials, which open on it, stand in its place). */
 export const advisoryPage = {
   hero: {
     tagline: 'Ongoing Advisory',
@@ -30,6 +32,12 @@ export const advisoryPage = {
   themes: {
     lede: 'Each month rotates based on what matters to your practice',
     heading: 'Themes Covered',
+    // each square's name (2026-11-04): the four parts the opening's loop
+    // names, from the standfirst
+    title1: 'AI',
+    title2: 'BIM',
+    title3: 'Software',
+    title4: 'Workflows',
   },
   impact: {
     lede: 'Monthly sessions compound. Better decisions now mean better foundations later.',

@@ -1,0 +1,112 @@
+---
+/*
+  The Free Tech Stacks page's row of cards (stack-diagnostic.astro, drawn
+  there by stack-space.js) as a still thumbnail, for the Resources
+  dropdown's Free Tech Stacks box (Nav.astro; 2026-11-04, at the user's
+  word: a scaled-down copy of the page's own stack, not a reinterpretation
+  of it).
+
+  The page's own geometry, worked out here once at build time: its view
+  (45° across, the elevation the page takes on a desktop screen of 1440 ×
+  900), its cards (their proportions, corners and spacing), the stacks in
+  the page's order and in its one colour (stack-ecosystem.ts), starting
+  where the page starts (on the first stack's middle card), that stack at
+  full strength and the others faded as the page fades them (a veil of
+  the box's ground over each card, so the cards behind never show
+  through: stack-space.js does the same with the page's), and the dotted
+  brackets on the ground beside each stack. Each card is a group set on its
+  plane by one matrix, exactly as the page's canvas sets each face; its
+  face the page's business-card layout reduced to its shapes (the mark's
+  square, bars for the name and role, the band at its foot), as the words
+  would be too small to read. The row runs on past the box's edges and the
+  box clips it (nav.css, "Resources tiles").
+
+  The only motion: with the pointer over the box the middle card lifts a
+  little, as a card does on the page under the pointer (nav.css).
+*/
+import { SAMPLE_STACKS, STACK_TONE } from "../data/stack-ecosystem";
+
+// the page's view and cards (stack-space.js): CORNER_IN, the elevation for
+// a 1440 × 900 screen, CARD_RATIO, RADIUS, SPACING, the face's measures
+const R2 = Math.SQRT1_2;
+const TAN = Math.min(Math.tan((40 * Math.PI) / 180), Math.max(Math.tan((24 * Math.PI) / 180), 900 / (1440 * (1 - 2 * 0.07))));
+const SIN_E = TAN;
+const COS_E = Math.sqrt(1 - TAN * TAN);
+const CW = 92;
+const CH = CW * 0.62;
+const R = CW * 0.022;
+const SP = CW * 0.3;
+const M = CW * 0.055;
+const L = CW * 0.105;
+const GAP = CW * 0.04;
+const BAND = CH * (1 - 0.26);
+// the thumbnail's frame (its units) and where the row passes its middle
+const W = 460;
+const H = 172;
+const CX = 318;
+const CY = 92;
+const P = (x: number, y: number, z: number) => [CX + (x - y) * R2, CY + (x + y) * R2 * SIN_E - z * COS_E];
+
+// the page's cards in its order: each stack's tools (named and held back)
+const slots = SAMPLE_STACKS.flatMap((s, i) => Array.from({ length: s.toolCount }, (_, k) => ({ stack: i, first: k === 0, last: k === s.toolCount - 1 })));
+const N = slots.length;
+const start = Math.floor((SAMPLE_STACKS[0].toolCount - 1) / 2);
+const REACH = 13;
+const at = (d: number) => slots[(((start + d) % N) + N) % N];
+
+const f = (n: number) => n.toFixed(2);
+// a card's plane: its top-left corner and a unit across and down it
+const planeOf = (s: number) => {
+  const tl = P(-CW / 2, -s, CH / 2);
+  const tr = P(CW / 2, -s, CH / 2);
+  const bl = P(-CW / 2, -s, -CH / 2);
+  return `matrix(${f((tr[0] - tl[0]) / CW)} ${f((tr[1] - tl[1]) / CW)} ${f((bl[0] - tl[0]) / CH)} ${f((bl[1] - tl[1]) / CH)} ${f(tl[0])} ${f(tl[1])})`;
+};
+const shade = (hex: string, t: number) => {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgb(${[(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => Math.round(v * (1 - t))).join(",")})`;
+};
+
+// back to front: the farthest up the row first
+const cards = [];
+for (let d = REACH; d >= -REACH; d--) {
+  const slot = at(d);
+  const tone = STACK_TONE.ground;
+  cards.push({ d, transform: planeOf(d * SP), tone, band: shade(tone, 0.045), lift: d === 0, faded: slot.stack !== at(0).stack });
+}
+// the brackets: a dotted line on the ground beside each stack's run of
+// cards, from its first to its last, its ends turned in
+const brackets = [];
+for (let d = -REACH; d <= REACH; d++) {
+  if (!at(d).first) continue;
+  let e = d;
+  while (!at(e).last && e < d + 12) e++;
+  const s0 = d * SP - CW * 0.02;
+  const s1 = e * SP + CW * 0.02;
+  const xo = CW / 2 + CW * 0.1;
+  const xi = xo - CW * 0.05;
+  const z = -CH / 2;
+  const pts = [P(xi, -s0, z), P(xo, -s0, z), P(xo, -s1, z), P(xi, -s1, z)];
+  brackets.push(pts.map(([x, y]) => `${f(x)},${f(y)}`).join(" "));
+}
+---
+<svg class="resource-tile__thumb" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+  <g class="resource-tile__thumb-brackets">
+    {brackets.map((points) => <polyline points={points} />)}
+  </g>
+  {cards.map((c) => (
+    <g class:list={["resource-tile__thumb-card", { "is--lift": c.lift }]}>
+      <g transform={c.transform}>
+        <rect width={CW} height={CH} rx={R} fill={c.tone} />
+        <path d={`M0 ${f(BAND)}H${f(CW)}V${f(CH - R)}Q${f(CW)} ${f(CH)} ${f(CW - R)} ${f(CH)}H${f(R)}Q0 ${f(CH)} 0 ${f(CH - R)}Z`} fill={c.band} />
+        <rect x={M} y={f(BAND - 0.6)} width={f(CW - 2 * M)} height="0.6" class="is--line" />
+        <rect x={f(M)} y={f(M)} width={f(L)} height={f(L)} rx={f(L * 0.16)} class="is--mark" />
+        <rect x={f(M + L + GAP)} y={f(M + L * 0.18)} width={f(CW * 0.34)} height={f(L * 0.3)} rx={f(L * 0.06)} class="is--name" />
+        <rect x={f(M + L + GAP)} y={f(M + L * 0.66)} width={f(CW * 0.22)} height={f(L * 0.16)} rx={f(L * 0.05)} class="is--role" />
+        <rect x={f(M)} y={f(BAND + (CH - BAND) / 2 - L * 0.08)} width={f(CW * 0.26)} height={f(L * 0.16)} rx={f(L * 0.05)} class="is--role" />
+        <rect width={CW} height={CH} rx={R} class="is--edge" />
+        {c.faded && <rect width={CW} height={CH} rx={R} class="is--veil" />}
+      </g>
+    </g>
+  ))}
+</svg>

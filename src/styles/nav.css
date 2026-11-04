@@ -807,18 +807,11 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
    ground and ink, its name in the top left with its line under it, the
    whole box the link, taking the rows' hover shade and focus ring.
 
-   Free Tech Stacks carries the Stack Diagnostic's row of cards in
-   miniature (stack-preview.js, a Hairline figure), cropped by the box as
-   the page's row is by the screen (2026-11-04): plain cards, the row
-   coming up out of the box's foot, clear of the words, and running on out
-   past its top right. The cards lighter than the box (white on its grey,
-   a lifted grey on its near-black), their edges in the box's ink, dim
-   inside. Second pass (2026-11-04): a supporting illustration, not the
-   dropdown's main attraction: every card alike (none in the red), the
-   row running out past the box's foot and left side as well as its top
-   right, its edges a step quieter, and the pointer over the box only
-   sending a soft wave along it (stack-figure.js). The box a little
-   shorter, the Software Database's under it a little taller. */
+   Free Tech Stacks carries the Free Tech Stacks page's own row of cards in
+   miniature (StackThumb.astro, .resource-tile__thumb below; fourth pass,
+   2026-11-04: before it a flat stack, and before that an isometric
+   Hairline row of plain line cards). The box a little shorter, the
+   Software Database's under it a little taller (second pass). */
 .resource-tile {
   --sc-ground: var(--nav-card-bg);
   --sc-ink: var(--nav-fg);
@@ -865,54 +858,57 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
 
 .resource-tile.is--stacks { min-height: calc(8 * var(--sc-step)); overflow: hidden; }
 .resource-tile.is--stacks > :is(.resource-tile__name, .resource-tile__desc) { position: relative; z-index: 1; }
-/* the crop: the whole box; the drawing's frame (the figure's 400 × 320)
-   larger than it, its middle (the lone card) right of the box's middle
-   and a little low, so the row's front cards come up out of the foot
-   under the words and its back ones run out past the top right */
-.resource-tile__figure {
+/* The thumbnail (StackThumb.astro; 2026-11-04, fourth pass, at the user's
+   word: the Free Tech Stacks page's own row, scaled down, not a flat or
+   tilted reinterpretation of it): the page's cards at its angle, in its
+   one colour, filling the box from its right and running on past its edges,
+   which clip it; under the words, which stay over it. The page's inks: the
+   cards' hairline edge, their marks and bars in a faint ink, the brackets
+   dotted on the ground. With the pointer over the box the middle card
+   lifts a little, on the page's lift; nothing else moves. */
+.resource-tile__thumb {
   position: absolute;
   inset: 0;
-  /* the box's own size, not the kernel's 5:4 */
-  aspect-ratio: auto;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  --hairline-plate: color-mix(in oklab, #ffffff, #262626 var(--nav-dark, 0%));
-  --hairline-edge: color-mix(in srgb, var(--sc-ink) 40%, transparent);
-  --hairline-mid: color-mix(in srgb, var(--sc-ink) 26%, transparent);
-  --hairline-lo: color-mix(in srgb, var(--sc-ink) 13%, transparent);
-  --hairline-hi: color-mix(in srgb, var(--sc-ink) 40%, transparent);
-  --hairline-stroke: 1;
 }
-.resource-tile__figure > svg {
-  position: absolute;
-  inset: auto;
-  left: 76%;
-  top: 63%;
-  /* the frame half again as large as the box: the row in it is long enough
-     (twelve cards either side of the middle) to run on past the box at
-     both ends, whatever its shape, as the page's endless row does */
-  width: 170%;
-  max-width: none;
-  height: auto;
-  aspect-ratio: 5 / 4;
-  translate: -50% -50%;
-  overflow: visible;
+.resource-tile__thumb-brackets polyline {
+  fill: none;
+  stroke: rgba(10, 10, 10, 0.32);
+  stroke-width: 1;
+  stroke-dasharray: 0 3;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
 }
-/* In the drawer, where the box is narrow, the row is a band under the
-   words, cropped by the box's sides and foot */
+.resource-tile__thumb-card .is--edge { fill: none; stroke: rgba(10, 10, 10, 0.1); stroke-width: 0.75; vector-effect: non-scaling-stroke; }
+.resource-tile__thumb-card .is--line { fill: rgba(10, 10, 10, 0.1); }
+.resource-tile__thumb-card .is--mark { fill: rgba(10, 10, 10, 0.08); }
+.resource-tile__thumb-card .is--name { fill: rgba(10, 10, 10, 0.16); }
+.resource-tile__thumb-card .is--role { fill: rgba(10, 10, 10, 0.08); }
+/* the stacks other than the one at the middle, faded into the box's ground
+   as the page fades them (sixth pass: one colour for every card) */
+.resource-tile__thumb-card .is--veil { fill: var(--sc-ground); opacity: 0.45; }
+.resource-tile__thumb-card.is--lift { transition: translate 0.5s cubic-bezier(0.32, 0.72, 0, 1); }
+@media (hover: hover) {
+  .resource-tile.is--stacks:hover .resource-tile__thumb-card.is--lift { translate: 0 -6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .resource-tile__thumb-card.is--lift { transition: none; }
+}
+/* In the drawer, where the box is narrow: the row a band under the words,
+   the box's width, clipped by it */
 @media screen and (max-width: 991px) {
   .resource-tile.is--stacks { min-height: 0; }
-  /* the box alone crops it: the band lets the back cards rise past its
-     top, behind the words' foot */
-  .resource-tile__figure {
+  .resource-tile__thumb {
     position: relative;
     inset: auto;
-    overflow: visible;
-    align-self: stretch;
-    height: calc(8 * var(--sc-step));
-    margin: calc(.25 * var(--sc-step)) calc(-1 * var(--sc-pad)) calc(-1 * var(--sc-step));
+    /* the box's whole width (an svg, it does not stretch to it) */
+    width: calc(100% + 2 * var(--sc-pad));
+    max-width: none;
+    height: calc(7 * var(--sc-step));
+    margin: calc(.5 * var(--sc-step)) calc(-1 * var(--sc-pad)) calc(-1 * var(--sc-step));
   }
-  .resource-tile__figure > svg { left: calc(100% - 9rem); top: 56%; width: clamp(31rem, 255%, 55.5rem); }
 }
 
 /* Blocks — the bar from 992px up. Every functional area is a block of

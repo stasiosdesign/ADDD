@@ -3,9 +3,10 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
 import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
-import SplitHero from "../components/SplitHero.astro";
+import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
+import Testimonials from "../components/Testimonials.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { advisoryPage as D } from "../sanity/defaults/advisory";
 
@@ -16,60 +17,81 @@ import { advisoryPage as D } from "../sanity/defaults/advisory";
 // every button leads stay here. Each element names the field it shows
 // (data-page-field) so the Studio's Visual editor can outline it and write
 // drafts into it; each list names its blocks (data-page-list, data-page-item).
+//
+// Second pass (2026-11-04): the page brought into the service pages'
+// family, its sections, order and words kept. A light page under a dark
+// opening, as Before Revit, the Workflow Workshop and the Technology
+// Blueprint are (it was dark throughout), its grounds taking turns: the
+// statement in the opening's hold (Before Revit's); How it Works in
+// Before Revit's numbered rows on dotted rules; the themes as four
+// captioned squares, named as the opening's loop names them; the gains
+// and the comparison one dark band, the gains the homepage's banded cards
+// set out as a stair by the scroll; the prices in the Workshop's cards;
+// the quote the site's testimonials (which open on it); the questions on
+// the light ground the other pages' are on. Styles: pages.css, "Ongoing
+// Advisory".
 const { t, list, lines, bg } = reader(await pageDocument(Astro.locals.sanity, "advisoryPage"), D);
 
 const structureTiles = list<{ _key: string; title?: string; text?: string }>("structure.tiles");
 const impactTiles = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string }>("impact.tiles");
 const rows = list<{ _key: string; label?: string; ours?: string; others?: string }>("difference.rows");
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
+const pad2 = (n: number) => String(n).padStart(2, "0");
 
-// The four theme squares keep their shape, with a picture behind each once one is set
-const square = (path: string) => {
-  const picture = bg(path);
-  return picture ? `aspect-ratio:1/1;${picture}` : "aspect-ratio:1/1";
-};
-
-// The two price cards, by position: the membership, then the Technology Blueprint
-const card = (i: number) => ({
-  title: t(`pricing.cards.${i}.title`),
-  subtitle: t(`pricing.cards.${i}.subtitle`),
-  pricePrefix: t(`pricing.cards.${i}.pricePrefix`),
-  price: t(`pricing.cards.${i}.price`),
-  priceSuffix: t(`pricing.cards.${i}.priceSuffix`),
-  note: t(`pricing.cards.${i}.note`),
-  includes: lines(`pricing.cards.${i}.includes`),
-  button: t(`pricing.cards.${i}.button`),
-});
-const membership = card(0);
-const blueprint = card(1);
+// The four themes: a square picture each, once one is set in the Studio,
+// and the theme's name under it
+const themes = [1, 2, 3, 4].map((n) => ({
+  n,
+  title: t(`themes.title${n}`),
+  titleField: `themes.title${n}`,
+  imageField: `themes.image${n}`,
+  picture: bg(`themes.image${n}`),
+}));
 ---
 <BaseLayout
   title="Ongoing Advisory — ADDD"
   description="Ongoing Advisory is strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities."
   pageName="Ongoing Advisory"
-  theme="dark"
   doc={{ id: "advisoryPage" }}
 >
-<main class="page--dark page--grid">
+<main class="page--grid page--advisory">
 
-  <!-- The opening (SplitHero.astro), as every service page's, in its dark
-       version for this dark page: the label and the heading large on the
-       left, the standfirst and the buttons on a charcoal panel on the
-       right, the red block under it -->
-  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")} dark>
+  <!-- The opening (2026-11-04): the Before Revit hero's composition, light
+       and motion (BeforeRevitHero.astro) with a drawing of its own (figure
+       "cycle", cycle-figure.js): on black in the red light, the heading,
+       the standfirst and the two buttons on the left; on the right the
+       practice as a platform with its parts round it on one loop, and a
+       session, a frame floating over the loop, going round it as the page
+       scrolls, each part stepping up as it is reached and the middle as it
+       comes home. Its words are this page's own: the standfirst's AI, BIM,
+       software and workflows on the parts, its digital priorities on the
+       middle, and the monthly session (How it Works) on the frame. The
+       statement comes up in the hold as the words go, as Before Revit's
+       does (second pass: it stood in a section of its own under the
+       opening). -->
+  <BeforeRevitHero
+    figure="cycle"
+    heading={t("hero.heading")}
+    lede={t("hero.lede")}
+    statement={t("statement.statement")}
+    statementField="statement.statement"
+    marks={false}
+    words={{
+      frame: "Monthly session",
+      platform: "Digital priorities",
+      tags: ["AI", "BIM", "Software", "Workflows"],
+    }}
+  >
     <Fragment slot="actions">
       <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
-  </SplitHero>
+  </BeforeRevitHero>
 
-  <section class="section section--dark">
-    <div class="container">
-      <p class="statement" data-split="heading" data-page-field="statement.statement">{t("statement.statement")}</p>
-    </div>
-  </section>
-
-  <section class="section section--dark">
+  <!-- How it Works: Before Revit's How it works (its light ground, heading
+       row and rows on the site's dotted rule), the membership's five parts
+       numbered in order -->
+  <section class="section section--light" id="how-it-works">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="structure.lede">{t("structure.lede")}</p>
@@ -79,18 +101,25 @@ const blueprint = card(1);
         </div>
       </div>
 
-      <div class="grid grid--3 grid--mt" data-page-list="structure.tiles">
-        {structureTiles.map((item) => (
-        <article class="tile" data-page-item={item._key}>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
-        </article>
+      <div class="steps" data-page-list="structure.tiles">
+        {structureTiles.map((item, i) => (
+        <div class="steps__item" data-page-item={item._key}>
+          <p class="tagline tagline--sm steps__label">{pad2(i + 1)} / {pad2(structureTiles.length)}</p>
+          <div class="steps__body">
+            <h3 class="h4" data-page-item-field="title">{item.title}</h3>
+            <p data-page-item-field="text">{item.text}</p>
+          </div>
+        </div>
         ))}
       </div>
     </div>
   </section>
 
-  <section class="section section--dark">
+  <!-- Themes Covered: four squares on the white, a picture in each once
+       one is set in the Studio (until then the site's stand-in for
+       photography, .ph), each captioned under a hairline with its number
+       and the theme's name (the four parts on the opening's loop) -->
+  <section class="section adv-themes">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="themes.lede">{t("themes.lede")}</p>
@@ -98,16 +127,28 @@ const blueprint = card(1);
           <h2 class="h2" data-split="heading" data-page-field="themes.heading">{t("themes.heading")}</h2>
         </div>
       </div>
-      <div class="grid grid--4 grid--mt">
-        <div class="ph" style={square("themes.image1")} data-page-bg="themes.image1"></div>
-        <div class="ph" style={square("themes.image2")} data-page-bg="themes.image2"></div>
-        <div class="ph" style={square("themes.image3")} data-page-bg="themes.image3"></div>
-        <div class="ph" style={square("themes.image4")} data-page-bg="themes.image4"></div>
-      </div>
+      <ul class="adv-themes__grid" role="list">
+        {themes.map((theme) => (
+        <li class="adv-theme">
+          <div class:list={["adv-theme__picture", { ph: !theme.picture }]} style={theme.picture} data-page-bg={theme.imageField}></div>
+          <p class="adv-theme__caption">
+            <span class="adv-theme__n">{pad2(theme.n)}</span>
+            <span class="adv-theme__name" data-page-field={theme.titleField}>{theme.title}</span>
+          </p>
+        </li>
+        ))}
+      </ul>
     </div>
   </section>
 
-  <section class="section section--dark">
+  <!-- What your practice gains over time, and why the membership stands
+       apart: one dark band. The gains are the homepage's banded cards
+       (approach-stack.css, .step-card: the number in its square, the title
+       beside it, the label and the line under them), set out as a stair by
+       the scroll as the homepage's cost cards are (parallax.js,
+       data-problem-parallax): as the row rises, the later gains rise above
+       the earlier, as monthly sessions compound. -->
+  <section class="section section--dark adv-gains">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="impact.lede">{t("impact.lede")}</p>
@@ -117,20 +158,27 @@ const blueprint = card(1);
         </div>
       </div>
 
-      <div class="grid grid--4 grid--mt" data-page-list="impact.tiles">
+      <div class="adv-gains__row" data-problem-parallax data-problem-parallax-step="2.5" data-page-list="impact.tiles">
         {impactTiles.map((item) => (
-        <article class="tile" data-page-item={item._key}>
-          <p class="tile__num" data-page-item-field="number">{item.number}</p>
-          <p class="tagline tagline--sm" data-page-item-field="tagline">{item.tagline}</p>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
+        <article class="step-card adv-gain" data-page-item={item._key}>
+          <header class="step-card__head">
+            <span class="step-card__badge" data-page-item-field="number">{item.number}</span>
+            <h3 class="step-card__title" data-page-item-field="title">{item.title}</h3>
+          </header>
+          <div class="step-card__foot">
+            <p class="step-card__tagline" data-page-item-field="tagline">{item.tagline}</p>
+            <p class="step-card__p" data-page-item-field="text">{item.text}</p>
+          </div>
         </article>
         ))}
       </div>
     </div>
   </section>
 
-  <section class="section section--dark">
+  <!-- the comparison, on the same dark: its rows on the site's dotted rule,
+       the Ongoing Advisory column lit a tone up the cards' and opened by a
+       red rule, its answers each marked in red, the other column quiet -->
+  <section class="section section--dark adv-compare-sec">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="difference.lede">{t("difference.lede")}</p>
@@ -140,20 +188,29 @@ const blueprint = card(1);
         </div>
       </div>
 
-      <table class="table">
-        <thead>
-          <tr><th></th><th>Ongoing Advisory</th><th>Other</th></tr>
+      <!-- a table, its rows laid out as grids (pages.css), so it keeps
+           its roles -->
+      <table class="adv-compare" role="table">
+        <thead role="rowgroup">
+          <tr role="row"><th role="columnheader"><span class="visually-hidden">What is compared</span></th><th class="is--ours" role="columnheader" scope="col">Ongoing Advisory</th><th role="columnheader" scope="col">Other</th></tr>
         </thead>
-        <tbody data-page-list="difference.rows">
+        <tbody role="rowgroup" data-page-list="difference.rows">
           {rows.map((row) => (
-          <tr data-page-item={row._key}><td data-page-item-field="label">{row.label}</td><td data-page-item-field="ours">{row.ours}</td><td data-page-item-field="others">{row.others}</td></tr>
+          <tr role="row" data-page-item={row._key}>
+            <th role="rowheader" scope="row" data-page-item-field="label">{row.label}</th>
+            <td role="cell" class="is--ours"><span class="adv-compare__mark" aria-hidden="true"></span><span data-page-item-field="ours">{row.ours}</span></td>
+            <td role="cell"><span data-page-item-field="others">{row.others}</span></td>
+          </tr>
           ))}
         </tbody>
       </table>
     </div>
   </section>
 
-  <section class="section section--dark" id="pricing">
+  <!-- Membership pricing: the Workflow Workshop's price cards (workshop.css,
+       .ws-price), the membership and the Technology Blueprint side by side,
+       each with its name, its price, what it includes and its way on -->
+  <section class="section adv-pricing" id="pricing">
     <div class="container">
       <div class="section-title">
         <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
@@ -163,56 +220,51 @@ const blueprint = card(1);
         </div>
       </div>
 
-      <div class="grid grid--2 grid--mt">
-        <article class="price-card">
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field="pricing.cards.0.title">{membership.title}</h3>
-            <p data-page-field="pricing.cards.0.subtitle">{membership.subtitle}</p>
-            <div class="price">{membership.pricePrefix && <Fragment><span data-page-field="pricing.cards.0.pricePrefix">{membership.pricePrefix}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.0.price">{membership.price}</span>{membership.priceSuffix && <span data-page-field="pricing.cards.0.priceSuffix">{membership.priceSuffix}</span>}</div>
-            {membership.note && <p class="text-sm" data-page-field="pricing.cards.0.note">{membership.note}</p>}
+      <div class="adv-pricing__grid">
+        {[0, 1].map((n) => {
+          const f = `pricing.cards.${n}`;
+          const includes = lines(`${f}.includes`);
+          return (
+        <article class="ws-price">
+          <div class="ws-price__head">
+            <div class="ws-price__name">
+              <h3 class="ws-card__title" data-page-field={`${f}.title`}>{t(`${f}.title`)}</h3>
+              {t(`${f}.subtitle`) && <p data-page-field={`${f}.subtitle`}>{t(`${f}.subtitle`)}</p>}
+            </div>
+            <div class="ws-price__amount">
+              {t(`${f}.pricePrefix`) && <span class="ws-price__affix" data-page-field={`${f}.pricePrefix`}>{t(`${f}.pricePrefix`)}</span>}
+              <span class="ws-price__figure" data-page-field={`${f}.price`}>{t(`${f}.price`)}</span>
+              {t(`${f}.priceSuffix`) && <span class="ws-price__affix" data-page-field={`${f}.priceSuffix`}>{t(`${f}.priceSuffix`)}</span>}
+            </div>
+            {t(`${f}.note`) && <p class="adv-pricing__note" data-page-field={`${f}.note`}>{t(`${f}.note`)}</p>}
           </div>
-          <ul class="check-list">
-            {membership.includes.map((line, j) => (
-            <li data-page-field={`pricing.cards.0.includes.${j}`}>{line}</li>
-            ))}
-          </ul>
-          <ActionButton href="contact.html"><span data-page-field="pricing.cards.0.button">{membership.button}</span></ActionButton>
-        </article>
-
-        <article class="price-card">
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field="pricing.cards.1.title">{blueprint.title}</h3>
-            <p data-page-field="pricing.cards.1.subtitle">{blueprint.subtitle}</p>
-            <div class="price">{blueprint.pricePrefix && <Fragment><span data-page-field="pricing.cards.1.pricePrefix">{blueprint.pricePrefix}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.1.price">{blueprint.price}</span>{blueprint.priceSuffix && <span data-page-field="pricing.cards.1.priceSuffix">{blueprint.priceSuffix}</span>}</div>
-            {blueprint.note && <p class="text-sm" data-page-field="pricing.cards.1.note">{blueprint.note}</p>}
+          {includes.length > 0 && (
+          <div class="ws-price__includes">
+            <ul class="ws-checks">
+              {includes.map((line, j) => (
+              <li data-page-field={`${f}.includes.${j}`}><span>{line}</span></li>
+              ))}
+            </ul>
           </div>
-          <ul class="check-list">
-            {blueprint.includes.map((line, j) => (
-            <li data-page-field={`pricing.cards.1.includes.${j}`}>{line}</li>
-            ))}
-          </ul>
-          <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{blueprint.button}</span></ActionButton>
+          )}
+          {n === 0 ? (
+          <ActionButton href="contact.html"><span data-page-field={`${f}.button`}>{t(`${f}.button`)}</span></ActionButton>
+          ) : (
+          <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field={`${f}.button`}>{t(`${f}.button`)}</span></ActionButton>
+          )}
         </article>
+          );
+        })}
       </div>
     </div>
   </section>
 
-  <section class="section section--dark">
-    <div class="container">
-      <div class="case__quote-inner" style="margin:0 auto">
-        <blockquote class="quote">&ldquo;<span data-page-field="quote.quote">{t("quote.quote")}</span>&rdquo;</blockquote>
-        <div class="avatar">
-          <div class="avatar__img" style="background:var(--c-light-fg)"></div>
-          <div>
-            <p class="avatar__name" data-page-field="quote.name">{t("quote.name")}</p>
-            <p data-page-field="quote.role">{t("quote.role")}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+  <!-- the site's testimonials, the same block as the homepage's, the
+       Workshop's and the Blueprint's (Testimonials.astro), which opens on
+       the quote this page carried (Sarah Mitchell, ADAM Architecture) -->
+  <Testimonials />
 
-  <FaqSection class="section--dark">
+  <FaqSection>
       <!-- the site's FAQ panel (FaqPanel.astro), each
        question with its icon, and Book a Free Call as its last item -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
