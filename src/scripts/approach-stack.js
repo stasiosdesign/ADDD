@@ -67,7 +67,10 @@ export function mountApproachStack(root, { lenis } = {}) {
   // from the field's top.
   const field = root.querySelector("[data-approach-stack-field]");
   const fieldDots = root.querySelector("[data-approach-stack-field-dots]");
-  const band = root.closest(".ink-band") ?? root;
+  // the band: the homepage's ink band, or a light page's band of its own
+  // (data-dot-band: the Technology Blueprint's Practices wall and its
+  // benefits, 2026-11-04), so a logo wall over the stack keeps to its dots
+  const band = root.closest(".ink-band, [data-dot-band]") ?? root;
   const DOT = 2;
   // the field as set out: its pitch, and the middles of one of its
   // columns (x) and one of its rows (y), in its own box

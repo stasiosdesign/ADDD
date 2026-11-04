@@ -1,5 +1,6 @@
 import {client} from './documents/client'
 import {newsletterIssue, report} from './documents/insights'
+import {techStack} from './documents/tech-stack'
 import {compareRow, faqItem, priceCard, quote, step, tile} from './objects/blocks'
 import {aboutPage} from './pages/about'
 import {advisoryPage} from './pages/advisory'
@@ -47,6 +48,7 @@ export const schemaTypes = [
   contactPage,
   report,
   newsletterIssue,
+  techStack,
   client,
   tile,
   step,

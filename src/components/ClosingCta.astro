@@ -1,12 +1,19 @@
 ---
 /*
   The closing call to action every content page ends on (2026-11-04, after
-  the reference the user supplied): on white, a diagram the window's full
-  width of eight software marks in white rings, their thin lines turning
-  in to the ADDD mark in the middle, and under the mark the heading, a
+  the reference the user supplied): on the FAQs' field of dots, a diagram
+  the window's full width of eight software marks in white rings, their
+  thin lines turning in to the ADDD mark alone in the middle, all set out
+  on the dots, and under the mark the heading, a
   line where the page has one, and the buttons, all centred (styles:
   styles.css, "CTA"; drawn in by cta-diagram.js). The newsletter signup is
   in the footer (Footer.astro).
+
+  After a light FAQ (the Technology Blueprint, the Workflow Workshop) the
+  two sections are one ground: the call's dots carry on the FAQ's lattice
+  across the boundary (data-dot-follow), the diagram held to its rows, and
+  the lines that rise out of the call run on up into the FAQ's foot,
+  fading; elsewhere they fade out before the call's top.
 
   The words are the Closing call to action section of the Home page document
   in Sanity (src/sanity/defaults/home.ts while nothing is published), so one
@@ -46,42 +53,56 @@ const {
 const field = (doc as { field?: string }).field ?? "closingCta";
 
 // The diagram over the call (2026-11-04, after the reference the user
-// supplied): eight software marks in white rings, four either side,
-// mirror images about the page's middle, each joined to the ADDD mark in
-// the middle by a thin line that runs level, turns at 45° and joins one
-// level line (the bus) into the mark, every turn rounded; and each runs on
-// out past its ring, at 45°, off the top or the foot. In the reference's
-// own units: a composition 1074 wide (its middle at 537), the bus 232
-// down, the rings 22 round, the mark 80 square. cta.css sizes a unit
-// (--u) so it reads at the reference's size on a laptop and fits a phone;
-// cta-diagram.js draws it in when it comes into view.
-const MID = 537;
-const BUS = 232;
+// supplied): eight software marks in white rings, four either side, each
+// joined to the ADDD mark in the middle by a thin line that leaves it along
+// one level line (the bus), turns off at 45° and runs level into its ring,
+// every turn rounded; and each runs on out past its ring, away from the
+// middle, turning again, until it leaves the screen at the side or rises
+// out of the call towards the section above, fading as it goes. In the
+// reference's own units: the bus 240 down from the call's top, the rings 22
+// round, the mark 68 across. styles.css sizes a unit (--u) so the whole
+// stands on the section's field of dots; cta-diagram.js draws it in when it
+// comes into view.
+//
+// Third pass (2026-11-04): no longer two mirror images. The two sides
+// balance but differ: on each, the line that leaves the bus first climbs
+// highest, so no two lines cross; the left has two lines rising out of the
+// call, the right one; the others leave by the sides at different heights.
+// Every ring, turn and line is set out in steps of the field of dots (a
+// step, STEP units, is the dots' pitch), across from the column either side
+// of the page's middle (the FAQs' columns stand either side of it, so the
+// mark, in the middle, stands between two and every x below is a half
+// step), down from the bus, which runs along a row; the layout was checked
+// for crossings, near misses and each ring's and name's clearance by a
+// script, kept with its notes in the session that made it.
+const MID = 1800;
+const BUS = 240;
 const RING = 22;
-const HUB = 80;
+const STEP = 12;
+const LOGO = 68;
+// how far above the call's top the drawing reaches (its risers, faded),
+// and how far down it runs, in units
+const RISE = 180;
+const DEPTH = 560;
+// out past either side: further than the widest screen shows
+const FAR = 150;
+// the risers' tops, in steps up from the bus
+const TOP = -32;
 type Pt = [number, number];
-// the left four, from the top: the ring's middle, its route from the
-// mark's edge out to it (the ring's middle last), and where its line
-// runs off past it; the right four are these mirrored
-const LEFT: { at: Pt; route: Pt[]; out: Pt }[] = [
-  { at: [132, 57], route: [[497, 232], [375, 232], [200, 57], [132, 57]], out: [52, -23] },
-  { at: [302, 88], route: [[497, 232], [477, 232], [440, 195], [357, 195], [302, 140], [302, 88]], out: [202, -12] },
-  { at: [137, 160], route: [[497, 232], [342, 232], [270, 160], [137, 160]], out: [-43, -20] },
-  { at: [225, 260], route: [[497, 232], [290, 232], [262, 260], [225, 260]], out: [-415, 900] },
+const at = ([sx, sy]: Pt): Pt => [MID + sx * STEP, BUS + sy * STEP];
+// each mark: its ring's middle, its route from the middle out to it (the
+// ring's middle last), and its line on out past it (the ring's middle
+// first), in steps; the left four from the top, then the right four
+const LAYOUT: { name: string; src: string; w?: number; h?: number; at: Pt; route: Pt[]; out: Pt[] }[] = [
+  { name: "Bluebeam", src: "/assets/logos/software/bluebeam-mark.svg", w: 20, h: 20, at: [-21.5, -14], route: [[0, 0], [-4.5, 0], [-18.5, -14], [-21.5, -14]], out: [[-21.5, -14], [-29.5, -14], [-34.5, -19], [-34.5, TOP]] },
+  { name: "Rhino", src: "/assets/logos/software/rhino-icon.svg", at: [-37.5, -9], route: [[0, 0], [-8.5, 0], [-17.5, -9], [-37.5, -9]], out: [[-37.5, -9], [-44.5, -9], [-50.5, -15], [-50.5, TOP]] },
+  { name: "Adobe", src: "/assets/logos/software/adobe.svg", at: [-31.5, -3], route: [[0, 0], [-13.5, 0], [-16.5, -3], [-31.5, -3]], out: [[-31.5, -3], [-42.5, -3], [-47.5, 2], [-FAR, 2]] },
+  { name: "Figma", src: "/assets/logos/software/figma.svg", at: [-28.5, 6], route: [[0, 0], [-19.5, 0], [-25.5, 6], [-28.5, 6]], out: [[-28.5, 6], [-34.5, 6], [-41.5, 13], [-FAR, 13]] },
+  { name: "ChatGPT", src: "/assets/logos/software/chatgpt.svg", at: [36.5, -14], route: [[0, 0], [4.5, 0], [18.5, -14], [36.5, -14]], out: [[36.5, -14], [44.5, -14], [48.5, -18], [48.5, TOP]] },
+  { name: "Notion", src: "/assets/logos/software/notion.svg", at: [21.5, -8], route: [[0, 0], [8.5, 0], [16.5, -8], [21.5, -8]], out: [[21.5, -8], [46.5, -8], [49.5, -11], [FAR, -11]] },
+  { name: "Slack", src: "/assets/logos/software/slack.svg", at: [42.5, -2], route: [[0, 0], [15.5, 0], [17.5, -2], [42.5, -2]], out: [[42.5, -2], [FAR, -2]] },
+  { name: "Google", src: "/assets/logos/software/google.svg", at: [32.5, 6], route: [[0, 0], [22.5, 0], [28.5, 6], [32.5, 6]], out: [[32.5, 6], [38.5, 6], [47.5, 15], [FAR, 15]] },
 ];
-// the marks, the left's from the top then the right's (the vendors' own
-// files, public/assets/logos/software)
-const MARKS = [
-  { name: "Rhino", src: "/assets/logos/software/rhino-icon.svg" },
-  { name: "Bluebeam", src: "/assets/logos/software/bluebeam-mark.svg", w: 20, h: 20 },
-  { name: "Adobe", src: "/assets/logos/software/adobe.svg" },
-  { name: "Figma", src: "/assets/logos/software/figma.svg" },
-  { name: "ChatGPT", src: "/assets/logos/software/chatgpt.svg" },
-  { name: "Notion", src: "/assets/logos/software/notion.svg" },
-  { name: "Slack", src: "/assets/logos/software/slack.svg" },
-  { name: "Google", src: "/assets/logos/software/google.svg" },
-];
-const mirror = ([x, y]: Pt): Pt => [2 * MID - x, y];
 // a polyline with its inner corners rounded (a quadratic turn of r)
 const rounded = (pts: Pt[], r = 12) => {
   let d = `M${pts[0][0]} ${pts[0][1]}`;
@@ -98,12 +119,16 @@ const rounded = (pts: Pt[], r = 12) => {
   const z = pts[pts.length - 1];
   return `${d} L${z[0]} ${z[1]}`;
 };
-const nodes = [
-  ...LEFT.map((n) => n),
-  ...LEFT.map((n) => ({ at: mirror(n.at), route: n.route.map(mirror), out: mirror(n.out) })),
-].map((n, i) => ({ ...n, mark: MARKS[i], d: rounded(n.route), dOut: `M${n.at[0]} ${n.at[1]} L${n.out[0]} ${n.out[1]}` }));
-// the order they are drawn in: nearest the middle first, the two sides together
-const order = [3, 7, 2, 6, 1, 5, 0, 4];
+const length = (pts: Pt[]) => pts.slice(1).reduce((sum, p, i) => sum + Math.hypot(p[0] - pts[i][0], p[1] - pts[i][1]), 0);
+const nodes = LAYOUT.map((n) => ({
+  ...n,
+  ring: at(n.at),
+  d: rounded(n.route.map(at)),
+  dOut: rounded(n.out.map(at)),
+  reach: length(n.route),
+}));
+// the order they are drawn in: the shortest route first, whichever side
+const order = nodes.map((_, i) => i).sort((a, b) => nodes[a].reach - nodes[b].reach);
 const { t } = reader(await pageDocument(Astro.locals.sanity, doc.id), doc.defaults);
 // The block names its document for the Visual editor: the Home page's,
 // unless the page passed its own
@@ -112,30 +137,35 @@ const scope = { "data-page-doc": doc.id, "data-page-type": doc.id };
 const lede = t(`${field}.lede`);
 ---
 <section class:list={["cta", { "cta--blue": accent === "blue" }]} {...scope}>
-  <!-- the diagram: the lines, then the rings over their ends, then the
-       mark in the middle; decoration (the words below say it) -->
-  <svg class="cta__diagram" viewBox={`${MID - 1040} 0 2080 560`} preserveAspectRatio="xMidYMin slice" aria-hidden="true" focusable="false" data-cta-diagram>
+  <!-- the ground: the FAQs' field of dots, the section's whole width and
+       height, set out from the mark (styles.css); after a light FAQ it
+       carries on that section's own dots, unbroken across the boundary
+       (dot-field.js, data-dot-follow) -->
+  <span class="cta__dots dot-grid band-field" data-dot-follow aria-hidden="true"></span>
+  <!-- the diagram, on the dots: the lines, then the rings over their ends,
+       then the mark in the middle; decoration (the words below say it). It
+       reaches RISE above the call's top, for the lines rising out of it,
+       and holds its drawing to the bus's row of dots (--cta-snap,
+       cta-diagram.js) -->
+  <svg class="cta__diagram" viewBox={`0 ${-RISE} ${2 * MID} ${RISE + DEPTH}`} preserveAspectRatio="xMidYMin slice" aria-hidden="true" focusable="false" data-cta-diagram data-cta-bus={BUS} data-cta-rise={RISE}>
     <g class="cta__lines">
-      {order.map((i) => <path d={nodes[i].dOut} pathLength="1" data-cta-out />)}
-      {order.map((i) => <path d={nodes[i].d} pathLength="1" data-cta-route />)}
+      {order.map((i) => <path d={nodes[i].dOut} data-cta-out />)}
+      {order.map((i) => <path d={nodes[i].d} data-cta-route />)}
     </g>
-    <ellipse class="cta__hub-shade" cx={MID} cy={BUS + 58} rx="74" ry="30" />
     {order.map((i) => {
       const n = nodes[i];
-      const w = n.mark.w ?? 22, h = n.mark.h ?? 22;
+      const w = n.w ?? 22, h = n.h ?? 22;
+      const [x, y] = n.ring;
       return (
         <g class="cta__node" data-cta-node>
-          <circle class="cta__ring" cx={n.at[0]} cy={n.at[1]} r={RING} />
-          <image href={n.mark.src} x={n.at[0] - w / 2} y={n.at[1] - h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet" />
-          <text class="cta__name" x={n.at[0]} y={n.at[1] + RING + 15} text-anchor="middle">{n.mark.name}</text>
+          <circle class="cta__ring" cx={x} cy={y} r={RING} />
+          <image href={n.src} x={x - w / 2} y={y - h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet" />
+          <text class="cta__name" x={x} y={y + RING + 15} text-anchor="middle">{n.name}</text>
         </g>
       );
     })}
     <g class="cta__hub" data-cta-hub>
-      <rect class="cta__hub-tile" x={MID - HUB / 2} y={BUS - HUB / 2} width={HUB} height={HUB} rx="15" />
-      <rect class="cta__hub-lid" x={MID - HUB / 2 + 1} y={BUS - HUB / 2 + 1} width={HUB - 2} height={HUB - 2} rx="14" />
-      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => <circle class="cta__hub-screw" cx={MID + sx * (HUB / 2 - 10)} cy={BUS + sy * (HUB / 2 - 10)} r="2.6" />)}
-      <image href="/assets/logo.svg" x={MID - 26} y={BUS - 26} width="52" height="52" />
+      <image href="/assets/logo.svg" x={MID - LOGO / 2} y={BUS - LOGO / 2} width={LOGO} height={LOGO} />
     </g>
   </svg>
   <div class="cta__grid">

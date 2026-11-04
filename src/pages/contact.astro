@@ -53,25 +53,27 @@ const year = new Date().getFullYear();
               <!-- the hardware, after the reference: the strap's sewn end, a
                    ring, a swivel and a lobster clasp, its claw through the
                    slot in the holder's tab -->
-              <svg class="lanyard__hook" viewBox="0 0 120 196" aria-hidden="true" focusable="false">
-                <rect x="0" y="0" width="120" height="36" rx="3" />
-                <circle class="lanyard__ring" cx="60" cy="58" r="20" />
-                <circle cx="60" cy="86" r="8.5" />
-                <rect x="55" y="90" width="10" height="24" rx="2" />
-                <path d="M46 112h28l-4 44a10 10 0 0 1-20 0z" />
-                <path class="lanyard__claw" d="M53 152c-14 10-11 37 8 38c17 1 24-17 15-27" />
+              <svg class="lanyard__hook" viewBox="0 0 120 167" aria-hidden="true" focusable="false">
+                <rect x="0" y="0" width="120" height="27" rx="3" />
+                <circle class="lanyard__ring" cx="60" cy="46" r="17" />
+                <circle cx="60" cy="70" r="7.5" />
+                <rect x="55" y="72" width="10" height="19" rx="2" />
+                <path d="M46 89h28l-4 30a10 10 0 0 1-20 0z" />
+                <path class="lanyard__claw" d="M53 123c-14 10-11 37 8 38c17 1 24-17 15-27" />
               </svg>
               <div class="lanyard__card" data-lanyard-card>
                 <span class="lanyard__tab" aria-hidden="true"><span class="lanyard__slot"></span></span>
                 <div class="lanyard__face">
                   <p class="lanyard__top"><span>ADDD Pass</span><span>{year}</span></p>
-                  <span class="lanyard__logo"><img src="/assets/logo.svg" width="100" height="100" alt="ADDD"></span>
+                  <!-- the lockup: the ADDD mark whole, and Allister's face
+                       behind it as a crescent, looking towards it -->
+                  <span class="lanyard__lockup">
+                    <span class="lanyard__portrait"><img src="/assets/images/allister-headshot-bw-crop.webp" width="560" height="700" alt="" decoding="async" draggable="false"></span>
+                    <span class="lanyard__logo"><img src="/assets/logo.svg" width="100" height="100" alt="ADDD"></span>
+                  </span>
                   <div class="lanyard__person">
-                    <img class="lanyard__photo" src="/assets/images/allister-headshot-bw-crop.webp" width="96" height="96" alt="" decoding="async" draggable="false">
-                    <div>
-                      <p class="lanyard__name">Allister Lewis</p>
-                      <p class="lanyard__role">Architect &amp; technology strategist</p>
-                    </div>
+                    <p class="lanyard__name">Allister Lewis</p>
+                    <p class="lanyard__role">Architect &amp; technology strategist</p>
                   </div>
                   <div class="lanyard__book">
                     <ActionButton type="button" data-booking-open="book-call" aria-haspopup="dialog" aria-controls="book-call">Book a Free Call</ActionButton>

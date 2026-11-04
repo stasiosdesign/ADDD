@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
-import SplitHero from "../components/SplitHero.astro";
+import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import BookCall from "../components/BookCall.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
@@ -27,16 +27,19 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
 >
 <main class="page--grid">
 
-  <!-- The opening (SplitHero.astro), as every service page's: the label
-       and the heading large on the left, the standfirst and the buttons on
-       a light panel on the right, the red block under it. "Inquire" goes to
-       the Contact page; "View Pricing" glides down to the prices. -->
-  <SplitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+  <!-- The opening (BeforeRevitHero.astro, 2026-11-04, after the
+       reference): dark, the words large on the left, the exploded box
+       glowing red on the right, held while the words scroll away, its frame
+       then landing on the platform. "Inquire" goes to the Contact page;
+       "View Pricing" glides down to the prices. The red block that stands
+       under every service page's opening stays under it. -->
+  <BeforeRevitHero heading={t("hero.heading")} lede={t("hero.lede")}>
     <Fragment slot="actions">
       <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
-  </SplitHero>
+  </BeforeRevitHero>
+  <div class="split-hero__red" aria-hidden="true"></div>
 
   <section class="section section--light" id="how-it-works">
     <div class="container">

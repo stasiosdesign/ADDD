@@ -10,6 +10,7 @@ export const stackDiagnosticPage = {
     lede: 'A short, focused assessment of the technology your practice actually runs—what each tool is for, who depends on it, where two tools do the same job, and which parts of the stack no longer earn their place.',
     button: 'Access the Free Stack',
     linkLabel: 'How it works',
+    legend: 'Each card is a piece of software. Cards that stand together in one tone are a curated stack, tools chosen to work together on one workflow: open any of them to see the stack.',
   },
   fit: {
     lede: 'The Stack Diagnostic suits practices that have accumulated tools faster than they have retired them, and now need one clear picture before deciding anything else.',

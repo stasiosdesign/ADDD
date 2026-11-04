@@ -9,9 +9,9 @@ import ClosingCta from "../components/ClosingCta.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ApproachStack from "../components/ApproachStack.astro";
 import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
-import BookCall from "../components/BookCall.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import LayersDiagram from "../components/LayersDiagram.astro";
+import PracticesWall from "../components/PracticesWall.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { blueprintPage as D } from "../sanity/defaults/blueprint";
 import NavLinkLabel from "../components/NavLinkLabel.astro";
@@ -65,12 +65,14 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
 <main class="page--grid">
 
   <!-- The opening (BlueprintHero.astro, 2026-11-04, after the reference):
-       the words and the buttons on the left, and on the right the network
-       of the practices' systems on the Blueprint's dash-dot lattice, the red
-       block under it showing across the screen's foot. "Start a Blueprint"
-       opens the booking calendar (a demonstration for now:
+       the network of the practices' systems in the upper right on the
+       Blueprint's dash-dot lattice, fading out towards the words in the
+       lower left (the buttons, the standfirst, then the heading at the
+       foot); the network held in place while the words scroll away and the
+       statement comes up after them, then going on up with it. "Start a
+       Blueprint" opens the booking calendar (a demonstration for now:
        BookingDialog.astro); the second button goes down to the roadmap. -->
-  <BlueprintHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")}>
+  <BlueprintHero heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
       <ActionButton type="button" data-booking-open="blueprint-booking" aria-haspopup="dialog" aria-controls="blueprint-booking"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
       <ActionButton href="#delivery" variant="secondary" arrow="down"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span></ActionButton>
@@ -94,15 +96,27 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
        on a field of ink dots, each with a live drawing (the hub settling
        into one picture for coherence, the towers of impact for direction,
        the layers opened for waste) -->
+  <!-- Practices We've Worked With: the homepage's wall of clients' marks
+       (PracticesWall.astro), in its light version, between the statement
+       and the benefits. The two share one band of dots (data-dot-band), as
+       the homepage's wall and approach share its ink band: the benefits'
+       field sets the pitch and the lattice (approach-stack.js), and the
+       wall is placed on it exactly as the homepage's is. -->
+  <div class="dot-band" data-dot-band>
+  <PracticesWall />
+
   <ApproachStack
     light
     label="Why a technology blueprint"
     heading={t("benefits.heading")}
     headingField="benefits.heading"
+    note={t("benefits.note")}
+    noteField="benefits.note"
     field="benefits.tiles"
     steps={benefits.map((tile) => ({ title: tile.title ?? "", text: tile.text ?? "" }))}
     schematics={["map", "rank", "trace"]}
   />
+  </div>
 
   <section class="section section--light">
     <div class="container">
@@ -193,12 +207,10 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
   </section>
 
   <FaqSection>
-      <!-- the site's FAQ panel (FaqPanel.astro), each question with its
-           icon, and under them a line and Book a Free Call -->
+      <!-- the site's FAQ panel (FaqPanel.astro), each
+       question with its icon, and Book a Free Call as its last item -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["user","clock","folder","settings","compass"]} footLine={t("faq.footLine")} footField="faq.footLine">
-        <BookCall slot="foot" />
-      </FaqPanel>
+        icons={["user","clock","folder","settings","compass"]} call />
   </FaqSection>
 
   <ClosingCta />

@@ -1,51 +1,74 @@
 ---
 /*
   The Technology Blueprint's opening (2026-11-04), after the reference the
-  user supplied: the label, the heading, the standfirst and the buttons on
-  the left (Grid Columns 1–5), and on the right an isometric network of
-  the practices' systems, a Hairline figure (blueprint-hero.js,
-  network-figure.js): five keys on plinths, each with a practice's mark on
-  its coin (the homepage's "Practices we've worked with"), joined by routes
-  with rounded turns, a signal running along them into the hub; the key
-  under the pointer rises and lights its routes. The whole opening stands
-  on the Blueprint's own dash-dot lattice, set out from the figure's ground
-  so the routes run on its lines. The red block under it shows across the
-  screen's foot, as on the other service pages (SplitHero.astro).
+  user supplied: an isometric network of the practices' systems, a
+  Hairline figure (blueprint-hero.js, network-figure.js), on the right:
+  seven keys on plinths (seven since the fourth pass), each with a
+  practice's mark on its coin (the homepage's "Practices we've worked
+  with"), joined by routes with rounded turns, a signal running along them into the hub; the key under
+  the pointer rises and lights its routes. It stands on the Blueprint's own
+  dash-dot lattice, a key to a cell, which fades out towards the words.
 
-  The words come from the page's Studio fields (labelField, headingField,
-  ledeField); the buttons are the slot (actions). Styles: pages.css
-  ("Technology Blueprint hero"). Below 992px the figure stands under the
-  words.
+  Since 2026-11-04 (third pass) the opening is two screens long and the
+  network is held through both (the hold: CSS sticky): the first screen is
+  the hero, exactly the window, its words on the left in the middle of it,
+  a little in from the margin (the heading, the standfirst, the buttons);
+  they scroll away as the page does, and the statement comes up on the left
+  after them. The network stays exactly where it is all the while (fourth
+  pass), in the middle of the room between the nav bar's foot and the
+  screen's (blueprint-hero.js); only its keys answer the scroll, lifting a
+  little as it goes and settling when it stops.
+  When the statement reaches the middle of the screen the hold ends, and
+  the statement and the network go on up together, the next section
+  ("When Technology Has Direction") following. The statement is set as a
+  block, its lines (one per line of the Studio's field) brought to the
+  same width (blueprint-hero.js); as it comes, the network's routes light
+  together. The red block that stood under the hero is gone.
+
+  The words come from the page's Studio fields (headingField, ledeField,
+  statementField); the buttons are the slot (actions). Styles: pages.css
+  ("Technology Blueprint hero"). Below 992px nothing is held: the network
+  stands over the words, the statement under them.
 */
 interface Props {
   label?: string;
   heading?: string;
   lede?: string;
+  statement?: string;
   labelField?: string;
   headingField?: string;
   ledeField?: string;
+  statementField?: string;
 }
-const {
-  label,
-  heading,
-  lede,
-  labelField = "hero.tagline",
-  headingField = "hero.heading",
-  ledeField = "hero.lede",
-} = Astro.props;
+const { heading, lede, statement, headingField = "hero.heading", ledeField = "hero.lede", statementField = "hero.statement" } = Astro.props;
 ---
 <section class="bp-hero" data-blueprint-hero>
-  <div class="bp-hero__ground" data-blueprint-ground data-iso-line="dash" data-iso-module="40" data-iso-ground=".bp-hero__svg" aria-hidden="true"></div>
-  <div class="bp-hero__text">
-    {label && <p class="split-hero__label" data-page-field={labelField}>{label}</p>}
-    <h1 class="bp-hero__heading" data-page-field={headingField}>{heading}</h1>
-    {lede && <p class="bp-hero__lede" data-page-field={ledeField}>{lede}</p>}
-    <div class="bp-hero__actions"><slot name="actions" /></div>
-  </div>
-  <div class="bp-hero__figure">
-    <div class="bp-hero__stage" data-hairline>
-      <svg class="bp-hero__svg" viewBox="0 0 400 320" fill="none" focusable="false" aria-hidden="true"></svg>
+  <!-- the hold: the network and its ground, a screen tall, held in place
+       while the words go by -->
+  <div class="bp-hero__hold">
+    <!-- the scene: the network on its ground, one layer, still while the
+         words go by -->
+    <div class="bp-hero__scene" data-bp-scene>
+      <div class="bp-hero__ground" data-blueprint-ground data-iso-line="dash" data-iso-ground=".bp-hero__svg" aria-hidden="true"></div>
+      <div class="bp-hero__figure">
+        <div class="bp-hero__stage" data-hairline>
+          <svg class="bp-hero__svg" viewBox="0 0 400 320" fill="none" focusable="false" aria-hidden="true"></svg>
+        </div>
+      </div>
     </div>
   </div>
+  <!-- the words, scrolling as the page does: the hero's screen, then the
+       statement's -->
+  <div class="bp-hero__flow">
+    <div class="bp-hero__text">
+      <h1 class="bp-hero__heading" data-page-field={headingField}>{heading}</h1>
+      {lede && <p class="bp-hero__lede" data-page-field={ledeField}>{lede}</p>}
+      <div class="bp-hero__actions"><slot name="actions" /></div>
+    </div>
+    {statement && (
+    <div class="bp-hero__next">
+      <p class="bp-hero__statement" data-page-field={statementField} data-bp-statement>{statement}</p>
+    </div>
+    )}
+  </div>
 </section>
-<div class="split-hero__red" aria-hidden="true"></div>

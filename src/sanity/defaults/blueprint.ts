@@ -12,9 +12,12 @@ export const blueprintPage = {
     lede: 'We assess your practice’s workflows, software, data, costs and AI readiness, then build a prioritised roadmap showing what to keep, change and invest in next.',
     button: 'Start a Blueprint',
     linkLabel: 'Learn more',
+    // one line here is one line of the set block (BlueprintHero.astro)
+    statement: 'A collection of tools isn’t a strategy.\nWhat matters is how your people,\nsystems and workflows work together.',
   },
   benefits: {
     heading: 'When Technology Has Direction',
+    note: '(How ADDD Helps)',
     // a word written **so** is set bold and scrambles once as it is read
     tiles: keyed('benefit', [
       { number: '01', title: 'One Connected View', text: 'Gain **visibility** across your workflows, software, data and teams. See the gaps, dependencies and risks that isolated decisions tend to miss.' },
@@ -76,7 +79,7 @@ export const blueprintPage = {
     button: 'Send',
   },
   faq: {
-    heading: 'Answers',
+    heading: 'About the Blueprint',
     questions: keyed('question', [
       { question: 'Who should be involved from our side?', answer: 'A sponsor at partner or director level, plus whoever owns BIM, IT and operations. Project leads join for the interview stage. The sponsor keeps decisions moving; the others bring the detail of how the practice really works.' },
       { question: 'How much time does it take from our team?', answer: 'Roughly six to ten hours per participant across the eight weeks, mostly in the discovery stage. Interviews are arranged around project deadlines, and existing documents are reviewed first so time with your team is spent on what only they can answer.' },

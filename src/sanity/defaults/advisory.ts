@@ -96,7 +96,7 @@ export const advisoryPage = {
     role: 'Operations director, ADAM Architecture',
   },
   faq: {
-    heading: 'Answers',
+    heading: 'About ADDDvisory',
     questions: keyed('question', [
       { question: 'Who should join?', answer: 'Practice leaders who carry technology decisions — directors, partners, operations leads and digital or BIM leads. Sessions work best with a small, consistent group, so decisions carry over from one month to the next.' },
       { question: 'What counts as a question between sessions?', answer: 'Short, decision-shaped questions related to the themes covered. Anything needing dedicated analysis becomes a separate engagement. A vendor’s proposal, a licence renewal or a question about using AI on projects are typical examples.' },

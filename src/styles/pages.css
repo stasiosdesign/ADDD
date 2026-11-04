@@ -683,7 +683,8 @@
 }
 /* the strap: one black, a faint print of the mark down it */
 .lanyard__strap {
-  bottom: calc(var(--w) * 1.69);
+  /* into the hardware's sewn end (2026-11-04: the hardware 15% shorter) */
+  bottom: calc(var(--w) * 1.65);
   width: calc(var(--w) * 0.168);
   height: 120vh;
   background:
@@ -767,16 +768,57 @@
   color: #4a4a48;
 }
 .lanyard__top { font-size: 2.6cqw; text-transform: uppercase; }
-/* the ADDD mark printed straight on the card, large, and raised a hair
-   off it (2026-11-04; on a dark tile before): a soft shadow under it, and
-   over its disc a faint light at the top and a faint shade at the foot,
-   with a fine lit rim, so it reads as embossed rather than modelled */
-.lanyard__logo {
+/* The lockup (2026-11-04, second pass), centred on the card: the ADDD
+   mark, a full circle, and Allister's face behind it on its left as a
+   crescent, the same size, the card's white between the two (the
+   portrait's mask), his face set in the part that shows, looking towards
+   the mark. --lock-d is the two circles' diameter, --lock-off how far the
+   mark's middle stands right of the portrait's, --lock-gap the white. */
+.lanyard__lockup {
+  --lock-d: 28cqw;
+  --lock-off: 17cqw;
+  --lock-gap: 1.3cqw;
   position: relative;
   align-self: center;
-  width: 44cqw;
+  width: calc(var(--lock-d) + var(--lock-off));
+  height: var(--lock-d);
+  margin-top: 15cqw;
+}
+.lanyard__portrait {
+  --lock-cut: radial-gradient(circle at calc(50% + var(--lock-off)) 50%, transparent calc(var(--lock-d) / 2 + var(--lock-gap)), #000 calc(var(--lock-d) / 2 + var(--lock-gap) + 0.5px));
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--lock-d);
+  height: var(--lock-d);
+  overflow: hidden;
+  border-radius: 50%;
+  background: #e4e4e1;
+  -webkit-mask-image: var(--lock-cut);
+  mask-image: var(--lock-cut);
+}
+/* the photograph larger than its circle and moved so his face (about 45%
+   across it and 40% down) sits in the crescent's middle */
+.lanyard__portrait img {
+  position: absolute;
+  left: -23.5%;
+  top: -15%;
+  width: 130%;
+  max-width: none;
+  height: auto;
+}
+/* the ADDD mark printed straight on the card and raised a hair off it (a
+   soft shadow under it, and over its disc a faint light at the top and a
+   faint shade at the foot, with a fine lit rim, so it reads as embossed
+   rather than modelled), its disc (logo.svg: 80.4% of its box, its middle
+   at 51%, 50.3%) the lockup's diameter, its middle --lock-off right of the
+   portrait's */
+.lanyard__logo {
+  position: absolute;
+  left: calc(var(--lock-off) + var(--lock-d) / 2 - 0.51 * var(--lock-d) / 0.804);
+  top: calc(var(--lock-d) / 2 - 0.503 * var(--lock-d) / 0.804);
+  width: calc(var(--lock-d) / 0.804);
   aspect-ratio: 1;
-  margin-top: 7cqw;
   filter:
     drop-shadow(0 0.18cqw 0.12cqw rgba(0, 0, 0, 0.16))
     drop-shadow(0 0.9cqw 1.1cqw rgba(0, 0, 0, 0.1));
@@ -799,23 +841,8 @@
     inset 0 -0.35cqw 0.4cqw rgba(0, 0, 0, 0.12);
   pointer-events: none;
 }
-/* his photograph beside his name and role, its top on the name's line,
-   its foot on the role's last */
-.lanyard__person {
-  display: flex;
-  align-items: center;
-  gap: 4cqw;
-  margin-top: 10cqw;
-}
-.lanyard__photo {
-  flex: none;
-  width: 18cqw;
-  height: 18cqw;
-  border-radius: 1.2cqw;
-  object-fit: cover;
-  object-position: 50% 22%;
-  background: #e4e4e1;
-}
+/* his name and role under the lockup (his face is in the lockup now) */
+.lanyard__person { margin-top: 13cqw; }
 .lanyard__name {
   font-family: var(--font-display);
   font-size: 8cqw;
@@ -899,62 +926,193 @@
 
 /* ============================================================
    Technology Blueprint hero (BlueprintHero.astro, blueprint-hero.js,
-   network-figure.js), after the reference of 2026-11-04: on an off-white
-   ground under the Blueprint's own dash-dot lattice (in a faint ink, set
-   out from the figure's ground), the words on Grid Columns 1–5 and the
-   network on 6–12, the two centred in what the screen shows under the
-   nav. A screen tall less the red block's peek, as the other service
-   pages' openings (SplitHero.astro). Below 992px the network stands
-   under the words.
+   network-figure.js), after the reference of 2026-11-04 and its passes:
+   on an off-white ground, the network in the upper right under the nav,
+   and the words in the lower left as the Workflow Workshop's opening sets
+   its heading (SplitHero.astro): read up the page, the buttons, the
+   standfirst and the heading large at the foot. Behind the network the
+   Blueprint's own dash-dot lattice, in a faint ink, a key to a cell, which
+   fades out towards the words and is gone by the time it reaches them.
+
+   Since the third pass the opening is two screens long, the network held
+   through both (the hold, sticky) and the words going by in front of it
+   (the flow): the hero's screen, exactly the window, and the statement's,
+   the statement in its middle. The hold is a screen tall and ends with
+   the opening, so it lets go exactly when the statement reaches the
+   middle of the screen, and the two go on up together. Nothing here is
+   driven by script but the statement's setting and its rise. Below 992px
+   nothing is held: the network over the words, the statement under them.
    ============================================================ */
 .bp-hero {
   --bp-ground: #f7f7f5;
+  /* the network's width, a share of the window's */
+  --bp-figure-w: 44%;
+  /* the words a little in from the grid's margin */
+  --bp-inset: 3rem;
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: repeat(var(--grid-columns), minmax(0, 1fr));
-  column-gap: var(--grid-gutter);
-  align-items: center;
-  height: calc(100svh - 5rem);
-  min-height: 40rem;
-  padding: var(--nav-h) var(--grid-margin) 0;
+  grid-template-columns: minmax(0, 1fr);
   overflow: clip;
   background: var(--bp-ground);
 }
-.bp-hero__ground {
-  --iso-line: rgba(10, 10, 10, 0.12);
+/* the hold: the network and its ground, the window's size, in the same
+   cell of the grid as the words (so it takes no room of its own), held at
+   the top of the screen until the opening's foot comes up to its own */
+.bp-hero__hold {
+  grid-area: 1 / 1;
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  align-self: start;
+  height: 100vh;
+  height: 100svh;
+}
+/* the lattice: whole round the network and thinning away from it (the
+   oval), and fading out across the screen towards the lower left (the
+   slope), so it is gone before it reaches the words; the two masks are
+   met (intersect), each taking the lattice away where it does */
+/* the scene: the network and its ground as one layer, still through the
+   whole sequence (fourth pass: nothing moves it with the scroll) */
+.bp-hero__scene {
   position: absolute;
   inset: 0;
-  z-index: -1;
+}
+/* the ground fills the hold; the oval is round the drawing's middle
+   (--bp-fig-mid, blueprint-hero.js) */
+.bp-hero__ground {
+  --iso-line: rgba(10, 10, 10, 0.13);
+  --bp-oval: radial-gradient(62% 92svh at 68% var(--bp-fig-mid, 50%), #000 48%, transparent 96%);
+  --bp-slope: linear-gradient(32deg, transparent 34%, rgba(0, 0, 0, 0.5) 48%, #000 64%);
+  position: absolute;
+  inset: 0;
   pointer-events: none;
+  -webkit-mask-image: var(--bp-oval), var(--bp-slope);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--bp-oval), var(--bp-slope);
+  mask-composite: intersect;
 }
 .bp-hero__ground > canvas { display: block; }
-.bp-hero__text { grid-column: 1 / 6; align-self: center; }
-.bp-hero__heading {
-  margin: 0;
-  max-width: 7.5em;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 4.5rem;
-  line-height: 0.98;
-  letter-spacing: calc(var(--primary-tracking) - 0.04em);
-  text-wrap: balance;
+
+/* the network: on the right, clear of the words, and in the middle of the
+   hero's room top to bottom (fourth pass): the drawing itself, not its
+   frame, as far below the nav bar's foot as above the screen's, set as the
+   figure's top (--bp-fig-y) by blueprint-hero.js from the drawing's own
+   box. Across, where it has always stood. The lattice is set out from the
+   figure, so it follows wherever the figure is. */
+.bp-hero__figure {
+  position: absolute;
+  top: var(--bp-fig-y, calc(var(--nav-h) + 3.5rem));
+  right: calc(var(--grid-margin) + 7%);
+  z-index: 1;
+  width: var(--bp-figure-w);
 }
+
+/* the words: over the hold, in the same cell; only what is read or
+   pressed takes the pointer, so the network under them still answers it */
+.bp-hero__flow {
+  /* a Grid Column of the flow's width (column-grid.css), for the words' measures */
+  --bp-col: calc((100cqw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 1;
+  container-type: inline-size;
+  pointer-events: none;
+}
+/* the hero's screen: the window's height exactly, its words one stack on
+   the left in the middle of the screen under the nav, a little in from the
+   margin: the heading, the standfirst, the buttons */
+.bp-hero__text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  height: 100vh;
+  height: 100svh;
+  padding: var(--nav-h) var(--grid-margin) 0 calc(var(--grid-margin) + var(--bp-inset));
+}
+.bp-hero__text > * { pointer-events: auto; }
+.bp-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
 .bp-hero__lede {
-  max-width: 26rem;
-  margin: 1.75rem 0 2.25rem;
+  max-width: 25rem;
+  margin: 1.5rem 0 2.25rem;
   font-size: var(--t-rg);
   line-height: 1.45;
   color: color-mix(in srgb, var(--c-text) 74%, transparent);
 }
-.bp-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
-.bp-hero__figure { grid-column: 6 / -1; align-self: center; }
+/* the Workflow Workshop's heading: large and closed up, on two or three
+   lines; held to a share of the window's height on a short screen, so the
+   hero's words always fit its screen */
+.bp-hero__heading {
+  width: fit-content;
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: min(5.25rem, 11svh);
+  line-height: 0.95;
+  letter-spacing: calc(var(--primary-tracking) - 0.04em);
+  text-wrap: balance;
+}
+/* From 992px held to Grid Columns 1 to 6, less the words' inset, so its
+   longest line ends a clear gap short of the network (third pass) */
+@media screen and (min-width: 992px) {
+  .bp-hero__heading { max-width: calc(6 * var(--bp-col) + 5 * var(--grid-gutter) - var(--bp-inset)); }
+}
+
+/* The statement's screen: the window's height, the statement in its
+   middle, from the words' inset to the end of Grid Column 5 (2026-11-04,
+   third pass: a column narrower than it was, so a clear gap of a column and
+   more stands between it and the network once the network has come down
+   beside it). The statement is set as a block (blueprint-hero.js): each of
+   its lines, one per line of the Studio's field, brought to the same width
+   by its tracking (a little either side of the face's) and, for what that
+   leaves, its size; the block's size set so that width is the measure
+   (--bp-fit, one over the lines' width in ems). Its lines' baselines stay
+   evenly apart whatever their sizes (each line's leading is the block's).
+   Without the script, the lines as written at the block's size. */
+.bp-hero__next {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+  height: 100svh;
+  padding: 0 var(--grid-margin) 0 calc(var(--grid-margin) + var(--bp-inset));
+}
+.bp-hero__statement {
+  --bp-measure: calc(5 * var(--bp-col) + 4 * var(--grid-gutter) - var(--bp-inset));
+  --bp-lh: 1.04;
+  width: var(--bp-measure);
+  margin: 0;
+  pointer-events: auto;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: calc(var(--bp-measure) * var(--bp-fit, 0.064));
+  line-height: var(--bp-lh);
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  white-space: pre-line;
+}
+/* a set line: its own size (--k, of the block's) and tracking (--ls), its
+   leading the block's whatever its size; a mask its line tall, opened by
+   the face's overhang (as .line-mask), for its rise */
+.bp-hero__line {
+  --mask-bleed: max(0px, (1.4em - 1lh) / 2);
+  display: block;
+  overflow: clip;
+  padding: var(--mask-bleed) 0.2em;
+  margin: calc(-1 * var(--mask-bleed)) -0.2em;
+  font-size: calc(var(--k, 1) * 1em);
+  line-height: calc(var(--bp-lh) / var(--k, 1));
+  letter-spacing: var(--ls, inherit);
+  white-space: nowrap;
+}
+.bp-hero__line + .bp-hero__line { margin-top: calc(-2 * var(--mask-bleed)); }
+.bp-hero__ink { display: inline-block; }
 
 /* The figure: the kernel's palette set to the reference's, in the site's
-   inks: white keys with grey edges, routes a light grey a little heavier
-   than the edges, the coins dark with the practices' marks in white, the
-   tags in the ink with their words in white, and the site's red for the
-   one bright stroke, the signal (a soft glow under it) and a lit tag. */
+   inks: white keys with grey edges, routes a fine light grey, the coins
+   dark with the practices' marks in white, and the site's red for the one
+   bright stroke and the signal (one stroke). As the statement comes up
+   (is--together, blueprint-hero.js) every route lights, a quiet red, the
+   network read as one system while the statement says so. */
 .bp-hero__stage {
   --hairline-plate: #ffffff;
   --hairline-edge: rgba(10, 10, 10, 0.5);
@@ -962,45 +1120,274 @@
   --hairline-lo: rgba(10, 10, 10, 0.14);
   --hairline-hi: var(--c-red);
   --hairline-stroke: 1;
-  /* a little under its columns' width, centred in them: the network
-     about as wide as the reference's against the words */
-  width: 90%;
-  margin-inline: auto;
+  width: 100%;
 }
-.bp-hero__stage .route { stroke: rgba(10, 10, 10, 0.17); stroke-width: 2; }
-.bp-hero__stage .route.hi { stroke: var(--c-red); stroke-width: 1.5; }
-.bp-hero__stage .pulse { stroke: var(--c-red); stroke-width: 2.25; transition: none; }
-.bp-hero__stage .pulse-glow { stroke: var(--c-red); stroke-opacity: 0.16; stroke-width: 9; transition: none; }
+.bp-hero__stage .route { stroke: rgba(10, 10, 10, 0.2); stroke-width: 1.1; transition: stroke 0.9s ease; }
+.bp-hero__stage .route.hi { stroke: var(--c-red); stroke-width: 1.1; }
+.bp-hero.is--together .bp-hero__stage .route { stroke: color-mix(in srgb, var(--c-red) 52%, var(--bp-ground)); }
+.bp-hero__stage .pulse { stroke: var(--c-red); stroke-width: 1.5; transition: none; }
 .bp-hero__stage .coin .sil { fill: #5c5c5c; stroke: #3a3a3a; }
 .bp-hero__stage .coin-top { fill: #222222; stroke: #222222; }
-.bp-hero__stage .coin-ring { stroke: rgba(255, 255, 255, 0.22); }
-.bp-hero__stage .coin-ring.hi { stroke: var(--c-red); stroke-width: 1.5; }
-.bp-hero__stage .tag { fill: #141414; stroke: #141414; transition: fill 260ms ease, stroke 260ms ease; }
-.bp-hero__stage .tag-edge { fill: #3a3a3a; stroke: #3a3a3a; }
-.bp-hero__stage .tag.is--lit { fill: var(--c-red); stroke: var(--c-red); }
-.bp-hero__stage .tag-word {
-  fill: #ffffff;
-  stroke: none;
-  font-family: var(--font-mono);
-  letter-spacing: 0.08em;
-  pointer-events: none;
-}
+.bp-hero__stage .coin-ring { stroke: rgba(255, 255, 255, 0.22); transition: stroke 0.9s ease; }
+.bp-hero__stage .coin-ring.hi,
+.bp-hero.is--together .bp-hero__stage .coin-ring { stroke: var(--c-red); stroke-width: 1.5; }
 
 @media screen and (max-width: 991px) {
-  .bp-hero {
-    grid-template-columns: minmax(0, 1fr);
-    height: auto;
-    min-height: 0;
-    padding-top: calc(var(--nav-h) + 3rem);
-    padding-bottom: 2rem;
+  /* nothing held: the network, then the words, then the statement */
+  .bp-hero { display: block; }
+  .bp-hero__hold { position: relative; height: auto; padding-top: calc(var(--nav-h) + 2rem); }
+  /* the scene in the flow, so the network takes its own room over the words */
+  .bp-hero__scene { position: relative; inset: auto; }
+  .bp-hero__figure { position: relative; top: auto; right: auto; width: 100%; margin: 0 0 2rem; }
+  /* stacked: round the network, gone by the words */
+  .bp-hero__ground {
+    --bp-oval: radial-gradient(ellipse 80% 60% at 50% 55%, #000 38%, transparent 92%);
+    --bp-slope: linear-gradient(#000, #000);
   }
-  .bp-hero__text,
-  .bp-hero__figure { grid-column: 1 / -1; }
+  .bp-hero__text { height: auto; padding: 0 var(--grid-margin); }
   .bp-hero__heading { font-size: 3.75rem; }
-  .bp-hero__figure { margin-top: 2rem; }
+  .bp-hero__next { height: auto; padding: var(--sec-md) var(--grid-margin) var(--sec-lg); }
+  .bp-hero__statement { --bp-measure: calc(100cqw - 2 * var(--grid-margin)); }
 }
 @media screen and (max-width: 767px) {
   .bp-hero__heading { font-size: 2.875rem; }
+  /* a phone: the statement as plain lines, wrapping where they must */
+  .bp-hero__statement { font-size: var(--t-h3); line-height: 1.1; white-space: normal; text-wrap: balance; }
+  .bp-hero__line { display: inline; overflow: visible; padding: 0; margin: 0; font-size: inherit; line-height: inherit; letter-spacing: inherit; white-space: normal; }
+  .bp-hero__line + .bp-hero__line { margin: 0; }
+  .bp-hero__line + .bp-hero__line::before { content: " "; }
+  .bp-hero__ink { display: inline; }
+}
+
+/* ============================================================
+   Before Revit hero (BeforeRevitHero.astro, before-revit-hero.js,
+   press-figure.js), after the reference of 2026-11-04: dark, the words
+   large on the left, an exploded isometric box glowing on the right, the
+   reference's blue light the site's red. The drawing and its light are
+   held (sticky) while the words scroll away, the scroll bringing the
+   frame down onto the platform. The site's own face and buttons
+   throughout. Second pass (2026-11-04): the drawing smaller, standing on
+   the Technology Blueprint's dash-dot lattice in the hero's red (fading
+   out towards the words), a fine still grain over the light, no tags
+   over the heading and the heading all white.
+   ============================================================ */
+.br-hero {
+  --br-ground: #060606;
+  --br-ink: #f5f4f2;
+  --br-red: #e0190f;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  overflow: clip;
+  background: var(--br-ground);
+  color: var(--br-ink);
+}
+/* the hold: the screen's size, in the same cell as the words */
+.br-hero__hold {
+  grid-area: 1 / 1;
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  align-self: start;
+  height: 100vh;
+  height: 100svh;
+}
+/* the light: black in the upper left, the red coming up from the foot and
+   pooling round the drawing on the right, as the reference's blue does */
+.br-hero__light {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 64% at 76% 66%, rgba(214, 22, 12, 0.78) 0%, rgba(160, 12, 6, 0.5) 30%, rgba(90, 5, 3, 0.22) 56%, transparent 78%),
+    radial-gradient(46% 42% at 2% 106%, rgba(240, 52, 34, 0.7) 0%, rgba(170, 14, 8, 0.32) 46%, transparent 74%),
+    linear-gradient(170deg, #050505 32%, #170202 58%, #400404 86%, #5c0606 100%);
+}
+/* the drawing: its platform's middle about 70% across and a little under
+   the middle of the screen, smaller than it first stood (second pass: a
+   little over half the screen's width for its whole frame, the words on
+   the left given the room), the lattice running on from it all round */
+.br-hero__figure {
+  position: absolute;
+  left: 43%;
+  top: 53%;
+  z-index: 1;
+  width: 54%;
+  translate: 0 -50%;
+}
+/* The lattice the drawing stands on: the Technology Blueprint's dash-dot
+   ground (mountIsoField, set out from the drawing's own ground and camera
+   in before-revit-hero.js) in a warm light red, whole round the drawing and
+   thinning away from it (the oval), and gone well before the words (the
+   slope: nothing left of it across the heading and the standfirst); the
+   two masks met, so it fades out softly, with no edge of its own. */
+.br-hero__ground {
+  --iso-line: rgba(255, 150, 130, 0.3);
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-mask-image:
+    radial-gradient(48% 68% at 70% 56%, #000 34%, rgba(0, 0, 0, 0.45) 62%, transparent 92%),
+    linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, 0.5) 44%, #000 58%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    radial-gradient(48% 68% at 70% 56%, #000 34%, rgba(0, 0, 0, 0.45) 62%, transparent 92%),
+    linear-gradient(90deg, transparent 30%, rgba(0, 0, 0, 0.5) 44%, #000 58%);
+  mask-composite: intersect;
+}
+.br-hero__ground > canvas { display: block; }
+/* The grain: a still tile of fine light specks (assets/graphics/
+   grain-noise.png, made once, 15KB), repeated over the light and the
+   drawing and under the words, held back to a breath; its own layer, so
+   nothing under it repaints it as the frame comes down. */
+.br-hero__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: url("/assets/graphics/grain-noise.png") 0 0 / 128px 128px repeat;
+  opacity: 0.45;
+  will-change: transform;
+}
+/* The figure's palette: its lines a warm white, bright outside and dim
+   inside; the platform's faces red gradients (defs in
+   before-revit-hero.js); the words in the drawing's planes in the mono, the
+   note in the body face. Under it a soft red light, placed under the
+   platform from the projection (--glow-x, --glow-y), and its pulse. */
+.br-hero__stage {
+  --hairline-plate: transparent;
+  --hairline-edge: rgba(255, 238, 234, 0.8);
+  --hairline-mid: rgba(255, 224, 218, 0.5);
+  --hairline-lo: rgba(255, 214, 206, 0.28);
+  --hairline-hi: #ffffff;
+  --hairline-stroke: 1;
+  width: 100%;
+}
+.br-hero__stage .plinth .sil { fill: url(#br-side); stroke: rgba(255, 196, 186, 0.6); }
+.br-hero__stage .plinth .lo { stroke: rgba(255, 220, 210, 0.55); }
+.br-hero__stage .top { fill: url(#br-top); stroke: rgba(255, 226, 218, 0.75); }
+.br-hero__stage .dash { stroke: rgba(255, 228, 222, 0.5); }
+.br-hero__stage .br-flash { fill: #fff; stroke: none; opacity: 0; }
+.br-hero__stage .br-ring { fill: none; stroke: rgba(255, 140, 120, 0.95); stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.br-hero__stage .br-tagbox {
+  fill: rgba(255, 70, 50, 0.08);
+  stroke: rgba(255, 214, 206, 0.55);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+.br-hero__stage .br-word {
+  font-family: var(--font-mono);
+  letter-spacing: 0.06em;
+  fill: rgba(255, 228, 222, 0.85);
+}
+.br-hero__stage .br-word.is--bright { fill: #ffffff; }
+.br-hero__stage .br-word.is--faint { fill: rgba(255, 220, 212, 0.34); }
+.br-hero__stage .br-note { font-family: var(--font-body); fill: rgba(255, 228, 222, 0.62); }
+.br-hero__glow {
+  position: absolute;
+  left: var(--glow-x, 50%);
+  top: var(--glow-y, 62%);
+  width: 82%;
+  aspect-ratio: 2.1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 46, 26, 0.6), rgba(210, 18, 10, 0.26) 58%, transparent);
+  pointer-events: none;
+}
+.br-hero__glow.is--pulse {
+  opacity: 0;
+  background: radial-gradient(closest-side, rgba(255, 110, 86, 0.75), rgba(240, 34, 20, 0.28) 60%, transparent);
+}
+
+/* the words: over the hold; only what is read or pressed takes the pointer */
+.br-hero__flow {
+  grid-area: 1 / 1;
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+/* the opening's screen: the window's height, its words from under the nav,
+   the practices at its foot */
+.br-hero__screen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: 100vh;
+  height: 100svh;
+  padding: calc(var(--nav-h) + 2.75rem) var(--grid-margin) calc(var(--grid-margin) + 1.25rem);
+}
+.br-hero__screen > * { pointer-events: auto; }
+/* the room the drawing is held for once the words have gone: the scroll
+   through it brings the frame down (before-revit-hero.js: it lands 0.72
+   of the way through, the landing playing out over the rest) */
+.br-hero__after { height: 90vh; height: 90svh; }
+
+/* the heading: large and closed up, on two lines, all of it white */
+.br-hero__heading {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: min(5.25rem, 12svh);
+  line-height: 1;
+  letter-spacing: calc(var(--primary-tracking) - 0.045em);
+}
+.br-hero__heading,
+.br-hero__first { color: #ffffff; }
+.br-hero__first { display: block; }
+.br-hero__lede {
+  max-width: 29rem;
+  margin: 2rem 0 0;
+  font-size: var(--t-rg);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.62);
+}
+.br-hero__actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2.25rem; }
+/* at the foot: the practices, a quiet label over their white marks */
+.br-hero__trust { margin-top: auto; padding-top: 2rem; }
+.br-hero__trust-label {
+  margin: 0 0 1.125rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+/* the marks, each as wide as its ink asks (--logo-shape, logo-balance.ts:
+   the same area of ink each, a light drawing a little larger, a heavy one
+   a little smaller), a step smaller than they stood; their heights follow
+   their own proportions, their middles on one line */
+.br-hero__marks {
+  --br-logo: 2.35rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem 2.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.br-hero__marks img { display: block; width: calc(var(--br-logo) * var(--logo-shape, 2.5)); height: auto; max-width: none; opacity: 0.92; }
+
+@media screen and (max-width: 991px) {
+  /* nothing held: the drawing over the words, still exploded */
+  .br-hero { display: block; }
+  .br-hero__hold { position: relative; height: auto; padding-top: calc(var(--nav-h) + 1rem); }
+  .br-hero__figure { position: relative; left: auto; right: auto; top: auto; width: 100%; translate: none; }
+  /* the lattice round the drawing, which stands over the words here */
+  .br-hero__ground {
+    -webkit-mask-image: radial-gradient(60% 50% at 50% 50%, #000 30%, transparent 90%);
+    mask-image: radial-gradient(60% 50% at 50% 50%, #000 30%, transparent 90%);
+  }
+  .br-hero__screen { height: auto; padding-top: 1rem; }
+  .br-hero__after { display: none; }
+  .br-hero__heading { font-size: 3.5rem; }
+  .br-hero__trust { margin-top: 3rem; }
+}
+@media screen and (max-width: 767px) {
+  .br-hero__heading { font-size: 2.5rem; }
+  .br-hero__marks { --br-logo: 1.85rem; gap: 1.25rem 2rem; }
 }
 
 /* ============================================================

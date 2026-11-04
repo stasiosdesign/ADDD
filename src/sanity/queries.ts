@@ -42,3 +42,9 @@ export const INSIGHTS_QUERY = `*[_type in ["report", "newsletterIssue"] && defin
 
 export const REPORT_QUERY = `*[_type == "report" && slug.current == $slug && ${VISIBLE}][0]{ ..., "slug": slug.current }`;
 export const ISSUE_QUERY = `*[_type == "newsletterIssue" && slug.current == $slug && ${VISIBLE}][0]{ ..., "slug": slug.current }`;
+
+/* The curated tech stacks (studio/schemaTypes/documents/tech-stack.ts), in
+   the Studio's order: only what the Free Tech Stacks page previews. A
+   stack's full list of tools is never in the dataset: it lives in the ADDD
+   app, behind its sign-up. */
+export const TECH_STACKS_QUERY = `*[_type == "techStack" && defined(title) && ${VISIBLE}] | order(sortOrder asc, _createdAt asc) { _id, title, workflow, summary, toolCount, previewTools, appUrl }`;

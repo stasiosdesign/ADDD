@@ -1,172 +1,120 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
-import ClosingCta from "../components/ClosingCta.astro";
-import StackCard from "../components/StackCard.astro";
-import type { Props as StackCardData } from "../components/StackCard.astro";
 import { pageDocument, reader } from "../sanity/content";
+import { TECH_STACKS_QUERY } from "../sanity/queries";
 import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
-import NavLinkLabel from "../components/NavLinkLabel.astro";
+import { APP_SIGN_UP, CATEGORIES, SAMPLE_STACKS, TOOLS, stackOf, type StackDocument } from "../data/stack-ecosystem";
 
-// Every section's words come from the Stack Diagnostic page document in
-// Sanity (studio/schemaTypes/pages/stack-diagnostic.ts), each element falling
-// back to its own (src/sanity/defaults/stack-diagnostic.ts): see
-// src/sanity/content.ts. The navigation, the footer, the chevron icons and
-// where every button and link leads stay here. Each element names the field
-// it shows (data-page-field) so the Studio's Visual editor can outline it and
-// write drafts into it; each list names its blocks (data-page-list,
-// data-page-item).
-const { t, list } = reader(await pageDocument(Astro.locals.sanity, "stackDiagnosticPage"), D);
+// Free Tech Stacks, as one screen (2026-11-04, third pass, after the
+// user's brief): one continuous row of cards in 3D, every card a piece of
+// software, the row running across the screen from off its bottom-left
+// corner to off its top-right and going round as it is scrolled through.
+// The software in each curated stack stands together in the row, at the
+// row's own spacing, in a tone of the stack's own, with a dotted bracket
+// beside it and the stack's name at its near end; the stack's tools held
+// back until the visitor is in the ADDD app are cards with a lock and no
+// name. Any card of a stack chooses the stack: its cards open out and lift
+// together, and the stack's sheet opens over the page (its title, the tools
+// its preview names, each in a container of its own, the rest locked, and
+// the way into the app, which enforces the access: the site never has a
+// stack's full list). The software in no stack follows the stacks.
+//
+// The stacks are the Studio's (studio/schemaTypes/documents/tech-stack.ts).
+// Until any are published, labelled samples (src/data/stack-ecosystem.ts)
+// stand in on staging and in development; production then shows the
+// software alone, and says the stacks are on their way, never a sample.
+//
+// Drawn on one canvas by src/scripts/stack-space.js; the sheet is
+// src/scripts/stack-sheet.js (styles: stack-space.css). The page does not
+// scroll and has no footer. The nav is its light version (the ground a
+// step darker than the nav's greys, so the bar stands clear of it). The
+// words come from the Stack Diagnostic page document in Sanity
+// (studio/schemaTypes/pages/stack-diagnostic.ts), falling back to
+// src/sanity/defaults/stack-diagnostic.ts.
+const { sanity } = Astro.locals;
+const [doc, stackDocs] = await Promise.all([
+  pageDocument(sanity, "stackDiagnosticPage"),
+  sanity.fetch<StackDocument[]>(TECH_STACKS_QUERY),
+]);
+const { t } = reader(doc, D);
 
-type Tile = { _key: string; title?: string; text?: string; linkLabel?: string };
-const fitTiles = list<Tile>("fit.tiles");
-const alternatives = list<Tile>("fit.alternatives");
-const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
-const nextTiles = list<Tile>("next.tiles");
+const published = (stackDocs ?? []).map(stackOf).filter((s) => s.name);
+const stacks = published.length ? published : __DEPLOYMENT__ === "production" ? [] : SAMPLE_STACKS;
+const samples = !published.length && stacks.length > 0;
 
-// Where the outlined cards' and the closing cards' links lead, by position
-const alternativeHrefs = ["workshops-audits.html", "technology-blueprint.html"];
-const nextHrefs = ["workshops-audits.html", "technology-blueprint.html", "advisory.html"];
-
-// The hero's card wall (StackCard.astro, stack-cards.css), three across,
-// one card per entry, in order, left to right and row by row. Each card:
-//   title  its name
-//   text   a line or two describing it
-//   image  its small square picture, a path under public/ (e.g.
-//          /assets/logos/…); left out, a blank square holds its place
-//   href   where the whole card leads; left out, the card is not a link
-//          yet; another site's address opens in a new tab
-// Placeholders until the real cards are supplied.
-const cards: StackCardData[] = [
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-  { title: "Card title", text: "A short description of what this card leads to, on one or two lines." },
-];
+// a tool as the row and the sheet show it: its name, its home category
+// (its role in a workflow), the inventory's line for it, its mark
+const categoryName = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.name]));
+const toolByName = new Map(TOOLS.map((tool) => [tool.name.toLowerCase(), tool]));
+const shown = (name: string) => {
+  const tool = toolByName.get(name.toLowerCase());
+  const home = tool?.categories[0];
+  return { name: tool?.name ?? name, category: home ? categoryName[home] : "", note: tool && home ? tool.notes[home] ?? "" : "", logo: tool?.logo ?? null };
+};
+const data = {
+  stacks: stacks.map((s) => ({ ...s, preview: s.preview.map(shown) })),
+  tools: TOOLS.map((tool) => shown(tool.name)),
+  signUp: APP_SIGN_UP,
+};
+// the stacks' tones in the row, alternating (stack-space.js, TONES)
+const tones = ["is--tone-a", "is--tone-b"];
 ---
 <BaseLayout
   title="Stack Diagnostic — ADDD"
   description="A short, focused assessment of the technology your practice actually runs—what each tool is for, who depends on it, and where two tools do the same job."
   pageName="Stack Diagnostic"
   doc={{ id: "stackDiagnosticPage" }}
+  footer={false}
 >
-<main class="page--grid">
+<main class="page--grid sd" data-stack-space>
 
-  <section class="pg-hero">
-    <div class="container">
-      <div class="pg-hero__grid">
-        <div class="pg-hero__col">
-          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
-          <h1 class="h1" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
-        </div>
-        <div class="pg-hero__col">
-          <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
-          <div class="actions">
-            <ActionButton href="https://app.addd.io/sign-up" target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
-            <a class="btn btn--link nav-link" href="#how-it-works"><NavLinkLabel data-page-field="hero.linkLabel">{t("hero.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  <!-- The card wall, in the hero's band's place: its first rows in the
-       first screen, the rest rising into place as they come up it
-       (initStackCards, site.js). -->
-  <ul class="stack-cards" role="list" data-stack-cards>
-    {cards.map((card) => (
-      <li><StackCard {...card} /></li>
+  <!-- the stage: one canvas, the whole row (stack-space.js); it takes the
+       wheel, the keys and a swipe, and Lenis leaves it alone -->
+  <div class="sd__stage" data-stack-stage data-lenis-prevent tabindex="0" role="application" aria-roledescription="row of software cards" aria-label="Software, in curated stacks. Use the arrow keys to move through the cards and Enter to open a card's stack.">
+    <canvas class="sd__canvas" aria-hidden="true"></canvas>
+  </div>
+
+  <header class="sd__head">
+    <h1 class="sd__title" data-page-field="hero.heading">{t("hero.heading")}</h1>
+    <p class="sd__legend" data-page-field="hero.legend">{t("hero.legend")}</p>
+  </header>
+
+  <!-- the list on the right: the stacks, each with its tone in the row (a
+       stack chosen opens as a card of it does), then the Software Database -->
+  <nav class="sd__index" aria-label="Tech stacks">
+    <p class="sd__filter-group">{samples ? "Sample stacks" : "Stacks"}</p>
+    {stacks.map((s, i) => (
+      <button type="button" class="sd__filter" data-stack-go={i} aria-haspopup="dialog"><span class:list={["sd__swatch", tones[i % tones.length]]} aria-hidden="true"></span>{s.name}<sup>{s.toolCount}</sup></button>
     ))}
-  </ul>
+    {samples && <p class="sd__sample-note">Samples show how a stack will look, until the first are published. They are not recommendations.</p>}
+    {stacks.length === 0 && <p class="sd__sample-note">The first curated stacks are being put together.</p>}
+    <a class="sd__switch" href="https://app.addd.io/" target="_blank" rel="noopener">Software Database &#8599;</a>
+  </nav>
 
-  <section class="section" id="who-its-for">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="fit.lede">{t("fit.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="fit.tagline">{t("fit.tagline")}</p>
-          <h2 class="h2" data-split="heading" style="max-width:16ch" data-page-field="fit.heading">{t("fit.heading")}</h2>
-        </div>
-      </div>
+  <!-- the page's one call: the Free Stack, in the screen's bottom-right corner -->
+  <div class="sd__cta">
+    <ActionButton href={APP_SIGN_UP} target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+  </div>
 
-      <div class="grid grid--3 grid--mt" data-page-list="fit.tiles">
-        {fitTiles.map((item) => (
-        <article class="tile" data-page-item={item._key}>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
-        </article>
-        ))}
-      </div>
-
-      <div class="grid grid--2" style="margin-top:2rem" data-page-list="fit.alternatives">
-        {alternatives.map((item, i) => (
-        <article class="tile tile--outline" data-page-item={item._key}>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
-          <a class="btn btn--link nav-link" href={alternativeHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
-        ))}
+  <!-- a stack's sheet (stack-sheet.js): its containers are written into the
+       column as it opens -->
+  <dialog class="sd-sheet" data-stack-sheet aria-labelledby="sd-sheet-title" data-lenis-prevent>
+    <div class="sd-sheet__scrim" data-sheet-close aria-hidden="true"></div>
+    <div class="sd-sheet__frame">
+      <button type="button" class="sd-sheet__close" data-sheet-close aria-label="Close the stack">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 3.5l9 9M12.5 3.5l-9 9" /></svg>
+      </button>
+      <div class="sd-sheet__scroll" data-sheet-scroll tabindex="-1">
+        <div class="sd-sheet__column" data-sheet-column></div>
       </div>
     </div>
-  </section>
+    <template data-sheet-cta><ActionButton href={APP_SIGN_UP} target="_blank" rel="noopener">Unlock the full stack</ActionButton></template>
+    <!-- the SVG Collection's lock (source-assets/svg-collection, no. 026) -->
+    <template data-sheet-lock><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9C3.75 8.17125 4.42125 7.5 5.25 7.5H12.75C13.5788 7.5 14.25 8.17125 14.25 9V14.25C14.25 15.0787 13.5788 15.75 12.75 15.75Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 7.5V5.25C6 3.59325 7.34325 2.25 9 2.25C10.6567 2.25 12 3.59325 12 5.25V7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path></svg></template>
+  </dialog>
 
-  <section class="section section--light" id="how-it-works">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="method.heading">{t("method.heading")}</h2>
-        </div>
-      </div>
-
-      <div class="steps" data-page-list="method.steps">
-        {steps.map((step) => (
-        <div class="steps__item" data-page-item={step._key}>
-          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
-          <div class="steps__body">
-            <h3 class="h4" data-page-item-field="title">{step.title}</h3>
-            <p data-page-item-field="text">{step.text}</p>
-          </div>
-        </div>
-        ))}
-      </div>
-
-      <div class="actions" style="margin-top:3rem">
-        <ActionButton href="contact.html"><span data-page-field="method.button">{t("method.button")}</span></ActionButton>
-        <a class="btn btn--link nav-link" href="technology-blueprint.html"><NavLinkLabel data-page-field="method.linkLabel">{t("method.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-      </div>
-    </div>
-  </section>
-
-  <section class="section">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="next.lede">{t("next.lede")}</p>
-        <div class="section-title__body">
-          <h2 class="h2" data-split="heading" data-page-field="next.heading">{t("next.heading")}</h2>
-        </div>
-      </div>
-      <div class="grid grid--3 grid--mt" data-page-list="next.tiles">
-        {nextTiles.map((item, i) => (
-        <article class="tile" data-page-item={item._key}>
-          <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-          <p data-page-item-field="text">{item.text}</p>
-          <a class="btn btn--link nav-link" href={nextHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
-        </article>
-        ))}
-      </div>
-    </div>
-  </section>
-
-  <ClosingCta />
-
+  <p class="visually-hidden" aria-live="polite" data-stack-live></p>
+  <script is:inline type="application/json" data-stack-data set:html={JSON.stringify(data)}></script>
 </main>
 </BaseLayout>

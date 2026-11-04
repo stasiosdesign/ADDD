@@ -5,7 +5,8 @@
 // Shown (is--shown; styles.css fades and lifts it in, and back out) from
 // when the page's first section, its hero, has all but gone off the top
 // of the screen until the end of the page's booking (Book a Free Call, or
-// the closing CTA) is about to come up under it: one ScrollTrigger, on
+// the closing CTA; an FAQ's Book a Free Call, its last item) is about to
+// come up under it: one ScrollTrigger, on
 // the site's one scroll pipeline (scroll.js), nothing read per frame.
 //
 // Over a dark section it turns over to white (data-ground="dark", which
@@ -27,7 +28,7 @@ export function initBookFloat(container) {
     if (root.bookFloat) return;
     const button = root.querySelector("[data-booking-open]");
     const hero = root.parentElement?.querySelector(":scope > section");
-    const end = container.querySelector(root.dataset.bookFloatUntil || ".book-call, .cta");
+    const end = container.querySelector(root.dataset.bookFloatUntil || ".faq-call, .book-call, .cta");
     if (!button || !hero || !document.getElementById(button.dataset.bookingOpen)) return;
 
     // ---- the ground under it ------------------------------------------

@@ -150,26 +150,29 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
       <div data-nav-content="resources" id="mega-nav-resources" role="region" aria-label="Resources" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner is--resources">
 
-          <!-- The three Resources blocks, in the Services cards' language
-               (nav.css, "Resources blocks"): a header of the column's
-               mark in a compact square and its name beside it; under it
-               the column's lead link; under that a feature on the field's
-               tone. Every row of text hangs from the name's line. -->
+          <!-- Four boxes of their own (2026-11-04; nav.css, "Resources
+               tiles" and "Resources blocks"): on the left, one over the
+               other and the same width, Free Tech Stacks and the Software
+               Database; then Reports and the Newsletter, each a block in the
+               Services cards' language (a header of its mark in a compact
+               square and its name beside it, its lead link, and a feature
+               on the field's tone). -->
 
-          <!-- Explore — the interactive research layer: the Stack applies the
-               knowledge, the database exposes the software landscape under it. -->
-          <div data-menu-fade class="resource-block">
-            <span class="resource-block__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M16.2 7.79999L14.1 14.1L7.79999 16.2L9.89999 9.89999L16.2 7.79999Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor"></path></svg></span>
-            <span class="resource-block__title">Explore</span>
-            <a href="/stack-diagnostic.html" class="resource-block__row resource-block__lead">
-              <span class="resource-block__name">Free Tech Stacks</span>
-              <span class="resource-block__desc">See how software fits together across architecture workflows.</span>
-            </a>
-            <a href="https://app.addd.io/" target="_blank" rel="noopener" class="resource-block__row resource-block__field">
-              <span class="resource-block__name">Software Database &#8599;</span>
-              <span class="resource-block__desc">ADDD&rsquo;s research into 1,700+ AEC software solutions.</span>
-            </a>
-          </div>
+          <!-- Free Tech Stacks: its name in the top left, and the Stack
+               Diagnostic's row of cards in miniature, a Hairline figure
+               (stack-preview.js) that riffles while the pointer is anywhere
+               over the box. The whole box is the link. -->
+          <a data-menu-fade href="/stack-diagnostic.html" class="resource-tile is--stacks" data-stack-preview-box>
+            <span class="resource-tile__name">Free Tech Stacks</span>
+            <span class="resource-tile__desc">See how software fits together across architecture workflows.</span>
+            <span class="resource-tile__figure" data-hairline data-stack-preview aria-hidden="true"><svg viewBox="0 0 400 320" fill="none" focusable="false" aria-hidden="true"></svg></span>
+          </a>
+          <!-- the Software Database, the landscape under the stacks: kept
+               plain for now -->
+          <a data-menu-fade href="https://app.addd.io/" target="_blank" rel="noopener" class="resource-tile is--database">
+            <span class="resource-tile__name">Software Database &#8599;</span>
+            <span class="resource-tile__desc">ADDD&rsquo;s research into 1,700+ AEC software solutions.</span>
+          </a>
 
           <!-- Reports — the index link, then the latest report as the feature.
                The report is the first on reports.html; keep the two in step. -->

@@ -10,6 +10,26 @@
   a small lift. The key under the pointer rises on its plinth, its routes
   take the bright stroke and the signal runs on them. The slider is the lift.
   (After the reference of 2026-11-04, for the Technology Blueprint's hero.)
+  
+  Second pass (2026-11-04): each key a cell of the hero's lattice (a side
+  of S, the lattice's module, set out from the figure's origin), centred in
+  its cell, so its sides run on the lattice's lines and the routes along
+  the lines through the cells' middles; the box a third lower; the signal
+  one stroke; the two upright tags on the routes taken out.
+  
+  Third pass (2026-11-04): a little taller than wide. A sixth key, Ackroyd
+  Lowrie's, stands two cells under SHH's, in the column SHH and Orms already
+  share across the screen, so the drawing grows down and not out; its route
+  runs up the hub's right-hand line, the one SHH's takes, into EPR's key.
+  
+  Fourth pass (2026-11-04): taller again, and stirred by the scroll. A
+  seventh key, Architecture PLB's, stands two cells under Ackroyd Lowrie's
+  in the same column, its route straight up into that key, so the drawing
+  grows down the screen and no wider. And stir(amount) lifts every key a
+  little, as the pointer lifts one, by an amount that decays on its own:
+  the page calls it as it scrolls (blueprint-hero.js), each key following
+  at its own pace, the upper ones first, so the lift runs down the network
+  and settles once the scroll stops.
 
    A Hairline figure (the hairline-create skill, .claude/skills/) on the
    vendored kernel, after the reference's composition rather than every
@@ -28,24 +48,34 @@ const LOGOS = "/assets/logos/SVGs/";
 // a key's side (world units, one a viewBox unit at the site's isometric),
 // and its parts in sides: the plinth's margin, height and corner, the box's
 // corner and lid, the lid's plate, the coin, the routes' bends, the signal
-const S = 40, BASE_M = 0.07, BASE_H = 0.11, BASE_R = 0.17, BODY_R = 0.14, TOP = 0.47, LID = 0.1;
-const COIN_R = 0.25, COIN_H = 0.075, BEND = 0.22, SPEED = 3.1, PULSE = 0.8, GAP = 650, KICK = 0.09, LIFT_MAX = 11;
+const S = 36, BASE_M = 0.07, BASE_H = 0.11, BASE_R = 0.17, BODY_R = 0.14, TOP = 0.35, LID = 0.1;
+const COIN_R = 0.25, COIN_H = 0.075, BEND = 0.22, SPEED = 3.1, PULSE = 0.8, GAP = 650, KICK = 0.09, LIFT_MAX = 9;
+// the scroll's stir: the most it lifts a key (a share of the pointer's
+// lift), how fast it dies away once the scroll stops (per second), and how
+// fast the keys follow it, the uppermost quickest, the lowest slowest
+const STIR = 0.7, STIR_DECAY = 3.2, STIR_FAST = 9, STIR_SLOW = 4;
+// each key's middle, in cells: every one the middle of a cell (a half), so
+// its sides lie on the lattice's lines
 const NODES = [
-  { name: "Orms", logo: "Ormsss-Logo.svg", ar: 866 / 300, at: [-2.25, -1.25] },
-  { name: "ADAM", logo: "ADAM-Logo.svg", ar: 1225 / 300, at: [0.25, -3.25] },
-  { name: "DMWR", logo: "dmwr-architects-logo.svg", ar: 540 / 300, at: [-1.75, 2.5] },
-  { name: "EPR", logo: "epr-architects-logo.svg", ar: 524 / 300, at: [2.25, -0.25] },
-  { name: "SHH", logo: "SHH-logo.svg", ar: 234 / 300, at: [1.75, 2.5] },
+  { name: "Orms", logo: "Ormsss-Logo.svg", ar: 866 / 300, at: [-2.5, -1.5] },
+  { name: "ADAM", logo: "ADAM-Logo.svg", ar: 1225 / 300, at: [0.5, -3.5] },
+  { name: "DMWR", logo: "dmwr-architects-logo.svg", ar: 540 / 300, at: [-1.5, 2.5] },
+  { name: "EPR", logo: "epr-architects-logo.svg", ar: 524 / 300, at: [2.5, -0.5] },
+  { name: "SHH", logo: "SHH-logo.svg", ar: 234 / 300, at: [1.5, 2.5] },
+  { name: "Ackroyd Lowrie", logo: "ackroyd-lowrie-logo.svg", ar: 300 / 300, at: [3.5, 4.5] },
+  { name: "Architecture PLB", logo: "Architecture-PLB-Logo.svg", ar: 889 / 300, at: [3.5, 6.5] },
 ];
 const HUB = 3;
-// each route from a key to another through its turns (in sides); a tag
-// stands on the segment `seg` at `t` of its length
+// each route from a key to another through its turns, in cells, every turn
+// on the middle line of a row or column of cells
 const ROUTES = [
-  { from: 0, to: 3, pts: [[-2.25, -1.25], [0.5, -1.25], [0.5, -0.25], [2.25, -0.25]] },
-  { from: 4, to: 3, pts: [[1.75, 2.5], [3, 2.5], [3, 0], [2.25, 0]], tag: { seg: 1, t: 0.45, word: "API" } },
-  { from: 1, to: 3, pts: [[0.25, -3.25], [3, -3.25], [3, -0.5], [2.25, -0.5]] },
-  { from: 2, to: 0, pts: [[-1.75, 2.5], [-1.75, 0.75], [-2.25, 0.75], [-2.25, -1.25]], tag: { seg: 2, t: 0.38, word: "IFC" } },
-  { from: 2, to: 3, pts: [[-1.75, 2.5], [-1.25, 2.5], [-1.25, 1.25], [2.25, 1.25], [2.25, -0.25]] },
+  { from: 0, to: 3, pts: [[-2.5, -1.5], [0.5, -1.5], [0.5, -0.5], [2.5, -0.5]] },
+  { from: 4, to: 3, pts: [[1.5, 2.5], [3.5, 2.5], [3.5, -0.5], [2.5, -0.5]] },
+  { from: 1, to: 3, pts: [[0.5, -3.5], [3.5, -3.5], [3.5, -0.5], [2.5, -0.5]] },
+  { from: 2, to: 0, pts: [[-1.5, 2.5], [-1.5, 0.5], [-2.5, 0.5], [-2.5, -1.5]] },
+  { from: 2, to: 3, pts: [[-1.5, 2.5], [-0.5, 2.5], [-0.5, 1.5], [2.5, 1.5], [2.5, -0.5]] },
+  { from: 5, to: 3, pts: [[3.5, 4.5], [3.5, -0.5], [2.5, -0.5]] },
+  { from: 6, to: 5, pts: [[3.5, 6.5], [3.5, 4.5]] },
 ];
 
 /** A polyline (in sides) with its inner corners rounded by BEND: points in world units, and the length to each. */
@@ -85,59 +115,51 @@ function slice(P, r, a, b) {
 function mount({ stage, svg, read }, value) {
   const bag = disposer();
   let lift = value;
-  const C = Cam(45, Math.sqrt(1 / 3), Math.sqrt(1.5));
+  // a little closer in than the first passes (their sqrt(1.5)), so the
+  // seventh key's extra height stays in the frame
+  const C = Cam(45, Math.sqrt(1 / 3), 1.16);
   const ext = [];
   NODES.forEach(({ at }) => [-0.6, 0.6].forEach((dx) => [-0.6, 0.6].forEach((dy) => ext.push([(at[0] + dx) * S, (at[1] + dy) * S, (TOP + COIN_H) * S + LIFT_MAX]))));
   ROUTES.forEach(({ pts }) => pts.forEach(([x, y]) => ext.push([x * S, y * S, 0])));
-  fit(C, ext, 200, 166);
+  fit(C, ext, 200, 150);
   const P = proj(C), front = facing(C);
   const ground = mk("g", {}, svg), signal = mk("g", {}, svg), items = mk("g", {}, svg);
 
-  // the routes, on the ground; the signal's glow and stroke over them
+  // the routes, on the ground; the signal, one stroke, over them
   const routes = ROUTES.map((rt) => {
     const r = bendRoute(rt.pts);
     const el = mk("path", { d: open(r.w.map(([x, y]) => P(x, y, 0))), class: "nf route" }, ground);
-    return { ...rt, r, el, tagEl: null };
+    return { ...rt, r, el };
   });
-  const glow = mk("path", { class: "nf pulse-glow" }, signal), pulse = mk("path", { class: "nf hi pulse" }, signal);
+  const pulse = mk("path", { class: "nf hi pulse" }, signal);
 
-  // what stands on the ground, back to front: the keys and the tags
-  const stand = [];
-  routes.forEach((rt) => {
-    if (!rt.tag) return;
-    const [a, b] = [rt.pts[rt.tag.seg], rt.pts[rt.tag.seg + 1]], t = rt.tag.t;
-    const c = [(a[0] + (b[0] - a[0]) * t) * S, (a[1] + (b[1] - a[1]) * t) * S];
-    const d = [Math.sign(b[0] - a[0]), Math.sign(b[1] - a[1])], dir = d[0] + d[1] < 0 ? d : [-d[0], -d[1]];
-    stand.push({ depth: c[0] + c[1], draw: (g) => (rt.tagEl = tagAt(g, c, dir, rt.tag.word)) });
-  });
-  const nodes = NODES.map((n, i) => ({ ...n, i, lift: tween(0), kick: tween(0), drawn: null }));
-  nodes.forEach((n) => stand.push({ depth: (n.at[0] + n.at[1]) * S, draw: (g) => build(g, n) }));
-  stand.sort((p, q) => p.depth - q.depth).forEach((s) => s.draw(mk("g", {}, items)));
-
-  /** An upright tag on a route, along dir (a unit world vector reading to the screen's right): its plate, its edge and its word. */
-  function tagAt(g, [cx, cy], dir, word) {
-    const h = 0.34 * S, z0 = 0.1 * S, z1 = z0 + 0.25 * S, th = 0.035 * S;
-    const nx = -dir[1], ny = dir[0], side = nx + ny > 0 ? 1 : -1;
-    const corner = (u, z, o) => P(cx + dir[0] * u + nx * o * side, cy + dir[1] * u + ny * o * side, z);
-    const plate = (o) => poly([corner(-h, z0, o), corner(h, z0, o), corner(h, z1, o), corner(-h, z1, o)]);
-    mk("path", { d: plate(-th), class: "tag-edge" }, g);
-    const face = mk("path", { d: plate(0), class: "tag" }, g);
-    const o = corner(0, (z0 + z1) / 2, 0), ux = P(dir[0], dir[1], 0), u0 = P(0, 0, 0), dz = P(0, 0, -1);
-    const txt = mk("text", { class: "tag-word", "text-anchor": "middle", "dominant-baseline": "central", "font-size": 0.15 * S,
-      transform: `matrix(${ux[0] - u0[0]} ${ux[1] - u0[1]} 0 ${dz[1] - u0[1]} ${o[0]} ${o[1]})` }, g);
-    txt.textContent = word;
-    return face;
-  }
+  // the keys, back to front
+  const nodes = NODES.map((n, i) => ({ ...n, i, lift: tween(0), kick: tween(0), stir: 0, drawn: null }));
+  // each key's pace in following the stir: by how far down the screen it stands
+  const depth = nodes.map((n) => n.at[0] + n.at[1]);
+  const [d0, d1] = [Math.min(...depth), Math.max(...depth)];
+  nodes.forEach((n, i) => (n.pace = STIR_FAST + (STIR_SLOW - STIR_FAST) * ((depth[i] - d0) / (d1 - d0 || 1))));
+  let energy = 0;
+  // a lift of one unit up the world, on the screen (straight up)
+  const rise = P(0, 0, 1)[1] - P(0, 0, 0)[1];
+  nodes
+    .slice()
+    .sort((p, q) => p.at[0] + p.at[1] - (q.at[0] + q.at[1]))
+    .forEach((n) => build(mk("g", {}, items), n));
 
   /** A key: its plinth (which stays), its box, lid and coin (which rise), and the practice's mark printed on the coin. */
   function build(g, n) {
     const [x, y] = n.at.map((v) => v * S), h = S / 2, m = BASE_M * S;
     const [bo, bi] = rings(x - h - m, y - h - m, x + h + m, y + h + m, BASE_R * S, 0.03 * S);
     put(solid(g), prism(P, front, bo, bi, 0, BASE_H * S));
-    n.box = solid(g); n.lid = mk("path", { class: "nf lo" }, g); n.trace = mk("path", { class: "nf lo" }, g);
-    n.coin = solid(g); n.coin.g.setAttribute("class", "coin"); n.face = mk("path", { class: "coin-top" }, g); n.ring = mk("path", { class: "nf coin-ring" }, g);
+    // the parts that rise, in a group of their own: the scroll's stir moves
+    // the group (a lift is straight up the screen in this view), so the
+    // stir never redraws their shapes
+    const up = (n.up = mk("g", {}, g));
+    n.box = solid(up); n.lid = mk("path", { class: "nf lo" }, up); n.trace = mk("path", { class: "nf lo" }, up);
+    n.coin = solid(up); n.coin.g.setAttribute("class", "coin"); n.face = mk("path", { class: "coin-top" }, up); n.ring = mk("path", { class: "nf coin-ring" }, up);
     const lw = Math.min(1.16 * COIN_R, 0.86 * COIN_R * n.ar) * S, lh = lw / n.ar;
-    n.mark = mk("image", { href: LOGOS + n.logo, x: -lw / 2, y: -lh / 2, width: lw, height: lh, preserveAspectRatio: "xMidYMid meet" }, g);
+    n.mark = mk("image", { href: LOGOS + n.logo, x: -lw / 2, y: -lh / 2, width: lw, height: lh, preserveAspectRatio: "xMidYMid meet" }, up);
     n.rings = rings(x - h, y - h, x + h, y + h, BODY_R * S, 0.03 * S);
     n.plate = rrect(x - h + LID * S, y - h + LID * S, x + h - LID * S, y + h - LID * S, (BODY_R - LID * 0.6) * S, 6);
     n.disc = circ(COIN_R * S, 40).map((q) => ({ ...q, u: q.u + x, v: q.v + y }));
@@ -168,27 +190,35 @@ function mount({ stage, svg, read }, value) {
   // takes it with a small lift; the routes of the key under the pointer, or all
   let act = -1, queue = 0, run = null, nextAt = performance.now() + 900;
   const mine = () => routes.filter((rt) => act < 0 || act === HUB || rt.from === act || rt.to === act);
-  const B = register(stage, (_dt, now) => {
+  const B = register(stage, (dt, now) => {
     let moving = false;
+    // (the kernel gives dt in seconds)
+    const sec = Math.min(dt, 0.064);
+    energy = energy < 0.002 ? 0 : energy * Math.exp(-STIR_DECAY * sec);
     nodes.forEach((n) => {
       if (tdone(n.kick, now) && n.kick.to > 0) tset(n.kick, 0, now, 0);
+      const to = energy * STIR * lift;
+      n.stir += (to - n.stir) * (1 - Math.exp(-n.pace * sec));
+      if (Math.abs(n.stir - to) < 0.01) n.stir = to;
       draw(n, tval(n.lift, now) + tval(n.kick, now));
-      if (!tdone(n.lift, now) || !tdone(n.kick, now)) moving = true;
+      const dy = Math.round(n.stir * rise * 100) / 100;
+      if (dy !== n.shown) {
+        n.shown = dy;
+        n.up.setAttribute("transform", dy ? `translate(0 ${dy})` : "");
+      }
+      if (!tdone(n.lift, now) || !tdone(n.kick, now) || n.stir > 0) moving = true;
     });
     if (reducedMotion()) return moving;
     if (!run && now >= nextAt) {
       const list = mine();
       run = { rt: list[queue++ % list.length], t0: now };
-      run.rt.tagEl?.classList.add("is--lit");
     }
     if (run) {
       const d = ((now - run.t0) / 1000) * SPEED * S, r = run.rt.r;
       const pts = slice(P, r, d - PULSE * S, d);
-      glow.setAttribute("d", pts.length ? open(pts) : "");
       pulse.setAttribute("d", pts.length ? open(pts) : "");
       if (d - PULSE * S >= r.L) {
         tset(nodes[run.rt.to].kick, KICK * S, now, 0);
-        if (!run.rt.el.classList.contains("hi")) run.rt.tagEl?.classList.remove("is--lit");
         run = null;
         nextAt = now + GAP;
       }
@@ -218,7 +248,6 @@ function mount({ stage, svg, read }, value) {
     routes.forEach((rt) => {
       const on = a >= 0 && a !== HUB && (rt.from === a || rt.to === a);
       rt.el.classList.toggle("hi", on);
-      rt.tagEl?.classList.toggle("is--lit", on);
     });
     read.textContent = a < 0 ? "rest" : nodes[a].name;
     B.wake();
@@ -226,14 +255,21 @@ function mount({ stage, svg, read }, value) {
   bag.add(pointer(stage, { move: (p) => setActive(hit(p)), leave: () => setActive(-1) }));
   bag.add(() => svg.replaceChildren());
   read.textContent = "rest";
-  return { set: (v) => { const a = act; lift = v; act = -2; setActive(a); }, destroy: bag.dispose, origin: P(0, 0, 0) };
+  // origin and cell: where the hero's lattice is set out from, and its module
+  /** The scroll's stir (0 to 1): every key lifts a little, and settles once it stops coming. */
+  const stir = (a) => {
+    if (reducedMotion() || !(a > energy)) return;
+    energy = Math.min(1, a);
+    B.wake();
+  };
+  return { set: (v) => { const a = act; lift = v; act = -2; setActive(a); }, stir, destroy: bag.dispose, origin: P(0, 0, 0), cell: S, axis: [P(1, 0, 0)[0] - P(0, 0, 0)[0], P(1, 0, 0)[1] - P(0, 0, 0)[1]] };
 }
 
 export const NETWORK = {
   name: "network",
-  means: "Five practices' systems as keys joined by routes: a signal runs to the hub, and the key you point at rises and lights its routes.",
+  means: "Seven practices' systems as keys joined by routes: a signal runs to the hub, and the key you point at rises and lights its routes.",
   rules: [1, 5, 6, 9],
-  range: [4, 7, 11],
+  range: [3, 6, 9],
   tour: [[118, 118], [270, 230], [196, 92], null],
   mount,
 };

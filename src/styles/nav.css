@@ -452,9 +452,10 @@
    card a little, a light laid over it, an opacity change only, so
    nothing is laid out again under the pointer. */
 
-/* the cards' palette and steps, which the Resources blocks share */
+/* the cards' palette and steps, which the Resources blocks and tiles share */
 .service-card,
-.resource-block {
+.resource-block,
+.resource-tile {
   --sc-ground: var(--c-white);
   --sc-ink: var(--c-text);
   --sc-num: #e6e6e6;
@@ -800,6 +801,113 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   .resource-block__signup :is(input[type="email"], .newsletter-form__submit) { font-size: 1rem; }
 }
 
+/* --- Resources tiles (Nav.astro, 2026-11-04) -------------------------
+   Free Tech Stacks and the Software Database, each a box of its own on the
+   left of the dropdown, one over the other and the same width: the block's
+   ground and ink, its name in the top left with its line under it, the
+   whole box the link, taking the rows' hover shade and focus ring.
+
+   Free Tech Stacks carries the Stack Diagnostic's row of cards in
+   miniature (stack-preview.js, a Hairline figure), cropped by the box as
+   the page's row is by the screen (2026-11-04): plain cards, the row
+   coming up out of the box's foot, clear of the words, and running on out
+   past its top right. The cards lighter than the box (white on its grey,
+   a lifted grey on its near-black), their edges in the box's ink, dim
+   inside, and the one card standing alone (or the one the pointer pulls)
+   edged in the site's red. */
+.resource-tile {
+  --sc-ground: var(--nav-card-bg);
+  --sc-ink: var(--nav-fg);
+  --sc-shade: currentColor;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1875rem;
+  min-width: 0;
+  padding: var(--sc-step) var(--sc-pad);
+  background: var(--sc-ground);
+  color: var(--sc-ink);
+  text-decoration: none;
+  outline: none;
+}
+.resource-tile__name {
+  font-family: var(--font-display);
+  font-size: 1.125rem;
+  line-height: 1.2;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.resource-tile__desc {
+  max-width: 14em;
+  font-size: .8125rem;
+  line-height: 1.35;
+  color: var(--sc-text);
+  text-wrap: pretty;
+}
+.resource-tile.is--database .resource-tile__desc { max-width: 21em; }
+.resource-tile::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--sc-shade);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+.resource-tile:is(:hover, :focus-visible)::after { opacity: .05; }
+.resource-tile:active::after { opacity: .1; }
+.resource-tile:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
+
+.resource-tile.is--stacks { min-height: calc(10 * var(--sc-step)); overflow: hidden; }
+.resource-tile.is--stacks > :is(.resource-tile__name, .resource-tile__desc) { position: relative; z-index: 1; }
+/* the crop: the whole box; the drawing's frame (the figure's 400 × 320)
+   larger than it, its middle (the lone card) right of the box's middle
+   and a little low, so the row's front cards come up out of the foot
+   under the words and its back ones run out past the top right */
+.resource-tile__figure {
+  position: absolute;
+  inset: 0;
+  /* the box's own size, not the kernel's 5:4 */
+  aspect-ratio: auto;
+  overflow: hidden;
+  pointer-events: none;
+  --hairline-plate: color-mix(in oklab, #ffffff, #262626 var(--nav-dark, 0%));
+  --hairline-edge: color-mix(in srgb, var(--sc-ink) 52%, transparent);
+  --hairline-mid: color-mix(in srgb, var(--sc-ink) 34%, transparent);
+  --hairline-lo: color-mix(in srgb, var(--sc-ink) 17%, transparent);
+  --hairline-hi: var(--c-red);
+  --hairline-stroke: 1;
+}
+.resource-tile__figure > svg {
+  position: absolute;
+  inset: auto;
+  left: 72.4%;
+  top: 58.7%;
+  width: 110%;
+  max-width: none;
+  height: auto;
+  aspect-ratio: 5 / 4;
+  translate: -50% -50%;
+  overflow: visible;
+}
+/* In the drawer, where the box is narrow, the row is a band under the
+   words, cropped by the box's sides and foot */
+@media screen and (max-width: 991px) {
+  .resource-tile.is--stacks { min-height: 0; }
+  /* the box alone crops it: the band lets the back cards rise past its
+     top, behind the words' foot */
+  .resource-tile__figure {
+    position: relative;
+    inset: auto;
+    overflow: visible;
+    align-self: stretch;
+    height: calc(8 * var(--sc-step));
+    margin: calc(.25 * var(--sc-step)) calc(-1 * var(--sc-pad)) calc(-1 * var(--sc-step));
+  }
+  .resource-tile__figure > svg { left: calc(100% - 9rem); top: 56%; width: clamp(20rem, 165%, 36rem); }
+}
+
 /* Blocks — the bar from 992px up. Every functional area is a block of
    its own, full bar height and flush to the next: the logo, the feature
    block, the group, then the Contact button.
@@ -848,6 +956,23 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
     white-space: nowrap;
     margin-right: var(--nav-item-gap);
   }
+  /* Services and Resources take the pointer round their words (2026-11-04),
+     not the bar's whole height: their box is the label and its mark with a
+     little room either side (--nav-hit), centred in the bar, the room taken
+     back by a margin so nothing moves. Full height, a move from Resources
+     down to the left of its dropdown ran through the foot of Services and
+     switched to it. The strip of bar left under them, between the words
+     and the dropdown, is a way down, not a way out (initMegaNav: the
+     pointer leaving a toggle by its foot keeps the dropdown open until it
+     reaches it, and a pointer only crossing a toggle's foot on its way
+     down switches nothing). */
+  .mega-nav__bar-link.is--dropdown {
+    --nav-hit-x: .5em;
+    --nav-hit-y: .4em;
+    align-self: center;
+    margin: 0 calc(-1 * var(--nav-hit-x));
+    padding: var(--nav-hit-y) var(--nav-hit-x);
+  }
   .mega-nav__bar-inner > .mega-nav__bar-list:not(.is--actions) > li:first-child {
     margin-left: calc(var(--nav-col) + 2 * var(--grid-gutter));
   }
@@ -876,12 +1001,24 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   .mega-nav__dropdown-inner.is--services[style*="--sc-grid-ratio"] {
     grid-template-rows: calc(var(--sc-card-w) * var(--sc-grid-ratio));
   }
+  /* Resources (2026-11-04): four boxes, each its own, a narrow seam of the
+     dimmed page between them (the floating cards' seam, below): on the
+     left Free Tech Stacks over the Software Database, the same width, the
+     database its words' height and Free Tech Stacks the rest; then the
+     Reports and Newsletter blocks, each the two rows' full height, its own
+     header, lead and feature rows the same in both, so they stand level. */
   .mega-nav__dropdown-inner.is--resources {
+    --sc-float-gap: calc(var(--nav-float-top) / 4);
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: calc(3 * var(--sc-step)) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), auto);
-    row-gap: 0;
+    grid-template-rows: minmax(calc(10 * var(--sc-step)), 1fr) auto;
+    gap: var(--sc-float-gap);
   }
-  .is--resources > .resource-block { grid-row: 1 / span 3; grid-template-rows: subgrid; box-shadow: 1px 0 0 var(--sc-ground); }
+  .is--resources > .resource-tile.is--stacks { grid-area: 1 / 1; }
+  .is--resources > .resource-tile.is--database { grid-area: 2 / 1; }
+  .is--resources > .resource-block {
+    grid-row: 1 / span 2;
+    grid-template-rows: var(--sc-head) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), 1fr);
+  }
 
   /* Floating (past the hero), the Services cards float as the bar does:
      four boxes of their own rather than one strip, set off from the bar
@@ -921,17 +1058,13 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   }
   .mega-nav.is--floating .is--services .service-card__title { font-size: 1.875rem; }
 
-  /* Floating, the three Resources blocks part as the Services cards do
-     (2026-11-04): three boxes of their own, set off from the bar and from
-     each other by the same narrow seam of the dimmed page, each with the
-     bar's corners, so they no longer carry their ground under the next.
-     Their rows stay shared, so header, lead and field stand level. */
+  /* Floating, the four Resources boxes hang off the bar as the Services
+     cards do: set off from it by the same narrow seam, each with the bar's
+     corners. */
   .mega-nav.is--floating .mega-nav__dropdown-inner.is--resources {
-    --sc-float-gap: calc(var(--nav-float-top) / 4);
-    column-gap: var(--sc-float-gap);
     padding-top: var(--sc-float-gap);
   }
-  .mega-nav.is--floating .is--resources > .resource-block {
+  .mega-nav.is--floating .is--resources > :is(.resource-block, .resource-tile) {
     border-radius: var(--nav-bar-radius);
     overflow: clip;
     box-shadow: none;

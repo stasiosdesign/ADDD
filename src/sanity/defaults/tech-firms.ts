@@ -10,7 +10,7 @@ export const techFirmsPage = {
     heading: 'Help architects understand where your technology fits',
     lede: 'ADDD helps technology companies reach architecture practices, show their technology inside real architectural workflows, and understand what practices actually need from it.',
     primaryButton: 'Discuss a partnership',
-    secondaryButton: 'Explore partnership options',
+    secondaryButton: 'Explore options',
   },
   why: {
     lede: 'ADDD works with architecture practices on their technology challenges: reviewing workflows, untangling software estates and supporting the decisions about what to adopt, keep or replace. Its content explores how architects work, and why particular tools fit particular tasks.',

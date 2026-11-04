@@ -6,8 +6,19 @@
   the questions on a narrower measure set out on the grid's lines, each
   with an icon before it and a plus after it, opening to its answer one
   at a time (Accordion.astro, variant "panel"; styles: accordion.css,
-  "The FAQ panel"). Under them, where the page has them, a line and a
-  button (foot: Book a Free Call on the service pages).
+  "The FAQ panel").
+
+  The heading (2026-11-04, third pass) is set on two lines where it has
+  three words or more ("About the / Blueprint"), balanced; a heading of
+  two words stays on one.
+
+  call (2026-11-04, third pass): Book a Free Call as the list's last item,
+  a black box a question's size, one step after the last question, so it
+  reads as part of the list (the line over it, "Have any other
+  questions?", and the button under the list are gone). It opens the free
+  call's booking calendar, as the button did (BookCallDialog.astro;
+  booking.js); true for the page's own dialog id "book-call", or another
+  id.
 
   Each page brings its own heading, questions and icons. icons: a name
   per question, in order, from public/assets/icons/faq (faq-<name>.svg,
@@ -15,12 +26,13 @@
   follow the questions by position, as a timeline's photographs do, so
   a question added in the Studio past the last shows its number instead.
   On a dark page the panel takes the ink (a .section--dark or .page--dark
-  round it).
+  round it), and the call turns over to white.
 
   field: the Studio list the questions come from, for the Visual editor;
-  headingField and footField the heading's and the line's.
+  headingField the heading's.
 */
 import Accordion from "./Accordion.astro";
+import BookCallDialog from "./BookCallDialog.astro";
 
 interface Item {
   _key?: string;
@@ -38,22 +50,27 @@ interface Props {
   items: Item[];
   field?: string;
   icons?: string[];
-  footLine?: string;
-  footField?: string;
+  /** Book a Free Call as the list's last item: true, or the booking dialog's id. */
+  call?: boolean | string;
+  callLabel?: string;
 }
-const { id, heading, headingField, items, field, icons = [], footLine, footField } = Astro.props;
+const { id, heading, headingField, items, field, icons = [], call, callLabel = "Book a Free Call" } = Astro.props;
 const questions = items.map((item, i) => ({ ...item, icon: icons[i] }));
-const foot = Boolean(footLine) || Astro.slots.has("foot");
+const callId = typeof call === "string" ? call : "book-call";
+// three words or more: two balanced lines
+const paired = (heading ?? "").trim().split(/\s+/).length >= 3;
 ---
 <div class="faq-panel">
-  {heading && <h2 class="h2 faq-panel__heading" data-split="heading" data-page-field={headingField}>{heading}</h2>}
+  {heading && <h2 class:list={["h2", "faq-panel__heading", { "is--pair": paired }]} data-split="heading" data-page-field={headingField}>{heading}</h2>}
   <div class="faq-panel__list">
     <Accordion id={id} items={questions} field={field} variant="panel" />
+    {call && (
+      <button type="button" class="faq-call" data-booking-open={callId} aria-haspopup="dialog" aria-controls={callId}>
+        <span class="faq-call__photo" aria-hidden="true"><img src="/assets/images/allister-headshot-bw-crop.webp" alt="" width="64" height="64" loading="lazy" decoding="async"></span>
+        <span class="faq-call__label">{callLabel}</span>
+        <span class="faq-call__go" aria-hidden="true"><svg viewBox="0 0 16 16" fill="none" focusable="false"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/></svg></span>
+      </button>
+    )}
   </div>
-  {foot && (
-    <div class="faq-panel__foot">
-      {footLine && <p data-page-field={footField}>{footLine}</p>}
-      <slot name="foot" />
-    </div>
-  )}
 </div>
+{call && <BookCallDialog id={callId} />}

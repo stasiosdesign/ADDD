@@ -565,6 +565,19 @@
   stroke-linejoin: miter;
 }
 
+/* the stack of layers in place of the arrow (icon="stack"): the SVG
+   Collection's 24-unit drawing at a little over the arrow's size, its
+   lines the arrow's weight on the screen (1.25px), square-ended */
+.action-button.is--frame .action-button__icon {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+}
+
 /* A photograph at the start (photo): the box's whole height, flush with
    its top, foot and start (its corners the box's own there), a square as
    wide as the box is tall, cropped to the face (the photo's position), in

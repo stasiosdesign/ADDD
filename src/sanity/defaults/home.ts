@@ -90,7 +90,7 @@ export const homePage = {
     lede: 'ADDD is most useful when the problem is no longer isolated to one tool, one project or one team.',
     tagline: 'Fit',
     heading: 'For practices where technology is now a leadership issue.',
-    faqHeading: 'Frequently asked questions',
+    faqHeading: 'Questions & Answers',
     forQuestion: 'Who is this for?',
     notQuestion: 'Who is this not for?',
     forTitle: 'Best suited to',

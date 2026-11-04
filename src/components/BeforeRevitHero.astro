@@ -1,0 +1,112 @@
+---
+/*
+  The Before Revit opening (2026-11-04, after the reference the user
+  supplied: a dark hero, its words large on the left and an exploded
+  isometric box glowing on the right, its blue light the site's red).
+
+  On the left, read down: the heading large on two lines, all of it
+  white, the standfirst, the two buttons (the site's own, turned over for
+  a dark ground), and at the foot the practices the studio has worked
+  with, their white marks in a row, each sized by its own ink
+  (logo-balance.ts) so they weigh alike. (2026-11-04, second pass: the
+  page's label and the method's steps no longer stand over the heading,
+  and none of the heading is greyed.)
+
+  On the right the drawing (press-figure.js, a Hairline figure; mounted,
+  worded and lit by before-revit-hero.js): the early stages as a broad low
+  platform on a wider ground, glowing red, and the model held over it as a
+  thin frame, dashed lines dropping from its corners to the dashed square
+  it will land on. Its words are the page's own (the standfirst's tools,
+  information and decisions; Revit and Archicad), set in the drawing's
+  planes as the reference sets its own.
+
+  The drawing stands on the Technology Blueprint's lattice, in the hero's
+  red, set out from the drawing's own ground (a cell of it a quarter of the
+  platform's side), fading out towards the words; a fine grain lies over
+  the light (a still tile, assets/graphics/grain-noise.png).
+
+  The opening is longer than the screen and the drawing is held while the
+  words scroll away (the hold: CSS sticky). The scroll itself brings the
+  frame down: as far down as the page has gone, it has come down, faster
+  as it nears the platform, and where it lands the pulse runs out, all of
+  it the scroll's (before-revit-hero.js); stopped, it stops; scrolled
+  back, it goes back up. Then the drawing goes on up with the page. Below
+  992px nothing is held: the drawing over the words, still exploded.
+
+  The words come from the page's Studio fields (headingField, ledeField);
+  the buttons are the slot (actions). Styles: pages.css ("Before Revit
+  hero").
+*/
+import { CLIENTS } from "../sanity/defaults/clients";
+import { logoShape } from "../sanity/logo-balance";
+
+interface Props {
+  heading?: string;
+  lede?: string;
+  headingField?: string;
+  ledeField?: string;
+}
+const { heading = "", lede, headingField = "hero.heading", ledeField = "hero.lede" } = Astro.props;
+
+// the heading on two lines: all but its last word, then the last
+const words = heading.trim().split(/\s+/);
+const last = words.pop() ?? "";
+const first = words.join(" ");
+
+// the drawing's words, from the standfirst (the tools, information and
+// decisions that shape a project before it is modelled, in Revit or
+// Archicad)
+const figureWords = {
+  frame: "Revit · Archicad",
+  note: ["What shapes a project", "before it is modelled"],
+  platform: "Early-stage design",
+  tags: ["Tools", "Information", "Decisions"],
+};
+
+// four of the practices' white marks, a row at the foot, each as wide as
+// its ink asks (the homepage strip's balance: the same area of ink each,
+// nudged for light and heavy drawing; logo-balance.ts), so the wide
+// wordmarks and the compact marks weigh alike
+const marks = await Promise.all(
+  ["client-adam", "client-epr", "client-studio-seilern", "client-haworth-tompkins"]
+    .map((id) => CLIENTS.find((c) => c._id === id))
+    .filter((c): c is NonNullable<typeof c> => Boolean(c))
+    .map(async (c) => {
+      const shape = await logoShape(`/${c.logo.path}`);
+      return { ...c, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined };
+    }),
+);
+---
+<section class="br-hero" data-br-hero data-ground="dark">
+  <!-- the hold: the light, and the drawing, held while the words go by -->
+  <div class="br-hero__hold">
+    <div class="br-hero__light" aria-hidden="true"></div>
+    <!-- the lattice the drawing stands on (before-revit-hero.js) -->
+    <div class="br-hero__ground" data-br-ground data-iso-line="dash" data-iso-ground=".br-hero__svg" aria-hidden="true"></div>
+    <div class="br-hero__figure">
+      <div class="br-hero__stage" data-hairline data-press-words={JSON.stringify(figureWords)}>
+        <span class="br-hero__glow" aria-hidden="true"></span>
+        <span class="br-hero__glow is--pulse" data-press-pulse aria-hidden="true"></span>
+        <svg class="br-hero__svg" viewBox="0 0 400 320" fill="none" focusable="false" aria-hidden="true"></svg>
+      </div>
+    </div>
+    <!-- the grain over the light and the drawing, under the words -->
+    <div class="br-hero__grain" aria-hidden="true"></div>
+  </div>
+
+  <!-- the words: the opening's screen, then the room the drawing is held for -->
+  <div class="br-hero__flow">
+    <div class="br-hero__screen">
+      <h1 class="br-hero__heading" data-page-field={headingField}>{first && <><span class="br-hero__first">{first}</span> </>}<span>{last}</span></h1>
+      {lede && <p class="br-hero__lede" data-page-field={ledeField}>{lede}</p>}
+      <div class="br-hero__actions"><slot name="actions" /></div>
+      <div class="br-hero__trust">
+        <p class="br-hero__trust-label">Practices we’ve worked with</p>
+        <ul class="br-hero__marks" role="list">
+          {marks.map((m) => <li><img src={`/${m.logo.path}`} alt={m.name} style={m.style} loading="lazy" decoding="async" draggable="false"></li>)}
+        </ul>
+      </div>
+    </div>
+    <div class="br-hero__after" aria-hidden="true"></div>
+  </div>
+</section>

@@ -1,0 +1,61 @@
+---
+/*
+  Practices We've Worked With, on a white ground (2026-11-04): the
+  homepage's wall of clients' marks (index.astro, the logo strip in its
+  StickyTitle) for a page that is not on the ink band. The same clients in
+  the same order (the Home page's Logo strip in the Studio, or the ten the
+  strip has always shown), each sized to balance the others
+  (logo-balance.ts), the same wall and the same cycling (logo-wall-cycle.js,
+  one card's mark sliding out for another), and the same title, the Home
+  page's (logos.title), so one edit changes both.
+
+  Since 2026-11-04 the homepage's wall exactly, in white: its field of dots
+  over the whole section (.logos__dots), the cards holes in it on the dots'
+  lattice, a line of dots down every gap, the wall's top on a row of dots
+  (data-dot-snap) and the dots beside each mark a notch brighter
+  (data-dot-lift). The lattice is its band's (data-dot-band round it and the
+  stack after it on the page, approach-stack.js: the pitch fitted to the
+  12-Column Grid, the wall placed on it). Only the colours differ: white,
+  the dots in a faint ink, the marks (the white files the band shows)
+  turned to the ink. Styles: styles.css (".logos.is--light"). On the
+  Technology Blueprint, after its opening's statement.
+*/
+import { pageDocument, reader, type Doc } from "../sanity/content";
+import { homePage } from "../sanity/defaults/home";
+import { CLIENTS } from "../sanity/defaults/clients";
+import { hasImage, imageAttrs } from "../sanity/image";
+import { logoShape } from "../sanity/logo-balance";
+import { CLIENT_LOGOS_QUERY } from "../sanity/queries";
+
+const { sanity } = Astro.locals;
+const [home, clients] = await Promise.all([
+  pageDocument(sanity, "homePage"),
+  sanity.fetch<{ _id: string; name: string; logo?: unknown }[]>(CLIENT_LOGOS_QUERY),
+]);
+const { t } = reader(home, homePage as Doc);
+
+type Logo = { id: string; name: string; src: string; width?: number; height?: number; style?: string };
+const logos: Logo[] = await Promise.all(
+  (clients?.length
+    ? clients.map((client) => ({ id: client._id, name: client.name, ...(hasImage(client.logo) ? imageAttrs(client.logo, 600) : { src: "" }) }))
+    : CLIENTS.map((client) => ({ id: client._id, name: client.name, src: client.logo.path }))
+  ).map(async (logo: Logo) => {
+    const shape = logo.src ? await logoShape(logo.src, logo.width, logo.height) : undefined;
+    return { ...logo, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined };
+  }),
+);
+const srcOf = (src: string) => (src.startsWith("/") || src.startsWith("http") ? src : `/${src}`);
+---
+<section class="logos is--light" data-page-doc="homePage" data-page-type="homePage">
+  <span class="logos__dots dot-grid band-field" aria-hidden="true"></span>
+  <div class="logos__field">
+    <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
+    <div class="logo-wall-wrap">
+      <ul class="logo-wall" role="list" data-logo-wall-cycle-init data-logo-wall-shuffle="false" data-logo-wall-list data-dot-snap=".logos__dots" data-dot-lift=".logos__dots">
+        {logos.map((logo) => (
+        <li class="logo-wall__card" data-logo-wall-item><div class="logo-wall__logo" data-logo-wall-target-parent><div class="logo-wall__logo-target" data-logo-wall-target><img src={srcOf(logo.src)} width={logo.width} height={logo.height} alt={logo.name} style={logo.style} loading="lazy" draggable="false"></div></div></li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</section>

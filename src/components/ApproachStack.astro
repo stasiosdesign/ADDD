@@ -59,6 +59,10 @@ interface Props {
   light?: boolean;
   /** what the section is called, for screen readers */
   label?: string;
+  /** a small line under the heading, in the body face (the Technology
+      Blueprint's "(How ADDD Helps)"), and its Studio field */
+  note?: string;
+  noteField?: string;
 }
 const {
   headingField = "approach.heading",
@@ -123,7 +127,8 @@ const PARALLAX: [number, number][] = [[7, -7], [0, 0], [9.5, -9.5]];
   <div class="approach-stack__field" data-approach-stack-field aria-hidden="true">
     <span class="approach-stack__field-dots dot-grid band-field" data-approach-stack-field-dots></span>
   </div>
-  {Astro.props.heading && <h2 class="approach-stack__head" data-page-field={headingField}>{Astro.props.heading}</h2>}
+  {Astro.props.heading && <h2 class:list={["approach-stack__head", { "has--note": Astro.props.note }]} data-page-field={headingField}>{Astro.props.heading}</h2>}
+  {Astro.props.note && <p class="approach-stack__note" data-page-field={Astro.props.noteField}>{Astro.props.note}</p>}
   <div class="approach-stack__grid">
     <div class="approach-stack__rail" aria-hidden="true" data-approach-stack-rail>
       <div class="approach-stack__window" data-approach-stack-window>

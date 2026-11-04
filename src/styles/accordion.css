@@ -279,7 +279,7 @@
    midway between two; its rows are counted from the panel's top. On a
    dark page the same field in white, as the homepage's ink band. */
 .faq-section {
-  --faq-dot: 0.8rem;
+  --faq-dot: var(--field-dot, 0.8rem);
   position: relative;
   isolation: isolate;
   background: var(--c-white);
@@ -305,7 +305,6 @@
   --faq-box: #f2f2f0;
   --faq-box-hover: #ebebe8;
   --faq-box-open: var(--c-white);
-  --faq-tile: var(--c-white);
   --faq-ink: var(--c-text);
   /* the ground's colour (the plus's mark on its ink square) and the
      hairline round the icons' tiles */
@@ -322,7 +321,6 @@
   --faq-box: rgba(255, 255, 255, 0.045);
   --faq-box-hover: rgba(255, 255, 255, 0.07);
   --faq-box-open: #1d1d1d;
-  --faq-tile: rgba(255, 255, 255, 0.06);
   --faq-ink: var(--c-white);
 }
 /* the heading, in a band two majors tall */
@@ -334,6 +332,11 @@
   margin: 0;
   text-wrap: balance;
 }
+/* a heading of three words or more (FaqPanel.astro, is--pair) on two
+   balanced lines: held to a measure (in its own ems, so the same at every
+   size) wider than any of the headings' halves ("& Answers", 4.3em) and
+   narrower than any of them whole ("Before You Book", 6.6em), centred */
+.faq-panel__heading.is--pair { max-width: 5.4em; margin-inline: auto; }
 /* the questions: whole majors wide (an even number, so they sit square on
    the middle), at most twelve, a major in from the panel's edges */
 .faq-panel__list {
@@ -348,18 +351,79 @@
     max-width: none;
   }
 }
-/* under them: a line, and Book a Free Call */
-.faq-panel__foot { margin-top: var(--major); }
-.faq-panel__foot p {
-  margin: 0;
-  font-size: var(--t-rg);
-  color: color-mix(in srgb, currentColor 66%, transparent);
+/* Book a Free Call as the list's last item (FaqPanel.astro, call): a solid
+   black box exactly a shut question's size (the list's width, a major
+   tall) and a dot after the last one, as the questions are apart; inside,
+   set out as a question is: Allister's portrait in the icon's room (two
+   dots square, its middle on a dot), the words where a question's start
+   in the white, and an arrow in a white square where the plus stands.
+   Pointed at, the box lifts a shade and the arrow steps on; it opens the
+   booking calendar (booking.js). On a dark page it turns over: white, the
+   words and the square in the ink. */
+.faq-call {
+  --call-ground: var(--c-text);
+  --call-ink: var(--c-white);
+  display: flex;
+  align-items: center;
+  gap: var(--faq-dot, var(--cell));
+  width: 100%;
+  min-height: var(--major);
+  margin: var(--faq-dot, var(--cell)) 0 0;
+  padding: 0 var(--cell) 0 calc(1.5 * var(--faq-dot, 0.8rem));
+  border: 0;
+  border-radius: 2px;
+  background: var(--call-ground);
+  color: var(--call-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.35s ease;
 }
-.faq-panel__foot .book-call { justify-content: center; margin-top: var(--cell); }
+:is(.section--dark, .page--dark) .faq-call { --call-ground: var(--c-white); --call-ink: var(--c-text); }
+.faq-call__photo {
+  flex: none;
+  width: calc(2 * var(--faq-dot, 0.8rem));
+  height: calc(2 * var(--faq-dot, 0.8rem));
+  overflow: hidden;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--call-ink) 14%, var(--call-ground));
+}
+.faq-call__photo img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; filter: grayscale(1); }
+.faq-call__label {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0;
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.35;
+}
+.faq-call__go {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: calc(2 * var(--cell));
+  height: calc(2 * var(--cell));
+  border-radius: 2px;
+  background: var(--call-ink);
+  color: var(--call-ground);
+}
+.faq-call__go svg { width: 0.875rem; height: 0.875rem; transition: translate 0.45s var(--ease-osmo); }
+.faq-call:focus-visible { outline: 1px solid var(--call-ground); outline-offset: 2px; }
+@media (hover: hover) {
+  .faq-call:hover { background: color-mix(in srgb, var(--call-ground) 86%, var(--call-ink)); }
+  .faq-call:hover .faq-call__go svg { translate: 0.1875rem 0; }
+}
 
 /* --- the questions (Accordion.astro, variant "panel") ----------------- */
 .accordion.is--panel { max-width: none; margin-top: 0; }
-.is--panel .accordion__list { gap: var(--cell); }
+/* Set on the section's field of dots (FaqSection.astro, --faq-dot: a
+   dot's pitch, 0.8rem): each question, shut, five dots tall (a major) and
+   one dot from the next, so with the panel's own measure (whole majors
+   down to the first, whole pairs of majors across) every card's edges run
+   midway between two rows and two columns of dots; its icon stands on a
+   dot, a dot and a half in from its edge, and its plus on a column. Open,
+   a card grows with its answer. */
+.is--panel .accordion__list { gap: var(--faq-dot, var(--cell)); }
 .is--panel .accordion__item {
   background: var(--faq-box);
   border: 0;
@@ -380,26 +444,24 @@
 }
 .is--panel .accordion__toggle {
   justify-content: flex-start;
-  gap: var(--cell);
+  gap: var(--faq-dot, var(--cell));
   min-height: var(--major);
-  padding: 0 var(--cell);
+  padding: 0 var(--cell) 0 calc(1.5 * var(--faq-dot, 0.8rem));
 }
 .is--panel .accordion__toggle:focus-visible { outline: 1px solid currentColor; outline-offset: -1px; }
 .is--panel .accordion__q { flex: 1; min-width: 0; padding: 0.75rem 0; }
 .is--panel .accordion__heading { font-size: 1.0625rem; line-height: 1.35; }
-/* the icon: a two-cell square, its line drawing in the text's ink (a
-   mask of faq-<name>.svg, so each drawing is fetched once and takes the
-   colour of wherever it is); the number where an item has no icon */
+/* the icon: its line drawing alone, in the text's ink, in a room two dots
+   wide (no tile round it since 2026-11-04), its middle on a dot (a mask of
+   faq-<name>.svg, so each drawing is fetched once and takes the colour of
+   wherever it is); the number where an item has no icon */
 .accordion__glyph {
   flex: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: calc(2 * var(--cell));
-  height: calc(2 * var(--cell));
-  border-radius: 2px;
-  background: var(--faq-tile);
-  box-shadow: inset 0 0 0 1px var(--faq-major);
+  width: calc(2 * var(--faq-dot, 0.8rem));
+  height: calc(2 * var(--faq-dot, 0.8rem));
   color: color-mix(in srgb, var(--faq-ink) 82%, transparent);
 }
 .accordion__glyph > span {
@@ -457,9 +519,11 @@
 .is--panel .accordion__item[data-accordion-status="active"] .accordion__icon.is--plus::before { rotate: 45deg; }
 .is--panel .accordion__item[data-accordion-status="active"] .accordion__icon.is--plus::after { rotate: 135deg; }
 /* the answer, from the question's own start */
+/* the answer from the question's own start: the icon's room and the
+   gaps either side of it */
 .is--panel .accordion__content {
   max-width: 42rem;
-  padding: 0 var(--cell) calc(1.5 * var(--cell)) calc(4 * var(--cell));
+  padding: 0 var(--cell) calc(1.5 * var(--cell)) calc(4.5 * var(--faq-dot, 0.8rem));
 }
 .is--panel .accordion__text,
 .is--panel .accordion__points {
@@ -471,6 +535,7 @@
 @media screen and (max-width: 767px) {
   .faq-panel { padding: calc(0.75 * var(--major)) calc(0.5 * var(--cell)); }
   .faq-panel__list { width: auto; }
-  .is--panel .accordion__toggle { gap: calc(0.75 * var(--cell)); padding: 0 calc(0.75 * var(--cell)); }
+  .is--panel .accordion__toggle,
+  .faq-call { gap: calc(0.75 * var(--cell)); padding: 0 calc(0.75 * var(--cell)); }
   .is--panel .accordion__content { padding-left: calc(0.75 * var(--cell)); }
 }

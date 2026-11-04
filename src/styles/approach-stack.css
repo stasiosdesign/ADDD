@@ -508,6 +508,23 @@
   max-width: 9.5em;
   color: var(--c-text);
 }
+/* A small line under the heading where a page gives one (note: the
+   Technology Blueprint's "(How ADDD Helps)"), in the body face, well under
+   the heading's size and quieter, centred under it; the section's step
+   over the first card then falls under it rather than the heading. */
+.approach-stack .approach-stack__head.has--note { margin-bottom: 1.25rem; }
+.approach-stack__note {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto var(--sec-md);
+  font-family: var(--font-body);
+  font-size: var(--t-md, 1.125rem);
+  line-height: 1.3;
+  text-align: center;
+  color: color-mix(in srgb, var(--c-white) 66%, transparent);
+}
+.approach-stack.is--light .approach-stack__note { color: color-mix(in srgb, var(--c-text) 58%, transparent); }
+
 /* A step's highlighted word (**word** in its text): its own size, in the
    medium (500: firmer than the text round it, short of the bold), and
    while it scrambles (scramble-words.js) its letters in the red */

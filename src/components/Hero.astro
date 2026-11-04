@@ -43,14 +43,16 @@ interface Props {
       with: each turns into the next with a scramble (src/scripts/word-cycle.js). */
   headingWords?: string[];
   /** The two buttons: where each leads, and its label from the same section. */
-  primaryCta: { href: string; label: string };
+  primaryCta: { href: string; label: string; icon?: "stack" };
   secondaryCta: { href: string; label: string };
   /** The buttons' form (ActionButton.astro): the site's block, the pill, or the frame. */
   ctaShape?: ActionButtonShape;
   /** The scroll cue at the band's foot (band and split): the logo's triangle
       turned down, or a line arrow pointing down and on, its head's foot
-      level with the screen's (styles.css, .hero__arrow.is--arrow). */
-  cue?: "triangle" | "arrow";
+      level with the screen's (styles.css, .hero__arrow.is--arrow); "none"
+      leaves it out (the centred layout: AEC Tech Partners, since
+      2026-11-04). */
+  cue?: "triangle" | "arrow" | "none";
   /** The section the words come from (data-page-field, for the Studio's Visual editor); "hero" on every page. */
   field?: string;
 }
@@ -139,11 +141,11 @@ const screenWords = [
     <h1 class="h1 hero__heading" data-split="heading" data-page-field={`${field}.heading`}>{heading}</h1>
     <p class="text-md hero__lede" data-page-field={`${field}.lede`}>{lede}</p>
     <div class="actions actions--pair">
-      <ActionButton href={primaryCta.href} shape={ctaShape}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
+      <ActionButton href={primaryCta.href} shape={ctaShape} icon={primaryCta.icon}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
       <ActionButton href={secondaryCta.href} variant="secondary" shape={ctaShape}><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
     </div>
   </div>
-  <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>
+  {cue !== "none" && <a class="hero__arrow" href={arrowHref} aria-label={arrowLabel}><ArrowIcon aria-hidden="true" /></a>}
 </section>
 ) : (
 <section class:list={["hero", { "hero--split": layout === "split", "hero--blue": accent === "blue" }]}>
@@ -174,7 +176,7 @@ const screenWords = [
 
         <div class="hero__cta-row">
           <div class="actions actions--pair">
-            <ActionButton href={primaryCta.href} shape={ctaShape}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
+            <ActionButton href={primaryCta.href} shape={ctaShape} icon={primaryCta.icon}><span data-page-field={`${field}.primaryButton`}>{primaryCta.label}</span></ActionButton>
             <ActionButton href={secondaryCta.href} variant="secondary" shape={ctaShape}><span data-page-field={`${field}.secondaryButton`}>{secondaryCta.label}</span></ActionButton>
           </div>
           <a class:list={["hero__arrow", { "is--arrow": cue === "arrow" }]} href={arrowHref} aria-label={arrowLabel}>{cue === "arrow" ? (

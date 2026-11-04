@@ -26,6 +26,12 @@
   arrow="down" turns the frame's arrow to point down the page, for a
   button that leads to a place further down it.
 
+  icon="stack" puts a small stack of three layers in the frame's short part
+  in place of the arrow (the SVG Collection's "collection", no. 123,
+  source-assets/svg-collection), for a button that leads to the free tech
+  stacks (the homepage's; 2026-11-04). The Stack Diagnostic page's own
+  "Access the Free Stack" keeps its arrow.
+
   photo puts a photograph at the start of the frame, its whole height and
   flush with its edges (Book a Free Call, BookCall.astro, and the floating
   Book a Call, BookCallFloat.astro); it is decoration, the label says what
@@ -46,12 +52,14 @@ interface Props {
   shape?: ActionButtonShape;
   /** where the frame's arrow points: on (right), or down the page */
   arrow?: "right" | "down";
+  /** in the frame's short part in place of the arrow: a stack of layers */
+  icon?: "stack";
   /** a small photograph at the start of the frame */
   photo?: { src: string; position?: string };
   [attr: string]: unknown;
 }
 
-const { href, variant = "primary", shape = "frame", arrow = "right", photo, ...attrs } = Astro.props;
+const { href, variant = "primary", shape = "frame", arrow = "right", icon, photo, ...attrs } = Astro.props;
 const Tag = href ? "a" : "button";
 const primary = variant === "primary";
 const pill = shape === "pill";
@@ -61,7 +69,11 @@ const pill = shape === "pill";
     {photo && <span class="action-button__photo" aria-hidden="true"><img src={photo.src} alt="" width="64" height="64" loading="lazy" decoding="async" draggable="false" style={photo.position ? `object-position:${photo.position}` : undefined} /></span>}
     <span class="action-button__body"><span class="nav-link__box"><span class="action-button__text nav-link__text"><slot /></span></span></span>
     <span class="action-button__tip" aria-hidden="true">
-      <svg class:list={["action-button__arrow", { "is--down": arrow === "down" }]} viewBox="0 0 12 12" aria-hidden="true"><path d="M1 6h9M6 2l4 4-4 4" /></svg>
+      {icon === "stack" ? (
+        <svg class="action-button__icon is--stack" viewBox="0 0 24 24" aria-hidden="true"><path d="M21.5 10H2.5V20H21.5V10Z" /><path d="M4 10V7H20V10" /><path d="M6 7V4H18V7" /></svg>
+      ) : (
+        <svg class:list={["action-button__arrow", { "is--down": arrow === "down" }]} viewBox="0 0 12 12" aria-hidden="true"><path d="M1 6h9M6 2l4 4-4 4" /></svg>
+      )}
     </span>
   </Tag>
 ) : pill ? (

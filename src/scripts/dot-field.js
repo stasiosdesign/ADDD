@@ -45,7 +45,13 @@
    so the canvas never costs a field's whole height. A band of a field
    can be drawn as a grid of cells instead (zone: the homepage
    statement's, cell-grid.js), the dots between its lines gone, with two
-   layers of its own so the grid can come and go by opacity alone.
+   layers of its own so the grid can come and go by opacity alone. A field
+   marked data-dot-follow carries on the field of the section before it
+   (the closing call after a light FAQ, 2026-11-04): the same columns and
+   rows, read off that field's own probe each time it is drawn, so the
+   two sections' dots are one lattice across their boundary, however tall
+   the one above has become; it says where its lattice fell (the event
+   dotgrid:set) for what is set out on it.
 
    ============================================================ */
 // the ground's cell, in the drawing's own units, and its dotted lines:
@@ -114,9 +120,19 @@ export function mountIsoField(el) {
   // 30°, or the field's own (data-iso-angle: the AEC Tech Partners hero's
   // flatter 2:1, about 26.57°, after its reference); each axis a unit
   // long on the screen either way
-  const angle = ((Number(el.dataset.isoAngle) || 30) * Math.PI) / 180;
+  //
+  // Or the drawing's own camera (data-iso-axis: "x y", the screen's step,
+  // in the drawing's units, for one unit along the ground's x; 2026-11-04):
+  // the lattice's angle is that step's, and a ground unit is that long on
+  // the screen, so the lattice lands on a drawing whose camera is not the
+  // plain isometric one at unit scale (the Technology Blueprint's, drawn a
+  // little closer in; Before Revit's, a touch flatter).
+  const axis = (el.dataset.isoAxis || "").split(/[ ,]+/).map(Number);
+  const hasAxis = axis.length === 2 && axis.every(Number.isFinite) && Math.hypot(axis[0], axis[1]) > 0;
+  const angle = hasAxis ? Math.atan2(axis[1], axis[0]) : ((Number(el.dataset.isoAngle) || 30) * Math.PI) / 180;
   const AX = Math.cos(angle);
   const AY = Math.sin(angle);
+  const UNIT = hasAxis ? Math.hypot(axis[0], axis[1]) : 1;
 
   let field = null;
   const snap = (v) => Math.round(v * field.dpr) / field.dpr;
@@ -297,6 +313,8 @@ export function mountIsoField(el) {
       const [gx, gy] = drawing.dataset.ground.split(/[ ,]+/).map(Number);
       ox = d.left - base.left + (d.width - view.width * scale) / 2 + (gx - view.x) * scale;
       oy = d.top - base.top + (d.height - view.height * scale) / 2 + (gy - view.y) * scale;
+      // the ground's unit on the screen, where the drawing says how long
+      scale *= UNIT;
     }
     if (cell) module = own * Math.max(1, Math.round(cell / (own * scale)));
     field = { width, height, dpr, ox, oy, scale };
@@ -317,6 +335,9 @@ export function mountIsoField(el) {
   return {
     // drawn again as it stands, in the colour it now has
     redraw: draw,
+    // laid out again from where its drawing stands now (a drawing moved
+    // without changing size, which the observer above does not see)
+    layout,
     destroy() {
       cancelAnimationFrame(pending);
       resizer.disconnect();
@@ -706,6 +727,17 @@ export function mountDotGrid(el) {
     const lattice = setOut();
     const { pitch } = lattice;
     if (!box.width || !box.height || !(pitch > 1)) return;
+    // carrying on the field above (data-dot-follow, below): that field's
+    // columns and rows, read off its own probe and moved into this layer's
+    // box by the two layers' places now, so the lattice runs on across the
+    // boundary unbroken wherever the two stand
+    const above = lead && latticeOf(lead);
+    if (above && Math.abs(above.pitch - pitch) < 0.01) {
+      const leadBox = lead.getBoundingClientRect();
+      lattice.x = above.x + leadBox.left - box.left;
+      lattice.y = above.y + leadBox.top - box.top;
+    }
+    set = lattice;
     drawnSize = [box.width, box.height];
     const view = window.innerHeight;
     height = box.height;
@@ -750,6 +782,9 @@ export function mountDotGrid(el) {
       z?.gone(k, r, cx, cy) ? 0 : ink.a * GRAIN[grain(k, r)].level * lifted(cx, cy, k, r) * (still ? z.up(cx, cy) : 1));
     // the zone's own layers, drawn whole, whenever the field is drawn afresh
     if (force) paintZone(lattice, box.width, dpr, ink, lifted, z);
+    // for what is set out on the dots (the closing call's diagram), the
+    // lattice as drawn, in the layer's own box
+    el.dispatchEvent(new CustomEvent("dotgrid:set", { detail: { pitch, x: lattice.x, y: lattice.y } }));
   }
 
   // drawn again when the layer changes size, when its grid is set out
@@ -763,6 +798,17 @@ export function mountDotGrid(el) {
   // screen or not, and read the layout after the frame's other writes.)
   // drawn again when its size changes — not on the observer's first call,
   // which only reports the size it was just drawn at
+  // A field that carries on the one above it (data-dot-follow: the closing
+  // call's, after a light FAQ): the field standing first in the section
+  // just before this layer's, if it is drawn at the same pitch; drawn again
+  // whenever that section changes size (an answer opening moves this one
+  // down), so its dots stay in their rows on the screen as this section
+  // moves under them. None where the section before has no field, or one
+  // of another pitch: the layer keeps its own lattice.
+  const lead = "dotFollow" in el.dataset ? el.parentElement?.previousElementSibling?.querySelector(":scope > .dot-grid") ?? null : null;
+  let set = null;
+  const leadMoved = lead ? new ResizeObserver(() => draw(true)) : null;
+  leadMoved?.observe(lead.parentElement);
   let sized = null;
   const resized = new ResizeObserver(([entry]) => {
     const box = entry.borderBoxSize?.[0];
@@ -874,9 +920,14 @@ export function mountDotGrid(el) {
       zoneAmount = amount;
       showZone();
     },
+    // the lattice as last drawn ({ pitch, size, x, y } in the layer's box)
+    get lattice() {
+      return set;
+    },
     destroy() {
       resized.disconnect();
       restyled.disconnect();
+      leadMoved?.disconnect();
       along.kill();
       density?.removeEventListener("change", onDensity);
       delete el.dotGrid;

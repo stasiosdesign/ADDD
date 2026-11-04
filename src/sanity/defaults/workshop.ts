@@ -12,8 +12,7 @@ export const workshopPage = {
     secondaryButton: 'View Pricing',
   },
   symptoms: {
-    lede: 'Most practices don’t have a software problem. They have a workflow problem. The same issues recur across projects. Teams solve similar problems in different ways. Information gets lost or recreated. Tools accumulate without clear purpose.',
-    heading: 'Does This Sound Like Your Practice?',
+    heading: 'The problem isn’t the software. It’s how you work.',
     tiles: keyed('symptom', [
       { title: 'Problems Keep Returning.', text: 'The same coordination delays, mistakes and rework appear project after project. Teams keep fixing the symptoms without addressing what’s causing them.' },
       { title: 'No Shared Approach.', text: 'Different teams follow different processes, making collaboration harder, knowledge difficult to transfer and effort unnecessarily duplicated.' },
@@ -153,7 +152,7 @@ export const workshopPage = {
     ]),
   },
   faq: {
-    heading: 'Common Questions',
+    heading: 'Before You Book',
     footLine: 'Have any other questions?',
     questions: keyed('question', [
       { question: 'Who should attend the workshop?', answer: 'Anyone who shapes how work moves through the practice — a director or partner, the project lead for the chosen project, and whoever owns BIM, IT or operations. Between them they should be able to describe every stage of the project, from the brief to the last issue of drawings.' },

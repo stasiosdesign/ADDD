@@ -1,5 +1,6 @@
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
+import {StackIcon} from '@sanity/icons/Stack'
 import {defineLocations} from 'sanity/presentation'
 import {vercelProtectionBypassTool} from '@sanity/vercel-protection-bypass'
 import type {CmsProjectConfig} from '@stasiosdesign/sanity-cms'
@@ -98,15 +99,29 @@ export const project: CmsProjectConfig = {
       description: 'ADDDitive issues: a card on the Newsletter page and in the sliders, and each issue’s own page.',
       listedOn: 'newsletterPage',
     },
+    {
+      // A stack holds only what its preview on the page shows: its full
+      // list of tools lives in the ADDD app, behind its sign-up
+      // (schemaTypes/documents/tech-stack.ts)
+      type: 'techStack',
+      title: 'Tech stacks',
+      singular: 'stack',
+      nameField: 'title',
+      orderField: 'sortOrder',
+      icon: StackIcon,
+      description: 'Curated stacks: a deck on the Free Tech Stacks page, each opening to a preview that leads into the ADDD app.',
+      listedOn: 'stackDiagnosticPage',
+    },
   ],
 
   // The page each kind of CMS item shows on (a client shows in the home
-  // page's logo strip)
+  // page's logo strip, a stack on the Free Tech Stacks page)
   documentRoute(doc) {
     const slug = doc.slug?.current
     if (doc._type === 'report') return slug ? `/reports/${slug}.html` : null
     if (doc._type === 'newsletterIssue') return slug ? `/newsletter/${slug}.html` : null
     if (doc._type === 'client') return '/'
+    if (doc._type === 'techStack') return '/stack-diagnostic.html'
     return null
   },
 
@@ -136,6 +151,7 @@ export const project: CmsProjectConfig = {
         }),
       }),
       client: defineLocations({locations: [{title: 'Home (logo strip)', href: '/'}]}),
+      techStack: defineLocations({locations: [{title: 'Free Tech Stacks', href: '/stack-diagnostic.html'}]}),
     },
   },
 

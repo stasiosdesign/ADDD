@@ -4,7 +4,6 @@ import FaqPanel from "../components/FaqPanel.astro";
 import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
-import BookCall from "../components/BookCall.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ProblemCard from "../components/ProblemCard.astro";
@@ -134,7 +133,6 @@ const parts = (line: string) => {
     <div class="container">
       <div class="ws-head">
         <h2 class="h2" data-split="heading" data-page-field="symptoms.heading">{t("symptoms.heading")}</h2>
-        <p class="text-md" data-page-field="symptoms.lede">{t("symptoms.lede")}</p>
       </div>
 
       <!-- the homepage's problem cards (ProblemCard.astro), each with a
@@ -260,12 +258,10 @@ const parts = (line: string) => {
   </section>
 
   <!-- Common Questions: the site's FAQ panel (FaqPanel.astro), each
-       question with its icon, and under them a line and Book a Free Call -->
+       question with its icon, and Book a Free Call as its last item -->
   <FaqSection>
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["user", "chat", "clipboard", "map-pin", "file"]} footLine={t("faq.footLine")} footField="faq.footLine">
-        <BookCall slot="foot" />
-      </FaqPanel>
+        icons={["user", "chat", "clipboard", "map-pin", "file"]} call />
   </FaqSection>
 
   <!-- the site's closing call to action, with one button of this page's

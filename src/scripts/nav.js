@@ -15,6 +15,7 @@ import { lenis, glideTo } from "./scroll.js";
 import { parallaxTravel } from "./parallax.js";
 import { mountIsoField } from "./dot-field.js";
 import { mountWordCycle } from "./word-cycle.js";
+import { mountStackPreview } from "./stack-preview.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { initTextScramble } from "./text-scramble.js";
 import { findGrounds, lastInDocument } from "./grounds.js";
@@ -100,6 +101,9 @@ function initMegaNav() {
   // and each time the dropdown opens the word stands a while before it
   // turns.
   menuWrap.querySelectorAll("[data-word-cycle]").forEach((el) => mountWordCycle(el));
+  // The Free Tech Stacks box's row of cards (stack-preview.js): mounted once
+  // too; it riffles while the pointer is over the box and sleeps otherwise.
+  menuWrap.querySelectorAll("[data-stack-preview-box]").forEach((el) => mountStackPreview(el));
 
   // State
   const state = {
@@ -134,6 +138,8 @@ function initMegaNav() {
     clearTimeout(state.hoverTimer);
     clearTimeout(state.leaveTimer);
     state.hoverTimer = state.leaveTimer = null;
+    state.aim = null;
+    endWayDown();
   }
 
   function killTl(key) {
@@ -250,6 +256,8 @@ function initMegaNav() {
   // DESKTOP — close dropdown
   function closeDropdown() {
     if (!state.isOpen || state.closing || state.navigating) return;
+    state.aim = null;
+    endWayDown();
     const el = getPanel(state.activePanel);
 
     killDropdown();
@@ -323,13 +331,73 @@ function initMegaNav() {
   let lastPointer = "mouse";
   const byTouch = () => lastPointer === "touch";
 
+  // Where the pointer is heading (2026-11-04). The toggles take the pointer
+  // round their words only (nav.css), and with a dropdown open, the other
+  // toggle switches to its own the moment the pointer comes onto it. But a
+  // move from one toggle down into the open dropdown, aimed at its far
+  // side (Resources down to Free Tech Stacks, on the left), can cross the
+  // foot of the other toggle on the way: so a toggle the pointer comes onto
+  // while it is heading out through that toggle's foot, into the dropdown,
+  // waits, and switches only if the pointer turns along it, or comes to
+  // rest on it (AIM_REST without a move). Moves along the bar switch at
+  // once, as before. And a pointer leaving a toggle by its foot, with the
+  // dropdown open, is on its way down into it: the strip of bar between
+  // them closes nothing (the way down), until the pointer goes back up
+  // above it, or out past the bar's ends.
+  const AIM_REST = 90;
+  // the pointer's last few positions [x, y, time], from every move
+  const trail = [];
+  // its way over the last moves (px per ms), or null when it has stopped
+  function heading() {
+    const last = trail[trail.length - 1];
+    if (!last || performance.now() - last[2] > AIM_REST) return null;
+    const from = trail.find((p) => last[2] - p[2] <= 80) ?? trail[0];
+    const dt = last[2] - from[2];
+    return dt > 0 ? [(last[0] - from[0]) / dt, (last[1] - from[1]) / dt] : null;
+  }
+  // heading down out through this toggle's foot before it would cross to
+  // its far side: into the dropdown, not along the bar
+  function passingDown(el) {
+    const v = heading();
+    if (!v || v[1] <= 0) return false;
+    const r = el.getBoundingClientRect();
+    const [x, y] = trail[trail.length - 1];
+    const down = (r.bottom - y) / v[1];
+    const across = v[0] < 0 ? (r.left - x) / v[0] : v[0] > 0 ? (r.right - x) / v[0] : Infinity;
+    return down < across;
+  }
+
   function handleToggleEnter(e) {
     if (state.isMobile || byTouch()) return;
-    const name = e.currentTarget.getAttribute("data-dropdown-toggle");
+    const btn = e.currentTarget;
+    const name = btn.getAttribute("data-dropdown-toggle");
     if (!name) return;
+    endWayDown();
     clearTimeout(state.leaveTimer); state.leaveTimer = null;
     clearTimeout(state.hoverTimer);
+    if (state.isOpen && !state.closing && state.activePanel && state.activePanel !== name) {
+      state.aim = { btn, name };
+      aim();
+      return;
+    }
+    state.aim = null;
     state.hoverTimer = setTimeout(() => openDropdown(name), state.isOpen ? 0 : HOVER_ENTER);
+  }
+  // the toggle the pointer is on, while the dropdown shows the other's:
+  // switch, unless the pointer is only crossing its foot on the way down
+  function aim() {
+    const target = state.aim;
+    if (!target) return;
+    clearTimeout(state.hoverTimer);
+    if (!passingDown(target.btn)) {
+      state.aim = null;
+      openDropdown(target.name);
+      return;
+    }
+    state.hoverTimer = setTimeout(aim, AIM_REST);
+  }
+  function handleToggleMove(e) {
+    if (state.aim?.btn === e.currentTarget) aim();
   }
 
   // one pending close at a time: a new one replaces any already waiting
@@ -338,14 +406,47 @@ function initMegaNav() {
     state.leaveTimer = setTimeout(closeDropdown, HOVER_LEAVE);
   }
 
-  function handleToggleLeave() {
+  function handleToggleLeave(e) {
     if (state.isMobile || byTouch()) return;
     clearTimeout(state.hoverTimer); state.hoverTimer = null;
+    state.aim = null;
+    // out by its foot with the dropdown open: on the way down into it
+    const r = e.currentTarget.getBoundingClientRect();
+    if (state.isOpen && !state.closing && e.clientY >= r.bottom - 1) {
+      startWayDown(r.bottom);
+      return;
+    }
     scheduleClose();
+  }
+
+  // the way down: from a toggle's foot to the dropdown, across the bar
+  let wayDown = null;
+  function startWayDown(top) {
+    endWayDown();
+    const bar = menuWrap.querySelector(".mega-nav__bar");
+    if (!bar) { scheduleClose(); return; }
+    const onMove = (e) => {
+      const b = bar.getBoundingClientRect();
+      if (e.clientY >= b.bottom) {
+        // into the dropdown: its own enter keeps it open; anywhere else, close
+        endWayDown();
+        if (!dropWrapper.contains(document.elementFromPoint(e.clientX, e.clientY))) scheduleClose();
+      } else if (e.clientY < top - 1 || e.clientX < b.left || e.clientX > b.right) {
+        endWayDown();
+        scheduleClose();
+      }
+    };
+    document.addEventListener("pointermove", onMove, { passive: true });
+    wayDown = () => document.removeEventListener("pointermove", onMove);
+  }
+  function endWayDown() {
+    wayDown?.();
+    wayDown = null;
   }
 
   function handleWrapperEnter() {
     if (state.isMobile || byTouch()) return;
+    endWayDown();
     clearTimeout(state.leaveTimer); state.leaveTimer = null;
     // back over the dropdown while it is shutting: open it again
     if (state.closing && state.activePanel) openDropdown(state.activePanel);
@@ -714,13 +815,20 @@ function initMegaNav() {
   // which kind of pointer was last used, so a tap is told from a click
   // (the hover handlers above), and a mouse moved again after a tap, on a
   // device with both, hovers again
-  const notePointer = (e) => { lastPointer = e.pointerType || "mouse"; };
+  // (and, from every move, where the pointer is heading: the trail above)
+  const notePointer = (e) => {
+    lastPointer = e.pointerType || "mouse";
+    if (e.type !== "pointermove") return;
+    trail.push([e.clientX, e.clientY, e.timeStamp]);
+    if (trail.length > 8) trail.shift();
+  };
   document.addEventListener("pointerdown", notePointer, { capture: true, passive: true });
   document.addEventListener("pointermove", notePointer, { capture: true, passive: true });
 
   toggles.forEach((btn) => {
     btn.addEventListener("mouseenter", handleToggleEnter);
     btn.addEventListener("mouseleave", handleToggleLeave);
+    btn.addEventListener("pointermove", handleToggleMove, { passive: true });
     btn.addEventListener("keydown", handleKeydownOnToggle);
     btn.addEventListener("click", handleToggleClick);
   });

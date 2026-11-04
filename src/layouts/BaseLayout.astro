@@ -57,6 +57,7 @@ import "../styles/approach-stack.css";
 import "../styles/coin-stack.css";
 import "../styles/sticky-title.css";
 import "../styles/stack-cards.css";
+import "../styles/stack-space.css";
 import "../styles/service-deck.css";
 import "../styles/folder-doc.css";
 import "../styles/booking.css";
@@ -83,9 +84,12 @@ interface Props {
       for a collection item, its type. Named on the Barba container for the
       Studio's Visual editor (src/sanity/live-preview.ts). */
   doc?: { id: string; type?: string };
+  /** The footer under the page (default); false for a page that is one
+      screen and does not scroll (the Stack Diagnostic's stack). */
+  footer?: boolean;
 }
 
-const { title, description, pageName, home = false, held = false, theme: pageTheme = "light", doc } = Astro.props;
+const { title, description, pageName, home = false, held = false, theme: pageTheme = "light", doc, footer = true } = Astro.props;
 // A held page (src/holding.ts) shows the holding page in place of its own,
 // on black: the page's own content is not rendered, and is back as it was
 // once the switch is off or the page is no longer held
@@ -155,7 +159,7 @@ const draftMode = staging && Astro.locals.draftMode;
 <ColumnGrid />
 <ScrollBar />
 <div data-barba="container" data-page-name={pageName} {...docAttrs}>
-{holding ? <HoldingPage /> : <><slot /><Footer /></>}
+{holding ? <HoldingPage /> : <><slot />{footer && <Footer />}</>}
 </div>
 {draftMode && <DraftModeLabel />}
 {/* Every library at an exact version, never a range: on 2026-11-04 the

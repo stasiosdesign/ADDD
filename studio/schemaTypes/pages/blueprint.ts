@@ -24,9 +24,11 @@ export const blueprintPage = defineType({
       leadField(),
       buttonField('The first button; it opens the booking calendar.'),
       linkField('The second button; it scrolls down to the Delivery section.'),
+      textField('The statement that comes up on the left as the opening’s words scroll away, the network staying in place on the right. One line here is one line on the page: each is set to the same width, so keep the lines close in length and break them where a reader would pause.', 'statement', 'Statement', 3),
     ]),
     pageSection('benefits', 'Benefits', 'The heading and the three cards under the opening, set as the homepage’s “How we work” is, in its light version: each a number, a title and a paragraph, with a live drawing (a card’s small line is not shown here). The drawings stay in the site’s code.', [
       headingField('Centred over the cards, on two lines.'),
+      headingField('The small line under the heading, in the body face.', 'note', 'Note under the heading'),
       itemsField('tiles', 'Cards', 'tile', 'The three cards, top to bottom. In a card’s text, the word written between two pairs of asterisks (**visibility**) is set bold and scrambles once as it is read.'),
     ]),
     pageSection('examine', 'What we look at', 'The heading row, and the tabs with the panel each opens.', [

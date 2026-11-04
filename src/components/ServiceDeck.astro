@@ -39,7 +39,7 @@ interface Props {
   lede?: string;
   ledeField?: string;
   /** a button under the title (and its line), held with it */
-  button?: { href: string; label: string; field?: string };
+  button?: { href: string; label: string; field?: string; icon?: "stack" };
   /** a word set beside the cards on the right, from 992px (held there as
       the title is) */
   aside?: string;
@@ -80,7 +80,7 @@ const folders: Folder[] = own ?? cards.map((card, i) => {
           {lede && <p class="service-deck__lede" data-page-field={ledeField}>{lede}</p>}
           {button && (
             <div class="service-deck__actions">
-              <ActionButton href={button.href}><span data-page-field={button.field}>{button.label}</span></ActionButton>
+              <ActionButton href={button.href} icon={button.icon}><span data-page-field={button.field}>{button.label}</span></ActionButton>
             </div>
           )}
         </div>

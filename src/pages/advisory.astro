@@ -5,7 +5,6 @@ import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import SplitHero from "../components/SplitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
-import BookCall from "../components/BookCall.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { advisoryPage as D } from "../sanity/defaults/advisory";
@@ -214,12 +213,10 @@ const blueprint = card(1);
   </section>
 
   <FaqSection class="section--dark">
-      <!-- the site's FAQ panel (FaqPanel.astro), each question with its
-           icon, and under them a line and Book a Free Call -->
+      <!-- the site's FAQ panel (FaqPanel.astro), each
+       question with its icon, and Book a Free Call as its last item -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["user","question","settings","monitor","map"]} footLine={t("faq.footLine")} footField="faq.footLine">
-        <BookCall slot="foot" />
-      </FaqPanel>
+        icons={["user","question","settings","monitor","map"]} call />
   </FaqSection>
 
   <ClosingCta />

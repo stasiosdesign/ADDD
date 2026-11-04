@@ -96,6 +96,10 @@
   --container: 80rem;
   --sec-lg: 7rem;
   --sec-md: 5rem;
+  /* the pitch of the light fields of dots the FAQs and the closing call
+     stand on (accordion.css, "The FAQ section"; "CTA" below): one value, so
+     where the two meet their dots are one lattice (dot-field.js) */
+  --field-dot: 0.8rem;
   /* Corner radius: two steps, softening a square corner and never
      reading as a rounded UI. Fixed pixels, so they stay as slight
      however large the page scales. --radius takes the surfaces (cards,
@@ -1085,6 +1089,32 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 @media screen and (max-width: 767px) {
   .logo-wall__card { --logo-size: 2.75rem; }
 }
+/* The wall on a white ground (PracticesWall.astro, 2026-11-04: the
+   Technology Blueprint's, after its opening): the homepage's wall in white.
+   A section's step over and under it, the title in the ink; its field of
+   dots over the whole section, as StickyTitle's is over the homepage's, on
+   its band's lattice (data-dot-band, approach-stack.js: the same pitch, the
+   same columns, the same rows as the benefits' field under it), in the
+   faint ink the benefits' dots are; the cards holes in the dots, the
+   white itself; the marks, the white files the band shows, turned to the
+   ink and held a little back, so they sit as quietly on the white as on
+   the band. */
+.logos.is--light {
+  --logos-top: var(--sec-lg);
+  position: relative;
+  padding-bottom: calc(var(--sec-lg) - var(--sec-md));
+  background: var(--c-white);
+  color: var(--c-text);
+}
+.logos__dots {
+  --dot-x: var(--dot-phase, calc(var(--dot-pitch, 0.875rem) / 2));
+  --dot-y: calc(var(--dot-pitch, 0.875rem) / 2);
+  position: absolute;
+  inset: 0;
+}
+.logos.is--light .dot-grid.band-field { --dot-grid-ink: rgba(10, 10, 10, 0.14); }
+.logos.is--light .logo-wall__card { background: var(--c-white); }
+.logos.is--light .logo-wall__card img { filter: brightness(0); opacity: 0.78; }
 
 /* ------------------------------------------------------------
    Band steps (index.astro, initBandSteps in parallax.js)
@@ -2678,36 +2708,61 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    10 — CTA
    ============================================================ */
 /* The closing call (ClosingCta.astro), since 2026-11-04 after the
-   reference the user supplied: on white, a diagram the window's full width
-   of eight software marks in white rings joined by thin grey lines to the
-   ADDD mark on a dark tile in the middle, and the heading, its line and
-   the buttons centred under it. One unit (--u) sizes the whole diagram:
-   the reference's own size on a laptop (1.15px at 1440, scaled with the
-   page as the grid is), held under what a phone's width allows; the
-   diagram is drawn on an svg cropped to the window (slice), its middle on
-   the page's, so the lines run on off its sides on a wide screen. The
-   words start under the mark's shade. cta-diagram.js draws it in. */
+   reference the user supplied: on the FAQs' field of dots, a diagram the
+   window's full width of eight software marks in white rings joined by
+   thin grey lines to the ADDD mark alone in the middle, the whole set out
+   on the dots, and the heading, its line and the buttons centred under it. One unit (--u) sizes the whole diagram:
+   a twelfth of the dots' pitch on a laptop or a desktop (1.07px at 1440,
+   scaled with the page as the grid is), held under what a tablet's or a
+   phone's width allows; the diagram is drawn on an svg cropped to the
+   window (slice), its middle on the page's, so the lines run on off its
+   sides at any width. The words start a little under the mark.
+   cta-diagram.js draws it in. */
+/* Since 2026-11-04 (third pass) a unit is a twelfth of the dots' pitch
+   (--field-dot), so the diagram's step (12 units) is exactly the dots' on
+   a laptop or a desktop, at every width; under 992px the diagram is held
+   to what the screen's width allows instead (below), off the dots. The
+   heading starts a little closer under the mark than it did. */
 .cta {
-  --u: min(0.0719rem, calc(100vw / 1100));
+  --u: calc(var(--field-dot) / 12);
   --cta-pad: 7rem;
+  /* the lines rising out of the call fade away: from nothing at the
+     call's own top (the drawing's top is 180 units above it) to whole a
+     little under it, so they never end on its edge */
+  --cta-fade-from: calc(180 * var(--u));
+  --cta-fade-to: calc(222 * var(--u));
   position: relative;
-  overflow: clip;
+  /* the lines run off the screen's sides, cropped there; the risers reach
+     up over the section above */
+  overflow-x: clip;
+  overflow-y: visible;
   min-height: calc(560 * var(--u));
   background: var(--c-white);
   color: var(--c-text);
-  padding: calc(306 * var(--u)) var(--page-pad) var(--cta-pad);
+  padding: calc(290 * var(--u)) var(--page-pad) var(--cta-pad);
 }
+/* After a light FAQ the two are one ground (one lattice of dots, below),
+   and the rising lines carry on up into the FAQ's foot, fading as they go. */
+.faq-section:not(.section--dark) + .cta {
+  --cta-fade-from: calc(30 * var(--u));
+  --cta-fade-to: calc(190 * var(--u));
+}
+/* The drawing: the window's width, from 180 units above the call's top to
+   560 under it (ClosingCta.astro: RISE, DEPTH), its middle on the page's;
+   moved up or down by at most half a step so its bus is on a row of the
+   dots wherever the lattice falls (--cta-snap, cta-diagram.js). */
 .cta__diagram {
   position: absolute;
   left: 0;
-  top: 0;
+  top: calc(-180 * var(--u));
   width: 100%;
-  height: calc(560 * var(--u));
-  /* the two lines to the foot run on past it, to the section's own foot
-     (which crops them) however tall the words make it */
-  overflow: visible;
+  height: calc(740 * var(--u));
+  translate: 0 var(--cta-snap, 0px);
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent var(--cta-fade-from), #000 var(--cta-fade-to));
+  mask-image: linear-gradient(to bottom, transparent var(--cta-fade-from), #000 var(--cta-fade-to));
 }
+.cta__diagram.is--snapping { transition: translate 0.45s var(--ease-osmo); }
 /* the lines: one light grey, a hairline at every size */
 .cta__lines path {
   fill: none;
@@ -2731,12 +2786,22 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   font-size: 11.5px;
   fill: #8d8d95;
 }
-/* the middle: the ADDD mark on a dark tile with a lit rim and four
-   screws, a soft shade under it on the white */
-.cta__hub-tile { fill: #161618; filter: drop-shadow(0 0.75rem 1.25rem rgba(10, 10, 20, 0.2)); }
-.cta__hub-lid { fill: none; stroke: rgba(255, 255, 255, 0.09); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-.cta__hub-screw { fill: #2b2b2f; }
-.cta__hub-shade { fill: rgba(10, 10, 20, 0.07); filter: blur(1.25rem); }
+/* The ground: the FAQs' field of dots (FaqSection.astro: .dot-grid
+   band-field, 1.5px, the same ink), the section's whole width and height.
+   Since 2026-11-04 (third pass) on the FAQs' own lattice: their pitch
+   (--field-dot), their columns either side of the page's middle, and a row
+   on the bus; and after an FAQ its rows are that section's, carried on
+   across the boundary (data-dot-follow, dot-field.js), the diagram moved
+   to the nearest row with them. Every ring, turn and line of the diagram
+   stands on the dots; the mark in the middle stands between two columns. */
+.cta .cta__dots.dot-grid {
+  --dot-pitch: var(--field-dot);
+  --dot-x: calc(50% + var(--field-dot) / 2);
+  --dot-y: calc(240 * var(--u));
+  --dot-grid-ink: rgba(10, 10, 10, 0.14);
+  position: absolute;
+  inset: 0;
+}
 /* The page's closing composition, centred: the heading, its line and the
    buttons one stack down the page's middle (2026-11-04; it was set off a
    label on the left, with a mark on the right). */
@@ -3117,7 +3182,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .logos { padding: 5rem 0; }
   /* the diagram smaller than the words here: the words start under its
      rings rather than under the mark (ClosingCta.astro) */
-  .cta { --cta-pad: 5.5rem; padding-top: calc(400 * var(--u)); }
+  .cta { --u: min(calc(var(--field-dot) / 12), calc(100vw / 1100)); --cta-pad: 5.5rem; padding-top: calc(400 * var(--u)); }
   /* The split is a desktop composition, as it is in the hero: stacked,
      the label leads and the mark has no gutter left to sit in. */
   .cta__body { gap: 2.5rem; }
@@ -3288,14 +3353,15 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* The heading a step under the cost section's, with more room round it,
    so it stands on its own before the panel begins. */
 .service-tabs-head {
-  --head-size: 4.625rem;
+  /* a step smaller (2026-11-04: 4.625rem before) */
+  --head-size: 4rem;
   margin: 2.5rem 0 7rem;
 }
 @media screen and (max-width: 991px) {
-  .service-tabs-head { --head-size: 3.125rem; margin: 1rem 0 3.5rem; }
+  .service-tabs-head { --head-size: 2.75rem; margin: 1rem 0 3.5rem; }
 }
 @media screen and (max-width: 767px) {
-  .service-tabs-head { --head-size: 2.5rem; }
+  .service-tabs-head { --head-size: 2.25rem; }
 }
 
 .service-tabs {
@@ -3307,10 +3373,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* the scroll each route has while the panel is stuck */
   --st-step: 75vh;
   --st-step: 75svh;
-  /* how far the panel stands in from the band's Grid Columns 1–12: a
-     Grid Column and a gutter each side from 992px (below), so it takes
-     Grid Columns 2–11, a restrained composition rather than the whole
-     width; the full width below */
+  /* how far the panel stands in from the band's Grid Columns 1–12: three
+     quarters of a Grid Column and its gutter each side from 992px (below),
+     a restrained composition rather than the whole width; the full width
+     below */
   --st-inset: 0px;
   position: relative;
   margin-inline: var(--st-inset);
@@ -3321,14 +3387,16 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   grid-template-columns: repeat(2, minmax(0, 1fr));
   color: var(--c-white);
 }
-/* From 992px the panel takes Grid Columns 2–11 (since 2026-11-04; the
-   whole grid before), the blue square and the drawing exactly half each
-   (Grid Columns 2–6 and 7–11, meeting in the middle of the gutter
-   between them) */
+/* From 992px the panel stands three quarters of a Grid Column and its
+   gutter in from either side of the grid (2026-11-04; the whole grid at
+   first, then Grid Columns 2–11), the blue square and the drawing exactly
+   half each, meeting on the page's middle */
 @media screen and (min-width: 992px) {
   .service-tabs {
     --st-col: calc((100vw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
-    --st-inset: calc(var(--st-col) + var(--grid-gutter));
+    /* three quarters of a Grid Column and its gutter in from each side
+       (2026-11-04: a whole one, a touch smaller, before) */
+    --st-inset: calc(0.75 * (var(--st-col) + var(--grid-gutter)));
   }
 }
 
@@ -3549,7 +3617,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* from 992px held to 0.45 of its (narrower) width: each half a little
    wider than tall, so the panel sits low and compact in the band */
 @media screen and (min-width: 992px) and (min-height: 540px) {
-  .service-tabs { --st-tallest: 0.45; }
+  .service-tabs { --st-tallest: 0.46; }
 }
 
 /* Below 992px the halves stand one over the other: the words, then the
