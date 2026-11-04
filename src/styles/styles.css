@@ -2677,22 +2677,71 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* ============================================================
    10 — CTA
    ============================================================ */
-/* On the site's off-white, the page's own ground, in ink. */
+/* The closing call (ClosingCta.astro), since 2026-11-04 after the
+   reference the user supplied: on white, a diagram the window's full width
+   of eight software marks in white rings joined by thin grey lines to the
+   ADDD mark on a dark tile in the middle, and the heading, its line and
+   the buttons centred under it. One unit (--u) sizes the whole diagram:
+   the reference's own size on a laptop (1.15px at 1440, scaled with the
+   page as the grid is), held under what a phone's width allows; the
+   diagram is drawn on an svg cropped to the window (slice), its middle on
+   the page's, so the lines run on off its sides on a wide screen. The
+   words start under the mark's shade. cta-diagram.js draws it in. */
 .cta {
-  --cta-pad: 11.625rem;
-  background: var(--c-light-bg);
+  --u: min(0.0719rem, calc(100vw / 1100));
+  --cta-pad: 7rem;
+  position: relative;
+  overflow: clip;
+  min-height: calc(560 * var(--u));
+  background: var(--c-white);
   color: var(--c-text);
-  padding: var(--cta-pad) var(--page-pad);
+  padding: calc(306 * var(--u)) var(--page-pad) var(--cta-pad);
 }
-/* After the homepage's research, on the same ground, the space over the
-   call is the research's foot and the call's own top together, so the
-   call gives back the research's share: its words stand as far under the
-   research as the footer stands under its buttons. */
-.research + .cta { padding-top: calc(var(--cta-pad) - var(--sec-lg)); }
+.cta__diagram {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: calc(560 * var(--u));
+  /* the two lines to the foot run on past it, to the section's own foot
+     (which crops them) however tall the words make it */
+  overflow: visible;
+  pointer-events: none;
+}
+/* the lines: one light grey, a hairline at every size */
+.cta__lines path {
+  fill: none;
+  stroke: #dcdce1;
+  stroke-width: 1.25px;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* the rings: white, a hairline edge and the faintest shadow, the mark in
+   its own colours, its name under it in a quiet grey */
+.cta__ring {
+  fill: var(--c-white);
+  stroke: #e8e8ec;
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 1px 2px rgba(10, 10, 20, 0.06));
+}
+.cta__name {
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  fill: #8d8d95;
+}
+/* the middle: the ADDD mark on a dark tile with a lit rim and four
+   screws, a soft shade under it on the white */
+.cta__hub-tile { fill: #161618; filter: drop-shadow(0 0.75rem 1.25rem rgba(10, 10, 20, 0.2)); }
+.cta__hub-lid { fill: none; stroke: rgba(255, 255, 255, 0.09); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.cta__hub-screw { fill: #2b2b2f; }
+.cta__hub-shade { fill: rgba(10, 10, 20, 0.07); filter: blur(1.25rem); }
 /* The page's closing composition, centred: the heading, its line and the
    buttons one stack down the page's middle (2026-11-04; it was set off a
    label on the left, with a mark on the right). */
 .cta__grid {
+  position: relative;
   display: flex;
   justify-content: center;
   width: 100%;
@@ -2705,17 +2754,12 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Text-led now that the portrait is gone, so the buttons sit a
-     normal heading-to-actions step below the line rather than the
-     clearance the picture used to need. */
-  gap: 3rem;
+  gap: 2.5rem;
 }
-/* One line of copy carrying the section on its own. A step under the
-   --t-h1 it was set at, with the leading closed up so the three lines
-   read as one block, and capped so it breaks there rather than running
-   the full width of the body column. */
+/* One line of copy carrying the section on its own, two lines under the
+   mark, held between the diagram's lines running to the foot. */
 .cta__heading {
-  max-width: 45rem;
+  max-width: 13em;
   font-size: 3.625rem;
   line-height: 1.08;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
@@ -3071,7 +3115,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .site-footer__social-link { width: max(2.75rem, 44px); }
 
   .logos { padding: 5rem 0; }
-  .cta { --cta-pad: 7.5rem; }
+  /* the diagram smaller than the words here: the words start under its
+     rings rather than under the mark (ClosingCta.astro) */
+  .cta { --cta-pad: 5.5rem; padding-top: calc(400 * var(--u)); }
   /* The split is a desktop composition, as it is in the hero: stacked,
      the label leads and the mark has no gutter left to sit in. */
   .cta__body { gap: 2.5rem; }
@@ -3085,6 +3131,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   :root { --t-h1: 2.375rem; --t-h2: 2rem; --t-h3: 1.75rem; --t-h4: 1.5rem; --page-pad: 1.25rem; }
   .hero__heading { font-size: 2.14rem; }
   .cta__heading { font-size: 2.125rem; }
+  /* the marks' names too small to read on a phone: the marks alone */
+  .cta__name { display: none; }
   /* Held to a share of the height, as on tablet, for a phone on its side. */
   .approach__card-h { font-size: min(3.0938rem, 15svh); }
   .tagline { font-size: 0.8125rem; }

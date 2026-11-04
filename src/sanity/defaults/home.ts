@@ -120,7 +120,7 @@ export const homePage = {
   },
   closingCta: {
     label: 'For architecture practices',
-    heading: 'Need help making sense of your technology setup?',
+    heading: 'Make sense of your technology setup',
     primaryButton: 'Free Tech Stacks',
     secondaryButton: 'Contact',
   },

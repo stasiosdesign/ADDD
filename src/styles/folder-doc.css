@@ -239,6 +239,14 @@
   background: color-mix(in srgb, var(--c-text) 45%, transparent);
 }
 
+/* Book a Free Call at the paper's foot (FolderDocument.astro, book): the
+   site's CTA, under a hairline of its own */
+.folder-doc__book {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--doc-rule);
+}
+
 @media screen and (max-width: 991px) {
   .folder-doc { --doc-pad-x: 3rem; --doc-pad-y: 3.25rem; }
 }

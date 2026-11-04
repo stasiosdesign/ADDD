@@ -1,10 +1,12 @@
 ---
 /*
-  The closing call to action every content page ends on, on the site's
-  off-white: the heading, a line under it where the page has one, and the
-  buttons, all centred (2026-11-04: the label on the left and the arrow
-  on the right were taken out). The newsletter signup is in the footer
-  (Footer.astro).
+  The closing call to action every content page ends on (2026-11-04, after
+  the reference the user supplied): on white, a diagram the window's full
+  width of eight software marks in white rings, their thin lines turning
+  in to the ADDD mark in the middle, and under the mark the heading, a
+  line where the page has one, and the buttons, all centred (styles:
+  styles.css, "CTA"; drawn in by cta-diagram.js). The newsletter signup is
+  in the footer (Footer.astro).
 
   The words are the Closing call to action section of the Home page document
   in Sanity (src/sanity/defaults/home.ts while nothing is published), so one
@@ -42,6 +44,66 @@ const {
   single,
 } = Astro.props;
 const field = (doc as { field?: string }).field ?? "closingCta";
+
+// The diagram over the call (2026-11-04, after the reference the user
+// supplied): eight software marks in white rings, four either side,
+// mirror images about the page's middle, each joined to the ADDD mark in
+// the middle by a thin line that runs level, turns at 45° and joins one
+// level line (the bus) into the mark, every turn rounded; and each runs on
+// out past its ring, at 45°, off the top or the foot. In the reference's
+// own units: a composition 1074 wide (its middle at 537), the bus 232
+// down, the rings 22 round, the mark 80 square. cta.css sizes a unit
+// (--u) so it reads at the reference's size on a laptop and fits a phone;
+// cta-diagram.js draws it in when it comes into view.
+const MID = 537;
+const BUS = 232;
+const RING = 22;
+const HUB = 80;
+type Pt = [number, number];
+// the left four, from the top: the ring's middle, its route from the
+// mark's edge out to it (the ring's middle last), and where its line
+// runs off past it; the right four are these mirrored
+const LEFT: { at: Pt; route: Pt[]; out: Pt }[] = [
+  { at: [132, 57], route: [[497, 232], [375, 232], [200, 57], [132, 57]], out: [52, -23] },
+  { at: [302, 88], route: [[497, 232], [477, 232], [440, 195], [357, 195], [302, 140], [302, 88]], out: [202, -12] },
+  { at: [137, 160], route: [[497, 232], [342, 232], [270, 160], [137, 160]], out: [-43, -20] },
+  { at: [225, 260], route: [[497, 232], [290, 232], [262, 260], [225, 260]], out: [-415, 900] },
+];
+// the marks, the left's from the top then the right's (the vendors' own
+// files, public/assets/logos/software)
+const MARKS = [
+  { name: "Rhino", src: "/assets/logos/software/rhino-icon.svg" },
+  { name: "Bluebeam", src: "/assets/logos/software/bluebeam-mark.svg", w: 20, h: 20 },
+  { name: "Adobe", src: "/assets/logos/software/adobe.svg" },
+  { name: "Figma", src: "/assets/logos/software/figma.svg" },
+  { name: "ChatGPT", src: "/assets/logos/software/chatgpt.svg" },
+  { name: "Notion", src: "/assets/logos/software/notion.svg" },
+  { name: "Slack", src: "/assets/logos/software/slack.svg" },
+  { name: "Google", src: "/assets/logos/software/google.svg" },
+];
+const mirror = ([x, y]: Pt): Pt => [2 * MID - x, y];
+// a polyline with its inner corners rounded (a quadratic turn of r)
+const rounded = (pts: Pt[], r = 12) => {
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < pts.length - 1; i++) {
+    const [a, b, c] = [pts[i - 1], pts[i], pts[i + 1]];
+    const toward = (p: Pt, q: Pt): Pt => {
+      const l = Math.hypot(q[0] - p[0], q[1] - p[1]);
+      const k = Math.min(r, l / 2) / l;
+      return [p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k];
+    };
+    const p1 = toward(b, a), p2 = toward(b, c);
+    d += ` L${p1[0].toFixed(1)} ${p1[1].toFixed(1)} Q${b[0]} ${b[1]} ${p2[0].toFixed(1)} ${p2[1].toFixed(1)}`;
+  }
+  const z = pts[pts.length - 1];
+  return `${d} L${z[0]} ${z[1]}`;
+};
+const nodes = [
+  ...LEFT.map((n) => n),
+  ...LEFT.map((n) => ({ at: mirror(n.at), route: n.route.map(mirror), out: mirror(n.out) })),
+].map((n, i) => ({ ...n, mark: MARKS[i], d: rounded(n.route), dOut: `M${n.at[0]} ${n.at[1]} L${n.out[0]} ${n.out[1]}` }));
+// the order they are drawn in: nearest the middle first, the two sides together
+const order = [3, 7, 2, 6, 1, 5, 0, 4];
 const { t } = reader(await pageDocument(Astro.locals.sanity, doc.id), doc.defaults);
 // The block names its document for the Visual editor: the Home page's,
 // unless the page passed its own
@@ -50,6 +112,32 @@ const scope = { "data-page-doc": doc.id, "data-page-type": doc.id };
 const lede = t(`${field}.lede`);
 ---
 <section class:list={["cta", { "cta--blue": accent === "blue" }]} {...scope}>
+  <!-- the diagram: the lines, then the rings over their ends, then the
+       mark in the middle; decoration (the words below say it) -->
+  <svg class="cta__diagram" viewBox={`${MID - 1040} 0 2080 560`} preserveAspectRatio="xMidYMin slice" aria-hidden="true" focusable="false" data-cta-diagram>
+    <g class="cta__lines">
+      {order.map((i) => <path d={nodes[i].dOut} pathLength="1" data-cta-out />)}
+      {order.map((i) => <path d={nodes[i].d} pathLength="1" data-cta-route />)}
+    </g>
+    <ellipse class="cta__hub-shade" cx={MID} cy={BUS + 58} rx="74" ry="30" />
+    {order.map((i) => {
+      const n = nodes[i];
+      const w = n.mark.w ?? 22, h = n.mark.h ?? 22;
+      return (
+        <g class="cta__node" data-cta-node>
+          <circle class="cta__ring" cx={n.at[0]} cy={n.at[1]} r={RING} />
+          <image href={n.mark.src} x={n.at[0] - w / 2} y={n.at[1] - h / 2} width={w} height={h} preserveAspectRatio="xMidYMid meet" />
+          <text class="cta__name" x={n.at[0]} y={n.at[1] + RING + 15} text-anchor="middle">{n.mark.name}</text>
+        </g>
+      );
+    })}
+    <g class="cta__hub" data-cta-hub>
+      <rect class="cta__hub-tile" x={MID - HUB / 2} y={BUS - HUB / 2} width={HUB} height={HUB} rx="15" />
+      <rect class="cta__hub-lid" x={MID - HUB / 2 + 1} y={BUS - HUB / 2 + 1} width={HUB - 2} height={HUB - 2} rx="14" />
+      {[[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => <circle class="cta__hub-screw" cx={MID + sx * (HUB / 2 - 10)} cy={BUS + sy * (HUB / 2 - 10)} r="2.6" />)}
+      <image href="/assets/logo.svg" x={MID - 26} y={BUS - 26} width="52" height="52" />
+    </g>
+  </svg>
   <div class="cta__grid">
     <div class="cta__body">
       <h2 class="h1 cta__heading" data-split="heading" data-page-field={`${field}.heading`}>{t(`${field}.heading`)}</h2>

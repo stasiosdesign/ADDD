@@ -254,6 +254,16 @@ export function initFolderDocs(container) {
 
     button.addEventListener("click", open);
     dialog.querySelectorAll("[data-folder-doc-close]").forEach((el) => el.addEventListener("click", close));
+    // the paper's Book a Free Call (FolderDocument.astro, book): the paper
+    // goes back into its folder as a close does, then the free call's
+    // calendar opens (booking.js, dialog.booking), so the two modals are
+    // never open together and each keeps the page's scroll as it should
+    dialog.querySelectorAll("[data-folder-book]").forEach((el) =>
+      el.addEventListener("click", async () => {
+        await close();
+        if (state === "closed") document.getElementById(el.dataset.folderBook)?.booking?.show();
+      }),
+    );
     // Escape: the browser would close it at once; close it the same way
     dialog.addEventListener("cancel", (e) => {
       e.preventDefault();
