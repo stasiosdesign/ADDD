@@ -76,24 +76,26 @@ export interface Stack {
   sample?: boolean;
 }
 
-/** A stack's colour: its cards' ground and the ink on it. Solid blocks,
-    restrained, each stack told from its neighbours by its value as much as
-    its hue (light and dark alternate down the list). */
+/** A stack's colour: its cards' ground and the ink on it. Solid blocks.
+    Since 2026-11-04 (fifth pass, at the user's word: the colours were too
+    unlike one another) close shades of one light grey, white to a step
+    over the page's ground, all with the ink on them; neighbouring stacks a
+    light shade and a deeper one in turn, so each still reads as a group. */
 export interface Tone {
   ground: string;
   ink: string;
 }
 export const STACK_TONES: Tone[] = [
-  { ground: "#ffffff", ink: "#0a0a0a" }, // white
-  { ground: "#181818", ink: "#ffffff" }, // black
-  { ground: "#e2e2de", ink: "#0a0a0a" }, // light grey
-  { ground: "#6c7d8f", ink: "#ffffff" }, // muted blue
-  { ground: "#d7d2c8", ink: "#0a0a0a" }, // stone
-  { ground: "#46464a", ink: "#ffffff" }, // dark grey
-  { ground: "#dae1e8", ink: "#0a0a0a" }, // pale blue
-  { ground: "#2d3742", ink: "#ffffff" }, // slate
-  { ground: "#f4f1ea", ink: "#0a0a0a" }, // warm white
-  { ground: "#a9a9a3", ink: "#0a0a0a" }, // mid grey
+  { ground: "#ffffff", ink: "#0a0a0a" },
+  { ground: "#e6e6e3", ink: "#0a0a0a" },
+  { ground: "#f5f5f3", ink: "#0a0a0a" },
+  { ground: "#eaeae7", ink: "#0a0a0a" },
+  { ground: "#fbfbfa", ink: "#0a0a0a" },
+  { ground: "#e3e3e0", ink: "#0a0a0a" },
+  { ground: "#f1f1ef", ink: "#0a0a0a" },
+  { ground: "#e8e8e5", ink: "#0a0a0a" },
+  { ground: "#f8f8f6", ink: "#0a0a0a" },
+  { ground: "#ededea", ink: "#0a0a0a" },
 ];
 export const toneOf = (index: number): Tone => STACK_TONES[index % STACK_TONES.length];
 

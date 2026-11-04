@@ -34,6 +34,16 @@
 }
 .sd__stage:focus-visible { box-shadow: inset 0 0 0 2px rgba(10, 10, 10, 0.25); }
 .sd__canvas { display: block; width: 100%; height: 100%; }
+/* the row's scroller, over the canvas and the size of it: nothing to see,
+   its room tall enough for Lenis to move it (stack-space.js) */
+.sd__scroll {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  scrollbar-width: none;
+}
+.sd__scroll::-webkit-scrollbar { display: none; }
+.sd__scroll-room { width: 1px; }
 /* the list shown: the row faded out, and asleep (stack-space.js) */
 .sd[data-view="flat"] .sd__stage { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
 

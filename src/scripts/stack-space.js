@@ -7,10 +7,10 @@
    Fourth pass (2026-11-04), after the user's brief and a reference of CD
    cases standing in a row: every card is one piece of software, and every
    card belongs to a curated stack. The cards stand upright, close
-   together, in one long row seen from a little above and to the right
-   with no perspective, their faces turned nearly to the viewer (as the
-   cases' covers are), the row climbing from off the screen's bottom-left
-   to off its top-right. The row has no ends: it goes round (each card at
+   together, in one long row seen from above at 45° across with no
+   perspective (fifth pass: back to the row's first angle, the cards flat,
+   with no thickness, at the user's word), the row climbing from off the
+   screen's bottom-left to off its top-right. The row has no ends: it goes round (each card at
    its slot less the reading position, wrapped round the number of
    cards), so moving through it never meets a last card.
 
@@ -26,21 +26,19 @@
    the visitor is in the ADDD app are cards with the SVG Collection's lock
    and no name.
 
-   The pointer: the card under it slides out of the row to the right,
-   along its own face, as a card pulled from a stack does (a spring, a
-   little resistance, no overshoot to speak of), and slides back when the
-   pointer moves on; its neighbours stay where they are. Pressing any card
+   The pointer: the card under it lifts, smoothly and clearly, and settles
+   back when the pointer moves on (fifth pass: back to lifting, not
+   sliding out); its neighbours stay where they are. Pressing any card
    of a stack opens the stack's sheet straight out of its cards, from
    wherever they stand on the screen (stack-sheet.js: each container grows
    from its card), with no glide to the middle first; closing sends them
    back into the row.
 
-   The wheel (and a finger, and the arrow keys) move through the row: the
-   reading position eases after where the input has taken it, with a
-   little momentum carried on as the input stops, then settles on a card.
-   The stage takes the wheel itself (data-lenis-prevent: Lenis leaves it
-   alone, and the page does not scroll), so there is one scroll system
-   here and one loop.
+   The wheel and a finger move through the row on Lenis, the site's own
+   smooth scroll (fifth pass): a Lenis of its own on a scroller over the
+   canvas, endless, at the site's lerp; the arrow keys move it a card at a
+   time. The page's own Lenis leaves the stage to it (data-lenis-prevent);
+   the list and a stack's sheet each scroll on a Lenis of their own.
 
    The flat view (the switch under the title): the same stacks as a list
    of blocks (stack-diagnostic.astro renders it from the same data); this
@@ -49,60 +47,51 @@
 
    How it is built, for speed:
    - One canvas draws the whole row, back to front, each card on its own
-     plane (an affine transform per card): one layer and one pass. Each
-     card's thickness is two thin faces (its top and right edges) drawn
-     under its face: the cards part from one another by their edges, with
-     no shadows.
+     plane (an affine transform per card): one layer and one pass. The
+     cards part from one another by a hairline round each, with no
+     shadows.
    - Every face is painted once into an atlas whenever the cards change
      size, a mark arrives or the fonts come; each frame places it with one
      image drawn. The stacks' names, likewise, from an atlas of their own.
    - Everything moves from a few numbers on the GSAP ticker: the reading
-     position, and per card its slide (a spring). The loop sleeps as soon
-     as nothing is moving and wakes on input; it is asleep while the sheet
-     or the list is up.
+     position (Lenis's), and per card its lift. The drawing loop sleeps as
+     soon as nothing is moving and wakes on input; it is asleep while the
+     sheet or the list is up.
    - The pointer is tested against each card's resting shape, front to
-     back (the card already out first), in plain arithmetic: no layout is
-     read while it moves.
+     back (the card already up first, where it is), in plain arithmetic:
+     no layout is read while it moves.
    Under reduced motion everything still works, without the glides. The
    listeners, the loop and the observer go with the page.
    ============================================================ */
 import { motion, registerPageCleanup } from "./page.js";
 import { mountStackSheet } from "./stack-sheet.js";
 
-// the view: the row's azimuth (degrees: 0 would face the cards square on)
-// and the view's elevation (its sine): the cards' faces nearly to the
-// viewer, their tops a little seen, the row climbing at about 42°
-const THETA = (27 * Math.PI) / 180;
-const SIN_E = 0.455;
-const COS_E = Math.sqrt(1 - SIN_E * SIN_E);
-const SIN_T = Math.sin(THETA);
-const COS_T = Math.cos(THETA);
-// where the row passes the screen's middle (shares of its width and height)
-const ORIGIN = [0.56, 0.56];
+// the view (fifth pass, 2026-11-04: back to the row's first angle, at the
+// user's word): seen from above at 45° across, the elevation from the
+// screen's shape, so the row runs from CORNER_IN in from the bottom-left
+// corner to CORNER_IN in from the top-right, through the middle
+const R2 = Math.SQRT1_2;
+const CORNER_IN = 0.07;
 // the cards: width as a share of the screen's (held between a least and a
-// most, px), height to width, corner radius and thickness (card widths)
-const CARD_SHARE = 0.17;
+// most, px), height to width, corner radius (card widths). Flat cards, no
+// thickness (fifth pass)
+const CARD_SHARE = 0.19;
 const CARD_SHARE_SMALL = 0.36;
 const CARD_MIN = 150;
-const CARD_MAX = 330;
+const CARD_MAX = 360;
 const CARD_RATIO = 0.62;
 const RADIUS = 0.022;
-const THICK = 0.014;
 // the row: each card this far behind the one before (card widths)
 const SPACING = 0.3;
-// the hover: how far the card under the pointer slides out (card widths),
-// and its spring (stiffness, damping: a touch under critical, for weight)
-const SLIDE = 0.4;
-const SPRING_K = 230;
-const SPRING_C = 29;
-// the wheel: px to a card; how long after the last input the row settles
-// on a card (ms), how far the input's own speed carries it on (seconds of
-// it, up to MOMENTUM_MAX cards), and how fast the row follows (per second)
-const WHEEL_STEP = 70;
-const SETTLE_MS = 170;
-const MOMENTUM = 0.16;
-const MOMENTUM_MAX = 5;
-const RATE_POS = 7.5;
+// the hover (fifth pass: back to lifting): the card under the pointer
+// rises (share of its height) on its own rate; its neighbours stay put
+const LIFT = 0.26;
+const RATE_LIFT = 9;
+// the scroll: the row is moved by Lenis (fifth pass), the site's own smooth
+// scroll and lerp, on a scroller of its own over the canvas (endless:
+// infinite), this many px of it to a card
+const STEP = 80;
+const LERP = 0.08;
 const RATE_HOVER = 12;
 // the face, in card widths: its margin, the mark's square, the gap to the
 // name, the name's size, the small type's, the band's height (card heights)
@@ -190,11 +179,8 @@ export function initStackSpace(container) {
       c.tone = c.group ? c.group.tone : TONE_FREE;
       c.rgb = rgbOf(c.tone.ground);
       c.dark = isDark(c.rgb);
-      // the slide (px along its face) and its speed; the edges' colours
-      c.x = 0;
-      c.v = 0;
-      c.edgeTop = mix(c.rgb, c.dark ? [255, 255, 255] : [0, 0, 0], c.dark ? 0.16 : 0.07);
-      c.edgeSide = mix(c.rgb, c.dark ? [255, 255, 255] : [0, 0, 0], c.dark ? 0.08 : 0.15);
+      // its lift (share of its height)
+      c.lift = 0;
       Object.assign(c, { nameScale: 1, image: null });
     });
     // the marks: drawn on their cards once they have come
@@ -212,7 +198,6 @@ export function initStackSpace(container) {
     const wrap = (d) => d - N * Math.round(d / N);
 
     let pos = 0;
-    let target = 0;
     let hover = null;
     // the stack open (its sheet up, or on its way), and the view shown
     let chosen = null;
@@ -229,15 +214,20 @@ export function initStackSpace(container) {
       canvas.height = Math.round(r.height * dpr);
       view.dpr = dpr;
       view.rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      // the row's angle: through the middle, from CORNER_IN in from the
+      // bottom-left to CORNER_IN in from the top-right
+      const tan = Math.min(Math.tan((40 * Math.PI) / 180), Math.max(Math.tan((24 * Math.PI) / 180), r.height / (r.width * (1 - 2 * CORNER_IN))));
+      view.sinE = tan;
+      view.cosE = Math.sqrt(1 - tan * tan);
       view.cw = Math.min(CARD_MAX, Math.max(CARD_MIN, r.width * (r.width < 992 ? CARD_SHARE_SMALL : CARD_SHARE)));
       view.ch = view.cw * CARD_RATIO;
-      view.cx = r.width * ORIGIN[0];
-      view.cy = r.height * ORIGIN[1];
+      view.cx = r.width / 2;
+      view.cy = r.height / 2;
       view.sp = view.cw * SPACING;
       // how far along the row (its own units) the screen reaches from the
       // middle, a card's size past it
-      view.along = Math.hypot(SIN_T, COS_T * SIN_E);
-      view.limit = (Math.hypot(r.width, r.height) * 0.6 + view.cw * 1.4) / view.along;
+      view.along = R2 * Math.sqrt(1 + tan * tan);
+      view.limit = Math.hypot(r.width, r.height) / 2 / view.along + view.cw * 1.4;
       // each name's size, shrunk where a long one would run off its card
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.font = `400 ${view.cw * FACE_NAME}px ${fonts.display}`;
@@ -246,15 +236,16 @@ export function initStackSpace(container) {
       paintFaces();
       paintLabels();
     }
-    const P = (x, y, z) => [view.cx + x * COS_T - y * SIN_T, view.cy + (x * SIN_T + y * COS_T) * SIN_E - z * COS_E];
+    const P = (x, y, z) => [view.cx + (x - y) * R2, view.cy + (x + y) * R2 * view.sinE - z * view.cosE];
 
     // a card's four corners on the screen (top-left, top-right, bottom-right,
-    // bottom-left): standing at s along the row, slid out by x, its face at
-    // depth y less back
-    function corners(s, x = 0, back = 0) {
+    // bottom-left): standing at s along the row, lifted by lift (a share of
+    // its height)
+    function corners(s, lift = 0) {
       const { cw, ch } = view;
-      const y = -s - back;
-      return [P(x - cw / 2, y, ch / 2), P(x + cw / 2, y, ch / 2), P(x + cw / 2, y, -ch / 2), P(x - cw / 2, y, -ch / 2)];
+      const y = -s;
+      const z = lift * ch;
+      return [P(-cw / 2, y, ch / 2 + z), P(cw / 2, y, ch / 2 + z), P(cw / 2, y, -ch / 2 + z), P(-cw / 2, y, -ch / 2 + z)];
     }
     // every place a card shows: its slot less the reading position, wrapped,
     // and once more round either way where that is on the screen too
@@ -291,7 +282,7 @@ export function initStackSpace(container) {
         for (const p of near) {
           // in front of it, only the cards nearer the eye could cover it
           const front = cards.some((c) => c !== hover && placesOf(c).some((o) => o.s < p.s && inside(corners(o.s), x, y)));
-          if (!front && inside(corners(p.s, hover.x), x, y)) return hover;
+          if (!front && inside(corners(p.s, hover.lift), x, y)) return hover;
         }
       }
       let best = null;
@@ -510,27 +501,11 @@ export function initStackSpace(container) {
         g.label = { sy: i * 2 * cell, w: Math.ceil((widths[i] + 4) * dpr), h: cell };
       });
     }
-    // a card on the screen: its two edges (top and right, its thickness),
-    // then its face from the atlas on its own plane
+    // a card on the screen: its face from the atlas on its own plane, flat
+    // (fifth pass: no thickness), lifted as far as it is
     function drawCard(c, s) {
-      const { cw, ch, dpr } = view;
-      const q = corners(s, c.x);
-      const b = corners(s, c.x, cw * THICK);
-      const inset = cw * RADIUS * 0.7;
-      const along = (p, o, t) => [p[0] + (o[0] - p[0]) * t, p[1] + (o[1] - p[1]) * t];
-      const ti = inset / cw;
-      const si = inset / ch;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // its top edge, from just in from either corner
-      ctx.beginPath();
-      [along(q[0], q[1], ti), along(q[1], q[0], ti), along(b[1], b[0], ti), along(b[0], b[1], ti)].forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      ctx.fillStyle = c.edgeTop;
-      ctx.fill();
-      // its right edge
-      ctx.beginPath();
-      [along(q[1], q[2], si), along(q[2], q[1], si), along(b[2], b[1], si), along(b[1], b[2], si)].forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
-      ctx.fillStyle = c.edgeSide;
-      ctx.fill();
+      const { cw, ch } = view;
+      const q = corners(s, c.lift);
       const f = c.face ?? c;
       const { k, pad } = view.face;
       plane(q);
@@ -602,19 +577,54 @@ export function initStackSpace(container) {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
+    // ---- the scroll: Lenis -----------------------------------------------
+    // Fifth pass (2026-11-04): the row is moved by Lenis, the site's own
+    // smooth scroll, as every other page is: a scroller of its own over the
+    // canvas (stack-diagnostic.astro: .sd__scroll, its room the stage's
+    // height and four rounds of the row, set here), with a Lenis of its own
+    // on it, endless (infinite), at the site's lerp, its touch synced; the
+    // reading position is how far it has scrolled, a card to every STEP px.
+    // Its frames come from the GSAP ticker, as the page's own Lenis's do.
+    // (The page's Lenis leaves the stage alone: data-lenis-prevent.) The
+    // list and the sheet each scroll on a Lenis of their own too.
+    const scroller = stage.querySelector("[data-stack-scroll]");
+    const scrollRoom = scroller?.firstElementChild;
+    const fitRoom = () => {
+      if (scrollRoom) scrollRoom.style.height = `${Math.ceil(stage.clientHeight + N * STEP * 4)}px`;
+    };
+    fitRoom();
+    // the reading position at the scroll's start: the first stack's middle
+    const startAt = groups.length ? Math.round((groups[0].a + groups[0].b) / 2) : 0;
+    pos = startAt;
+    const rowLenis = scroller && scrollRoom
+      ? new Lenis({ wrapper: scroller, content: scrollRoom, lerp: reduced ? 1 : LERP, infinite: true, syncTouch: true, gestureOrientation: "both", touchMultiplier: 1.4 })
+      : null;
+    const onRowScroll = () => {
+      pos = startAt + rowLenis.animatedScroll / STEP;
+      wake();
+    };
+    rowLenis?.on("scroll", onRowScroll);
+    // the list's, made the first time it shows
+    let listLenis = null;
+    const rafLenis = (time) => {
+      rowLenis?.raf(time * 1000);
+      listLenis?.raf(time * 1000);
+    };
+    gsap.ticker.add(rafLenis);
+
     // ---- a stack opened ------------------------------------------------
     const sheetEl = root.querySelector("[data-stack-sheet]");
     const sheet = sheetEl ? mountStackSheet(sheetEl, data) : null;
     function choose(g, from) {
       if (!g || chosen || !sheet) return;
       chosen = g;
-      clearTimeout(settling);
-      // the row stays where it is: the sheet comes straight out of the
-      // cards (or the list's rows) as they stand
-      target = pos;
+      // the row (and the list) stay where they are: the sheet comes
+      // straight out of the cards (or the list's rows) as they stand
+      rowLenis?.stop();
+      listLenis?.stop();
       say(`${g.name}: ${g.toolCount} tools`);
       sheet.open(g, release, from ?? rowMorph(g));
-      // the card under the pointer stays out while its container leaves it
+      // the card under the pointer stays up while its container leaves it
       stop();
     }
     // What the sheet needs to grow out of the stack's cards and go back into
@@ -629,7 +639,7 @@ export function initStackSpace(container) {
           const r = stage.getBoundingClientRect();
           const items = cards.filter((c) => c.group === g).map((c) => {
             const p = placesOf(c).sort((x, y) => Math.abs(x.s) - Math.abs(y.s))[0];
-            const q = p ? corners(p.s, c.x) : corners(0);
+            const q = p ? corners(p.s, c.lift) : corners(0);
             return q.map(([x, y]) => [x + r.left, y + r.top]);
           });
           return { head: items[Math.floor((items.length - 1) / 2)], items, cta: items[items.length - 1], tone: g.tone };
@@ -659,11 +669,14 @@ export function initStackSpace(container) {
         },
       };
     }
-    // the sheet closed: the row (or the list) as it was
+    // the sheet closed: the row (or the list) as it was, scrolling again
     function release() {
       if (!chosen) return;
       chosen = null;
-      if (viewing === "3d") stage.focus({ preventScroll: true });
+      if (viewing === "3d") {
+        rowLenis?.start();
+        stage.focus({ preventScroll: true });
+      } else listLenis?.start();
       wake();
     }
 
@@ -679,6 +692,10 @@ export function initStackSpace(container) {
         flat.hidden = false;
         stage.setAttribute("aria-hidden", "true");
         stage.tabIndex = -1;
+        rowLenis?.stop();
+        listLenis ??= new Lenis({ wrapper: flat, content: flat.firstElementChild, lerp: reduced ? 1 : LERP });
+        listLenis.resize();
+        listLenis.start();
         // shown in the next frame, so its fade runs from nothing
         requestAnimationFrame(() => (root.dataset.view = "flat"));
         stop();
@@ -687,6 +704,8 @@ export function initStackSpace(container) {
         root.dataset.view = "3d";
         stage.removeAttribute("aria-hidden");
         stage.tabIndex = 0;
+        listLenis?.stop();
+        rowLenis?.start();
         viewTimer = setTimeout(() => (flat.hidden = true), reduced ? 0 : 420);
         wake();
         say("The stacks as a row of cards");
@@ -694,48 +713,19 @@ export function initStackSpace(container) {
     }
 
     // ---- input ---------------------------------------------------------
-    let settling = 0;
-    // the input's own speed (cards a second), for the momentum it leaves
-    let velocity = 0;
-    let lastInput = 0;
-    function nudge(by) {
-      if (chosen || viewing !== "3d") return;
-      const now = performance.now();
-      const dt = Math.max(0.008, (now - lastInput) / 1000);
-      lastInput = now;
-      const v = by / dt;
-      velocity = dt > 0.2 ? v : velocity * 0.6 + v * 0.4;
-      target += by;
-      clearTimeout(settling);
-      settling = setTimeout(() => {
-        // carried on a little by how fast the input was going, then onto
-        // the nearest card
-        const carry = Math.max(-MOMENTUM_MAX, Math.min(MOMENTUM_MAX, velocity * MOMENTUM));
-        target = Math.round(target + (reduced ? 0 : carry));
-        velocity = 0;
-        wake();
-      }, SETTLE_MS);
-      wake();
-    }
-    const onWheel = (e) => {
-      e.preventDefault();
-      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? view.h : 1;
-      // across or down, whichever the gesture mostly is
-      const delta = (Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY) * unit;
-      nudge(delta / WHEEL_STEP);
-    };
+    // The wheel and a finger are Lenis's (above); the keys move it a card
+    // (or five) at a time, on the same lerp.
     const cardAt = (slot) => cards.find((c) => Math.abs(wrap(c.slot - slot)) < 0.5);
     const onKey = (e) => {
-      if (chosen) return;
+      if (chosen || !rowLenis) return;
       const step = { ArrowRight: 1, ArrowDown: 1, PageDown: 5, ArrowLeft: -1, ArrowUp: -1, PageUp: -5 }[e.key];
+      const at = rowLenis.targetScroll;
       if (step) {
         e.preventDefault();
-        target = Math.round(target) + step;
-        wake();
+        rowLenis.scrollTo(Math.round(at / STEP + step) * STEP);
       } else if (e.key === "Home") {
         e.preventDefault();
-        target = N * Math.round(target / N);
-        wake();
+        rowLenis.scrollTo(N * STEP * Math.round(at / (N * STEP)));
       } else if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         const c = cardAt(Math.round(pos));
@@ -743,8 +733,7 @@ export function initStackSpace(container) {
         else if (c) say(`${c.name} is not in a curated stack yet`);
       }
     };
-    // a pointer: hover with a mouse; a finger drags through the row, a tap opens
-    let drag = null;
+    // a pointer: hover with a mouse; a tap or a click opens
     const local = (e) => {
       if (e.target === canvas) return [e.offsetX, e.offsetY];
       const r = stage.getBoundingClientRect();
@@ -752,28 +741,14 @@ export function initStackSpace(container) {
     };
     const onMove = (e) => {
       [px, py] = local(e);
-      if (drag) {
-        const dy = drag.y - e.clientY;
-        if (Math.abs(e.clientY - drag.y0) > 6) drag.moved = true;
-        drag.y = e.clientY;
-        nudge((dy / WHEEL_STEP) * 1.4);
-        return;
-      }
       if (e.pointerType === "mouse" && !chosen) setHover(hit(px, py));
-    };
-    const onDown = (e) => {
-      if (e.pointerType !== "mouse") drag = { y: e.clientY, y0: e.clientY, moved: false };
-    };
-    const onUp = () => {
-      if (drag?.moved) setTimeout(() => (drag = null), 0);
-      else drag = null;
     };
     const onLeave = () => {
       px = py = -1;
       setHover(null);
     };
     const onClick = (e) => {
-      if (drag?.moved || chosen) return;
+      if (chosen) return;
       const [x, y] = local(e);
       const c = hit(x, y);
       if (c?.group) choose(c.group);
@@ -792,11 +767,8 @@ export function initStackSpace(container) {
     }
     function tick(_time, deltaMs) {
       const dt = Math.min(deltaMs, 50) / 1000;
-      let moving = false;
-      // the reading position after the input
-      pos += (target - pos) * (reduced ? 1 : ease(RATE_POS, dt));
-      if (Math.abs(target - pos) < 0.0005) pos = target;
-      if (pos !== target) moving = true;
+      // the reading position, where Lenis has the row now
+      let moving = Boolean(rowLenis?.isScrolling);
       // what the pointer is over, as the row moves under it
       if (moving && px >= 0 && !chosen) {
         const c = hit(px, py);
@@ -814,27 +786,13 @@ export function initStackSpace(container) {
           else moving = true;
         }
       }
-      // per card: its slide, on its spring, out under the pointer
-      const out = SLIDE * view.cw;
+      // per card: its lift, up under the pointer
       for (const c of cards) {
-        const to = c === hover && c.group ? out : c === hover ? out * 0.35 : 0;
-        if (c.x === to && !c.v) continue;
-        if (reduced) {
-          c.x = to;
-          c.v = 0;
-          continue;
-        }
-        // in small steps, so the spring is steady whatever the frame rate
-        const steps = Math.max(1, Math.ceil(dt / 0.008));
-        const h = dt / steps;
-        for (let i = 0; i < steps; i++) {
-          c.v += (SPRING_K * (to - c.x) - SPRING_C * c.v) * h;
-          c.x += c.v * h;
-        }
-        if (Math.abs(to - c.x) < 0.05 && Math.abs(c.v) < 0.5) {
-          c.x = to;
-          c.v = 0;
-        } else moving = true;
+        const to = c === hover ? LIFT : 0;
+        if (c.lift === to) continue;
+        const nv = c.lift + (to - c.lift) * (reduced ? 1 : ease(RATE_LIFT, dt));
+        c.lift = Math.abs(to - nv) < 0.0005 ? to : nv;
+        if (c.lift !== to) moving = true;
       }
       draw();
       // the card now read, said once the row has settled on it
@@ -862,14 +820,12 @@ export function initStackSpace(container) {
     // the faces' fonts have come
     const sized = new ResizeObserver(() => {
       measure();
+      fitRoom();
       draw();
       wake();
     });
     sized.observe(stage);
     measure();
-    // the row starts on the first stack, so a stack and its bracket are
-    // the first thing in the middle
-    if (groups.length) pos = target = Math.round((groups[0].a + groups[0].b) / 2);
     draw();
     wake();
     let alive = true;
@@ -880,11 +836,8 @@ export function initStackSpace(container) {
       wake();
     });
 
-    stage.addEventListener("wheel", onWheel, { passive: false });
     stage.addEventListener("keydown", onKey);
     stage.addEventListener("pointermove", onMove);
-    stage.addEventListener("pointerdown", onDown);
-    window.addEventListener("pointerup", onUp);
     stage.addEventListener("pointerleave", onLeave);
     stage.addEventListener("click", onClick);
     flatGoes.forEach((b) => b.addEventListener("click", onFlatGo));
@@ -893,15 +846,14 @@ export function initStackSpace(container) {
     registerPageCleanup(() => {
       alive = false;
       stop();
-      clearTimeout(settling);
       clearTimeout(viewTimer);
+      gsap.ticker.remove(rafLenis);
+      rowLenis?.destroy();
+      listLenis?.destroy();
       sheet?.destroy();
       sized.disconnect();
-      stage.removeEventListener("wheel", onWheel);
       stage.removeEventListener("keydown", onKey);
       stage.removeEventListener("pointermove", onMove);
-      stage.removeEventListener("pointerdown", onDown);
-      window.removeEventListener("pointerup", onUp);
       stage.removeEventListener("pointerleave", onLeave);
       stage.removeEventListener("click", onClick);
       flatGoes.forEach((b) => b.removeEventListener("click", onFlatGo));

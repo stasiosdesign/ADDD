@@ -77,6 +77,9 @@ export function mountStackSheet(dialog, data) {
   let running = [];
   let done = null;
   let morph = null;
+  // the column's own Lenis while the sheet is up
+  let own = null;
+  const rafOwn = (time) => own?.raf(time * 1000);
 
   // the containers for one stack
   function build(g) {
@@ -195,6 +198,10 @@ export function mountStackSheet(dialog, data) {
     dialog.showModal();
     scroller.scrollTop = 0;
     scroller.focus({ preventScroll: true });
+    // the column scrolls on a Lenis of its own, as the page does (fifth
+    // pass), its frames from the GSAP ticker
+    own = new Lenis({ wrapper: scroller, content: column, lerp: motion.reduced ? 1 : 0.08 });
+    gsap.ticker.add(rafOwn);
     if (motion.reduced) {
       morph?.hide(true);
       state = "open";
@@ -277,6 +284,9 @@ export function mountStackSheet(dialog, data) {
     settle();
     column.style.removeProperty("opacity");
     column.replaceChildren();
+    gsap.ticker.remove(rafOwn);
+    own?.destroy();
+    own = null;
     lenis?.start();
     const then = done;
     done = null;

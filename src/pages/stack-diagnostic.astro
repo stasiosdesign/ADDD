@@ -88,10 +88,12 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
 >
 <main class="page--grid sd" data-stack-space data-view="3d">
 
-  <!-- the stage: one canvas, the whole row (stack-space.js); it takes the
-       wheel, the keys and a swipe, and Lenis leaves it alone -->
+  <!-- the stage: one canvas, the whole row (stack-space.js), and over it
+       the row's own scroller, moved by a Lenis of its own (the page's
+       Lenis leaves the stage to it); the stage takes the keys -->
   <div class="sd__stage" data-stack-stage data-lenis-prevent tabindex="0" role="application" aria-roledescription="row of software cards" aria-label="Software, in curated stacks. Use the arrow keys to move through the cards and Enter to open a card's stack.">
     <canvas class="sd__canvas" aria-hidden="true"></canvas>
+    <div class="sd__scroll" data-stack-scroll aria-hidden="true"><div class="sd__scroll-room"></div></div>
   </div>
 
   <!-- the same stacks as a flat list, one block each in its colour; each
