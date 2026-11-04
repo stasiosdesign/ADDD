@@ -10,9 +10,10 @@
 // degrees towards it and the lanyard swings a degree or so from its top
 // (a quick sideways move rocking it a touch more), each eased to its angle (gsap.quickTo, so a tween runs only
 // while the pointer moves and nothing at all while it is still); when the
-// pointer leaves the window it settles back, without bounce. Over the card
-// itself the response is smaller still, so its links stay put under the
-// pointer.
+// pointer leaves the window it settles back, without bounce. On the card
+// itself it holds still where it is (since 2026-11-04, when the card took
+// the Book a Free Call button), so the button and the links stay put under
+// the pointer, and moves on once the pointer is off it again.
 //
 // With a fine pointer only, and not with reduced motion: otherwise the
 // pass simply hangs. Transforms only, on the compositor; the card's place
@@ -25,15 +26,14 @@
 
 import { motion, registerPageCleanup } from "./page.js";
 
-// the most it moves: the swing from the top (deg), the card's turn and
-// tilt towards the pointer (deg), and the share of that over the card;
-// a quick sideways move adds a little rock to the swing (deg per px of
-// the pointer's travel between moves, at most ROCK), let go a moment
-// after the pointer slows (s). A long, soft ease, so it settles.
+// the most it moves: the swing from the top (deg) and the card's turn and
+// tilt towards the pointer (deg); a quick sideways move adds a little rock
+// to the swing (deg per px of the pointer's travel between moves, at most
+// ROCK), let go a moment after the pointer slows (s). A long, soft ease,
+// so it settles.
 const SWING = 1.5;
 const TURN = 6;
 const TILT = 3.5;
-const NEAR = 0.35;
 const ROCK = 1.2;
 const ROCK_PER_PX = 0.05;
 const ROCK_LET_GO = 0.14;
@@ -72,19 +72,33 @@ export function initLanyard(container) {
     let lastX = null;
     let rest = 0; // the swing the pointer's place alone asks for
     let letGo = null;
+    // on the card: everything held where it is now, once, as it is reached
+    let held = false;
+    const hold = () => {
+      held = true;
+      letGo?.kill();
+      lastX = null;
+      swing(gsap.getProperty(rig, "rotation"));
+      turn(gsap.getProperty(card, "rotationY"));
+      tilt(gsap.getProperty(card, "rotationX"));
+    };
     const onMove = (e) => {
       if (!box) measure();
+      const over = e.pageX > box.left && e.pageX < box.right && e.pageY > box.top && e.pageY < box.bottom;
+      if (over) {
+        if (!held) hold();
+        return;
+      }
+      held = false;
       const nx = clamp((e.pageX - box.x) / (innerWidth / 2));
       const ny = clamp((e.pageY - box.y) / (innerHeight / 2));
-      const over = e.pageX > box.left && e.pageX < box.right && e.pageY > box.top && e.pageY < box.bottom;
-      const k = over ? NEAR : 1;
-      rest = -nx * SWING * k;
+      rest = -nx * SWING;
       // a quick move sideways: a little rock against it, let go after
-      const rock = lastX === null ? 0 : clampRock(-(e.pageX - lastX) * ROCK_PER_PX * k);
+      const rock = lastX === null ? 0 : clampRock(-(e.pageX - lastX) * ROCK_PER_PX);
       lastX = e.pageX;
       swing(rest + rock);
-      turn(nx * TURN * k);
-      tilt(-ny * TILT * k);
+      turn(nx * TURN);
+      tilt(-ny * TILT);
       letGo?.kill();
       letGo = gsap.delayedCall(ROCK_LET_GO, () => swing(rest));
     };
@@ -92,6 +106,7 @@ export function initLanyard(container) {
     const onLeave = (e) => {
       if (e.relatedTarget) return;
       letGo?.kill();
+      held = false;
       lastX = null;
       rest = 0;
       swing(0);

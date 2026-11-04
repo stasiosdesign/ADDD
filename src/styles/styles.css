@@ -3257,10 +3257,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   /* the scroll each route has while the panel is stuck */
   --st-step: 75vh;
   --st-step: 75svh;
-  /* how far the panel stands in from the band's Grid Columns 1–12: half
-     a Grid Column and half a gutter each side from 992px (below), so it
-     stands in from the grid's edges by half a column, a compact
-     composition rather than the whole width; the full width below */
+  /* how far the panel stands in from the band's Grid Columns 1–12: a
+     Grid Column and a gutter each side from 992px (below), so it takes
+     Grid Columns 2–11, a restrained composition rather than the whole
+     width; the full width below */
   --st-inset: 0px;
   position: relative;
   margin-inline: var(--st-inset);
@@ -3271,13 +3271,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   grid-template-columns: repeat(2, minmax(0, 1fr));
   color: var(--c-white);
 }
-/* From 992px the panel takes the whole grid, the blue square and the
-   drawing exactly half each (Grid Columns 1–6 and 7–12, meeting in the
-   middle of the gutter between them) */
+/* From 992px the panel takes Grid Columns 2–11 (since 2026-11-04; the
+   whole grid before), the blue square and the drawing exactly half each
+   (Grid Columns 2–6 and 7–11, meeting in the middle of the gutter
+   between them) */
 @media screen and (min-width: 992px) {
   .service-tabs {
     --st-col: calc((100vw - 2 * var(--grid-margin) - 11 * var(--grid-gutter)) / 12);
-    --st-inset: 0px;
+    --st-inset: calc(var(--st-col) + var(--grid-gutter));
   }
 }
 
@@ -3292,7 +3293,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   justify-content: center;
   min-width: 0;
   min-height: 0;
-  padding: 3.5rem 4rem 2.5rem;
+  padding: 2.75rem 3rem 2rem;
   text-align: center;
   background: var(--c-blue);
   color: var(--c-white);
@@ -3300,13 +3301,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 /* in from each corner by half the old tab's height, in a firmer stroke
    than the utility's hairline, in solid white */
-.service-tabs__marks { --mark-inset: 1.75rem; --mark-stroke: 2px; --mark-ink: var(--c-white); }
+.service-tabs__marks { --mark-inset: 1.5rem; --mark-stroke: 2px; --mark-ink: var(--c-white); }
 .service-tabs__slides {
   flex: 1;
   display: grid;
   align-items: center;
   width: 100%;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 .service-tabs__slide {
   grid-area: 1 / 1;
@@ -3326,7 +3327,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 2.875rem;
+  font-size: 2.375rem;
   line-height: 1.08;
   letter-spacing: calc(var(--primary-tracking) - 0.035em);
   text-wrap: balance;
@@ -3456,9 +3457,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   --st-ground-y: 177;
   position: relative;
   display: block;
-  width: min(94%, 41rem);
+  width: min(90%, 36rem);
   height: auto;
-  max-height: 94%;
+  max-height: 90%;
   transform: translateY(calc((var(--st-ground-y) - var(--sd-ground-y, 177)) / 256 * 100%));
 }
 
@@ -3495,8 +3496,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   }
   .service-tabs__media { aspect-ratio: auto; }
 }
+/* from 992px held to 0.45 of its (narrower) width: each half a little
+   wider than tall, so the panel sits low and compact in the band */
 @media screen and (min-width: 992px) and (min-height: 540px) {
-  .service-tabs { --st-tallest: 0.5; }
+  .service-tabs { --st-tallest: 0.45; }
 }
 
 /* Below 992px the halves stand one over the other: the words, then the

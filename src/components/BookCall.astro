@@ -1,11 +1,12 @@
 ---
 /*
   "Book a Free Call": the site's CTA (ActionButton.astro) with a small
-  portrait of Allister set inside its frame, opening a booking calendar of
-  its own (BookingDialog.astro, booking.js: the same placeholder the
-  Workflow Workshop's "Start Workshop" opens, until a real calendar is
-  connected; nothing is sent anywhere). Near the foot of each of the four
-  service pages, after their last section's content.
+  portrait of Allister set inside its frame, opening the free call's
+  booking calendar (BookCallDialog.astro; BookingDialog.astro, booking.js:
+  the same placeholder the Workflow Workshop's "Start Workshop" opens,
+  until a real calendar is connected; nothing is sent anywhere). Near the
+  foot of each of the four service pages, after their last section's
+  content.
 
   The button keeps the CTA's every look and behaviour: primary on a light
   ground, turned over on a dark one (the Advisory page), the label's
@@ -13,7 +14,7 @@
   the row it stands in, styles.css ("Book a free call").
 */
 import ActionButton from "./ActionButton.astro";
-import BookingDialog from "./BookingDialog.astro";
+import BookCallDialog from "./BookCallDialog.astro";
 
 interface Props {
   /** the dialog's id: one per page */
@@ -25,14 +26,4 @@ const { id = "book-call", label = "Book a Free Call" } = Astro.props;
 <div class="book-call">
   <ActionButton type="button" photo={{ src: "/assets/images/allister-headshot-bw-crop.webp", position: "50% 22%" }} data-booking-open={id} aria-haspopup="dialog" aria-controls={id}>{label}</ActionButton>
 </div>
-<BookingDialog
-  id={id}
-  label="Free call · with Allister"
-  title="Book a free call"
-  note="Pick a day and a time for a short call with Allister about your practice. This calendar is a preview: online booking opens soon."
-  slots={[
-    { name: "Morning", time: "10:00–12:00" },
-    { name: "Afternoon", time: "14:00–16:00" },
-  ]}
-  days={[1, 2, 3, 4, 5]}
-/>
+<BookCallDialog id={id} />

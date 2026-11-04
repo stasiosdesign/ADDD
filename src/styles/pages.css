@@ -156,145 +156,185 @@
   .filters button.filters__reset:hover { background: transparent; color: var(--c-text); text-decoration: underline; }
 }
 
-/* Tabs — the filter row set as a row of tabs over the panel they head
-   (the Technology Blueprint's "What we look at"): centred, in the body
-   face as written rather than the label voice, each a quiet block of
-   white on the off-white page, the selected one in the red. */
-.filters--tabs { justify-content: center; gap: 0.375rem; }
-.filters--tabs button {
-  font-family: var(--font-body);
-  letter-spacing: normal;
-  text-transform: none;
-  padding: 0.75rem 1.5rem;
-  border-color: transparent;
-  background: var(--c-paper);
+/* "What we look at" (the Technology Blueprint; tabs.js), after the
+   reference of 2026-11-04: one panel, on its left (three fifths) a dark
+   ground with the open tab's title large at its top and, at its foot,
+   the tabs as rows parted by hairlines, each a small square with its
+   plus and its label; the open row's square red with a minus, its words
+   open under it in a quiet grey. On its right (two fifths), on a light
+   ground, the section's drawing (LayersDiagram.astro), centred.
+
+   The tabs keep their roles (a vertical tablist, tabs.js unchanged); so
+   that each tab's words open right under its row, the list, the panels
+   and each panel lend their boxes to the left's one grid (display:
+   contents): every title in its first row, one over another, the one
+   shown fading up into place; then a flexible row, so the list stands at
+   the foot and the panel keeps one height whichever is open; then each
+   tab's row with its words' row after it (their grid-row, set in the
+   page). The words open and close by their row's height (0fr to 1fr). */
+.examine {
+  --ex-ground: var(--c-dark-bg);
+  --ex-line: rgba(255, 255, 255, 0.14);
+  --ex-mark: 1.125rem;
+  --ex-mark-gap: 0.875rem;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  /* tall enough for the longest title and words, so the flexible row
+     takes up the difference and the panel never changes height */
+  min-height: 41rem;
+  margin-top: 3.5rem;
 }
-.filters--tabs button[data-filter-status="active"]:not(.filters__reset) {
-  background: var(--c-red);
-  border-color: var(--c-red);
+.examine__text {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(2.5rem, 1fr);
+  grid-auto-rows: auto;
+  padding: 2.75rem 2.75rem 1.5rem;
+  border-radius: var(--radius) 0 0 var(--radius);
+  background: var(--ex-ground);
   color: var(--c-white);
 }
+.examine__list,
+.examine__panels,
+.examine__panel { display: contents; }
 
-/* The panel under the tabs: the words on the left, on white — the
-   heading at the top, then a row drawn by a hairline with its marker,
-   its label and the description — and on the right, on a shade darker,
-   the section's drawing (LayersDiagram.astro), centred. */
-.examine-panel {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-  min-height: 32rem;
-  margin-top: 1.5rem;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  /* the drawing's field, flush to the panel's edge, keeps to its corners */
-  overflow: hidden;
-  background: var(--c-paper);
-}
-.examine-panel__text {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 3rem;
-  padding: 2.5rem 0 0;
-}
-.examine-panel__h {
+/* the open tab's title, every one in the same cell */
+.examine__title {
+  grid-area: 1 / 1;
+  align-self: start;
   margin: 0;
-  padding: 0 2.5rem;
+  max-width: 14em;
   font-family: var(--font-display);
   font-weight: var(--fw-body);
   font-size: var(--t-h3);
   line-height: 1.1;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
-  max-width: 14em;
+  opacity: 0;
+  visibility: hidden;
+  translate: 0 0.5rem;
+  transition: opacity 0.25s ease, translate 0.45s var(--ease-osmo, ease), visibility 0s linear 0.25s;
 }
-.examine-panel__row {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  padding: 1.5rem 2.5rem 2.5rem;
-  border-top: 1px solid var(--c-border);
+.examine__panel.is--active > .examine__title {
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition: opacity 0.35s ease 0.08s, translate 0.45s var(--ease-osmo, ease) 0.08s, visibility 0s;
 }
-.examine-panel__label {
+
+/* a row: the hairline over it, its square and its label */
+.examine__tab {
+  grid-column: 1;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--ex-mark-gap);
+  width: 100%;
   margin: 0;
+  padding: 0.875rem 0;
+  border: 0;
+  border-top: 1px solid var(--ex-line);
+  border-radius: 0;
+  background: none;
+  color: rgba(255, 255, 255, 0.72);
+  font: inherit;
   font-size: var(--t-rg);
   line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.3s ease;
 }
-/* the open row's marker: a red square with its minus */
-.examine-panel__mark {
+.examine__tab:hover,
+.examine__tab[aria-selected="true"] { color: var(--c-white); }
+.examine__tab:focus-visible { outline: 1px solid var(--c-white); outline-offset: 2px; }
+/* the square: a faint white with a plus; open, the red with a minus (the
+   plus's upright folds away) */
+.examine__mark {
   flex: none;
   position: relative;
-  width: 1.125rem;
-  height: 1.125rem;
-  background: var(--c-red);
+  width: var(--ex-mark);
+  height: var(--ex-mark);
+  background: rgba(255, 255, 255, 0.12);
+  transition: background-color 0.3s ease;
 }
-.examine-panel__mark::after {
+.examine__mark::before,
+.examine__mark::after {
   content: "";
   position: absolute;
   left: 25%;
   right: 25%;
   top: calc(50% - 1px);
   height: 2px;
-  background: var(--c-paper);
+  background: var(--c-white);
+  transition: transform 0.35s var(--ease-osmo, ease);
 }
-.examine-panel__p {
+.examine__mark::after { transform: rotate(90deg); }
+.examine__tab:hover .examine__mark { background: rgba(255, 255, 255, 0.22); }
+.examine__tab[aria-selected="true"] .examine__mark { background: var(--c-red); }
+.examine__tab[aria-selected="true"] .examine__mark::after { transform: rotate(90deg) scaleX(0); }
+
+/* the open row's words, under its label, opening by their row's height */
+.examine__body {
+  grid-column: 1;
+  display: grid;
+  grid-template-rows: 0fr;
+  visibility: hidden;
+  transition: grid-template-rows 0.45s var(--ease-osmo, ease), visibility 0s linear 0.45s;
+}
+.examine__panel.is--active > .examine__body {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows 0.45s var(--ease-osmo, ease), visibility 0s;
+}
+.examine__clip { min-height: 0; overflow: hidden; }
+.examine__p {
   margin: 0;
-  max-width: 34em;
-  color: #6b6b6b;
+  max-width: 36em;
+  padding: 0 0 1.125rem calc(var(--ex-mark) + var(--ex-mark-gap));
+  color: rgba(255, 255, 255, 0.6);
   font-size: var(--t-rg);
   line-height: 1.45;
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
-.examine-panel__media {
+.examine__panel.is--active .examine__p { opacity: 1; transition: opacity 0.35s ease 0.12s; }
+
+/* the drawing's half: the light ground, a hairline round it */
+.examine__media {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2.5rem;
-  border-left: 1px solid var(--c-border);
-  background: color-mix(in srgb, var(--c-text) 5%, var(--c-paper));
+  border: 1px solid var(--c-border);
+  border-left: 0;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: color-mix(in srgb, var(--c-text) 4%, var(--c-paper));
   overflow: hidden;
 }
-.examine-panel__diagram { display: block; width: 100%; max-width: 26rem; height: auto; }
-/* The tabs' panels (tabs.js): every one in the same cell of the panel's
-   words, so the panel is as tall as the tallest and never moves; the one
-   shown fades up a touch into place, the one left fades out. The tab
-   buttons themselves are the filters' (above), the selected one red. */
-.examine-tabs__panels { display: grid; padding: 0; }
-.examine-tabs__panel {
-  grid-area: 1 / 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 3rem;
-  padding-top: 2.5rem;
-  opacity: 0;
-  visibility: hidden;
-  translate: 0 0.5rem;
-  transition: opacity 0.25s ease, translate 0.45s var(--ease-osmo, ease), visibility 0s linear 0.25s;
-}
-.examine-tabs__panel.is--active {
-  opacity: 1;
-  visibility: visible;
-  translate: 0 0;
-  transition: opacity 0.35s ease 0.08s, translate 0.45s var(--ease-osmo, ease) 0.08s, visibility 0s;
-}
-.examine-tabs__panel:focus-visible { outline: 1px solid var(--c-text); outline-offset: -4px; }
-.filters--tabs button:focus-visible { outline: 1px solid var(--c-text); outline-offset: 2px; }
+.examine__diagram { display: block; width: 100%; max-width: 24rem; height: auto; }
+
 @media (prefers-reduced-motion: reduce) {
-  .examine-tabs__panel,
-  .examine-tabs__panel.is--active { transition: none; translate: none; }
+  .examine__title,
+  .examine__panel.is--active > .examine__title { transition: none; translate: none; }
+  .examine__body,
+  .examine__panel.is--active > .examine__body,
+  .examine__p,
+  .examine__panel.is--active .examine__p,
+  .examine__mark::after { transition: none; }
 }
 
+/* a tablet's narrower words wrap to a line more */
+@media (min-width: 768px) and (max-width: 991px) {
+  .examine { min-height: 42rem; }
+}
 @media (max-width: 767px) {
-  .filters--tabs { justify-content: flex-start; }
-  .examine-panel { grid-template-columns: 1fr; min-height: 0; }
-  .examine-panel__media { border-left: 0; border-top: 1px solid var(--c-border); }
-  .examine-panel__h { padding: 0 1.5rem; }
-  .examine-panel__text { padding-top: 1.75rem; }
-  .examine-tabs__panels { padding-top: 0; }
-  .examine-tabs__panel { padding-top: 1.75rem; }
-  .examine-panel__row { padding: 1.25rem 1.5rem 1.75rem; }
+  .examine { grid-template-columns: minmax(0, 1fr); min-height: 0; margin-top: 2.5rem; }
+  .examine__text { padding: 1.75rem 1.5rem 1rem; border-radius: var(--radius) var(--radius) 0 0; }
+  .examine__media {
+    padding: 2rem 1.5rem;
+    border-left: 1px solid var(--c-border);
+    border-top: 0;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+  .examine__diagram { max-width: 18rem; }
 }
 
 /* A filtered item. Opacity only — the card's own hover lift owns its
@@ -619,6 +659,11 @@
    reference's. The card's type is measured by the card itself (cqw). */
 .lanyard,
 .lanyard__rig { height: 100%; }
+/* beside the form, the whole lanyard hangs a little higher than the
+   form's row (2026-11-04), its card's foot above the form's */
+@media screen and (min-width: 992px) {
+  .lanyard { translate: 0 -2.5rem; }
+}
 .lanyard__rig {
   container-type: size;
   position: relative;
@@ -722,38 +767,80 @@
   color: #4a4a48;
 }
 .lanyard__top { font-size: 2.6cqw; text-transform: uppercase; }
-.lanyard__tile {
+/* the ADDD mark printed straight on the card, large, and raised a hair
+   off it (2026-11-04; on a dark tile before): a soft shadow under it, and
+   over its disc a faint light at the top and a faint shade at the foot,
+   with a fine lit rim, so it reads as embossed rather than modelled */
+.lanyard__logo {
+  position: relative;
+  align-self: center;
+  width: 44cqw;
+  aspect-ratio: 1;
+  margin-top: 7cqw;
+  filter:
+    drop-shadow(0 0.18cqw 0.12cqw rgba(0, 0, 0, 0.16))
+    drop-shadow(0 0.9cqw 1.1cqw rgba(0, 0, 0, 0.1));
+}
+.lanyard__logo img { display: block; width: 100%; height: 100%; }
+/* over the disc alone (logo.svg: its circle at 51, 50.3, r 40.2 of 100) */
+.lanyard__logo::after {
+  content: "";
+  position: absolute;
+  left: 10.8%;
+  top: 10.1%;
+  width: 80.4%;
+  height: 80.4%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.14), transparent 55%),
+    linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.07));
+  box-shadow:
+    inset 0 0.3cqw 0.2cqw rgba(255, 255, 255, 0.22),
+    inset 0 -0.35cqw 0.4cqw rgba(0, 0, 0, 0.12);
+  pointer-events: none;
+}
+/* his photograph beside his name and role, its top on the name's line,
+   its foot on the role's last */
+.lanyard__person {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 46cqw;
-  aspect-ratio: 1;
-  margin: 11cqw auto 0;
-  border-radius: 17%;
-  background: linear-gradient(#1c1c1d, #111112);
-  box-shadow:
-    inset 0 0 0 1.6cqw #2c2c2e,
-    inset 0 0.4cqw 0 1.6cqw #4a4a4d,
-    0.6cqw 1.4cqw 2.4cqw rgba(0, 0, 0, 0.28);
+  gap: 4cqw;
+  margin-top: 10cqw;
 }
-.lanyard__tile img { width: 44%; height: auto; }
+.lanyard__photo {
+  flex: none;
+  width: 18cqw;
+  height: 18cqw;
+  border-radius: 1.2cqw;
+  object-fit: cover;
+  object-position: 50% 22%;
+  background: #e4e4e1;
+}
 .lanyard__name {
-  margin-top: auto !important;
   font-family: var(--font-display);
-  font-size: 10cqw;
+  font-size: 8cqw;
   line-height: 1;
   letter-spacing: -0.03em;
   -webkit-text-stroke: 0.01em currentColor;
 }
 .lanyard__role {
-  margin-top: 1.8cqw !important;
-  font-size: 4.3cqw;
+  margin-top: 1.6cqw !important;
+  font-size: 4.1cqw;
+  line-height: 1.3;
   color: #5a5a58;
+}
+/* the booking button, the card's whole width at its foot: the site's
+   primary CTA (black, white capitals, its arrow), a step taller here */
+.lanyard__book { margin-top: auto; padding-top: 6cqw; }
+.lanyard__book .action-button.is--frame {
+  --action-button-height: 2.75rem;
+  display: flex;
+  width: 100%;
 }
 /* the foot: under a hairline, his email and his telephone, links in the
    label face */
 .lanyard__foot {
-  margin-top: 6cqw !important;
+  margin-top: 5cqw !important;
   padding-top: 3.4cqw;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
   font-size: 3.1cqw;

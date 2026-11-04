@@ -911,6 +911,22 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
     --sc-card-bg: color-mix(in oklab, #e8e8e8, #121212 var(--nav-dark));
   }
   .mega-nav.is--floating .is--services .service-card__title { font-size: 1.875rem; }
+
+  /* Floating, the three Resources blocks part as the Services cards do
+     (2026-11-04): three boxes of their own, set off from the bar and from
+     each other by the same narrow seam of the dimmed page, each with the
+     bar's corners, so they no longer carry their ground under the next.
+     Their rows stay shared, so header, lead and field stand level. */
+  .mega-nav.is--floating .mega-nav__dropdown-inner.is--resources {
+    --sc-float-gap: calc(var(--nav-float-top) / 4);
+    column-gap: var(--sc-float-gap);
+    padding-top: var(--sc-float-gap);
+  }
+  .mega-nav.is--floating .is--resources > .resource-block {
+    border-radius: var(--nav-bar-radius);
+    overflow: clip;
+    box-shadow: none;
+  }
 }
 
 @media screen and (max-width: 991px) {

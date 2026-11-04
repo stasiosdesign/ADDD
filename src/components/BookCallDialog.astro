@@ -1,0 +1,28 @@
+---
+/*
+  The free call's booking calendar (BookingDialog.astro, booking.js): a
+  short call with Allister, any weekday, a morning or an afternoon. Opened
+  by any button marked data-booking-open with its id: the service pages'
+  Book a Free Call (BookCall.astro) and their floating Book a Call, and
+  the button on the Contact page's pass. One per page. A preview until a
+  real calendar is connected: nothing is sent anywhere.
+*/
+import BookingDialog from "./BookingDialog.astro";
+
+interface Props {
+  /** the dialog's id: one per page */
+  id?: string;
+}
+const { id = "book-call" } = Astro.props;
+---
+<BookingDialog
+  id={id}
+  label="Free call · with Allister"
+  title="Book a free call"
+  note="Pick a day and a time for a short call with Allister about your practice. This calendar is a preview: online booking opens soon."
+  slots={[
+    { name: "Morning", time: "10:00–12:00" },
+    { name: "Afternoon", time: "14:00–16:00" },
+  ]}
+  days={[1, 2, 3, 4, 5]}
+/>

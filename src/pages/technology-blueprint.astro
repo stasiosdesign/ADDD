@@ -113,31 +113,31 @@ const tabs = list<{ _key: string; label?: string; title?: string; text?: string 
         </div>
       </div>
 
-      <!-- the tabs and their panels (tabs.js): every panel in the same cell,
-           so the panel keeps the tallest one's height whichever is shown -->
-      <div class="examine-tabs" data-tabs>
-      <div class="filters filters--tabs" role="tablist" aria-label={t("examine.heading")} data-page-list="examine.tabs">
-        {tabs.map((tab, i) => (
-        <button type="button" role="tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key}><span data-page-item-field="label">{tab.label}</span></button>
-        ))}
-      </div>
-
-      <div class="examine-panel">
-        <div class="examine-panel__text examine-tabs__panels">
-          {tabs.map((tab, i) => (
-          <div class:list={["examine-tabs__panel", { "is--active": i === 0 }]} role="tabpanel" id={`examine-panel-${i + 1}`} aria-labelledby={`examine-tab-${i + 1}`} tabindex="0">
-            <h3 class="examine-panel__h" data-page-field={`examine.tabs.${i}.title`}>{tab.title}</h3>
-            <div class="examine-panel__row">
-              <p class="examine-panel__label"><span class="examine-panel__mark" aria-hidden="true"></span><span>{tab.label}</span></p>
-              <p class="examine-panel__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p>
-            </div>
+      <!-- the tabs and their panels (tabs.js; pages.css, "What we look
+           at"): on a dark ground, the open tab's title at the top and the
+           tabs as rows at the foot, the open row's words under it; the
+           drawing on the right. Each tab and its words take their own rows
+           of the left's grid (grid-row), so the words open under their tab
+           while the tabs stay one tablist. -->
+      <div class="examine" data-tabs>
+        <div class="examine__text">
+          <div class="examine__list" role="tablist" aria-orientation="vertical" aria-label={t("examine.heading")} data-page-list="examine.tabs">
+            {tabs.map((tab, i) => (
+            <button type="button" role="tab" class="examine__tab" id={`examine-tab-${i + 1}`} aria-controls={`examine-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={tab._key} style={`grid-row:${2 * i + 3}`}><span class="examine__mark" aria-hidden="true"></span><span data-page-item-field="label">{tab.label}</span></button>
+            ))}
           </div>
-          ))}
+          <div class="examine__panels">
+            {tabs.map((tab, i) => (
+            <div class:list={["examine__panel", { "is--active": i === 0 }]} role="tabpanel" id={`examine-panel-${i + 1}`} aria-labelledby={`examine-tab-${i + 1}`}>
+              <h3 class="examine__title" data-page-field={`examine.tabs.${i}.title`}>{tab.title}</h3>
+              <div class="examine__body" style={`grid-row:${2 * i + 4}`}><div class="examine__clip"><p class="examine__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p></div></div>
+            </div>
+            ))}
+          </div>
         </div>
-        <div class="examine-panel__media">
-          <LayersDiagram class="examine-panel__diagram" />
+        <div class="examine__media">
+          <LayersDiagram class="examine__diagram" />
         </div>
-      </div>
       </div>
     </div>
   </section>

@@ -4,13 +4,13 @@
 //
 // A [data-tabs] group: buttons with role="tab", each naming its panel
 // (aria-controls), the panels role="tabpanel". The Technology Blueprint's
-// "What we look at" (pages.css, "The tabs' panels"). Pressed (or reached by
-// the arrow keys, Home and End, which move along the tabs and open each as
-// it is reached), a tab is selected and its panel shown: the tab marked
-// aria-selected and in the filters' active look (data-filter-status), the
-// only one in the tab order; its panel is-active, which the stylesheet
-// fades in while the one before fades out. Listeners live on the tabs, so
-// they leave with their page.
+// "What we look at" (pages.css, "What we look at": the tabs as rows, each
+// one's words opening under it). Pressed (or reached by the arrow keys,
+// Home and End, which move along the tabs and open each as it is reached),
+// a tab is selected and its panel shown: the tab marked aria-selected
+// (and data-filter-status), the only one in the tab order; its panel
+// is-active, which the stylesheet opens and fades in while the one before
+// closes. Listeners live on the tabs, so they leave with their page.
 
 import { registerPageCleanup } from "./page.js";
 
