@@ -383,6 +383,17 @@ const rgba = (() => {
 const PROBE_SPAN = 64;
 // the lift round a region, in this many steps from none to the whole
 const LIFT_STEPS = 7;
+// Room to move (2026-11-04), a share of the window's height: a short layer
+// is drawn this much further than its foot (the layer clips it), so it can
+// grow and shrink by that much (an FAQ's answer opening) without a dot
+// being drawn again; a layer that carries on the field above it
+// (data-dot-follow) is drawn as much above its top too, so it can slide
+// with that field as the section above changes height. Every frame of an
+// answer opening used to size and redraw both fields whole.
+const ROOM = 0.5;
+// once the section above has been still this long, a sliding layer is
+// drawn afresh, so its dots stand on whole device pixels again (ms)
+const FOLLOW_SETTLE = 220;
 
 // A mounted grid's lattice, read off its probe as draw() reads it: the pitch,
 // a dot's size and the first dot's centre (x, y) from the grid's own top
@@ -465,8 +476,11 @@ export function mountDotGrid(el) {
   let zone = null;
   let zoneAmount = 1;
   const zoneLayers = {};
+  // how far the canvas has slid since it was drawn, following the field
+  // above (follow, below); 0 once drawn afresh
+  let slide = 0;
   const place = () => {
-    const y = from + shift;
+    const y = from + shift + slide;
     canvas.style.transform = y ? `translateY(${y.toFixed(2)}px)` : "";
     const held = shift ? `translateY(${shift.toFixed(2)}px)` : "";
     glows.forEach((g) => { g.el.style.transform = held; });
@@ -751,7 +765,13 @@ export function mountDotGrid(el) {
       if (!force && span && covered(window.scrollY)) return;
       shown = 3 * view;
       start = gsap.utils.clamp(-reserve, height - shown, -box.top - shift - view);
+    } else {
+      // room to move: past the foot, and above the top for a follower
+      const room = Math.round(ROOM * view);
+      if (lead) start -= room;
+      shown = height - start + room;
     }
+    slide = 0;
     const dpr = window.devicePixelRatio || 1;
     const top0 = Math.round(start * dpr);
     const w = Math.round(box.width * dpr);
@@ -807,7 +827,37 @@ export function mountDotGrid(el) {
   // of another pitch: the layer keeps its own lattice.
   const lead = "dotFollow" in el.dataset ? el.parentElement?.previousElementSibling?.querySelector(":scope > .dot-grid") ?? null : null;
   let set = null;
-  const leadMoved = lead ? new ResizeObserver(() => draw(true)) : null;
+  // whether what is drawn is set against the layer's own box (lifts, glows,
+  // a zone's layers): then it cannot slide or run on, and is drawn afresh
+  const boxBound = () => lifts.size > 0 || glows.size > 0 || Object.keys(zoneLayers).length > 0;
+  // The section above changed size (an answer opening, closing): its rows
+  // have moved in this layer's box by as much as this layer has moved down
+  // the page. The canvas slides by as much, in whole device pixels, with
+  // nothing drawn, while what is drawn still covers the layer; drawn afresh
+  // once that section has been still a moment (or at once, where it cannot
+  // slide). Each slide tells the closing call's diagram where the rows now
+  // fall (dotgrid:set), as a drawing does.
+  let settleFollow = 0;
+  function follow() {
+    clearTimeout(settleFollow);
+    const above = set && !tall && !boxBound() && latticeOf(lead);
+    if (!above || Math.abs(above.pitch - set.pitch) > 0.01) return draw(true);
+    const box = el.getBoundingClientRect();
+    const leadBox = lead.getBoundingClientRect();
+    const x = above.x + leadBox.left - box.left;
+    const y = above.y + leadBox.top - box.top;
+    const dpr = window.devicePixelRatio || 1;
+    const to = Math.round((slide + y - set.y) * dpr) / dpr;
+    if (Math.abs(x - set.x) > 0.01 || Math.abs(box.width - drawnSize[0]) > 0.01 || from + to > -reserve + 0.01 || from + to + span < box.height - 0.01) return draw(true);
+    if (to !== slide) {
+      slide = to;
+      set = { ...set, y };
+      place();
+      el.dispatchEvent(new CustomEvent("dotgrid:set", { detail: { pitch: set.pitch, x: set.x, y } }));
+    }
+    settleFollow = setTimeout(() => slide && draw(true), FOLLOW_SETTLE);
+  }
+  const leadMoved = lead ? new ResizeObserver(follow) : null;
   leadMoved?.observe(lead.parentElement);
   let sized = null;
   const resized = new ResizeObserver(([entry]) => {
@@ -816,6 +866,13 @@ export function mountDotGrid(el) {
     const before = sized ?? drawnSize;
     sized = now;
     if (Math.abs(now[0] - before[0]) < 0.01 && Math.abs(now[1] - before[1]) < 0.01) return;
+    // only taller or shorter, and still inside what is drawn (room to
+    // move, above): nothing to draw, the layer clips the rest
+    const fits = !tall && !boxBound() && now[1] <= 3 * window.innerHeight && from + slide <= -reserve + 0.01 && from + slide + span >= now[1] - 0.01;
+    if (Math.abs(now[0] - drawnSize[0]) < 0.01 && fits) {
+      height = now[1];
+      return;
+    }
     draw(true);
   });
   resized.observe(el);
@@ -928,6 +985,7 @@ export function mountDotGrid(el) {
       resized.disconnect();
       restyled.disconnect();
       leadMoved?.disconnect();
+      clearTimeout(settleFollow);
       along.kill();
       density?.removeEventListener("change", onDensity);
       delete el.dotGrid;

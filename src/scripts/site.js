@@ -555,10 +555,35 @@ function markPage(container) {
 // height is watched, and once a change in it has settled the page is
 // measured again. A change of width is a resize, which ScrollTrigger
 // already answers.
+//
+// The measuring is the whole page's (ScrollTrigger's refresh: a long piece
+// of work, every pin put back and every trigger measured), so it waits for
+// the page to be still (2026-11-04): the height settled, the page not
+// scrolling, and then the browser's next idle moment. It used to run on a
+// timer that could fall in the middle of the scroll that followed an
+// answer opening, and drop frames there.
+const whenIdle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1));
+const cancelIdle = window.cancelIdleCallback ?? clearTimeout;
 function watchPageHeight(container) {
   let width = container.offsetWidth;
   let height = container.offsetHeight;
   let timer = 0;
+  let idle = 0;
+  const measure = () => {
+    if (!container.isConnected) return;
+    // still scrolling: once it has stopped
+    if (lenis.isScrolling) {
+      timer = setTimeout(measure, 150);
+      return;
+    }
+    idle = whenIdle(() => {
+      lenis.resize();
+      ScrollTrigger.refresh();
+      // a refresh puts its pins back as they were, so this is the settled
+      // height, and does not set the watch off again
+      height = container.offsetHeight;
+    }, { timeout: 800 });
+  };
   const observer = new ResizeObserver(() => {
     const w = container.offsetWidth;
     const h = container.offsetHeight;
@@ -570,19 +595,14 @@ function watchPageHeight(container) {
     if (Math.abs(h - height) < 1) return;
     height = h;
     clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (!container.isConnected) return;
-      lenis.resize();
-      ScrollTrigger.refresh();
-      // a refresh puts its pins back as they were, so this is the settled
-      // height, and does not set the watch off again
-      height = container.offsetHeight;
-    }, 150);
+    cancelIdle(idle);
+    timer = setTimeout(measure, 150);
   });
   observer.observe(container);
   registerPageCleanup(() => {
     observer.disconnect();
     clearTimeout(timer);
+    cancelIdle(idle);
   });
 }
 

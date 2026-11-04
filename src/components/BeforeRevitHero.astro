@@ -25,17 +25,23 @@
   platform's side), fading out towards the words; a fine grain lies over
   the light (a still tile, assets/graphics/grain-noise.png).
 
-  The opening is longer than the screen and the drawing is held while the
-  words scroll away (the hold: CSS sticky). The scroll itself brings the
-  frame down: as far down as the page has gone, it has come down, faster
-  as it nears the platform, and where it lands the pulse runs out, all of
-  it the scroll's (before-revit-hero.js); stopped, it stops; scrolled
-  back, it goes back up. Then the drawing goes on up with the page. Below
-  992px nothing is held: the drawing over the words, still exploded.
+  The opening is two screens long and the drawing is held through both
+  (the hold: CSS sticky), as the Technology Blueprint's network is
+  (2026-11-04, fourth pass): the first screen is the hero, its words
+  scrolling up and away as the page does; the second brings the statement
+  up on the left, its lines rising out of their masks as far as the page
+  has come. The scroll itself brings the frame down meanwhile: as far
+  down as the page has gone, it has come down, easing in and out, and
+  where it lands a quiet light runs out at the platform's foot, all of it
+  the scroll's (before-revit-hero.js); stopped, it stops; scrolled back,
+  it goes back up. When the statement is in the middle of the screen the
+  hold lets go, and the statement and the drawing go on up together, the
+  next section following. Below 992px nothing is held: the drawing over
+  the words, still exploded, the statement under them.
 
-  The words come from the page's Studio fields (headingField, ledeField);
-  the buttons are the slot (actions). Styles: pages.css ("Before Revit
-  hero").
+  The words come from the page's Studio fields (headingField, ledeField,
+  statementField); the buttons are the slot (actions). Styles: pages.css
+  ("Before Revit hero").
 */
 import { CLIENTS } from "../sanity/defaults/clients";
 import { logoShape } from "../sanity/logo-balance";
@@ -43,15 +49,25 @@ import { logoShape } from "../sanity/logo-balance";
 interface Props {
   heading?: string;
   lede?: string;
+  statement?: string;
   headingField?: string;
   ledeField?: string;
+  statementField?: string;
 }
-const { heading = "", lede, headingField = "hero.heading", ledeField = "hero.lede" } = Astro.props;
+const { heading = "", lede, statement = "", headingField = "hero.heading", ledeField = "hero.lede", statementField = "hero.statement" } = Astro.props;
 
-// the heading on two lines: all but its last word, then the last
-const words = heading.trim().split(/\s+/);
-const last = words.pop() ?? "";
-const first = words.join(" ");
+// The heading on two lines, both the heading's one size (2026-11-04, third
+// pass: "Early-stage / design workflow"): where the Studio's field has a
+// line break, there; otherwise the first half of the words, then the rest
+// (the second line taking the odd word)
+const [given, ...rest] = heading.trim().split(/\s*\n+\s*/);
+const words = given.split(/\s+/).filter(Boolean);
+const cut = rest.length ? words.length : Math.max(1, Math.floor(words.length / 2));
+const first = words.slice(0, cut).join(" ");
+const last = rest.length ? rest.join(" ") : words.slice(cut).join(" ");
+
+// the statement's lines, one per line of the Studio's field
+const statementLines = statement.split(/\n+/).map((s) => s.trim()).filter(Boolean);
 
 // the drawing's words, from the standfirst (the tools, information and
 // decisions that shape a project before it is modelled, in Revit or
@@ -97,7 +113,7 @@ const marks = await Promise.all(
   <!-- the words: the opening's screen, then the room the drawing is held for -->
   <div class="br-hero__flow">
     <div class="br-hero__screen">
-      <h1 class="br-hero__heading" data-page-field={headingField}>{first && <><span class="br-hero__first">{first}</span> </>}<span>{last}</span></h1>
+      <h1 class="br-hero__heading" data-page-field={headingField}><span class="br-hero__first">{first}</span>{last && <> <span class="br-hero__first">{last}</span></>}</h1>
       {lede && <p class="br-hero__lede" data-page-field={ledeField}>{lede}</p>}
       <div class="br-hero__actions"><slot name="actions" /></div>
       <div class="br-hero__trust">
@@ -107,6 +123,14 @@ const marks = await Promise.all(
         </ul>
       </div>
     </div>
-    <div class="br-hero__after" aria-hidden="true"></div>
+    <!-- the statement's screen: its lines one size, each in a mask it
+         rises out of with the scroll (before-revit-hero.js) -->
+    <div class="br-hero__next">
+      {statementLines.length > 0 && (
+      <p class="br-hero__statement" data-page-field={statementField} data-br-statement aria-label={statementLines.join(" ")}>
+        {statementLines.map((line) => <span class="br-hero__line" aria-hidden="true"><span class="br-hero__ink">{line}</span></span>)}
+      </p>
+      )}
+    </div>
   </div>
 </section>

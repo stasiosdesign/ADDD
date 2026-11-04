@@ -4,8 +4,10 @@
 //
 // Each stage's box (StageTimeline.astro) opens its card under it, over the
 // rows below (stage-timeline.css does the showing: is--open on the row),
-// and a marker runs down the chart at the stage's start (is--marking and
-// --tl-at on the timeline). One stage is open at a time.
+// and the columns it takes are lit down the chart, their names on the
+// scale brightened (is--marking, --tl-at and --tl-span on the timeline,
+// is--lit on the units: 2026-11-04, second pass). One stage is open at a
+// time.
 //
 // Pressed (its title's button), a stage opens and stays open until it is
 // pressed again, another is opened, Escape is pressed or the pointer
@@ -35,6 +37,7 @@ export function initStageTimelines(container) {
     const blocks = stages.map((s) => s.querySelector("[data-stage-block]"));
     const toggles = stages.map((s) => s.querySelector("[data-stage-toggle]"));
     const cards = stages.map((s) => s.querySelector("[data-stage-card]"));
+    const units = [...root.querySelectorAll("[data-stage-unit]")];
     const wide = matchMedia(WIDE);
     const fine = matchMedia(FINE);
     let current = -1; // the open stage
@@ -51,7 +54,13 @@ export function initStageTimelines(container) {
         toggles[j]?.setAttribute("aria-expanded", String(on));
       });
       current = i;
-      if (i >= 0) root.style.setProperty("--tl-at", stages[i].style.getPropertyValue("--at") || "0");
+      if (i >= 0) {
+        const at = Number(stages[i].style.getPropertyValue("--at")) || 0;
+        const span = Number(stages[i].style.getPropertyValue("--span")) || 1;
+        root.style.setProperty("--tl-at", String(at));
+        root.style.setProperty("--tl-span", String(span));
+        units.forEach((u, k) => u.classList.toggle("is--lit", k >= at && k < at + span));
+      } else units.forEach((u) => u.classList.remove("is--lit"));
       root.classList.toggle("is--marking", i >= 0);
     }
     const shut = () => show(-1, false);

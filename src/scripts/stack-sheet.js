@@ -18,26 +18,30 @@
    scrolls inside the dialog where it is longer than the window.
 
    Opening (since 2026-11-04, a morph): the containers grow out of the
-   stack's own cards. Each starts exactly over its card as it stands in the
-   row, lifted and slanted (one transform maps the container's box onto
-   the card's four corners), the cards themselves taken out of the row at
-   that moment, and travels to its place in the column, square and full
-   size, one after the next, its words coming in once it is most of the
-   way; the head comes from the stack's middle card, the way in from its
-   last. The scrim comes up behind them. Closing is the way back: the words
-   go, each container goes back onto its card where the card stands now,
-   and as they land the cards are back in the row and the dialog closes.
-   Transforms and opacity only, on the Web Animations API. Under reduced
-   motion it opens and closes at once.
+   stack's own cards, wherever they stand on the screen (no glide to the
+   middle first: fourth pass), or out of the list's rows. Each starts
+   exactly over its card, slanted as the card is (one transform maps the
+   container's box onto the card's four corners) and in the stack's
+   colour, the cards themselves taken out of the row at that moment, and
+   travels to its place in the column, square and full size, taking its
+   own colour on the way, one after the next, its words coming in once it
+   is most of the way; the head (in the stack's colour throughout) comes
+   from the stack's middle card, the way in from its last. The scrim comes
+   up behind them. Closing is the way back: the words go, each container
+   goes back onto its card, and as they land the cards are back in the row
+   and the dialog closes. Transforms, opacity and the containers' own
+   colour, on the Web Animations API. Under reduced motion it opens and
+   closes at once.
    ============================================================ */
 import { lenis } from "./scroll.js";
 import { motion } from "./page.js";
 
-const EASE_OUT = "cubic-bezier(0.22, 1, 0.36, 1)";
-const EASE_BACK = "cubic-bezier(0.55, 0, 0.25, 1)";
-const MORPH_MS = 680;
-const BACK_MS = 520;
-const STAGGER_MS = 40;
+// out: a long, soft arrival; back: picked up gently, set down firmly
+const EASE_OUT = "cubic-bezier(0.2, 0.9, 0.24, 1)";
+const EASE_BACK = "cubic-bezier(0.5, 0, 0.2, 1)";
+const MORPH_MS = 720;
+const BACK_MS = 540;
+const STAGGER_MS = 36;
 
 // the transform that sets a box (its rect on the screen, untransformed,
 // transform-origin at its top left) exactly onto a card's four corners
@@ -79,6 +83,11 @@ export function mountStackSheet(dialog, data) {
     column.replaceChildren();
     const total = g.toolCount;
     const head = el("section", "sd-sheet__card is--head");
+    // the head in the stack's own colour, as its cards are
+    if (g.tone) {
+      head.style.setProperty("--sheet-tone", g.tone.ground);
+      head.style.setProperty("--sheet-tone-ink", g.tone.ink);
+    }
     const kicker = el("p", "sd-sheet__kicker");
     kicker.append(el("span", null, `Stack · ${total} ${total === 1 ? "tool" : "tools"}`));
     if (g.sample) kicker.append(el("span", "sd-sheet__badge", "Sample"));
@@ -143,7 +152,6 @@ export function mountStackSheet(dialog, data) {
       if (link) link.href = g.url || data.signUp;
       cta.append(button);
     }
-    if (g.sample) cta.append(el("p", "sd-sheet__sample", "A sample, to show how a stack will look. Not a recommendation."));
     column.append(cta);
   }
 
@@ -163,21 +171,24 @@ export function mountStackSheet(dialog, data) {
     return true;
   }
 
-  // which card each container grows from: the head from the stack's middle
-  // card, each tool (named or locked) from its own, the way in from the last
-  function sourcesOf(list, quads) {
-    if (!quads.length) return list.map(() => null);
+  // where each container grows from (the morph's quads: the head's, each
+  // tool's, named then locked, in order, and the way in's)
+  function sourcesOf(list, q) {
+    if (!q?.items?.length) return list.map(() => null);
     return list.map((card, i) => {
-      if (card.classList.contains("is--head")) return quads[Math.floor((quads.length - 1) / 2)];
-      if (card.classList.contains("is--cta")) return quads[quads.length - 1];
-      return quads[i - 1] ?? quads[quads.length - 1];
+      if (card.classList.contains("is--head")) return q.head;
+      if (card.classList.contains("is--cta")) return q.cta;
+      return q.items[i - 1] ?? q.cta;
     });
   }
+  // the stack's colour, for the containers to start (and end) in
+  let tone = null;
 
   async function open(g, onClosed, from) {
     if (state !== "closed") return;
     done = onClosed;
     morph = from ?? null;
+    tone = g.tone?.ground ?? null;
     build(g);
     state = "opening";
     lenis?.stop();
@@ -190,7 +201,7 @@ export function mountStackSheet(dialog, data) {
       return;
     }
     const list = cards();
-    const sources = sourcesOf(list, morph?.quads() ?? []);
+    const sources = sourcesOf(list, morph?.quads());
     const anims = [
       scrim.animate([{ opacity: 0 }, { opacity: 1 }], { duration: MORPH_MS * 0.7, easing: "ease-out", fill: "both" }),
       closer.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, delay: MORPH_MS * 0.6, easing: "ease-out", fill: "both" }),
@@ -204,7 +215,11 @@ export function mountStackSheet(dialog, data) {
         return;
       }
       card.style.transformOrigin = "0 0";
-      anims.push(card.animate([{ transform: onto(r, q) }, { transform: "none" }], { ...timing, easing: EASE_OUT }));
+      // from the card's colour to its own
+      const own = getComputedStyle(card).backgroundColor;
+      const from = tone ? { backgroundColor: tone } : {};
+      const to = tone ? { backgroundColor: own } : {};
+      anims.push(card.animate([{ transform: onto(r, q), ...from }, { transform: "none", ...to }], { ...timing, easing: EASE_OUT }));
       // its words once it is most of the way there
       [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 0 }, { opacity: 0, offset: 0.5 }, { opacity: 1 }], { ...timing, easing: "linear" })));
     });
@@ -224,7 +239,7 @@ export function mountStackSheet(dialog, data) {
       const scrimNow = getComputedStyle(scrim).opacity;
       settle();
       const list = cards();
-      const targets = sourcesOf(list, morph?.quads() ?? []);
+      const targets = sourcesOf(list, morph?.quads());
       const anims = [
         closer.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: "ease-in", fill: "both" }),
         scrim.animate([{ opacity: scrimNow }, { opacity: 0 }], { duration: BACK_MS, easing: "ease-in-out", fill: "both" }),
@@ -238,7 +253,10 @@ export function mountStackSheet(dialog, data) {
           return;
         }
         card.style.transformOrigin = "0 0";
-        anims.push(card.animate([{ transform: "none" }, { transform: onto(r, q) }], { ...timing, easing: EASE_BACK }));
+        const own = getComputedStyle(card).backgroundColor;
+        const from = tone ? { backgroundColor: own } : {};
+        const to = tone ? { backgroundColor: tone } : {};
+        anims.push(card.animate([{ transform: "none", ...from }, { transform: onto(r, q), ...to }], { ...timing, easing: EASE_BACK }));
         [...card.children].forEach((child) => anims.push(child.animate([{ opacity: 1 }, { opacity: 0, offset: 0.35 }, { opacity: 0 }], { ...timing, easing: "linear" })));
       });
       const ok = await play(anims);

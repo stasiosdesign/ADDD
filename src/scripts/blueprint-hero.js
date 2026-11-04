@@ -26,12 +26,11 @@
    - The scroll's stir: the figure's keys lift a little with the scroll's
      speed, and settle when it stops (network.js, stir).
 
-   - The statement's setting (setStatement): its lines, one per line of
-     the Studio's field, brought to one width, each by its tracking (up
-     to TRACK either side of the face's) and, for what that leaves, its
-     size; measured once, when the face has loaded, and kept in ems and
-     ratios, so the block scales with its measure in CSS and a resize
-     sets nothing again.
+   - The statement's lines, one per line of the Studio's field (a field
+     written as one line is broken where its lines come out most even:
+     inLines), all at the statement's one size (2026-11-04, sixth pass:
+     they were each brought to one width by their own size and tracking,
+     which read as lines of different sizes).
    - Its rise: the lines up into their masks, one after another, the
      first time it comes up the screen (the headings' line reveal).
    - The routes lighting together (is--together) while the statement is
@@ -43,13 +42,8 @@ import { mountIsoField } from "./dot-field.js";
 import { motion, registerPageCleanup } from "./page.js";
 import { LINE_REVEAL } from "./reveals.js";
 
-// how far a line's tracking may move from the face's, in ems, and how much
-// that is worth against a change of size: TRACK of tracking counts as much
-// as SIZE_FOR_TRACK of size (so tracking takes most of it, size the rest)
-const TRACK = 0.012;
 // the scroll's speed (px a second) that stirs the network fully
 const STIR_SPEED = 2600;
-const SIZE_FOR_TRACK = 0.04;
 
 export function initBlueprintHero(container) {
   container.querySelectorAll("[data-blueprint-hero]").forEach((hero) => {
@@ -156,7 +150,6 @@ function mountStatement(hero, p) {
   const draft = document.documentElement.hasAttribute("data-draft");
   let reveal = null;
   let rise = null;
-  let alive = true;
 
   // the routes light while the statement is up the screen
   const together = ScrollTrigger.create({
@@ -192,12 +185,10 @@ function mountStatement(hero, p) {
       });
       rise = ScrollTrigger.create({ trigger: p, start: LINE_REVEAL.start, once: true, onEnter: () => reveal.play() });
     }
-    document.fonts.ready.then(() => alive && setStatement(p, inks));
   }
 
   return {
     destroy() {
-      alive = false;
       together.kill();
       rise?.kill();
       reveal?.kill();
@@ -230,47 +221,4 @@ function inLines(text, p, n) {
   };
   tryFrom(0, n, []);
   return best.map((end, i) => words.slice(i ? best[i - 1] : 0, end).join(" "));
-}
-
-// The block set (BlueprintHero.astro, pages.css): each line's width without
-// tracking, in ems of the block, from one reading of the lines as they stand;
-// then the width all of them are brought to (in the same ems), found by
-// trying the widths between the narrowest and the widest each can reach, as
-// the one that changes them least; each line's tracking towards it, held to
-// TRACK either side of the face's, and its size for the rest. Written as
-// ratios and ems, so nothing is measured again when the measure changes.
-function setStatement(p, inks) {
-  const size = parseFloat(getComputedStyle(p).fontSize);
-  const face = parseFloat(getComputedStyle(p).letterSpacing) / size || 0;
-  if (!(size > 0)) return;
-  const rows = inks.map((ink) => {
-    const chars = [...ink.textContent].length;
-    // the box's width has the face's tracking after every letter, the last
-    // one's beyond its ink: the ink alone has it between letters
-    const glyphs = ink.getBoundingClientRect().width / size - chars * face;
-    return { glyphs, gaps: Math.max(1, chars - 1) };
-  });
-  const reach = (r, t) => r.glyphs + r.gaps * t;
-  const lo = Math.min(...rows.map((r) => reach(r, face - TRACK)));
-  const hi = Math.max(...rows.map((r) => reach(r, face + TRACK)));
-  const fit = (width) => rows.map((r) => {
-    const track = gsap.utils.clamp(face - TRACK, face + TRACK, (width - r.glyphs) / r.gaps);
-    return { track, k: width / reach(r, track) };
-  });
-  const cost = (set) => set.reduce((sum, { track, k }) => sum + (k - 1) ** 2 + (((track - face) / TRACK) * SIZE_FOR_TRACK) ** 2, 0);
-  let best = hi;
-  let least = Infinity;
-  for (let i = 0; i <= 240; i++) {
-    const width = lo + ((hi - lo) * i) / 240;
-    const c = cost(fit(width));
-    if (c < least) { least = c; best = width; }
-  }
-  fit(best).forEach(({ track, k }, i) => {
-    const line = inks[i].parentElement;
-    line.style.setProperty("--k", k.toFixed(4));
-    // in the line's own ems, so it grows with the line's size, as the
-    // widths above were reckoned
-    line.style.setProperty("--ls", `${track.toFixed(4)}em`);
-  });
-  p.style.setProperty("--bp-fit", (1 / best).toFixed(5));
 }

@@ -33,7 +33,7 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
        then landing on the platform. "Inquire" goes to the Contact page;
        "View Pricing" glides down to the prices. The red block that stands
        under every service page's opening stays under it. -->
-  <BeforeRevitHero heading={t("hero.heading")} lede={t("hero.lede")}>
+  <BeforeRevitHero heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
       <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>

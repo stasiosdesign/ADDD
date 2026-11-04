@@ -21,7 +21,7 @@ export const stackDiagnosticPage = defineType({
       leadField(),
       buttonField('Opens the Free Stack sign-up (app.addd.io) in a new tab.', 'button'),
       defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'The text link beside the button; it scrolls down to How it works on this page.'}),
-      defineField({name: 'legend', title: 'How to read the cards', type: 'text', rows: 2, description: 'The short line under the title, saying what a card is and what a stack is.'}),
+      defineField({name: 'legend', title: 'How to read the cards', type: 'text', rows: 2, description: 'Not shown on the page since 2026-11-04 (the cards and the stacks say it themselves); kept for later.'}),
     ]),
     pageSection('fit', 'Who it’s for', 'The heading row, the three cards on who the diagnostic suits, and the two outlined cards pointing elsewhere. Where each outlined card’s link leads stays in the site’s code.', [
       ...sectionHead(),

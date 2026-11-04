@@ -1906,9 +1906,16 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    outside it, so the rule can run up through it to the band. */
 .testimonials {
   --slider-above: calc(var(--sec-lg) + var(--sec-md));
+  /* the section's ground, and its buttons' block a step off it: one
+     place, so the ground behind the logo and the controls (opening the
+     rule round them) is always the section's own, whatever a page sets it
+     to (2026-11-04: the Technology Blueprint's white left the off-white
+     openings standing on it as grey boxes over the logo and the arrows) */
+  --slider-ground: var(--c-light-bg);
+  --slider-block: var(--c-paper);
   position: relative;
   padding-top: var(--slider-above);
-  background: var(--c-light-bg);
+  background: var(--slider-ground);
 }
 
 .testimonial-slider {
@@ -2054,7 +2061,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   position: absolute;
   inset: calc(-1 * var(--slider-clear)) 0;
   z-index: -1;
-  background: var(--c-light-bg);
+  background: var(--slider-ground, var(--c-light-bg));
 }
 
 .testimonial-slider__logos {
@@ -2102,7 +2109,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   overflow: hidden;
   border: 0;
   border-radius: var(--radius-sm);
-  background: var(--c-paper);
+  background: var(--slider-block, var(--c-paper));
   color: var(--c-text);
   cursor: pointer;
 }

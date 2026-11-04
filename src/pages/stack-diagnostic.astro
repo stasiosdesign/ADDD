@@ -4,34 +4,39 @@ import ActionButton from "../components/ActionButton.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { TECH_STACKS_QUERY } from "../sanity/queries";
 import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
-import { APP_SIGN_UP, CATEGORIES, SAMPLE_STACKS, TOOLS, stackOf, type StackDocument } from "../data/stack-ecosystem";
+import { APP_SIGN_UP, CATEGORIES, PLATFORMS, SAMPLE_STACKS, TOOLS, stackOf, toneOf, type StackDocument } from "../data/stack-ecosystem";
 
-// Free Tech Stacks, as one screen (2026-11-04, third pass, after the
-// user's brief): one continuous row of cards in 3D, every card a piece of
-// software, the row running across the screen from off its bottom-left
-// corner to off its top-right and going round as it is scrolled through.
-// The software in each curated stack stands together in the row, at the
-// row's own spacing, in a tone of the stack's own, with a dotted bracket
-// beside it and the stack's name at its near end; the stack's tools held
-// back until the visitor is in the ADDD app are cards with a lock and no
-// name. Any card of a stack chooses the stack: its cards open out and lift
-// together, and the stack's sheet opens over the page (its title, the tools
-// its preview names, each in a container of its own, the rest locked, and
-// the way into the app, which enforces the access: the site never has a
-// stack's full list). The software in no stack follows the stacks.
+// Free Tech Stacks, as one screen (2026-11-04, fourth pass, after the
+// user's brief and a reference of CD cases standing in a row): one
+// continuous row of cards in 3D, every card a piece of software and every
+// card in a curated stack, the row running across the screen from off its
+// bottom-left to off its top-right and going round as it is scrolled
+// through. A stack's cards stand together at the row's own spacing, in the
+// stack's own colour (a solid block: white, black, the greys, a muted blue,
+// stone…), a dotted bracket on the ground beside them with the stack's
+// name; the tools it holds back until the visitor is in the ADDD app are
+// cards with a lock and no name. The card under the pointer slides out of
+// the row to the right, as a card pulled from a stack does; pressing any
+// card of a stack opens the stack's sheet straight out of its cards where
+// they stand (its title, the tools its preview names, each in a container
+// of its own, the rest locked, and the way into the app, which enforces the
+// access: the site never has a stack's full list).
+//
+// The same stacks also as a flat list (the switch under the title; the 3D
+// row is the default): a block per stack in its colour, its tools and its
+// locked ones in rows, each block opening the same sheet out of its own
+// rows. Both views are drawn from the one data below.
 //
 // The stacks are the Studio's (studio/schemaTypes/documents/tech-stack.ts).
-// Until any are published, labelled samples (src/data/stack-ecosystem.ts)
-// stand in on staging and in development; production then shows the
-// software alone, and says the stacks are on their way, never a sample.
+// Until any are published, samples (src/data/stack-ecosystem.ts) stand in
+// on staging and in development; production then shows the inventory's
+// software alone as a plain row, never a sample, and no list.
 //
 // Drawn on one canvas by src/scripts/stack-space.js; the sheet is
 // src/scripts/stack-sheet.js (styles: stack-space.css). The page does not
-// scroll and has no footer. The nav is its light version (the ground a
-// step darker than the nav's greys, so the bar stands clear of it). The
-// words come from the Stack Diagnostic page document in Sanity
-// (studio/schemaTypes/pages/stack-diagnostic.ts), falling back to
-// src/sanity/defaults/stack-diagnostic.ts.
+// scroll and has no footer. The words come from the Stack Diagnostic page
+// document in Sanity (studio/schemaTypes/pages/stack-diagnostic.ts),
+// falling back to src/sanity/defaults/stack-diagnostic.ts.
 const { sanity } = Astro.locals;
 const [doc, stackDocs] = await Promise.all([
   pageDocument(sanity, "stackDiagnosticPage"),
@@ -41,24 +46,38 @@ const { t } = reader(doc, D);
 
 const published = (stackDocs ?? []).map(stackOf).filter((s) => s.name);
 const stacks = published.length ? published : __DEPLOYMENT__ === "production" ? [] : SAMPLE_STACKS;
-const samples = !published.length && stacks.length > 0;
 
-// a tool as the row and the sheet show it: its name, its home category
-// (its role in a workflow), the inventory's line for it, its mark
+// a tool as the row, the list and the sheet show it: its name, its role in
+// a workflow (its home category, or a platform's role), the line on what
+// it does, its mark where the site has the product's own
 const categoryName = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.name]));
 const toolByName = new Map(TOOLS.map((tool) => [tool.name.toLowerCase(), tool]));
+const platformByName = new Map(PLATFORMS.map((p) => [p.name.toLowerCase(), p]));
 const shown = (name: string) => {
+  const platform = platformByName.get(name.toLowerCase());
+  if (platform) return { name: platform.name, category: platform.role, note: platform.note, logo: platform.logo };
   const tool = toolByName.get(name.toLowerCase());
   const home = tool?.categories[0];
   return { name: tool?.name ?? name, category: home ? categoryName[home] : "", note: tool && home ? tool.notes[home] ?? "" : "", logo: tool?.logo ?? null };
 };
 const data = {
-  stacks: stacks.map((s) => ({ ...s, preview: s.preview.map(shown) })),
-  tools: TOOLS.map((tool) => shown(tool.name)),
+  stacks: stacks.map((s, i) => ({ ...s, tone: toneOf(i), preview: s.preview.map(shown) })),
+  // the inventory's software, for the plain row production shows while no
+  // stack is published (with stacks, every card is a stack's)
+  tools: stacks.length ? [] : TOOLS.map((tool) => shown(tool.name)),
   signUp: APP_SIGN_UP,
 };
-// the stacks' tones in the row, alternating (stack-space.js, TONES)
-const tones = ["is--tone-a", "is--tone-b"];
+const initials = (name: string) => {
+  const words = name.split(/[\s.]+/).filter(Boolean);
+  if (words.length > 1 && !/^tech$/i.test(words[1])) return (words[0][0] + words[1][0]).toUpperCase();
+  const caps = name.slice(1).match(/[A-Z]/);
+  if (caps && /[a-z]/.test(name)) return (name[0] + caps[0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase();
+};
+const pad = (n: number) => String(n).padStart(2, "0");
+// the SVG Collection's lock (source-assets/svg-collection, no. 026,
+// dash-type-btn__locked): the row, the list and the sheet use the one
+const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9C3.75 8.17125 4.42125 7.5 5.25 7.5H12.75C13.5788 7.5 14.25 8.17125 14.25 9V14.25C14.25 15.0787 13.5788 15.75 12.75 15.75Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 7.5V5.25C6 3.59325 7.34325 2.25 9 2.25C10.6567 2.25 12 3.59325 12 5.25V7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>`;
 ---
 <BaseLayout
   title="Stack Diagnostic — ADDD"
@@ -67,7 +86,7 @@ const tones = ["is--tone-a", "is--tone-b"];
   doc={{ id: "stackDiagnosticPage" }}
   footer={false}
 >
-<main class="page--grid sd" data-stack-space>
+<main class="page--grid sd" data-stack-space data-view="3d">
 
   <!-- the stage: one canvas, the whole row (stack-space.js); it takes the
        wheel, the keys and a swipe, and Lenis leaves it alone -->
@@ -75,22 +94,49 @@ const tones = ["is--tone-a", "is--tone-b"];
     <canvas class="sd__canvas" aria-hidden="true"></canvas>
   </div>
 
+  <!-- the same stacks as a flat list, one block each in its colour; each
+       block opens the stack's sheet out of its own rows -->
+  {data.stacks.length > 0 && (
+  <div class="sd-flat" data-stack-flat data-lenis-prevent hidden>
+    <ul class="sd-flat__grid" role="list">
+      {data.stacks.map((s, i) => (
+      <li class="sd-flat__item">
+        <button type="button" class="sd-flat__stack" data-flat-go={i} aria-haspopup="dialog" style={`--tone:${s.tone.ground};--tone-ink:${s.tone.ink}`} aria-label={`${s.name}: ${s.toolCount} tools. Open the stack.`}>
+          <span class="sd-flat__head" data-flat-part>
+            <span class="sd-flat__count">{pad(s.toolCount)} tools</span>
+            <span class="sd-flat__name">{s.name}</span>
+            {s.workflow && <span class="sd-flat__workflow">{s.workflow}</span>}
+          </span>
+          {s.preview.map((tool) => (
+          <span class="sd-flat__tool" data-flat-part>
+            <span class="sd-flat__mark">{tool.logo ? <img src={tool.logo} alt="" width="24" height="24" loading="lazy" decoding="async" /> : initials(tool.name)}</span>
+            <span class="sd-flat__tool-name">{tool.name}</span>
+            {tool.category && <span class="sd-flat__role">{tool.category}</span>}
+          </span>
+          ))}
+          {Array.from({ length: Math.max(0, s.toolCount - s.preview.length) }, () => (
+          <span class="sd-flat__tool is--locked" data-flat-part>
+            <span class="sd-flat__mark is--lock"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true" set:html={LOCK}></svg></span>
+            <span class="sd-flat__bar"></span>
+          </span>
+          ))}
+          <span class="sd-flat__open" data-flat-part>Open the stack<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/></svg></span>
+        </button>
+      </li>
+      ))}
+    </ul>
+  </div>
+  )}
+
   <header class="sd__head">
     <h1 class="sd__title" data-page-field="hero.heading">{t("hero.heading")}</h1>
-    <p class="sd__legend" data-page-field="hero.legend">{t("hero.legend")}</p>
+    {data.stacks.length > 0 && (
+    <div class="sd__views" role="group" aria-label="How to show the stacks">
+      <button type="button" class="sd__view" data-view-set="3d" aria-pressed="true">3D</button>
+      <button type="button" class="sd__view" data-view-set="flat" aria-pressed="false">List</button>
+    </div>
+    )}
   </header>
-
-  <!-- the list on the right: the stacks, each with its tone in the row (a
-       stack chosen opens as a card of it does), then the Software Database -->
-  <nav class="sd__index" aria-label="Tech stacks">
-    <p class="sd__filter-group">{samples ? "Sample stacks" : "Stacks"}</p>
-    {stacks.map((s, i) => (
-      <button type="button" class="sd__filter" data-stack-go={i} aria-haspopup="dialog"><span class:list={["sd__swatch", tones[i % tones.length]]} aria-hidden="true"></span>{s.name}<sup>{s.toolCount}</sup></button>
-    ))}
-    {samples && <p class="sd__sample-note">Samples show how a stack will look, until the first are published. They are not recommendations.</p>}
-    {stacks.length === 0 && <p class="sd__sample-note">The first curated stacks are being put together.</p>}
-    <a class="sd__switch" href="https://app.addd.io/" target="_blank" rel="noopener">Software Database &#8599;</a>
-  </nav>
 
   <!-- the page's one call: the Free Stack, in the screen's bottom-right corner -->
   <div class="sd__cta">
@@ -110,8 +156,7 @@ const tones = ["is--tone-a", "is--tone-b"];
       </div>
     </div>
     <template data-sheet-cta><ActionButton href={APP_SIGN_UP} target="_blank" rel="noopener">Unlock the full stack</ActionButton></template>
-    <!-- the SVG Collection's lock (source-assets/svg-collection, no. 026) -->
-    <template data-sheet-lock><svg viewBox="0 0 18 18" fill="none" aria-hidden="true"><path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9C3.75 8.17125 4.42125 7.5 5.25 7.5H12.75C13.5788 7.5 14.25 8.17125 14.25 9V14.25C14.25 15.0787 13.5788 15.75 12.75 15.75Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 7.5V5.25C6 3.59325 7.34325 2.25 9 2.25C10.6567 2.25 12 3.59325 12 5.25V7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path></svg></template>
+    <template data-sheet-lock><svg viewBox="0 0 18 18" fill="none" aria-hidden="true" set:html={LOCK}></svg></template>
   </dialog>
 
   <p class="visually-hidden" aria-live="polite" data-stack-live></p>

@@ -325,7 +325,9 @@
   color: var(--c-white);
 }
 .roadmap.is--dark .tagline { color: rgba(255, 255, 255, 0.55); }
-.roadmap.is--dark + .testimonials { background: var(--c-white); }
+/* on white: its ground (and so the openings round its logo and controls)
+   white, its buttons the off-white a step off it */
+.roadmap.is--dark + .testimonials { --slider-ground: var(--c-white); --slider-block: var(--c-light-bg); }
 
 /* A filtered item. Opacity only — the card's own hover lift owns its
    transform, and a fade is the site's register anyway. Out of flow when
@@ -1053,13 +1055,10 @@
    middle, from the words' inset to the end of Grid Column 5 (2026-11-04,
    third pass: a column narrower than it was, so a clear gap of a column and
    more stands between it and the network once the network has come down
-   beside it). The statement is set as a block (blueprint-hero.js): each of
-   its lines, one per line of the Studio's field, brought to the same width
-   by its tracking (a little either side of the face's) and, for what that
-   leaves, its size; the block's size set so that width is the measure
-   (--bp-fit, one over the lines' width in ems). Its lines' baselines stay
-   evenly apart whatever their sizes (each line's leading is the block's).
-   Without the script, the lines as written at the block's size. */
+   beside it). Its lines, one per line of the Studio's field, all at one
+   size, tracking and leading (sixth pass, 2026-11-04: each line was
+   fitted to one width by its own size, which read as mixed sizes): the
+   lines as written, ragged on the right, the block as wide as its longest. */
 .bp-hero__next {
   display: flex;
   align-items: center;
@@ -1068,33 +1067,26 @@
   padding: 0 var(--grid-margin) 0 calc(var(--grid-margin) + var(--bp-inset));
 }
 .bp-hero__statement {
-  /* four lines since the fifth pass (2026-11-04): Grid Columns 1–4 and
-     their gutters from the words' inset, so the type keeps about its size
-     and stands further from the network than before */
-  --bp-measure: calc(4 * var(--bp-col) + 4 * var(--grid-gutter));
-  --bp-lh: 1.04;
-  width: var(--bp-measure);
+  /* four lines (fifth pass), at the Before Revit statement's size: about
+     the type the fitted block had, within Grid Columns 1–5 */
+  max-width: calc(5 * var(--bp-col) + 4 * var(--grid-gutter));
   margin: 0;
   pointer-events: auto;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: calc(var(--bp-measure) * var(--bp-fit, 0.064));
-  line-height: var(--bp-lh);
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  font-size: min(2.625rem, 5.6svh);
+  line-height: 1.08;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
   white-space: pre-line;
 }
-/* a set line: its own size (--k, of the block's) and tracking (--ls), its
-   leading the block's whatever its size; a mask its line tall, opened by
-   the face's overhang (as .line-mask), for its rise */
+/* a line: a mask its line tall, opened by the face's overhang (as
+   .line-mask), for its rise; the block's size, tracking and leading */
 .bp-hero__line {
   --mask-bleed: max(0px, (1.4em - 1lh) / 2);
   display: block;
   overflow: clip;
   padding: var(--mask-bleed) 0.2em;
   margin: calc(-1 * var(--mask-bleed)) -0.2em;
-  font-size: calc(var(--k, 1) * 1em);
-  line-height: calc(var(--bp-lh) / var(--k, 1));
-  letter-spacing: var(--ls, inherit);
   white-space: nowrap;
 }
 .bp-hero__line + .bp-hero__line { margin-top: calc(-2 * var(--mask-bleed)); }
@@ -1145,7 +1137,7 @@
   .bp-hero__text { height: auto; padding: 0 var(--grid-margin); }
   .bp-hero__heading { font-size: 3.75rem; }
   .bp-hero__next { height: auto; padding: var(--sec-md) var(--grid-margin) var(--sec-lg); }
-  .bp-hero__statement { --bp-measure: calc(100cqw - 2 * var(--grid-margin)); }
+  .bp-hero__statement { max-width: none; font-size: 2.25rem; }
 }
 @media screen and (max-width: 767px) {
   .bp-hero__heading { font-size: 2.875rem; }
@@ -1197,14 +1189,17 @@
    less strong at the corner and spread wider and more gradually (more,
    softer stops), so it lights the ground round the foot without reaching
    the words */
+/* Fourth pass (2026-11-04): quieter and less saturated throughout, a deep
+   oxide rather than a signal red, so the hero reads as atmosphere and the
+   drawing and the words lead. */
 .br-hero__light {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(58% 64% at 76% 66%, rgba(214, 22, 12, 0.78) 0%, rgba(160, 12, 6, 0.5) 30%, rgba(90, 5, 3, 0.22) 56%, transparent 78%),
-    radial-gradient(62% 52% at 0% 108%, rgba(225, 44, 28, 0.46) 0%, rgba(190, 26, 14, 0.3) 24%, rgba(150, 14, 8, 0.16) 48%, rgba(100, 8, 4, 0.06) 68%, transparent 86%),
-    linear-gradient(170deg, #050505 32%, #170202 58%, #400404 86%, #5c0606 100%);
+    radial-gradient(58% 64% at 76% 66%, rgba(150, 34, 26, 0.5) 0%, rgba(112, 24, 18, 0.32) 30%, rgba(64, 14, 10, 0.14) 56%, transparent 78%),
+    radial-gradient(62% 52% at 0% 108%, rgba(150, 44, 34, 0.26) 0%, rgba(122, 32, 24, 0.16) 26%, rgba(92, 22, 16, 0.08) 50%, transparent 80%),
+    linear-gradient(170deg, #060606 34%, #110505 60%, #230807 86%, #2c0a08 100%);
 }
 /* the drawing: its platform's middle about 70% across and a little under
    the middle of the screen, smaller than it first stood (second pass: a
@@ -1225,8 +1220,9 @@
    slope: nothing left of it across the heading and the standfirst); the
    two masks met, so it fades out softly, with no edge of its own. */
 .br-hero__ground {
-  /* third pass: quieter, its cells half the size (before-revit-hero.js) */
-  --iso-line: rgba(255, 150, 130, 0.17);
+  /* quieter (third pass); its cells two thirds of the drawing's (fourth
+     pass, a step larger than the third pass's half; before-revit-hero.js) */
+  --iso-line: rgba(240, 170, 155, 0.13);
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -1252,7 +1248,8 @@
   z-index: 2;
   pointer-events: none;
   background: url("/assets/graphics/grain-noise.png") 0 0 / 128px 128px repeat;
-  opacity: 0.45;
+  /* fourth pass: half as strong, a texture felt more than seen */
+  opacity: 0.2;
   will-change: transform;
   /* Third pass (2026-11-04): alive, barely. The tile itself never changes;
      the layer jumps to a new place a few times a second (steps, not a
@@ -1288,9 +1285,9 @@
   --hairline-stroke: 1;
   width: 100%;
 }
-.br-hero__stage .plinth .sil { fill: url(#br-side); stroke: rgba(255, 196, 186, 0.6); }
-.br-hero__stage .plinth .lo { stroke: rgba(255, 220, 210, 0.55); }
-.br-hero__stage .top { fill: url(#br-top); stroke: rgba(255, 226, 218, 0.75); }
+.br-hero__stage .plinth .sil { fill: url(#br-side); stroke: rgba(240, 200, 192, 0.5); }
+.br-hero__stage .plinth .lo { stroke: rgba(240, 214, 206, 0.45); }
+.br-hero__stage .top { fill: url(#br-top); stroke: rgba(246, 224, 218, 0.62); }
 .br-hero__stage .dash { stroke: rgba(255, 228, 222, 0.5); }
 .br-hero__stage .br-tagbox {
   fill: rgba(255, 70, 50, 0.08);
@@ -1314,7 +1311,7 @@
   aspect-ratio: 2.1;
   translate: -50% -50%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(255, 46, 26, 0.6), rgba(210, 18, 10, 0.26) 58%, transparent);
+  background: radial-gradient(closest-side, rgba(196, 58, 44, 0.36), rgba(150, 34, 24, 0.16) 58%, transparent);
   pointer-events: none;
 }
 /* the landing's pulse (third pass): a quiet light at the platform's foot,
@@ -1322,7 +1319,7 @@
 .br-hero__glow.is--pulse {
   width: 58%;
   opacity: 0;
-  background: radial-gradient(closest-side, rgba(255, 170, 150, 0.7), rgba(240, 40, 24, 0.22) 55%, transparent);
+  background: radial-gradient(closest-side, rgba(250, 196, 180, 0.6), rgba(200, 64, 46, 0.18) 55%, transparent);
 }
 
 /* the words: over the hold; only what is read or pressed takes the pointer */
@@ -1341,14 +1338,48 @@
   height: 100vh;
   height: 100svh;
   /* the words a little in from the grid's margin (third pass), as the
-     Technology Blueprint's are, the drawing well clear on the right */
-  padding: calc(var(--nav-h) + 2.75rem) var(--grid-margin) calc(var(--grid-margin) + 1.25rem) calc(var(--grid-margin) + 3rem);
+     Technology Blueprint's are, the drawing well clear on the right; and
+     lower (fourth pass), the heading starting about a fifth of the way
+     down, so the group sits nearer the drawing's middle */
+  padding: calc(var(--nav-h) + min(8.5rem, 15svh)) var(--grid-margin) calc(var(--grid-margin) + 1.25rem) calc(var(--grid-margin) + 3rem);
 }
 .br-hero__screen > * { pointer-events: auto; }
-/* the room the drawing is held for once the words have gone: the scroll
-   through it brings the frame down (before-revit-hero.js: it lands 0.72
-   of the way through, the landing playing out over the rest) */
-.br-hero__after { height: 90vh; height: 90svh; }
+/* The statement's screen (fourth pass, after the Technology Blueprint's):
+   the window's height, the statement in its middle, on the words' inset,
+   the drawing still held on the right. The scroll through it brings the
+   frame down (before-revit-hero.js: it lands 0.72 of the way, the light
+   running out over the rest) and the statement's lines up out of their
+   masks; once it is in the middle the hold lets go. Its lines one size,
+   as written (one per line of the Studio's field), none fitted to another. */
+.br-hero__next {
+  display: flex;
+  align-items: center;
+  height: 100vh;
+  height: 100svh;
+  padding: 0 var(--grid-margin) 0 calc(var(--grid-margin) + 3rem);
+}
+.br-hero__statement {
+  margin: 0;
+  pointer-events: auto;
+  font-family: var(--font-display);
+  font-weight: var(--fw-heading-bold);
+  font-size: min(2.625rem, 5.6svh);
+  line-height: 1.08;
+  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  color: #ffffff;
+}
+/* a line: its own mask, opened by the face's overhang (as .line-mask), so
+   the rise never cuts a descender */
+.br-hero__line {
+  --mask-bleed: max(0px, (1.4em - 1lh) / 2);
+  display: block;
+  overflow: clip;
+  padding: var(--mask-bleed) 0.2em;
+  margin: calc(-1 * var(--mask-bleed)) -0.2em;
+  white-space: nowrap;
+}
+.br-hero__line + .br-hero__line { margin-top: calc(-2 * var(--mask-bleed)); }
+.br-hero__ink { display: inline-block; }
 
 /* the heading: large and closed up, on two lines, all of it white */
 .br-hero__heading {
@@ -1407,13 +1438,16 @@
     mask-image: radial-gradient(60% 50% at 50% 50%, #000 30%, transparent 90%);
   }
   .br-hero__screen { height: auto; padding-top: 1rem; padding-left: var(--grid-margin); }
-  .br-hero__after { display: none; }
+  .br-hero__next { height: auto; padding: 4rem var(--grid-margin) 5rem; }
+  .br-hero__statement { font-size: 2.25rem; }
   .br-hero__heading { font-size: 3.5rem; }
   .br-hero__trust { margin-top: 3rem; }
 }
 @media screen and (max-width: 767px) {
   .br-hero__heading { font-size: 2.5rem; }
   .br-hero__marks { --br-logo: 1.85rem; gap: 1.25rem 2rem; }
+  .br-hero__statement { font-size: 1.75rem; }
+  .br-hero__line { white-space: normal; }
 }
 
 /* ============================================================

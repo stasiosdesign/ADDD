@@ -10,6 +10,9 @@ export const beforeRevitPage = {
     lede: 'An engagement for practices reviewing what happens in the early stages of design, before the work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.',
     primaryButton: 'Inquire',
     secondaryButton: 'View Pricing',
+    // the statement that comes up as the opening's words scroll away
+    // (2026-11-04): the standfirst's own closing words, one line per line
+    statement: 'The tools, information\nand decisions that shape\na project before it is modelled.',
   },
   method: {
     lede: 'The ADDD approach, applied to the start of the design process rather than the whole practice.',

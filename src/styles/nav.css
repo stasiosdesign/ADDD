@@ -813,8 +813,12 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
    coming up out of the box's foot, clear of the words, and running on out
    past its top right. The cards lighter than the box (white on its grey,
    a lifted grey on its near-black), their edges in the box's ink, dim
-   inside, and the one card standing alone (or the one the pointer pulls)
-   edged in the site's red. */
+   inside. Second pass (2026-11-04): a supporting illustration, not the
+   dropdown's main attraction: every card alike (none in the red), the
+   row running out past the box's foot and left side as well as its top
+   right, its edges a step quieter, and the pointer over the box only
+   sending a soft wave along it (stack-figure.js). The box a little
+   shorter, the Software Database's under it a little taller. */
 .resource-tile {
   --sc-ground: var(--nav-card-bg);
   --sc-ink: var(--nav-fg);
@@ -859,7 +863,7 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
 .resource-tile:active::after { opacity: .1; }
 .resource-tile:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
 
-.resource-tile.is--stacks { min-height: calc(10 * var(--sc-step)); overflow: hidden; }
+.resource-tile.is--stacks { min-height: calc(8 * var(--sc-step)); overflow: hidden; }
 .resource-tile.is--stacks > :is(.resource-tile__name, .resource-tile__desc) { position: relative; z-index: 1; }
 /* the crop: the whole box; the drawing's frame (the figure's 400 × 320)
    larger than it, its middle (the lone card) right of the box's middle
@@ -873,17 +877,17 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   overflow: hidden;
   pointer-events: none;
   --hairline-plate: color-mix(in oklab, #ffffff, #262626 var(--nav-dark, 0%));
-  --hairline-edge: color-mix(in srgb, var(--sc-ink) 52%, transparent);
-  --hairline-mid: color-mix(in srgb, var(--sc-ink) 34%, transparent);
-  --hairline-lo: color-mix(in srgb, var(--sc-ink) 17%, transparent);
-  --hairline-hi: var(--c-red);
+  --hairline-edge: color-mix(in srgb, var(--sc-ink) 40%, transparent);
+  --hairline-mid: color-mix(in srgb, var(--sc-ink) 26%, transparent);
+  --hairline-lo: color-mix(in srgb, var(--sc-ink) 13%, transparent);
+  --hairline-hi: color-mix(in srgb, var(--sc-ink) 40%, transparent);
   --hairline-stroke: 1;
 }
 .resource-tile__figure > svg {
   position: absolute;
   inset: auto;
-  left: 72.4%;
-  top: 58.7%;
+  left: 76%;
+  top: 63%;
   /* the frame half again as large as the box: the row in it is long enough
      (twelve cards either side of the middle) to run on past the box at
      both ends, whatever its shape, as the page's endless row does */
@@ -1013,7 +1017,9 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   .mega-nav__dropdown-inner.is--resources {
     --sc-float-gap: calc(var(--nav-float-top) / 4);
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    grid-template-rows: minmax(calc(10 * var(--sc-step)), 1fr) auto;
+    /* Free Tech Stacks a little shorter, the Software Database a little
+       taller (second pass): the two share the blocks' height about 3 : 2 */
+    grid-template-rows: minmax(calc(8 * var(--sc-step)), 1.5fr) minmax(calc(5 * var(--sc-step)), 1fr);
     gap: var(--sc-float-gap);
   }
   .is--resources > .resource-tile.is--stacks { grid-area: 1 / 1; }

@@ -4,19 +4,20 @@
    by gen-site.mjs there. Edit that file, then run it again.
    ------------------------------------------------------------
   Stack: a row of plain cards standing upright on a guide, the Stack
-  Diagnostic page's endless row in miniature. The card in the middle stands
-  alone, the two stacks either side fanned a little away from it, each long
-  enough to run on out of a box the figure is cropped by (2026-11-04: the
-  cards carry no marks at all, and the row is thirteen long, not seven;
-  then twenty-five, twelve either side, so wherever the box crops it the
-  row runs on past both its ends, as the page's endless row does). The card
-  nearest the pointer stands up and lifts; the ones behind it lean back and
-  the ones in front lean forward, staggered outwards from it on the 700ms lift
-  curve: a riffle through the row. The slider is how far they move.
+  Diagnostic page's endless row in miniature. Since 2026-11-04 (second
+  pass) a quiet illustration rather than a toy: every card alike and
+  evenly spaced, each leaning back a touch, no card standing apart and
+  none in the red; the row thirty-five long, framed by its middle
+  twenty-one, so it runs on out of the box the figure is cropped by at
+  both ends. The pointer anywhere over the box sends one soft wave along
+  the row, from its front to its back, each card rising a little and
+  settling as the wave passes, and the row leans back a degree or two
+  while the pointer stays; leaving lets it stand up again. No card
+  answers the pointer on its own. The slider is how far they move.
   
-  The pattern: discrete items, after the package's Riffle. Tweens, a stagger
-  by distance, and a hit test on each card's resting centre along the row,
-  so a card moving out from under the pointer cannot flip the choice.
+  The pattern: discrete items, after the package's Riffle, its stagger
+  run along the row as a wave; tweens for the lean, the wave a function of
+  time, both on the kernel's one loop.
 
    A Hairline figure (the hairline-create skill, .claude/skills/) on the
    vendored kernel, made after the package's Riffle (MIT, Lucas Marques).
@@ -26,31 +27,23 @@ import { HL } from "./vendor/hairline-kernel.js";
 
 const {
   Cam, clamp, fillet, fit, open, poly, proj, rad,
-  tdone, tset, tval, tween, disposer, mk, pointer, register,
+  tdone, tset, tval, tween, disposer, mk, pointer, register, reducedMotion,
 } = HL;
 
-// the cards: width, height, thickness, corner; where each stands along the
-// row (two stacks of three, and the one in the middle with a gap either side)
+// the cards: width, height, thickness, corner; how many, how far apart
 const W = 74, H = 47, TK = 1.5, R = 3.4;
-// each run SIDE cards long, STEP apart, a GAP either side of the middle
-// card; the rest lean of each card (degrees: negative leans back), more
-// the farther from the middle, held from the sixth on
-const SIDE = 12, STEP = 13, GAP = 30;
-const Y = [], REST = [];
-for (let k = 0; k < SIDE; k++) {
-  Y.push(k * STEP);
-  REST.push(-Math.min(13, 5.5 + 1.5 * (SIDE - 1 - k)));
-}
-const MID = SIDE;
-Y.push((SIDE - 1) * STEP + GAP);
-REST.push(0);
-for (let k = 0; k < SIDE; k++) {
-  Y.push(Y[MID] + GAP + k * STEP);
-  REST.push(Math.min(11.5, 4 + 1.5 * k));
-}
-const N = Y.length;
-// the pulled card's lift, and how far the others lean away, at amount 1
-const LIFT = 9, BACK = -20, FWD = 15, STAG = 45;
+const N = 35, STEP = 16;
+const Y = Array.from({ length: N }, (_, i) => i * STEP);
+const MID = Math.floor(N / 2);
+// the cards the frame is fitted to: the middle twenty-one (the rest run
+// on past the frame, and past the box that crops it)
+const FRAMED = 10;
+// every card's lean at rest (degrees: negative leans back), the extra lean
+// back while the pointer is over the box, at amount 1, and its stagger
+const REST = -6, LEAN = -5, LEAN_STAG = 14;
+// the wave: how high a card rises as it passes (at amount 1), how long a
+// card takes to rise and settle (ms), and how far behind the one before it
+const WAVE = 4.5, WAVE_MS = 560, WAVE_STAG = 26;
 // the guide the row stands on: from before the first card to past the last
 const G0 = -24, G1 = Y[N - 1] + 24;
 
@@ -69,13 +62,12 @@ function mount({ stage, svg, read, hover }, value) {
   const bag = disposer();
   let amt = value;
 
-  // fitted to the row in its widest poses, so nothing leaves the frame
-  // drawn farther out than the seven-card row was (1.52, then 1.2 for
-  // thirteen), so the whole row stays in the frame: the page shows the
-  // middle of it, larger (nav.css)
+  // fitted to the middle of the row in its widest pose, so the framed part
+  // fills the frame as the twenty-five-card row did, the rest beyond it
   const C = Cam(45, 0.5, 0.78);
   const lean = (y, th, v, z = 0) => [0, y + v * Math.sin(rad(th)), v * Math.cos(rad(th)) + z];
-  fit(C, [[0, G0, 0], [W, G1, 0], [W, Y[0], 0], lean(Y[0], BACK, H), lean(Y[N - 1], FWD, H), [W / 2, Y[MID], H + LIFT], [W, G0, 0]], 200, 160);
+  const y0 = Y[MID - FRAMED], y1 = Y[MID + FRAMED];
+  fit(C, [[0, y0 - 24, 0], [W, y1 + 24, 0], [W, y0, 0], lean(y0, REST + LEAN, H), lean(y1, REST, H, WAVE), [W, y0 - 24, 0]], 200, 160);
   const P = proj(C);
   const shape = fillet([[0, 0], [W, 0], [W, H], [0, H]], [R, R, R, R]);
 
@@ -83,14 +75,16 @@ function mount({ stage, svg, read, hover }, value) {
   // the guide on the ground, under the row, running on past both ends
   mk("path", { d: open([P(W / 2, G0, 0), P(W / 2, G1, 0)]), class: "nf dash" }, g);
 
+  // the row's front: the end nearer the foot of the frame, where the wave
+  // starts
+  const front = P(0, Y[0], 0)[1] > P(0, Y[N - 1], 0)[1] ? 0 : N - 1;
+
   const cards = [];
   for (let i = 0; i < N; i++) {
     const grp = mk("g", {}, g);
     const back = mk("path", { class: "lo" }, grp), face = mk("path", { class: "sil" }, grp);
-    cards.push({ back, face, a: tween(REST[i]), z: tween(0), drawn: "" });
+    cards.push({ back, face, a: tween(REST), drawn: "" });
   }
-  // at rest, the card in the middle carries the one bright stroke
-  cards[MID].face.classList.add("hi");
 
   function draw(i, th, lift) {
     const cd = cards[i], key = th.toFixed(3) + "," + lift.toFixed(3);
@@ -101,54 +95,53 @@ function mount({ stage, svg, read, hover }, value) {
     cd.face.setAttribute("d", q.face);
   }
 
+  // the wave: started at t0, card i rising and settling as it passes (a
+  // half sine over WAVE_MS, its start WAVE_STAG later per card from the
+  // front); none while t0 is null
+  let t0 = null;
+  const rise = (i, now) => {
+    if (t0 === null) return 0;
+    const u = (now - t0 - Math.abs(i - front) * WAVE_STAG) / WAVE_MS;
+    return u > 0 && u < 1 ? WAVE * amt * Math.sin(Math.PI * u) : 0;
+  };
+  const waveEnd = () => t0 + (N - 1) * WAVE_STAG + WAVE_MS;
+
   const B = register(stage, (_dt, now) => {
     let moving = false;
     cards.forEach((cd, i) => {
-      draw(i, tval(cd.a, now), tval(cd.z, now));
-      if (!tdone(cd.a, now) || !tdone(cd.z, now)) moving = true;
+      draw(i, tval(cd.a, now), rise(i, now));
+      if (!tdone(cd.a, now)) moving = true;
     });
+    if (t0 !== null) {
+      if (now < waveEnd()) moving = true;
+      else t0 = null;
+    }
     return moving;
   });
   bag.add(B.unregister);
 
-  // the pick: the card whose RESTING middle is nearest the pointer across the
-  // screen. The rest never moves, so a card riffling away cannot change it;
-  // a point past either end picks the end card.
-  const mids = Y.map((y, i) => P(W / 2, y + (H / 2) * Math.sin(rad(REST[i])), (H / 2) * Math.cos(rad(REST[i])))[0]);
-  const hit = ([x]) => {
-    let best = 0;
-    mids.forEach((m, i) => { if (Math.abs(m - x) < Math.abs(mids[best] - x)) best = i; });
-    return best;
-  };
-
-  let act = -1;
-  /** Pulls card a (-1 lets them all go back); the stagger runs outwards from the card pulled, or the one let go. */
-  function setActive(a) {
-    if (a === act) return;
-    const now = performance.now(), from = a >= 0 ? a : act;
-    act = a;
-    cards.forEach((cd, i) => {
-      const delay = Math.abs(i - from) * STAG;
-      const th = a < 0 ? REST[i] : i < a ? REST[i] + BACK * amt : i > a ? REST[i] + FWD * amt : 0;
-      tset(cd.a, clamp(th, -32, 26), now, delay);
-      tset(cd.z, a === i ? LIFT * amt : 0, now, delay);
-      cd.face.classList.toggle("hi", a < 0 ? i === MID : i === a);
-    });
-    read.textContent = a < 0 ? "rest" : String(a + 1).padStart(2, "0");
+  let over = false;
+  /** The pointer over the box (true) or gone (false): the lean, and on the way in the wave. */
+  function feel(on) {
+    if (on === over) return;
+    over = on;
+    const now = performance.now();
+    cards.forEach((cd, i) => tset(cd.a, clamp(REST + (on ? LEAN * amt : 0), -20, 0), now, Math.abs(i - front) * LEAN_STAG));
+    if (on && !reducedMotion() && (t0 === null || now > waveEnd() - WAVE_MS)) t0 = now;
+    read.textContent = on ? "over" : "rest";
     B.wake();
   }
 
-  bag.add(pointer(hover || stage, { move: (p) => setActive(hit(p)), leave: () => setActive(-1) }));
+  bag.add(pointer(hover || stage, { move: () => feel(true), leave: () => feel(false) }));
   bag.add(() => svg.replaceChildren());
   read.textContent = "rest";
 
   return {
     set: (v) => {
       amt = v;
-      if (act < 0) return;
-      const a = act;
-      act = -1;
-      setActive(a);
+      if (!over) return;
+      over = false;
+      feel(true);
     },
     destroy: bag.dispose,
   };
@@ -156,9 +149,9 @@ function mount({ stage, svg, read, hover }, value) {
 
 export const STACK = {
   name: "stack",
-  means: "A row of plain cards: the one nearest the pointer stands up, and the rest riffle away from it in turn.",
+  means: "A row of plain cards: the pointer sends one soft wave along it, and the row leans back a little while it stays.",
   rules: [1, 2, 5, 8],
   range: [0.3, 0.6, 1],
-  tour: [[150, 210], [205, 150], [270, 110], null],
+  tour: [[150, 210], [270, 110], null],
   mount,
 };

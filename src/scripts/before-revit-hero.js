@@ -21,11 +21,14 @@
      the drawing where it is (CSS sticky), the frame's height is the
      scroll's. One number, how far through the hold the page is (p, a
      ScrollTrigger's progress, read as it scrolls, no tween of its own),
-     sets everything: up to LAND the frame comes down, slowly at first and
-     faster as it nears the platform (a cube, for its weight); at LAND it
-     is down, and from there the landing plays out over the rest of the
-     hold: a small rebound and a quiet pulse of light at the platform's
-     foot, swelling a little and fading (third pass: no ring, no flash). Stopped, it all
+     sets everything: up to LAND the frame comes down, easing in and out
+     (fourth pass; it settles onto the platform rather than dropping); at
+     LAND it is down, and from there the landing plays out over the rest of
+     the hold: a quiet pulse of light at the platform's foot, swelling a
+     little and fading (third pass: no ring, no flash). The page's position
+     is followed over a short glide (FOLLOW), so the frame never moves more
+     roughly than the wheel does. The statement's lines rise out of their
+     masks with the scroll as it comes up (fourth pass). Stopped, it all
      stops where it is; scrolled back, it all runs back, the pulse
      included, since every part of it is a function of p. Transforms and
      opacities, and the frame's own few paths (figure.lift); nothing is
@@ -44,12 +47,21 @@ const NS = "http://www.w3.org/2000/svg";
 // how far through the hold the frame lands (share of the hold's scroll),
 // and how much of what follows the rebound takes
 const LAND = 0.72;
-const BOUNCE = 0.12;
-// the rebound's height (the figure's units), and the pulse of light at the
-// platform's foot: its brightest, and how much it swells
-const REBOUND = 1.2;
-const PULSE = 0.42;
+// the pulse of light at the platform's foot: its brightest, and how much
+// it swells
+const PULSE = 0.34;
 const SWELL = 0.12;
+// Fourth pass (2026-11-04): smoother and more controlled. The frame eases
+// in and out of its fall (it settles onto the platform, no rebound), and
+// the scroll's position is followed over a short glide (FOLLOW, seconds)
+// rather than step by step, so the motion is never rougher than the
+// wheel; still the scroll's, both ways.
+const FOLLOW = 0.32;
+// the statement's lines rise out of their masks as it comes up the screen,
+// from its top this far up the screen to its middle this far (scrubbed)
+const RISE_FROM = "top 88%";
+const RISE_TO = "center 58%";
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 
 const el = (tag, attrs, parent) => {
   const node = document.createElementNS(NS, tag);
@@ -105,8 +117,9 @@ export function initBeforeRevitHero(container) {
       const lg = el("linearGradient", { id, x1: 0, y1: 0, x2, y2 }, defs);
       stops.forEach(([at, color, a = 1]) => el("stop", { offset: at, "stop-color": color, "stop-opacity": a }, lg));
     };
-    grad("br-top", [[0, "#5e0606"], [0.55, "#b8120d"], [1, "#ff3b2a"]], 0.35, 1);
-    grad("br-side", [[0, "#d21a12"], [1, "#4a0303"]]);
+    // (fourth pass: a deeper, less saturated red, as the light round it)
+    grad("br-top", [[0, "#3a0a08"], [0.55, "#7a1c15"], [1, "#b8402f"]], 0.35, 1);
+    grad("br-side", [[0, "#94251b"], [1, "#2e0806"]]);
 
     const figure = PRESS.mount({
       stage,
@@ -137,9 +150,10 @@ export function initBeforeRevitHero(container) {
     let field = null;
     if (ground && figure.origin) {
       svg.dataset.ground = figure.origin.map((v) => v.toFixed(2)).join(" ");
-      // half the drawing's cell: a finer lattice (third pass), its lines
-      // still through the platform's and the ground square's edges
-      ground.dataset.isoModule = String(figure.cell / 2);
+      // two thirds of the drawing's cell (fourth pass: a step larger than
+      // the third pass's half), its lines still through the platform's and
+      // the ground square's edges (six and nine cells across)
+      ground.dataset.isoModule = String((figure.cell * 2) / 3);
       ground.dataset.isoAxis = figure.axis.map((v) => v.toFixed(5)).join(" ");
       field = mountIsoField(ground);
     }
@@ -171,7 +185,7 @@ export function initBeforeRevitHero(container) {
           shownZ = "free";
           figure.lift(null);
         }
-      } else lift(u < 0 ? FLOAT * (1 - fall * fall * fall) : u < BOUNCE ? REBOUND * Math.sin((Math.PI * u) / BOUNCE) : 0);
+      } else lift(u < 0 ? FLOAT * (1 - easeInOut(fall)) : 0);
       // the pulse: up quickly from the contact, then fading slowly
       const on = u >= 0 && u < 1;
       if (pulse) {
@@ -188,13 +202,26 @@ export function initBeforeRevitHero(container) {
 
     // how far through the hold the page is: from the hero's top at the
     // screen's to the hold letting go (where the after-room ends)
+    const statement = hero.querySelector("[data-br-statement]");
+    const inks = statement ? [...statement.querySelectorAll(".br-hero__ink")] : [];
     const mm = gsap.matchMedia();
     mm.add(
       { moving: "(min-width: 992px) and (prefers-reduced-motion: no-preference)", still: "(max-width: 991px), (prefers-reduced-motion: reduce)" },
       (ctx) => {
         const moving = ctx.conditions.moving;
-        const show = moving ? render : snap;
         shownP = -1;
+        // moving: the scroll's position followed over a short glide (one
+        // tween, retargeted as the page scrolls); still: as it is
+        const at = { p: 0 };
+        const follow = moving ? gsap.quickTo(at, "p", { duration: FOLLOW, ease: "power2.out", onUpdate: () => render(at.p) }) : null;
+        const show = (p, now) => {
+          if (!moving) return snap(p);
+          if (now) {
+            at.p = p;
+            follow.tween.kill();
+            render(p);
+          } else follow(p);
+        };
         const st = ScrollTrigger.create({
           trigger: hero,
           start: "top top",
@@ -203,10 +230,28 @@ export function initBeforeRevitHero(container) {
           end: () => (moving ? `+=${Math.max(1, hero.offsetHeight - hold.clientHeight)}` : "bottom top"),
           invalidateOnRefresh: true,
           onUpdate: (self) => show(self.progress),
-          onRefresh: (self) => show(self.progress),
+          onRefresh: (self) => show(self.progress, true),
         });
-        show(st.progress);
-        return () => st.kill();
+        show(st.progress, true);
+
+        // the statement's lines up out of their masks, one after another,
+        // as far as the statement has come up the screen (scrubbed: back
+        // down as it goes back)
+        const rise = moving && inks.length
+          ? gsap.fromTo(inks, { yPercent: 105 }, {
+              yPercent: 0,
+              ease: "power2.out",
+              stagger: 0.18,
+              scrollTrigger: { trigger: statement, start: RISE_FROM, end: RISE_TO, scrub: 0.6 },
+            })
+          : null;
+        return () => {
+          st.kill();
+          follow?.tween.kill();
+          rise?.scrollTrigger?.kill();
+          rise?.kill();
+          gsap.set(inks, { clearProps: "transform" });
+        };
       },
     );
 

@@ -3,24 +3,20 @@
    (stack-diagnostic.astro, stack-space.js, stack-sheet.js), after the
    reference of 2026-11-04 and its passes since: the whole page one screen
    tall, the row of software drawn on one canvas filling it; the title
-   large in the top left under the nav, with a line on how to read the
-   row; the list of stacks on the right; the Free Stack in the
-   bottom-right corner; a stack's sheet over the page. The page does not
-   scroll (no footer: BaseLayout's footer={false}); the wheel moves
-   through the row.
+   large in the top left under the nav, the switch between the row and the
+   list under it; the Free Stack in the bottom-right corner; a stack's
+   sheet over the page. The page does not scroll (no footer: BaseLayout's
+   footer={false}); the wheel moves through the row.
 
-   Third pass (2026-11-04): the nav in its light version, the ground a
-   step darker than the nav's greys (#ececec, #e5e5e5) so the bar stands
-   clear of it, and the cards (white and a light grey, no outlines, a soft
-   shadow each) clearer on it too.
+   Fourth pass (2026-11-04): no line on how to read the row and no list of
+   stacks beside it (the cards and their colours say it); the title lower
+   and further from the row; the same stacks also as a flat list.
    ============================================================ */
 .sd {
   --sd-ground: #dcdcd8;
   --sd-ink: var(--c-text);
   --sd-quiet: rgba(10, 10, 10, 0.45);
-  /* the stacks' two tones in the row (stack-space.js, TONES) */
-  --sd-tone-a: #ffffff;
-  --sd-tone-b: #e8e8e4;
+  --sd-ease: cubic-bezier(0.32, 0.72, 0, 1);
   position: relative;
   height: 100vh;
   height: 100svh;
@@ -34,110 +30,63 @@
   /* the stage takes every gesture: a swipe moves through the row */
   touch-action: none;
   outline: none;
+  transition: opacity 0.4s ease, visibility 0s;
 }
 .sd__stage:focus-visible { box-shadow: inset 0 0 0 2px rgba(10, 10, 10, 0.25); }
 .sd__canvas { display: block; width: 100%; height: 100%; }
+/* the list shown: the row faded out, and asleep (stack-space.js) */
+.sd[data-view="flat"] .sd__stage { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
 
-/* the title, large, under the nav in the top left: the corner the row
-   leaves empty */
+/* the title, large, in the top left under the nav (the corner the row
+   leaves empty), a little in from the grid's margin as the other heroes'
+   words are, and lower than it stood (fourth pass), a clear step from the
+   row; the switch between the row and the list under it */
 .sd__head {
   position: absolute;
-  /* a little in from the grid's margin (2026-11-04), as the other
-     heroes' words are */
   left: calc(var(--grid-margin) + 3rem);
-  top: calc(var(--nav-h) + 2rem);
+  top: calc(var(--nav-h) + min(5rem, 9svh));
   z-index: 2;
   max-width: 30rem;
   pointer-events: none;
 }
 .sd__title {
-  margin: 0 0 1.25rem;
+  margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
   font-size: min(4.75rem, 11svh);
   line-height: 0.95;
   letter-spacing: calc(var(--primary-tracking) - 0.04em);
 }
-.sd__legend {
-  max-width: 21rem;
-  margin: 0 0 1rem;
-  font-size: var(--t-rg);
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--sd-ink) 70%, transparent);
+/* the switch: two small keys in one tray, the one showing filled in the ink */
+.sd__views {
+  display: inline-flex;
+  gap: 0.125rem;
+  margin-top: 1.75rem;
+  padding: 0.1875rem;
+  border-radius: 999px;
+  background: rgba(10, 10, 10, 0.07);
+  pointer-events: auto;
 }
-
-/* the list of stacks: a quiet column in the bottom right, over the Free
-   Stack (the corner the row always leaves empty, whatever the screen's
-   shape), each with the tone its cards take in the row, its count small
-   above the line; then the Software Database */
-.sd__index {
-  position: absolute;
-  right: var(--grid-margin);
-  bottom: calc(var(--grid-margin) + 2.5rem + 2rem);
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.0625rem;
-  max-width: 17rem;
-}
-.sd__filter-group {
-  margin: 0 0 0.375rem;
+.sd__view {
+  min-width: 3.5rem;
+  padding: 0.5rem 0.875rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
   font-family: var(--font-mono);
-  font-size: 0.625rem;
+  font-size: 0.6875rem;
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
-  color: var(--sd-quiet);
-}
-.sd__filter {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.125rem 0;
-  border: 0;
-  background: none;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  line-height: 1.3;
-  text-align: right;
-  color: color-mix(in srgb, var(--sd-ink) 70%, transparent);
+  line-height: 1;
+  color: rgba(10, 10, 10, 0.6);
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: background-color 0.3s var(--sd-ease), color 0.3s ease;
 }
-.sd__filter sup { margin-left: -0.3em; font-size: 0.62em; }
-.sd__filter:hover { color: var(--sd-ink); }
-.sd__filter:focus-visible { outline: 1px solid var(--sd-ink); outline-offset: 2px; }
-/* a stack's tone: a small card of it, its shadow as the cards' */
-.sd__swatch {
-  flex: none;
-  width: 0.625rem;
-  height: 0.4rem;
-  border-radius: 1px;
-  box-shadow: 0 1px 2px rgba(20, 20, 16, 0.22);
+@media (hover: hover) {
+  .sd__view:hover { color: var(--sd-ink); }
 }
-.sd__swatch.is--tone-a { background: var(--sd-tone-a); }
-.sd__swatch.is--tone-b { background: var(--sd-tone-b); }
-.sd__sample-note {
-  max-width: 13rem;
-  margin: 0.5rem 0 0;
-  font-size: 0.75rem;
-  line-height: 1.35;
-  text-align: right;
-  color: color-mix(in srgb, var(--sd-ink) 52%, transparent);
-}
-.sd__switch {
-  margin-top: 1rem;
-  font-family: var(--font-body);
-  font-size: 0.8125rem;
-  line-height: 1.3;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--sd-ink) 25%, transparent);
-  text-underline-offset: 0.2em;
-  color: color-mix(in srgb, var(--sd-ink) 60%, transparent);
-  transition: color 0.2s ease;
-}
-.sd__switch:hover { color: var(--sd-ink); }
-.sd__switch:focus-visible { outline: 1px solid var(--sd-ink); outline-offset: 2px; }
+.sd__view[aria-pressed="true"] { background: var(--sd-ink); color: var(--c-white); }
+.sd__view:focus-visible { outline: 1px solid var(--sd-ink); outline-offset: 2px; }
 
 /* the Free Stack: the bottom-right corner, the grid's margin in from the
    side and the foot */
@@ -146,6 +95,146 @@
   right: var(--grid-margin);
   bottom: var(--grid-margin);
   z-index: 2;
+}
+
+/* ------------------------------------------------------------
+   The flat list (stack-diagnostic.astro; switched by stack-space.js): the
+   same stacks as blocks, each a solid block of its stack's colour, its
+   count, name and workflow at the top, then its tools in rows (the mark,
+   the name, the role) and its locked ones (the lock and a veiled bar),
+   and at its foot the way to open it. The blocks in columns to the right
+   of the title, scrolling inside the screen; each opens the stack's sheet
+   out of its own rows.
+   ------------------------------------------------------------ */
+.sd-flat {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding: calc(var(--nav-h) + min(5rem, 9svh)) var(--grid-margin) 7rem calc(var(--grid-margin) + 3rem + min(25rem, 28vw));
+  opacity: 0;
+  translate: 0 0.75rem;
+  transition: opacity 0.35s ease, translate 0.5s var(--sd-ease);
+  /* the blocks fade out at the screen's foot, under the Free Stack */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent calc(100% - 1rem));
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 6rem), transparent calc(100% - 1rem));
+}
+.sd-flat[hidden] { display: none; }
+.sd[data-view="flat"] .sd-flat { opacity: 1; translate: none; }
+.sd-flat__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(15.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.sd-flat__item { display: flex; }
+.sd-flat__stack {
+  --line: color-mix(in srgb, var(--tone-ink) 12%, transparent);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--tone-ink) 8%, transparent);
+  border-radius: 6px;
+  background: var(--tone);
+  color: var(--tone-ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: translate 0.4s var(--sd-ease), border-color 0.3s ease;
+}
+@media (hover: hover) {
+  .sd-flat__stack:hover { translate: 0 -0.1875rem; border-color: color-mix(in srgb, var(--tone-ink) 22%, transparent); }
+}
+.sd-flat__stack:focus-visible { outline: 2px solid var(--sd-ink); outline-offset: 3px; }
+.sd-flat__head {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 1.125rem 1.125rem 1rem;
+}
+.sd-flat__count,
+.sd-flat__workflow,
+.sd-flat__role,
+.sd-flat__open {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+.sd-flat__count { color: color-mix(in srgb, var(--tone-ink) 50%, transparent); }
+.sd-flat__name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1.05;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.sd-flat__workflow { color: color-mix(in srgb, var(--tone-ink) 62%, transparent); }
+/* a tool: its mark, its name, its role; a hairline over each */
+.sd-flat__tool {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  grid-template-areas: "mark name" "mark role";
+  column-gap: 0.75rem;
+  align-items: center;
+  padding: 0.625rem 1.125rem;
+  border-top: 1px solid var(--line);
+}
+.sd-flat__mark {
+  grid-area: mark;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  overflow: hidden;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--tone-ink) 8%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--tone-ink) 66%, transparent);
+}
+/* a product's own mark on white, in its own proportions */
+.sd-flat__mark:has(img) { background: #ffffff; box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.08); }
+.sd-flat__mark img { width: 68%; height: 68%; object-fit: contain; }
+.sd-flat__mark.is--lock svg { width: 0.9375rem; height: 0.9375rem; }
+.sd-flat__tool-name { grid-area: name; font-size: 0.9375rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sd-flat__role { grid-area: role; margin-top: 0.1875rem; color: color-mix(in srgb, var(--tone-ink) 52%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sd-flat__tool.is--locked { grid-template-areas: "mark name"; }
+.sd-flat__bar {
+  grid-area: name;
+  display: block;
+  width: 58%;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--tone-ink) 12%, transparent);
+  filter: blur(1px);
+}
+/* the way in, at the block's foot */
+.sd-flat__open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: 0.875rem 1.125rem;
+  border-top: 1px solid var(--line);
+  color: color-mix(in srgb, var(--tone-ink) 72%, transparent);
+}
+.sd-flat__open svg { width: 0.875rem; height: 0.875rem; transition: translate 0.4s var(--sd-ease); }
+@media (hover: hover) {
+  .sd-flat__stack:hover .sd-flat__open svg { translate: 0.1875rem 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd__stage,
+  .sd-flat,
+  .sd-flat__stack,
+  .sd-flat__open svg { transition: none; }
 }
 
 /* ------------------------------------------------------------
@@ -246,7 +335,12 @@
   box-shadow: var(--sheet-shadow);
 }
 /* the title: the stack's name large, what it is and what it is for */
-.sd-sheet__card.is--head { padding: 2rem 1.75rem 1.75rem; background: #fdfdfc; }
+/* (fourth pass, 2026-11-04: in the stack's own colour, as its cards are) */
+.sd-sheet__card.is--head {
+  padding: 2rem 1.75rem 1.75rem;
+  background: var(--sheet-tone, #fdfdfc);
+  color: var(--sheet-tone-ink, var(--c-text));
+}
 .sd-sheet__kicker {
   display: flex;
   justify-content: space-between;
@@ -256,7 +350,7 @@
   font-size: 0.6875rem;
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
-  color: rgba(10, 10, 10, 0.5);
+  color: color-mix(in srgb, currentColor 52%, transparent);
 }
 .sd-sheet__badge { color: var(--c-red); }
 .sd-sheet__title {
@@ -273,7 +367,7 @@
   font-size: 0.6875rem;
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
-  color: rgba(10, 10, 10, 0.55);
+  color: color-mix(in srgb, currentColor 58%, transparent);
 }
 .sd-sheet__summary {
   max-width: 30rem;
@@ -342,38 +436,18 @@
 .sd-sheet__card.is--cta { padding: 1.75rem; background: #fdfdfc; }
 .sd-sheet__cta-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; line-height: 1.15; }
 .sd-sheet__cta-text { max-width: 30rem; margin: 0.625rem 0 1.25rem; font-size: var(--t-rg); line-height: 1.45; color: rgba(10, 10, 10, 0.68); }
-.sd-sheet__sample { margin: 1rem 0 0; font-size: 0.75rem; line-height: 1.4; color: var(--c-red); }
 
-/* a tablet: the list a little smaller */
+/* a tablet: the list under the title, the full width */
 @media screen and (max-width: 991px) {
-  .sd__filter { font-size: 0.8125rem; }
-  .sd__legend { max-width: 18rem; }
+  .sd-flat { padding-left: var(--grid-margin); padding-top: calc(var(--nav-h) + min(5rem, 9svh) + 9rem); }
 }
-/* a phone: the title smaller, the list one row along the foot that scrolls
-   across, the Free Stack under it; the sheet's close button over the
-   column's corner */
+/* a phone: the title smaller; the Free Stack along the foot; the sheet's
+   close button over the column's corner */
 @media screen and (max-width: 767px) {
-  .sd__head { left: var(--grid-margin); }
-  .sd__title { font-size: 2.75rem; margin-bottom: 0.75rem; }
-  .sd__legend { font-size: 0.875rem; max-width: 17rem; }
-  .sd__index {
-    left: 0;
-    right: 0;
-    bottom: calc(var(--grid-margin) + 3.5rem);
-    max-width: none;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 1rem;
-    padding: 0 var(--grid-margin);
-    overflow-x: auto;
-    scrollbar-width: none;
-    white-space: nowrap;
-  }
-  .sd__index::-webkit-scrollbar { display: none; }
-  .sd__filter-group,
-  .sd__sample-note { display: none; }
-  .sd__filter,
-  .sd__switch { flex: none; margin: 0; }
+  .sd__head { left: var(--grid-margin); top: calc(var(--nav-h) + 1.5rem); }
+  .sd__title { font-size: 2.75rem; }
+  .sd__views { margin-top: 1rem; }
+  .sd-flat { padding-top: calc(var(--nav-h) + 9rem); padding-bottom: 6rem; }
   .sd__cta { left: var(--grid-margin); right: var(--grid-margin); }
   .sd__cta .action-button { width: 100%; }
   .sd-sheet { --sheet-top: calc(var(--nav-h) + 1.5rem); }
