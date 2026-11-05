@@ -2711,6 +2711,41 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .insight-slider__item.is--current .insight-card.is--editorial .insight-card__img { filter: none; }
 }
 .insight-card.is--editorial:focus-visible { outline: 2px solid var(--c-text); outline-offset: 6px; }
+/* Research & Insights on the ink (third pass, 2026-11-05, closer to the
+   reference): the section black, the cards its black (opaque), their type
+   white and greys, the rule's dots and the number's square in white, the
+   arrow's square a dark grey, the picture in a frame a step off the black
+   with a hairline round it; the active red as before. The row no longer
+   parks its cards at the left edge (data-slider-flat): they run off it,
+   cropped there, so nothing behind them shows as the row moves. */
+.research.research--dark {
+  --research-ink: #050505;
+  background: var(--research-ink);
+  color: var(--c-white);
+}
+.research--dark .insight-slider.is--editorial { --card-ground: var(--research-ink); }
+.research--dark .insight-card.is--editorial { color: var(--c-white); }
+.research--dark .insight-card.is--editorial .insight-card__rule { color: var(--c-white); }
+.research--dark .insight-card__mark { border-color: rgba(255, 255, 255, 0.7); color: var(--c-white); }
+.research--dark .insight-card.is--editorial .insight-card__go { background: #2c2e33; color: var(--c-white); }
+.research--dark .insight-slider.is--editorial .insight-card.is--editorial .insight-card__p { color: rgba(255, 255, 255, 0.58); }
+.research--dark .insight-slider.is--editorial .insight-card.is--editorial .insight-card__img {
+  background: #16181c;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+@media (hover: hover) {
+  .research--dark .insight-slider.is--editorial .insight-card.is--editorial:hover { background: var(--card-ground); }
+}
+/* the dots and arrows on the ink */
+.research--dark .dots button { background: rgba(255, 255, 255, 0.28); }
+.research--dark .dots button.is--active { background: var(--c-white); }
+.research--dark .arrows button { background: #1c1d20; }
+.research--dark .arrows button .icon { filter: invert(1); }
+@media (hover: hover) {
+  .research--dark .arrows button:hover { background: #2c2e33; }
+  .research--dark .arrows button[disabled]:hover { background: #1c1d20; }
+}
+
 /* a dot for a stop the deck never reaches (data-slider-fill) */
 .insight-slider [data-slider-dot][hidden] { display: none; }
 /* the heading alone, on two lines, from Grid Column 2 */

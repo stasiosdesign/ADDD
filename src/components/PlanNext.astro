@@ -17,10 +17,16 @@ export type NextLink = {
   textField?: string;
   buttonField?: string;
 };
-interface Props { links: NextLink[] }
-const { links } = Astro.props;
+interface Props {
+  links: NextLink[];
+  /** a short heading over the panels (Before Revit: "Looking for something different?") */
+  heading?: string;
+  headingField?: string;
+}
+const { links, heading, headingField } = Astro.props;
 ---
-<div class:list={["plan-next", { "is--single": links.length === 1 }]}>
+{heading && <p class="plan-next__heading" data-page-field={headingField}>{heading}</p>}
+<div class:list={["plan-next", { "is--single": links.length === 1, "has--heading": heading }]}>
   {links.map((l) => (
   <div class="plan-next__panel" data-ground="dark">
     <div class="plan-next__words">

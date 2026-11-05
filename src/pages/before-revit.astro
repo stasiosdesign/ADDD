@@ -3,7 +3,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
-import BookCall from "../components/BookCall.astro";
+import BookCallDialog from "../components/BookCallDialog.astro";
+import ProblemCard from "../components/ProblemCard.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import PricingPlan from "../components/PricingPlan.astro";
 import PlanNext from "../components/PlanNext.astro";
@@ -20,6 +21,17 @@ import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "beforeRevitPage"), D);
 
 const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
+const problems = list<{ _key: string; title?: string; text?: string }>("problem.tiles");
+const pad = (n: number) => String(n).padStart(2, "0");
+
+// The problem cards' figures (problem-figures.js), in the cards' order:
+// tools going round, work handed on that stops short of connecting, and
+// choices no two of which line up
+const PROBLEM_FIGURES = [
+  { figure: "turntable", label: "Blocks on a turntable that settles back where it started" },
+  { figure: "plug", label: "A plug drawn towards its socket that stops short" },
+  { figure: "format", label: "A file of crooked lines, each set to a different indent" },
+];
 
 // a booking or enquiry button: the free call's calendar (BookCallDialog.astro,
 // "book-call"), as Book a Call opens it (2026-11-05)
@@ -31,7 +43,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
   pageName="Before Revit"
   doc={{ id: "beforeRevitPage" }}
 >
-<main class="page--grid">
+<main class="page--grid page--before-revit">
 
   <!-- The opening (BeforeRevitHero.astro, 2026-11-04, after the
        reference): dark, the words large on the left, the exploded box
@@ -39,17 +51,44 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
        then landing on the platform. "Inquire" goes to the Contact page;
        "View Pricing" glides down to the prices. The red block that stands
        under every service page's opening stays under it. -->
-  <BeforeRevitHero heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
+  <!-- (2026-11-05, the rebuild: the brief's label, heading, standfirst and
+       one button, "Discuss your workflow", which opens the free call's
+       calendar; the practices' marks under it and the statement after it
+       as they were) -->
+  <BeforeRevitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
       <ActionButton {...BOOK}><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
-      <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
   </BeforeRevitHero>
 
+  <!-- The problem (2026-11-05, the rebuild): the Workflow Workshop's problem
+       cards (ProblemCard.astro), each with a Hairline figure on its field of
+       dots (problem-figures.js), on the warm ground, set out as a stair by
+       the scroll as the Workshop's are: tools going round and round, work
+       handed on that never quite connects, and a set of choices no two of
+       which line up -->
+  <section class="section ws-section br-problems" id="overview">
+    <div class="container">
+      <div class="ws-head">
+        <h2 class="h2" data-split="heading" data-page-field="problem.heading">{t("problem.heading")}</h2>
+      </div>
+      <div data-problem-parallax class="problem-grid ws-problems">
+        {problems.map((tile, i) => (
+        <ProblemCard title={tile.title} text={tile.text} titleField={`problem.tiles.${i}.title`} textField={`problem.tiles.${i}.text`}>
+          <div class="problem-card__frame is--figure">
+            <div class="problem-card__figure" data-problem-figure={PROBLEM_FIGURES[i]?.figure} data-label={PROBLEM_FIGURES[i]?.label}></div>
+          </div>
+        </ProblemCard>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works: the numbered rows on the site's dotted rule (.steps), on
+       the light grey, each its number and name, its title and its line -->
   <section class="section section--light" id="how-it-works">
     <div class="container">
       <div class="section-title">
-        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
           <h2 class="h2" data-split="heading" data-page-field="method.heading">{t("method.heading")}</h2>
@@ -57,9 +96,9 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
       </div>
 
       <div class="steps" data-page-list="method.steps">
-        {steps.map((step) => (
+        {steps.map((step, i) => (
         <div class="steps__item" data-page-item={step._key}>
-          <p class="tagline tagline--sm steps__label" data-page-item-field="label">{step.label}</p>
+          <p class="tagline tagline--sm steps__label">{pad(i + 1)} / <span data-page-item-field="label">{step.label}</span></p>
           <div class="steps__body">
             <h3 class="h4" data-page-item-field="title">{step.title}</h3>
             <p data-page-item-field="text">{step.text}</p>
@@ -70,11 +109,12 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     </div>
   </section>
 
-  <!-- The prices (2026-11-05, the Workflow Workshop's: PricingPlan.astro,
-       plan.css): the head and Book a Free Call on the left over the three
-       steps, Before Revit's card on the right, and under them two ink
-       panels on to the Technology Blueprint and the Workflow Workshop (the
-       second card's words, without its price) -->
+  <!-- Investment (2026-11-05, the rebuild; PricingPlan.astro, plan.css, as
+       before): the head on the left over the three steps, the engagement's
+       card on the right (what you receive, the call, and its scope and fee
+       in the note), and under them, after "Looking for something
+       different?", two ink panels on to the Workflow Workshop and the
+       Technology Blueprint -->
   <section class="section plan-section" id="pricing">
     <div class="container">
       <PricingPlan
@@ -101,17 +141,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
           button: { label: t("pricing.cards.0.button"), attrs: BOOK },
         }]}
       >
-        <BookCall slot="aside" />
-        <PlanNext slot="next" links={[
-          {
-            title: t("pricing.blueprintTitle"),
-            text: t("pricing.blueprintText"),
-            button: t("pricing.blueprintButton"),
-            href: "technology-blueprint.html",
-            titleField: "pricing.blueprintTitle",
-            textField: "pricing.blueprintText",
-            buttonField: "pricing.blueprintButton",
-          },
+        <PlanNext slot="next" heading={t("pricing.nextHeading")} headingField="pricing.nextHeading" links={[
           {
             title: t("pricing.cards.1.title"),
             text: t("pricing.cards.1.subtitle"),
@@ -121,10 +151,23 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
             textField: "pricing.cards.1.subtitle",
             buttonField: "pricing.cards.1.button",
           },
+          {
+            title: t("pricing.blueprintTitle"),
+            text: t("pricing.blueprintText"),
+            button: t("pricing.blueprintButton"),
+            href: "technology-blueprint.html",
+            titleField: "pricing.blueprintTitle",
+            textField: "pricing.blueprintText",
+            buttonField: "pricing.blueprintButton",
+          },
         ]} />
       </PricingPlan>
     </div>
   </section>
+
+  <!-- the free call's calendar, which every booking button here opens
+       (BookCallDialog.astro; booking.js) -->
+  <BookCallDialog id="book-call" />
 
   <ClosingCta />
   <!-- Book a Call, floating at the screen's foot from past the hero to Book a

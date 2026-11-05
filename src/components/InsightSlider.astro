@@ -18,7 +18,7 @@ interface Props {
 
 const { items, editorial = false } = Astro.props;
 ---
-<div data-slider data-scale="0.72" data-rotate="-5" data-slider-fill={editorial ? "" : undefined} class:list={["insight-slider", { "is--editorial": editorial }]}>
+<div data-slider data-scale="0.72" data-rotate="-5" data-slider-fill={editorial ? "" : undefined} data-slider-flat={editorial ? "" : undefined} class:list={["insight-slider", { "is--editorial": editorial }]}>
   <div data-slider-viewport class="insight-slider__viewport">
     <div data-slider-list class="insight-slider__list">
       {items.map((item, i) => (

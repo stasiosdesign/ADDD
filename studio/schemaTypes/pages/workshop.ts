@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {PresentationIcon} from '@sanity/icons/Presentation'
-import {buttonField, headingField, heroSection, itemsField, leadField, linesField, pageSection, sectionHead, stageDetailsField, taglineField} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, stageDetailsField, taglineField, textField} from '../shared/fields'
 
 /* The Workflow Workshop page, one section per part of the page, in the
    order the page shows them (src/pages/workshops-audits.astro; the page's
@@ -36,7 +36,14 @@ export const workshopPage = defineType({
   type: 'document',
   icon: PresentationIcon,
   fields: [
-    heroSection('The opening: the tagline (a small label) and the headline, large, on the left; the standfirst and its two buttons on the light panel on the right.', 'Opens the booking calendar (a demonstration for now).', 'Scrolls down to the Investment section.'),
+    pageSection('hero', 'Opening', 'The opening on black: the headline, the standfirst and its two buttons on the left, the drawing held on the right while they scroll away and the statement comes up after them.', [
+      taglineField('The name on the drawing’s platform.'),
+      headingField(),
+      leadField(),
+      buttonField('Opens the Book a Call calendar.', 'primaryButton', 'First button label'),
+      buttonField('Scrolls down to the pricing.', 'secondaryButton', 'Second button label'),
+      textField('The statement that comes up as the opening’s words scroll away. One line here is one line on the page, all at one size: break the lines where a reader would pause.', 'statement', 'Statement', 3),
+    ]),
     pageSection('symptoms', 'Does this sound like your practice?', 'The heading, the standfirst and the three cards naming the problems the workshop finds, each with its figure (the homepage problem cards’ design).', [
       ...sectionHead(),
       itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title and a line of text each. The figures stay in the site’s code.'),

@@ -44,6 +44,11 @@ export function initInsightSlider(container) {
     // row is always full; without it, it runs on until the last card alone
     // is left at the front
     const fill = root.hasAttribute("data-slider-fill");
+    // data-slider-flat (the same): no deck. The cards run on off the left
+    // edge, where the viewport crops them, as a plain row does: no card is
+    // held back there, scaled and tipped, so nothing behind a tipped card's
+    // corners shows as the row moves
+    const flat = root.hasAttribute("data-slider-flat");
     let last = slides.length - 1;
 
     const controls = root.querySelector("[data-slider-controls]");
@@ -67,7 +72,7 @@ export function initInsightSlider(container) {
     function paint() {
       gsap.set(list, { x: -dragX });
 
-      slides.forEach((slide, i) => {
+      if (!flat) slides.forEach((slide, i) => {
         const local = Math.max(0, dragX - i * spacing);
         const t = spacing > 0 ? Math.min(local / spacing, 1) : 0;
 

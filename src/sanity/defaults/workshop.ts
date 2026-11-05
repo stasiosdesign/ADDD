@@ -10,6 +10,9 @@ export const workshopPage = {
     lede: 'A half-day session with your team around a real project. You’ll map how work moves through the practice, identify where workflows and tools create friction, and receive a written report with findings and priorities',
     primaryButton: 'Start Workshop',
     secondaryButton: 'View Pricing',
+    // the statement that comes up as the opening's words scroll away
+    // (2026-11-05), one line per line, Before Revit's length
+    statement: 'Half a day with your team\naround a real project, to find\nwhere time is being lost.',
   },
   symptoms: {
     heading: 'Where workflows lose momentum.',

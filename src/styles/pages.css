@@ -1652,7 +1652,12 @@
 .adv-compare-sec { background: var(--c-dark-fg); }
 .adv-gains .tagline,
 .adv-compare-sec .tagline { color: rgba(255, 255, 255, 0.55); }
-.adv-gains { padding-bottom: calc(var(--sec-lg) + 2rem); }
+.adv-gains {
+  /* more room over the heading and under the cards (2026-11-05): the cards
+     drift down into the room under them as the page scrolls (the stair) */
+  padding-top: calc(var(--sec-lg) * 1.6);
+  padding-bottom: calc(var(--sec-lg) * 1.6 + 2rem);
+}
 .adv-gains__row {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1678,7 +1683,7 @@
    lit a tone up (the cards' #1a1a1a) and opened at its head by the red
    rule the timelines light their columns with, its answers each marked
    with a small red square; the other column quieter */
-.adv-compare-sec { padding-top: 0; }
+.adv-compare-sec { padding-top: var(--sec-md); }
 /* the heading alone on the left (2026-11-05), from Grid Column 2, where the
    table's first column starts */
 @media screen and (min-width: 992px) {
@@ -1752,7 +1757,7 @@
 
 @media screen and (max-width: 991px) {
   .adv-gains__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .adv-gains { padding-bottom: var(--sec-lg); }
+  .adv-gains { padding-top: calc(var(--sec-lg) * 1.3); padding-bottom: calc(var(--sec-lg) * 1.3); }
   .adv-compare { --compare-cols: minmax(0, 1fr) 11rem 9rem; }
 }
 @media screen and (max-width: 767px) {
@@ -1907,3 +1912,8 @@
   .tf-gives { margin-top: 5rem; }
   .tf-rules li { font-size: var(--t-rg); }
 }
+
+/* Before Revit's problem (2026-11-05): the Workflow Workshop's problem
+   section (workshop.css), on its warm ground, with the same room under the
+   cards for their stair */
+.br-problems { background: #f2f0eb; padding-bottom: calc(var(--sec-lg) * 1.75); }
