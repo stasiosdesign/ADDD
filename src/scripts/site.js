@@ -53,6 +53,8 @@ import { initFolderDocs } from "./folder-docs.js";
 import { initBooking } from "./booking.js";
 import { initStageTimelines } from "./stage-timeline.js";
 import { initTabs } from "./tabs.js";
+import { initThemeList } from "./theme-list.js";
+import { initPartnerHero } from "./partner-hero.js";
 import { initBlueprintHero } from "./blueprint-hero.js";
 import { initBeforeRevitHero } from "./before-revit-hero.js";
 import { initCtaDiagram } from "./cta-diagram.js";
@@ -503,6 +505,8 @@ const PAGE_COMPONENTS = [
   ["[data-booking-open]", initBooking],
   ["[data-stage-timeline]", initStageTimelines],
   ["[data-tabs]", initTabs],
+  ["[data-theme-list]", initThemeList],
+  ["[data-partner-hero]", initPartnerHero],
   ["[data-blueprint-hero]", initBlueprintHero],
   ["[data-br-hero]", initBeforeRevitHero],
   ["[data-cta-diagram]", initCtaDiagram],

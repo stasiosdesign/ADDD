@@ -1,10 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Hero from "../components/Hero.astro";
 import ProblemCard from "../components/ProblemCard.astro";
 import ServiceTabs from "../components/ServiceTabs.astro";
+import ServiceDeck from "../components/ServiceDeck.astro";
+import FolderDocument from "../components/FolderDocument.astro";
+import type { Folder } from "../components/DeckFolder.astro";
 import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
@@ -59,11 +61,39 @@ const processStages: Stage[] = processTiles.map((step, i) => ({
 }));
 const processScale = processTiles.map((_, i) => ({ label: lines("process.phases")[i] ?? "", field: `process.phases.${i}` }));
 
-// Each offer's anchor and the name it carries into the enquiry form
-// (contact.html?offer=…, initEnquiryOffer in site.js), by position
-const offerIds = ["sponsorship", "episode", "intelligence"];
-const placementIds = ["newsletter", "events"];
+// The name each partnership carries into the enquiry form
+// (contact.html?offer=…, initEnquiryOffer in site.js)
 const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(offer ?? "partnership")}`;
+// The partnerships as folders (2026-11-05): the three, then the two smaller
+// placements, each with the Studio field its words come from; the sheet's
+// words through the notch and the pill at the foot stay here, as the
+// Workshop's folders keep theirs
+const partnerships = [
+  ...offers.map((o, i) => ({ ...o, field: `options.cards.${i}` })),
+  ...placements.map((o, i) => ({ ...o, field: `more.cards.${i}` })),
+];
+const documents = list<{ _key: string; kicker?: string; lede?: string; body?: string[]; points?: string[] }>("documents.items");
+const FOLDER_PARTS = [
+  { covers: ["12 months", "Category exclusive"], kind: "Sponsorship" },
+  { covers: ["Real project", "8–10 min video"], kind: "Content" },
+  { covers: ["Quarterly", "Anonymised"], kind: "Intelligence" },
+  { covers: ["ADDDitive", "One issue"], kind: "Placement" },
+  { covers: ["Your event", "LinkedIn carousel"], kind: "Coverage" },
+];
+const pad = (n: number) => String(n).padStart(2, "0");
+const folders: Folder[] = partnerships.map((offer, i) => ({
+  n: i + 1,
+  label: `Partnership N°${pad(i + 1)}`,
+  meta: [offer.price, offer.priceSuffix].filter(Boolean).join(" "),
+  title: offer.title,
+  text: offer.subtitle,
+  titleField: `${offer.field}.title`,
+  textField: `${offer.field}.subtitle`,
+  ...FOLDER_PARTS[i],
+  go: "Open folder",
+  action: `Open ${offer.title || "the folder"}`,
+  opens: `partner-folder-${i + 1}`,
+}));
 ---
 <BaseLayout
   title="AEC Tech Partners — ADDD"
@@ -81,13 +111,14 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
     arrowHref="#why"
     arrowLabel="Scroll to why ADDD"
     layout="centred"
-    accent="blue"
     cue="none"
     tagline={t("hero.tagline")}
     lede={t("hero.lede")}
     heading={t("hero.heading")}
     primaryCta={{ href: enquire(), label: t("hero.primaryButton") }}
     secondaryCta={{ href: "#options", label: t("hero.secondaryButton") }}
+    statement={t("hero.statement")}
+    statementField="hero.statement"
   />
 
   <!-- ========== WAYS TO WORK WITH ADDD ==========
@@ -173,82 +204,41 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
   </section>
 
   <!-- ========== PARTNERSHIP OPTIONS ==========
-       The three partnerships side by side in the Workflow Workshop's price
-       cards (workshop.css, .ws-price), white on the light grey, each set
-       out the same way so they compare at a glance: who it is for, what
-       it is, the price, what you receive, its conditions. Then the two
-       smaller placements, in the same cards, smaller. -->
-  <section class="section section--light tf-options" id="options">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="options.lede">{t("options.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="options.tagline">{t("options.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="options.heading">{t("options.heading")}</h2>
-        </div>
-      </div>
-
-      <div class="tf-offers">
-        {offers.map((offer, i) => (
-        <article class="ws-price tf-offer" id={`offer-${offerIds[i] ?? i}`}>
-          <div class="ws-price__head">
-            <div class="ws-price__name">
-              <h3 class="ws-card__title" data-page-field={`options.cards.${i}.title`}>{offer.title}</h3>
-              <div class="tf-offer__fit">
-                <p class="tagline tagline--sm">Best suited to</p>
-                <p data-page-field={`options.cards.${i}.audience`}>{offer.audience}</p>
-              </div>
-              <p class="tf-offer__what" data-page-field={`options.cards.${i}.subtitle`}>{offer.subtitle}</p>
-            </div>
-            <div class="tf-offer__price">
-              <div class="ws-price__amount">
-                <span class="ws-price__figure" data-page-field={`options.cards.${i}.price`}>{offer.price}</span>
-                {offer.priceSuffix && <span class="ws-price__affix" data-page-field={`options.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}
-              </div>
-              {offer.note && <p class="tf-offer__note" data-page-field={`options.cards.${i}.note`}>{offer.note}</p>}
-            </div>
-          </div>
-          <div class="ws-price__includes">
-            {offer.includesLabel && <p class="tagline tagline--sm" data-page-field={`options.cards.${i}.includesLabel`}>{offer.includesLabel}</p>}
-            <ul class="ws-checks">
-              {(offer.includes ?? []).map((line, j) => (
-              <li data-page-field={`options.cards.${i}.includes.${j}`}><span>{line}</span></li>
-              ))}
-            </ul>
-          </div>
-          <!-- always there (empty without conditions), so the card keeps
-               its four rows on the row's subgrid (pages.css) -->
-          <p class="tf-offer__conditions" data-page-field={`options.cards.${i}.conditions`}>{offer.conditions}</p>
-          <ActionButton href={enquire(offer.title)}><span data-page-field={`options.cards.${i}.button`}>{offer.button}</span></ActionButton>
-        </article>
-        ))}
-      </div>
-
-      <h3 class="tf-more__title" data-page-field="more.heading">{t("more.heading")}</h3>
-      <div class="tf-more">
-        {placements.map((offer, i) => (
-        <article class="ws-price tf-offer is--small" id={`offer-${placementIds[i] ?? i}`}>
-          <div class="ws-price__head">
-            <div class="ws-price__name">
-              <h4 class="ws-card__title" data-page-field={`more.cards.${i}.title`}>{offer.title}</h4>
-              <p data-page-field={`more.cards.${i}.subtitle`}>{offer.subtitle}</p>
-            </div>
-            <div class="ws-price__amount">
-              <span class="ws-price__figure" data-page-field={`more.cards.${i}.price`}>{offer.price}</span>
-              {offer.priceSuffix && <span class="ws-price__affix" data-page-field={`more.cards.${i}.priceSuffix`}>{offer.priceSuffix}</span>}
-            </div>
-          </div>
-          <div class="tf-offer__fit">
-            <p class="tagline tagline--sm">Best suited to</p>
-            <p data-page-field={`more.cards.${i}.audience`}>{offer.audience}</p>
-          </div>
-          {offer.conditions && <p class="tf-offer__conditions" data-page-field={`more.cards.${i}.conditions`}>{offer.conditions}</p>}
-          <ActionButton href={enquire(offer.title)} variant="secondary"><span data-page-field={`more.cards.${i}.button`}>{offer.button}</span></ActionButton>
-        </article>
-        ))}
-      </div>
-    </div>
-  </section>
+       (2026-11-05) The Workflow Workshop's Inside the Workshop
+       (ServiceDeck.astro, DeckFolder.astro): the heading held on the left,
+       the five partnerships as paper folders one under another, the three
+       partnerships then the two smaller placements, each opening its paper
+       (FolderDocument.astro, folder-docs.js) with who it suits, its price
+       and terms, what it involves and what you receive, and the way on to
+       the enquiry form, carrying the partnership's name. -->
+  <ServiceDeck
+    id="options"
+    heading={t("options.heading")}
+    headingField="options.heading"
+    aside={t("options.tagline")}
+    folders={folders}
+  />
+  {partnerships.map((offer, i) => (
+  <FolderDocument
+    id={`partner-folder-${i + 1}`}
+    n={i + 1}
+    series="ADDD :: AEC Tech Partners"
+    title={offer.title}
+    titleField={`${offer.field}.title`}
+    kicker={documents[i]?.kicker}
+    lede={documents[i]?.lede}
+    body={documents[i]?.body}
+    points={documents[i]?.points?.length ? documents[i]?.points : offer.includes}
+    pointsLabel={offer.includesLabel || "You receive"}
+    field={`documents.items.${i}`}
+    facts={[
+      { label: "Best suited to", value: offer.audience, field: `${offer.field}.audience` },
+      { label: "Price", value: [offer.price, offer.priceSuffix].filter(Boolean).join(" "), field: `${offer.field}.price` },
+      { label: "Terms", value: [offer.note, offer.conditions].filter(Boolean).join(". "), field: `${offer.field}.conditions` },
+    ]}
+    cta={{ href: enquire(offer.title), label: offer.button || "Discuss a partnership", field: `${offer.field}.button` }}
+  />
+  ))}
 
   <!-- ========== PROCESS, MEASUREMENT AND INDEPENDENCE ==========
        On the ink: the four steps on the Workflow Workshop's timeline
@@ -292,7 +282,6 @@ const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(off
     doc={{ id: "techFirmsPage", defaults: D, field: "closingCta" }}
     primary={{ href: enquire() }}
     secondary={{ href: "#options" }}
-    accent="blue"
   />
 
 </main>

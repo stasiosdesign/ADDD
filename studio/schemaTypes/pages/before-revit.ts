@@ -1,4 +1,4 @@
-import {defineType} from 'sanity'
+import {defineField, defineType} from 'sanity'
 import {EditIcon} from '@sanity/icons/Edit'
 import {buttonField, headingField, itemsField, leadField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
 
@@ -24,7 +24,7 @@ export const beforeRevitPage = defineType({
       // the heading's second line starts (the same value either way)
       textField('On two lines, both the same size: a line break written here is where the second line starts; without one, the second line takes the second half of the words.', 'heading', 'Heading', 2),
       leadField(),
-      buttonField('Links to the Contact page.', 'primaryButton', 'First button label'),
+      buttonField('Opens the Book a Call calendar.', 'primaryButton', 'First button label'),
       buttonField('Scrolls to the Investment section.', 'secondaryButton', 'Second button label'),
       textField('The statement that comes up on the left as the opening’s words scroll away, the drawing staying in place on the right. One line here is one line on the page, all at one size: break the lines where a reader would pause.', 'statement', 'Statement', 3),
     ]),
@@ -32,10 +32,14 @@ export const beforeRevitPage = defineType({
       ...sectionHead(),
       itemsField('steps', 'Steps', 'step', 'The steps, top to bottom: the label on the left, the title and the text.'),
     ]),
-    pageSection('pricing', 'Investment', 'The tagline and heading, and the two price cards. The cards’ looks and where their buttons lead stay in the site’s code.', [
+    pageSection('pricing', 'Investment', 'The tagline, heading and standfirst over the three steps (the Method’s labels and titles), Before Revit’s card beside them, and the two panels under them, on to the Technology Blueprint and the Workflow Workshop. The looks and where the buttons lead stay in the site’s code.', [
       taglineField(),
       headingField(),
-      {...itemsField('cards', 'Price cards', 'priceCard', 'Before Revit on the left, the Workflow Workshop on the dark card on the right.'), options: FIXED},
+      leadField('Under the heading.'),
+      {...itemsField('cards', 'Price cards', 'priceCard', 'Before Revit’s card (an included line written “Title — detail” shows the detail under the title), then the Workflow Workshop: its title, line under the title and button make the second panel under the prices (its price is no longer shown).'), options: FIXED},
+      defineField({name: 'blueprintTitle', title: 'Blueprint panel title', type: 'string', description: 'The first panel under the prices, on to the Technology Blueprint.'}),
+      defineField({name: 'blueprintText', title: 'Blueprint panel line', type: 'text', rows: 2}),
+      buttonField('Links to the Technology Blueprint page.', 'blueprintButton', 'Blueprint panel button'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Before Revit page'})},

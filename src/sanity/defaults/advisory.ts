@@ -18,26 +18,23 @@ export const advisoryPage = {
     statement: 'Architecture practices live in a cycle of technology decisions, but the people making them are pulled in too many directions to think clearly',
   },
   structure: {
-    lede: 'Predictability matters. Your practice knows when to expect guidance, what to prepare, and how to build on the month before. No surprises, no scrambling.',
+    // the standfirst is no longer shown (2026-11-05)
     tagline: 'Structure',
     heading: 'How it Works',
+    // the four panels of the bento, in order (2026-11-05)
     tiles: keyed('tile', [
-      { title: 'One focused live session', text: 'A 60-minute monthly advisory session centred on a strategic issue affecting architecture practices.' },
-      { title: 'A rotating theme', text: 'Each session explores a relevant area of technology, workflow, digital leadership or practice performance.' },
-      { title: 'Practical frameworks', text: 'Use decision frameworks, comparisons and supporting resources informed by ADDD’s work inside real practices.' },
-      { title: 'Questions between sessions', text: 'Raise limited follow-up questions through a shared channel as related decisions emerge.' },
-      { title: 'One practice membership', text: 'Relevant directors, operations leaders and digital or BIM leads can participate under the same membership.' },
+      { title: 'Monthly strategy sessions', text: 'A focused 60-minute live session each month exploring the technology, workflow and strategic challenges facing architecture practices.' },
+      { title: 'Guidance between sessions', text: 'Ask follow-up questions through a shared channel as new challenges arise, keeping decisions moving between monthly sessions.' },
+      { title: 'Practical tools and frameworks', text: 'Access useful frameworks, comparisons and resources shaped by ADDD’s experience working directly with architecture practices.' },
+      { title: 'One practice-wide membership', text: 'Bring directors, operations leaders and BIM or digital leads together under one membership, with guidance relevant to the whole practice.' },
     ]),
   },
   themes: {
     lede: 'Each month rotates based on what matters to your practice',
     heading: 'Themes Covered',
-    // each square's name (2026-11-04): the four parts the opening's loop
-    // names, from the standfirst
-    title1: 'AI',
-    title2: 'BIM',
-    title3: 'Software',
-    title4: 'Workflows',
+    // the themes, one large list in this order (2026-11-05); the four
+    // squares' names before it (title1–4) are no longer shown
+    items: ['AI', 'BIM', 'Technology', 'Workflows', 'Software', 'Hardware', 'Infrastructure', 'Automation', 'Integration', 'Licensing', 'Costs', 'Strategy', 'Security', 'Productivity', 'Leadership'],
   },
   impact: {
     lede: 'Monthly sessions compound. Better decisions now mean better foundations later.',
@@ -69,7 +66,9 @@ export const advisoryPage = {
     cards: keyed('card', [
       {
         title: 'Ongoing Advisory membership',
+        badge: 'Ongoing',
         subtitle: 'Full access, month to month',
+        includesLabel: 'Includes',
         price: '£1,250',
         priceSuffix: '/mo',
         note: 'From January 2027',
@@ -84,9 +83,10 @@ export const advisoryPage = {
       },
       {
         title: 'Technology Blueprint',
+        badge: 'Practice-wide',
         subtitle: 'The practice-wide strategy Ongoing Advisory follows or runs alongside',
-        pricePrefix: 'From',
-        price: '£18,000',
+        includesLabel: 'Includes',
+        // no price: the Technology Blueprint shows none in public (2026-11-05)
         includes: [
           'Practice-wide workflow analysis',
           'Software, licensing and cost review',

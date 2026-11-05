@@ -5,6 +5,8 @@ import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import BookCall from "../components/BookCall.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
+import PricingPlan from "../components/PricingPlan.astro";
+import PlanNext from "../components/PlanNext.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 
@@ -18,6 +20,10 @@ import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "beforeRevitPage"), D);
 
 const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
+
+// a booking or enquiry button: the free call's calendar (BookCallDialog.astro,
+// "book-call"), as Book a Call opens it (2026-11-05)
+const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
   title="Before Revit — ADDD"
@@ -35,7 +41,7 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
        under every service page's opening stays under it. -->
   <BeforeRevitHero heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
-      <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+      <ActionButton {...BOOK}><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
   </BeforeRevitHero>
@@ -64,53 +70,59 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
     </div>
   </section>
 
-  <section class="section" id="pricing">
+  <!-- The prices (2026-11-05, the Workflow Workshop's: PricingPlan.astro,
+       plan.css): the head and Book a Free Call on the left over the three
+       steps, Before Revit's card on the right, and under them two ink
+       panels on to the Technology Blueprint and the Workflow Workshop (the
+       second card's words, without its price) -->
+  <section class="section plan-section" id="pricing">
     <div class="container">
-      <div class="section-title">
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
-        </div>
-      </div>
-
-      <div class="grid grid--2 grid--mt">
-        <article class="price-card">
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field="pricing.cards.0.title">{t("pricing.cards.0.title")}</h3>
-            {t("pricing.cards.0.subtitle") && <p data-page-field="pricing.cards.0.subtitle">{t("pricing.cards.0.subtitle")}</p>}
-            <div class="price">{t("pricing.cards.0.pricePrefix") && <Fragment><span data-page-field="pricing.cards.0.pricePrefix">{t("pricing.cards.0.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.0.price">{t("pricing.cards.0.price")}</span>{t("pricing.cards.0.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.0.priceSuffix">{t("pricing.cards.0.priceSuffix")}</span></Fragment>}</div>
-            {t("pricing.cards.0.note") && <p data-page-field="pricing.cards.0.note">{t("pricing.cards.0.note")}</p>}
-          </div>
-          {t("pricing.cards.0.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.0.includesLabel">{t("pricing.cards.0.includesLabel")}</p>}
-          {lines("pricing.cards.0.includes").length > 0 && (
-          <ul class="check-list">
-            {lines("pricing.cards.0.includes").map((line, j) => (
-            <li data-page-field={`pricing.cards.0.includes.${j}`}>{line}</li>
-            ))}
-          </ul>
-          )}
-          <ActionButton href="contact.html"><span data-page-field="pricing.cards.0.button">{t("pricing.cards.0.button")}</span></ActionButton>
-        </article>
-
-        <article class="price-card price-card--dark">
-          <div class="stack stack--16">
-            <h3 class="h4" data-page-field="pricing.cards.1.title">{t("pricing.cards.1.title")}</h3>
-            {t("pricing.cards.1.subtitle") && <p data-page-field="pricing.cards.1.subtitle">{t("pricing.cards.1.subtitle")}</p>}
-            <div class="price">{t("pricing.cards.1.pricePrefix") && <Fragment><span data-page-field="pricing.cards.1.pricePrefix">{t("pricing.cards.1.pricePrefix")}</span> </Fragment>}<span class="price__amount" data-page-field="pricing.cards.1.price">{t("pricing.cards.1.price")}</span>{t("pricing.cards.1.priceSuffix") && <Fragment> <span data-page-field="pricing.cards.1.priceSuffix">{t("pricing.cards.1.priceSuffix")}</span></Fragment>}</div>
-            {t("pricing.cards.1.note") && <p data-page-field="pricing.cards.1.note">{t("pricing.cards.1.note")}</p>}
-          </div>
-          {t("pricing.cards.1.includesLabel") && <p class="tagline tagline--sm" data-page-field="pricing.cards.1.includesLabel">{t("pricing.cards.1.includesLabel")}</p>}
-          {lines("pricing.cards.1.includes").length > 0 && (
-          <ul class="check-list">
-            {lines("pricing.cards.1.includes").map((line, j) => (
-            <li data-page-field={`pricing.cards.1.includes.${j}`}>{line}</li>
-            ))}
-          </ul>
-          )}
-          <ActionButton href="workshops-audits.html" variant="secondary"><span data-page-field="pricing.cards.1.button">{t("pricing.cards.1.button")}</span></ActionButton>
-        </article>
-      </div>
-      <BookCall />
+      <PricingPlan
+        tagline={t("pricing.tagline")}
+        taglineField="pricing.tagline"
+        heading={t("pricing.heading")}
+        headingField="pricing.heading"
+        lede={t("pricing.lede")}
+        ledeField="pricing.lede"
+        rowsLabel="The three steps"
+        rows={steps.map((step, i) => ({ title: step.label, text: step.title, titleField: `method.steps.${i}.label`, textField: `method.steps.${i}.title` }))}
+        plans={[{
+          id: "plan-before-revit",
+          field: "pricing.cards.0",
+          title: t("pricing.cards.0.title"),
+          badge: t("pricing.cards.0.badge"),
+          prefix: t("pricing.cards.0.pricePrefix"),
+          price: t("pricing.cards.0.price"),
+          suffix: t("pricing.cards.0.priceSuffix"),
+          caption: t("pricing.cards.0.subtitle"),
+          label: t("pricing.cards.0.includesLabel"),
+          includes: lines("pricing.cards.0.includes"),
+          note: t("pricing.cards.0.note"),
+          button: { label: t("pricing.cards.0.button"), attrs: BOOK },
+        }]}
+      >
+        <BookCall slot="aside" />
+        <PlanNext slot="next" links={[
+          {
+            title: t("pricing.blueprintTitle"),
+            text: t("pricing.blueprintText"),
+            button: t("pricing.blueprintButton"),
+            href: "technology-blueprint.html",
+            titleField: "pricing.blueprintTitle",
+            textField: "pricing.blueprintText",
+            buttonField: "pricing.blueprintButton",
+          },
+          {
+            title: t("pricing.cards.1.title"),
+            text: t("pricing.cards.1.subtitle"),
+            button: t("pricing.cards.1.button"),
+            href: "workshops-audits.html",
+            titleField: "pricing.cards.1.title",
+            textField: "pricing.cards.1.subtitle",
+            buttonField: "pricing.cards.1.button",
+          },
+        ]} />
+      </PricingPlan>
     </div>
   </section>
 

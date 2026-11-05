@@ -1,19 +1,43 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 import {RocketIcon} from '@sanity/icons/Rocket'
-import {buttonField, headingField, heroSection, itemsField, leadField, linesField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
 
 /* The AEC Tech Partners page, one section per part of the page, in the
    order the page shows them (src/pages/tech-firms.astro; the page's own
    words in src/sanity/defaults/tech-firms.ts). The hero's pattern, the
    cards' colours and crops, and where every button leads stay in the site's
    code. A singleton with the fixed ID "techFirmsPage". */
+// What each partnership's folder opens (2026-11-05), one per folder in the
+// folders' order (the three partnerships, then the two smaller placements):
+// the page draws it on a sheet of paper (FolderDocument.astro) under the
+// folder's own title, with the card's who it suits, price and terms
+const partnerDocument = defineArrayMember({
+  type: 'object',
+  name: 'partnerDocument',
+  title: 'Document',
+  fields: [
+    defineField({name: 'kicker', title: 'Line over the title', type: 'string'}),
+    defineField({name: 'lede', title: 'In short', type: 'text', rows: 3, description: 'The summary under the title, between two rules.'}),
+    linesField('body', 'Paragraphs', 'The body, one paragraph each. A line starting with “## ” is set as a heading.'),
+    linesField('points', 'What you receive', 'The short list at the foot, one line each. Left empty, the card’s own list (What it includes) is shown.'),
+  ],
+  preview: {select: {title: 'kicker', subtitle: 'lede'}},
+})
+
 export const techFirmsPage = defineType({
   name: 'techFirmsPage',
   title: 'AEC Tech Partners page',
   type: 'document',
   icon: RocketIcon,
   fields: [
-    heroSection('The opening: the standfirst and tagline, the headline and its two buttons beside the pattern. The pattern stays in the code.', 'Opens the enquiry form, set to AEC Tech Partners.', 'Scrolls down to the partnership options.'),
+    pageSection('hero', 'Opening', 'The opening on the ink: the tagline, the headline, the standfirst and its two buttons, over the plates, which are held while the page scrolls the words away and brings the statement up. The plates stay in the code.', [
+      taglineField(),
+      headingField(),
+      leadField(),
+      buttonField('Opens the enquiry form, set to AEC Tech Partners.', 'primaryButton', 'First button label'),
+      buttonField('Scrolls down to the partnership options.', 'secondaryButton', 'Second button label'),
+      textField('The positioning statement that rises into the middle of the opening as its words go, at the size of the homepage’s statement.', 'statement', 'Statement', 3),
+    ]),
     pageSection('why', 'Why ADDD', 'The heading row, the three cards on what ADDD does, and what that gives a technology company.', [
       ...sectionHead(),
       itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: the number, the title and the text.'),
@@ -33,13 +57,19 @@ export const techFirmsPage = defineType({
       ...sectionHead(),
       itemsField('steps', 'Steps', 'step', 'One step per row: the small label, the title and the text.'),
     ]),
-    pageSection('options', 'Partnership options', 'The heading row and the three main partnerships. Where each button leads stays in the code: the enquiry form, carrying the partnership’s title.', [
-      ...sectionHead(),
-      itemsField('cards', 'Partnerships', 'priceCard', 'The three cards: main channel sponsorship, featured workflow episode, practice intelligence.'),
-    ]),
-    pageSection('more', 'Smaller placements', 'The two smaller offers under the main partnerships.', [
+    pageSection('options', 'Partnership options', 'The heading, held beside the five partnerships as folders (the three here, then the two smaller placements below), each opening its paper. The folders’ looks and where each paper’s button leads stay in the code: the enquiry form, carrying the partnership’s title.', [
+      // the standfirst, no longer shown (2026-11-05)
+      {...leadField('No longer shown.'), hidden: true},
+      taglineField('The small word held on the right of the folders.'),
       headingField(),
+      itemsField('cards', 'Partnerships', 'priceCard', 'The first three folders: main channel sponsorship, featured workflow episode, practice intelligence. On the folder: the title, the line under it (Line under the title) and the price; in its paper: who it suits, the price, the note and conditions as its terms, what you receive, and the button.'),
+    ]),
+    pageSection('more', 'Smaller placements', 'The last two folders, after the three partnerships: newsletter placement, event coverage.', [
+      {...headingField('No longer shown.'), hidden: true},
       itemsField('cards', 'Placements', 'priceCard', 'The two cards: newsletter placement, event coverage.'),
+    ]),
+    pageSection('documents', 'Partnership papers', 'What each of the five folders opens, in order.', [
+      defineField({name: 'items', title: 'Papers', type: 'array', of: [partnerDocument]}),
     ]),
     pageSection('process', 'Process and independence', 'The four steps of a partnership on a timeline, how success is measured, and the editorial independence statement.', [
       ...sectionHead(),

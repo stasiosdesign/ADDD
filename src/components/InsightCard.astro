@@ -7,6 +7,11 @@
   `filter` makes the card an item of an archive filter group
   (initFilterGroups() in src/scripts/site.js): the category chip doubles
   as the card's filter token, so the token is never written out twice.
+
+  `editorial` (the homepage's Research & Insights, 2026-11-05): the
+  picture, then its number and a hairline with the arrow at its end, the
+  title and the line of description; no category, no metadata
+  (styles.css, "Research & Insights, editorial").
 */
 import ArrowIcon from "./ArrowIcon.astro";
 
@@ -18,10 +23,28 @@ export interface Props {
   description?: string;
   meta: string[];
   filter?: boolean;
+  editorial?: boolean;
+  n?: number;
 }
 
-const { href, image, category, title, description, meta, filter = false } = Astro.props;
+const { href, image, category, title, description, meta, filter = false, editorial = false, n } = Astro.props;
 ---
+{editorial ? (
+<a class="insight-card is--editorial" href={href}>
+  <div class="insight-card__media">
+    <img class="insight-card__img" src={image} alt="" loading="lazy">
+  </div>
+  <div class="insight-card__body">
+    <p class="insight-card__line" aria-hidden="true">
+      <span class="insight-card__n">{n !== undefined ? String(n).padStart(2, "0") : ""}</span>
+      <span class="insight-card__rule"></span>
+      <span class="insight-card__go"><ArrowIcon /></span>
+    </p>
+    <h3 class="insight-card__h">{title}</h3>
+    {description && <p class="insight-card__p">{description}</p>}
+  </div>
+</a>
+) : (
 <a class:list={["insight-card", { "filter-item": filter }]} data-filter-name={filter ? "" : undefined} href={href}>
   <div class="insight-card__media">
     <img class="insight-card__img" src={image} alt="" loading="lazy">
@@ -34,3 +57,4 @@ const { href, image, category, title, description, meta, filter = false } = Astr
     <span class="insight-card__meta">{meta.map((item) => <span>{item}</span>)}</span>
   </div>
 </a>
+)}

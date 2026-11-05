@@ -4,7 +4,6 @@ import FaqPanel from "../components/FaqPanel.astro";
 import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import BlueprintHero from "../components/BlueprintHero.astro";
-import BookingDialog from "../components/BookingDialog.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ApproachStack from "../components/ApproachStack.astro";
@@ -87,8 +86,10 @@ const pad = (n: number) => String(n).padStart(2, "0");
        lower left (the buttons, the standfirst, then the heading at the
        foot); the network held in place while the words scroll away and the
        statement comes up after them, then going on up with it. "Start a
-       Blueprint" opens the booking calendar (a demonstration for now:
-       BookingDialog.astro); the second button goes down to the roadmap.
+       Blueprint" opens the free call's calendar, as every booking button
+       on the service pages does since 2026-11-05 (the FAQ's Book a Free
+       Call renders it: BookCallDialog.astro); the second button goes down
+       to the roadmap.
        In a clipping wrap, as the homepage's hero is (2026-11-04), so the
        band of the practices closes over it as it leaves, the hero falling
        back a little into shadow under it (initHeroParallax); from the
@@ -98,7 +99,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
   <div data-hero-parallax-inner>
   <BlueprintHero heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
-      <ActionButton type="button" data-booking-open="blueprint-booking" aria-haspopup="dialog" aria-controls="blueprint-booking"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+      <ActionButton type="button" data-booking-open="book-call" aria-haspopup="dialog" aria-controls="book-call"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
       <ActionButton href="#delivery" variant="secondary" arrow="down"><span data-page-field="hero.linkLabel">{t("hero.linkLabel")}</span></ActionButton>
     </Fragment>
   </BlueprintHero>
@@ -106,17 +107,6 @@ const pad = (n: number) => String(n).padStart(2, "0");
   <div data-hero-parallax-dark class="hero-wrap__dark"></div>
   </div>
 
-  <BookingDialog
-    id="blueprint-booking"
-    label="Technology Blueprint"
-    title="Start your blueprint"
-    note="Pick a day and a time for a first conversation about your practice and where the blueprint would begin. This calendar is a preview: online booking opens soon."
-    slots={[
-      { name: "Morning", time: "10:00–12:00" },
-      { name: "Afternoon", time: "14:00–16:00" },
-    ]}
-    days={[1, 2, 3, 4, 5]}
-  />
 
   <!-- The three benefits as the homepage's "How we work" (ApproachStack.astro)
        in its light version: the cards zig-zag either side of the rail

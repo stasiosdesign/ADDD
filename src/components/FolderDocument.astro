@@ -30,6 +30,9 @@
   BookCall.astro's. Pressed, the paper goes back into its folder first,
   then the calendar opens (folder-docs.js), so the two are never open at
   once.
+
+  facts (2026-11-05): label-and-value pairs under the summary, two to a row
+  (who it suits across the row). cta: a link at the foot in the site's CTA.
 */
 import ActionButton from "./ActionButton.astro";
 
@@ -47,8 +50,16 @@ interface Props {
   field?: string;
   /** the id of the page's free-call calendar, for a Book a Free Call button at the foot */
   book?: string;
+  /** facts set out under the summary, each a label over its value (the AEC
+      Tech Partners' partnerships: who it suits, the price, its terms), with
+      the Studio field each comes from */
+  facts?: { label: string; value?: string; field?: string }[];
+  /** a link at the paper's foot (the site's CTA): the paper goes back into
+      its folder, then the link is followed (folder-docs.js) */
+  cta?: { href: string; label: string; field?: string };
 }
-const { id, n, series, title, titleField, kicker, lede, body = [], points = [], pointsLabel = "What you take away", field, book } = Astro.props;
+const { id, n, series, title, titleField, kicker, lede, body = [], points = [], pointsLabel = "What you take away", field, book, facts = [], cta } = Astro.props;
+const shownFacts = facts.filter((fact) => fact.value);
 const pad = (v: number) => String(v).padStart(2, "0");
 const f = (path: string) => (field ? `${field}.${path}` : undefined);
 ---
@@ -72,6 +83,13 @@ const f = (path: string) => (field ? `${field}.${path}` : undefined);
               <p class="folder-doc__lede" data-page-field={f("lede")}>{lede}</p>
             </div>
           )}
+          {shownFacts.length > 0 && (
+            <dl class="folder-doc__facts">
+              {shownFacts.map((fact) => (
+                <div><dt class="folder-doc__label">{fact.label}</dt><dd data-page-field={fact.field}>{fact.value}</dd></div>
+              ))}
+            </dl>
+          )}
           <div class="folder-doc__body">
             {body.map((para, i) => (para.startsWith("## ") ? (
               <h3 class="folder-doc__h" data-page-field={f(`body.${i}`)}>{para.slice(3)}</h3>
@@ -83,6 +101,11 @@ const f = (path: string) => (field ? `${field}.${path}` : undefined);
             <div class="folder-doc__points">
               <p class="folder-doc__label">{pointsLabel}</p>
               <ul role="list">{points.map((point, i) => <li data-page-field={f(`points.${i}`)}>{point}</li>)}</ul>
+            </div>
+          )}
+          {cta && (
+            <div class="folder-doc__book">
+              <ActionButton href={cta.href} data-folder-go><span data-page-field={cta.field}>{cta.label}</span></ActionButton>
             </div>
           )}
           {book && (

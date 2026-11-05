@@ -10,8 +10,9 @@ import ProblemCard from "../components/ProblemCard.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import FolderDocument from "../components/FolderDocument.astro";
-import BookingDialog from "../components/BookingDialog.astro";
 import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
+import PricingPlan from "../components/PricingPlan.astro";
+import PlanNext from "../components/PlanNext.astro";
 import type { Folder } from "../components/DeckFolder.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { workshopPage as D } from "../sanity/defaults/workshop";
@@ -97,13 +98,10 @@ const folders: Folder[] = methods.map((tile, i) => ({
   opens: `workshop-folder-${i + 1}`,
 }));
 
-// An included line "Title — detail" is set as two entries side by side,
-// the detail starting with a capital as an entry of its own; a line
-// without the dash as one.
-const parts = (line: string) => {
-  const [first, second] = line.split(/\s+—\s+/);
-  return [first, second && second.charAt(0).toUpperCase() + second.slice(1)];
-};
+// a booking or enquiry button: the free call's calendar (BookCallDialog.astro,
+// "book-call", which the FAQ's Book a Free Call renders), as Book a Call
+// opens it (2026-11-05)
+const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
   title="Workflow Workshop — ADDD"
@@ -136,14 +134,14 @@ const parts = (line: string) => {
     }}
   >
     <Fragment slot="actions">
-      <!-- the booking calendar (a demonstration for now: BookingDialog.astro),
-           and the way down to the prices, clear of the nav (scroll.js) -->
-      <ActionButton type="button" data-booking-open="workshop-booking" aria-haspopup="dialog" aria-controls="workshop-booking"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+      <!-- the free call's booking calendar, the one every booking button on
+           the page opens (since 2026-11-05; rendered by the FAQ's Book a Free
+           Call: FaqPanel.astro, BookCallDialog.astro), and the way down to
+           the prices, clear of the nav (scroll.js) -->
+      <ActionButton type="button" data-booking-open="book-call" aria-haspopup="dialog" aria-controls="book-call"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
   </BeforeRevitHero>
-
-  <BookingDialog id="workshop-booking" />
 
 
   <section class="section ws-section is--problems" id="overview">
@@ -216,61 +214,44 @@ const parts = (line: string) => {
        its quotes are the Home page's -->
   <Testimonials />
 
-  <section class="section ws-section" id="pricing">
+  <!-- The prices (2026-11-05, after the user's reference: PricingPlan.astro,
+       plan.css): the heading on the left over the day's three parts, the
+       workshop's card on the right, and under them one ink panel on to the
+       Technology Blueprint (the second card's words, without its list) -->
+  <section class="section plan-section" id="pricing">
     <div class="container">
-      <div class="ws-head is--left">
-        <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
-        <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
-        <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
-      </div>
-
-      <div class="ws-pricing">
-        <ul class="ws-stages" data-page-list="pricing.tiles">
-          {stages.map((tile) => (
-          <li class="ws-stages__item" data-page-item={tile._key}>
-            <h3 class="ws-stages__title" data-page-item-field="title">{tile.title}</h3>
-            <p data-page-item-field="text">{tile.text}</p>
-          </li>
-          ))}
-        </ul>
-
-        {[0, 1].map((n) => {
-          const f = `pricing.cards.${n}`;
-          const includes = lines(`${f}.includes`);
-          return (
-        <article class:list={["ws-price", { "is--wide": n === 1 }]}>
-          <div class="ws-price__head">
-            <div class="ws-price__name">
-              <h3 class="ws-card__title" data-page-field={`${f}.title`}>{t(`${f}.title`)}</h3>
-              {t(`${f}.subtitle`) && <p data-page-field={`${f}.subtitle`}>{t(`${f}.subtitle`)}</p>}
-            </div>
-            <div class="ws-price__amount">
-              {t(`${f}.pricePrefix`) && <span class="ws-price__affix" data-page-field={`${f}.pricePrefix`}>{t(`${f}.pricePrefix`)}</span>}
-              <span class="ws-price__figure" data-page-field={`${f}.price`}>{t(`${f}.price`)}</span>
-              {t(`${f}.priceSuffix`) && <span class="ws-price__affix" data-page-field={`${f}.priceSuffix`}>{t(`${f}.priceSuffix`)}</span>}
-            </div>
-          </div>
-          {t(`${f}.note`) && <p data-page-field={`${f}.note`}>{t(`${f}.note`)}</p>}
-          {(t(`${f}.includesLabel`) || includes.length > 0) && (
-          <div class="ws-price__includes">
-            {t(`${f}.includesLabel`) && <p data-page-field={`${f}.includesLabel`}>{t(`${f}.includesLabel`)}</p>}
-            <ul class="ws-checks">
-              {includes.map((line, j) => {
-                const [first, second] = parts(line);
-                return second ? (
-              <li class="ws-checks__pair" data-page-field={`${f}.includes.${j}`}><span>{first}</span><span>{second}</span></li>
-                ) : (
-              <li data-page-field={`${f}.includes.${j}`}><span>{line}</span></li>
-                );
-              })}
-            </ul>
-          </div>
-          )}
-          <ActionButton href={n === 0 ? "contact.html" : "technology-blueprint.html"}><span data-page-field={`${f}.button`}>{t(`${f}.button`)}</span></ActionButton>
-        </article>
-          );
-        })}
-      </div>
+      <PricingPlan
+        lead={t("pricing.headingLead")}
+        leadField="pricing.headingLead"
+        heading={t("pricing.heading")}
+        headingField="pricing.heading"
+        rowsLabel="The workshop, before, during and after"
+        rows={stages.map((tile, i) => ({ title: tile.title, text: tile.text, titleField: `pricing.tiles.${i}.title`, textField: `pricing.tiles.${i}.text` }))}
+        plans={[{
+          id: "plan-workshop",
+          field: "pricing.cards.0",
+          title: t("pricing.cards.0.title"),
+          badge: t("pricing.cards.0.badge"),
+          prefix: t("pricing.cards.0.pricePrefix"),
+          price: t("pricing.cards.0.price"),
+          suffix: t("pricing.cards.0.priceSuffix"),
+          caption: t("pricing.cards.0.subtitle"),
+          label: t("pricing.cards.0.includesLabel"),
+          includes: lines("pricing.cards.0.includes"),
+          note: t("pricing.cards.0.note"),
+          button: { label: t("pricing.cards.0.button"), attrs: BOOK },
+        }]}
+      >
+        <PlanNext slot="next" links={[{
+          title: t("pricing.cards.1.title"),
+          text: t("pricing.cards.1.subtitle"),
+          button: t("pricing.cards.1.button"),
+          href: "technology-blueprint.html",
+          titleField: "pricing.cards.1.title",
+          textField: "pricing.cards.1.subtitle",
+          buttonField: "pricing.cards.1.button",
+        }]} />
+      </PricingPlan>
     </div>
   </section>
 

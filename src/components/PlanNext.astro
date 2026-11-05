@@ -1,0 +1,33 @@
+---
+/*
+  Where to go from the prices (2026-11-05): one or two ink panels under a
+  PricingPlan, each a title, a line and the site's button, leading to
+  another service page. Navigation, not prices: no figure, no list. One
+  panel lies across the row (title and line on the left, the button on
+  the right); two stand side by side. Styles: plan.css.
+*/
+import ActionButton from "./ActionButton.astro";
+
+export type NextLink = {
+  title?: string;
+  text?: string;
+  button?: string;
+  href: string;
+  titleField?: string;
+  textField?: string;
+  buttonField?: string;
+};
+interface Props { links: NextLink[] }
+const { links } = Astro.props;
+---
+<div class:list={["plan-next", { "is--single": links.length === 1 }]}>
+  {links.map((l) => (
+  <div class="plan-next__panel" data-ground="dark">
+    <div class="plan-next__words">
+      <p class="plan-next__title"><span class="plan-next__mark" aria-hidden="true"></span><span data-page-field={l.titleField}>{l.title}</span></p>
+      {l.text && <p class="plan-next__text" data-page-field={l.textField}>{l.text}</p>}
+    </div>
+    <ActionButton href={l.href}><span data-page-field={l.buttonField}>{l.button}</span></ActionButton>
+  </div>
+  ))}
+</div>

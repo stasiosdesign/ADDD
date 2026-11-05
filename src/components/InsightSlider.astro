@@ -4,21 +4,26 @@
   src/scripts/site.js): the cards, then one dot per card and the
   previous / next arrows. data-scale and data-rotate are the rest scale
   and tilt of a card once it has stacked at the left edge.
+
+  editorial (the homepage's Research & Insights, 2026-11-05): the cards in
+  their quieter form, numbered, without the category or the metadata
+  (InsightCard.astro).
 */
 import InsightCard, { type Props as Card } from "./InsightCard.astro";
 
 interface Props {
   items: Card[];
+  editorial?: boolean;
 }
 
-const { items } = Astro.props;
+const { items, editorial = false } = Astro.props;
 ---
-<div data-slider data-scale="0.72" data-rotate="-5" class="insight-slider">
+<div data-slider data-scale="0.72" data-rotate="-5" class:list={["insight-slider", { "is--editorial": editorial }]}>
   <div data-slider-viewport class="insight-slider__viewport">
     <div data-slider-list class="insight-slider__list">
-      {items.map((item) => (
+      {items.map((item, i) => (
         <div data-slider-item class="insight-slider__item">
-          <InsightCard {...item} />
+          <InsightCard {...item} editorial={editorial} n={i + 1} />
         </div>
       ))}
     </div>

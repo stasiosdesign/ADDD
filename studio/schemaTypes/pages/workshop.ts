@@ -55,10 +55,15 @@ export const workshopPage = defineType({
       itemsField('steps', 'Stages', 'step', 'The stages, left to right: the name at the head of its column (Label), and the title and line in its block. The photographs stay in the site’s code.'),
       stageDetailsField('For each stage, in the same order: its timing under the name, and what its block tells when opened.'),
     ]),
-    pageSection('pricing', 'Investment', 'The heading, what the day holds, and the two price cards. The cards’ looks and where their buttons lead stay in the site’s code.', [
-      ...sectionHead(),
-      itemsField('tiles', 'Cards', 'tile', 'What the day holds, beside the workshop’s card: a title and a line of text each.'),
-      {...itemsField('cards', 'Price cards', 'priceCard', 'The workshop’s card, then the Technology Blueprint’s across the page under it. A workshop line written “Title — detail” is set as two entries side by side.'), options: FIXED},
+    pageSection('pricing', 'Pricing', 'The heading, what the day holds, the workshop’s card, and the panel on to the Technology Blueprint under them. The looks and where the buttons lead stay in the site’s code.', [
+      // the standfirst and the small tab over the heading, no longer shown
+      // (2026-11-05); kept so the code on main can still read them
+      {...leadField('No longer shown.'), hidden: true},
+      {...taglineField('No longer shown.'), hidden: true},
+      defineField({name: 'headingLead', title: 'Heading, first words', type: 'string', description: 'The heading’s first words, set a step quieter, e.g. “Half a day.”'}),
+      headingField('The rest of the heading, e.g. “A clear place to start.”'),
+      itemsField('tiles', 'Rows', 'tile', 'What the day holds, beside the workshop’s card: a title and a line of text each.'),
+      {...itemsField('cards', 'Price cards', 'priceCard', 'The workshop’s card (an included line written “Title — detail” shows the detail under the title; the note sits at the card’s foot), then the Technology Blueprint: its title, line under the title and button make the panel under the prices.'), options: FIXED},
     ]),
     pageSection('faq', 'Common questions', 'The heading and the questions, in order (all start closed; their icons stay in the site’s code), and the line over Book a Free Call under them.', [
       // the small tab over the heading, no longer shown (2026-11-04); kept

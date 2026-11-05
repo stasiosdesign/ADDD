@@ -92,7 +92,8 @@ export const priceCard = defineType({
   fields: [
     defineField({name: 'title', title: 'Title', type: 'string'}),
     defineField({name: 'audience', title: 'Best suited to', type: 'text', rows: 2, description: 'Who the offer is for, where the design shows it. Leave empty for none.'}),
-    defineField({name: 'subtitle', title: 'Line under the title', type: 'text', rows: 2}),
+    defineField({name: 'badge', title: 'Badge', type: 'string', description: 'The small label at the card’s top right, where the design shows one (the Workflow Workshop, Before Revit and Ongoing Advisory prices). Leave empty for none.'}),
+    defineField({name: 'subtitle', title: 'Line under the title', type: 'text', rows: 2, description: 'On the Workflow Workshop, Before Revit and Ongoing Advisory prices, the line under the button.'}),
     defineField({name: 'pricePrefix', title: 'Before the price', type: 'string', description: 'E.g. “From”. Leave empty for none.'}),
     defineField({name: 'price', title: 'Price', type: 'string', description: 'As shown, e.g. “£1,995”.'}),
     defineField({name: 'priceSuffix', title: 'After the price', type: 'string', description: 'E.g. “/mo”. Leave empty for none.'}),

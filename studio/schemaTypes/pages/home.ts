@@ -68,9 +68,10 @@ export const homePage = defineType({
       {...headingField('The left side’s title (no longer shown).', 'forTitle', 'Left title'), hidden: true},
       {...headingField('The right side’s title (no longer shown).', 'notTitle', 'Right title'), hidden: true},
     ]),
-    pageSection('research', 'Research and insight', 'The heading row above the slider of reports and issues (which are collections), and the newsletter signup under it.', [
-      leadField('The standfirst on the left.'),
-      headingField(),
+    pageSection('research', 'Research & Insights', 'The heading above the slider of reports and issues (which are collections), and the newsletter signup under it.', [
+      // the standfirst, no longer shown (2026-11-05)
+      {...leadField('No longer shown.'), hidden: true},
+      textField('On two lines: a line break written here starts the second.', 'heading', 'Heading', 2),
       taglineField('The small line above the signup’s heading.', 'signupTagline', 'Signup tagline'),
       headingField('The signup’s heading.', 'signupHeading', 'Signup heading'),
     ]),

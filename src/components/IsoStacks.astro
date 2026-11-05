@@ -15,7 +15,9 @@
   drawings (ANGLE: the 2:1 of the reference, each square a diamond twice
   as wide as tall, its sides at about 26.57° to the level, where their
   isometric is 30°), so the plates read as more of a scene in depth.
-  Decoration only, still, hidden from assistive tech.
+  Decoration only, hidden from assistive tech. Each plate carries its height
+  over the bottom one (data-iso-rise, in the drawing's units), so the
+  hero's scroll can settle them lower on one another (partner-hero.js).
 
   Each stack is its plates from the bottom up (size: a share of the cell;
   fill: a faint blue) and the lattice crossing its bottom plate's back
@@ -94,8 +96,8 @@ const draw = (stack: Stack) => {
     const { viewBox, plates, guides, place } = draw(stack);
     return (
       <svg class:list={["iso-stacks__stack", { "is--no-tablet": !stack.tablet, "is--no-phone": !stack.phone }]} viewBox={viewBox} style={place} fill="none">
-        {guides.map((d) => <path class="iso-stacks__guide" d={d} />)}
-        {plates.map((plate) => <path class:list={["iso-stacks__plate", { "is--fill": plate.fill }]} d={plate.d} />)}
+        {guides.map((d) => <path class="iso-stacks__guide" d={d} data-iso-guide />)}
+        {plates.map((plate, i) => <path class:list={["iso-stacks__plate", { "is--fill": plate.fill }]} d={plate.d} data-iso-rise={i * RISE} />)}
       </svg>
     );
   })}

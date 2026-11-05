@@ -186,6 +186,28 @@
   line-height: 1.5;
   text-wrap: pretty;
 }
+/* facts under the summary (FolderDocument.astro, facts): label over value,
+   two to a row, the first across the row, each row on a hairline */
+.folder-doc__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 2rem;
+  margin: 0;
+}
+.folder-doc__facts > div {
+  padding: 1.125rem 0;
+  border-bottom: 1px solid var(--doc-rule);
+}
+.folder-doc__facts > div:first-child { grid-column: 1 / -1; }
+.folder-doc__facts dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+@media screen and (max-width: 767px) {
+  .folder-doc__facts { grid-template-columns: minmax(0, 1fr); }
+}
 .folder-doc__body {
   margin-top: 2rem;
   font-size: 0.9375rem;

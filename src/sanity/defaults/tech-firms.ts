@@ -9,10 +9,14 @@ import { keyed } from './types';
 export const techFirmsPage = {
   hero: {
     tagline: 'AEC Tech Partners',
-    heading: 'Help architects understand where your technology fits',
-    lede: 'ADDD helps technology companies reach architecture practices, show their technology inside real architectural workflows, and understand what practices actually need from it.',
-    primaryButton: 'Discuss a partnership',
-    secondaryButton: 'Explore options',
+    // the opening's words (2026-11-05, the user's exact copy)
+    heading: 'Show architects where your technology fits.',
+    lede: 'ADDD helps AEC technology companies reach architecture practices through real projects, relevant content and industry insight.',
+    primaryButton: 'Discuss a Partnership',
+    secondaryButton: 'Explore Options',
+    // the positioning statement that rises into the hero as its words go
+    // (Hero.astro, "centred"; 2026-11-05, the user's exact copy)
+    statement: 'Architects don’t choose tools in isolation. They choose what fits the way they design, collaborate and deliver projects.',
   },
   why: {
     lede: 'ADDD works with architecture practices on their technology challenges: reviewing workflows, untangling software estates and supporting the decisions about what to adopt, keep or replace. Its content explores how architects work, and why particular tools fit particular tasks.',
@@ -171,6 +175,75 @@ export const techFirmsPage = {
         button: 'Discuss a partnership',
       },
     ]),
+  },
+  // What each partnership's folder opens (2026-11-05: the partnerships as
+  // the Workflow Workshop's folders, FolderDocument.astro), in the folders'
+  // order: the three partnerships (options.cards), then the two smaller
+  // placements (more.cards). Drawn from the page's own account of each
+  // offer, its process and its independence commitments; not final copy.
+  documents: {
+    items: keyed('document', [
+    {
+      kicker: 'An ongoing presence',
+      lede: 'A year-long sponsorship of ADDD’s workflow content and Technology Blueprint sessions, for companies that want to stay in front of architects and practice leaders over time rather than for a single moment.',
+      body: [
+        '## What it involves',
+        'Your company is named as the sponsor across ADDD’s workflow sessions and Technology Blueprint sessions for twelve months, and takes a slot in the ADDDitive newsletter every month. Within your category, you are the only sponsor.',
+        'Before anything is published, a tracked trial link is agreed and set up, so interest that comes through ADDD’s audience can be followed back to it. Reporting on that link arrives every month.',
+        '## Who it is for',
+        'It suits infrastructure, hardware, licensing, managed service and cloud providers: companies whose products support how practices work, rather than being the subject of ADDD’s editorial coverage. Design-tool vendors are usually better served by a featured workflow episode, which shows a tool inside a real project.',
+        '## How it stays independent',
+        'The sponsorship is always disclosed. Sponsors do not preview editorial content, and the sponsorship does not buy inclusion in recommendations, rankings or reviews, or a place in the ADDD Stack.',
+      ],
+    },
+    {
+      kicker: 'Your technology in real work',
+      lede: 'One episode built around a real architectural project or workflow: the people who did the work, how they did it, and where your technology fitted into it.',
+      body: [
+        '## How an episode is made',
+        'Every episode starts from a piece of architectural work, not from a product. The project is chosen with you and the practice involved, and needs a clear design or delivery problem worth explaining.',
+        'The architects and specialists who carried out the work explain their roles and decisions. The workflow is traced step by step: the inputs, the tools at each stage and how information moved between them. Only then does the episode turn to the role your technology played, what it was used for and why it suited the task.',
+        '## What is produced',
+        'An 8–10 minute workflow video, with a LinkedIn post, a newsletter inclusion, an Instagram Reel and a YouTube Short drawn from it, distributed through ADDD’s channels.',
+        '## What it needs from you',
+        'A real project or workflow, and a practice willing to take part. The sponsorship is disclosed in the episode itself.',
+      ],
+    },
+    {
+      kicker: 'What practices are doing',
+      lede: 'An ongoing intelligence relationship: every quarter, a briefing on what architecture practices in your category are doing, drawn from ADDD’s workshops and sessions with them.',
+      body: [
+        '## Where the insight comes from',
+        'ADDD works with practices on their technology decisions: reviewing workflows, untangling software estates and helping decide what to adopt, keep or replace. That work shows the problems, constraints and priorities behind their choices, which rarely appear in surveys or sales conversations.',
+        '## What a briefing covers',
+        'Each quarter’s briefing sets out what practices in your market category are doing, against a scope agreed at the start. It is measured by that scope and its regular delivery, not by conversion figures.',
+        '## How confidentiality is kept',
+        'Findings are anonymised. No practice is identified, and no raw data is shared.',
+      ],
+    },
+    {
+      kicker: 'One issue, one message',
+      lede: 'A placement in ADDDitive, the ADDD newsletter, for a specific announcement, resource or event that is relevant to architecture practices.',
+      body: [
+        '## When it fits',
+        'A newsletter placement suits a single, clear message, such as a launch, a useful resource or an event, rather than an ongoing presence. It reaches the architects and practice leaders who read ADDDitive alongside ADDD’s own writing on technology in practice.',
+        '## How it is handled',
+        'The placement is agreed on a first call: what it says, which issue it runs in and how it is linked. It is marked as a sponsored placement in the issue.',
+      ],
+      points: ['A placement in one issue of ADDDitive', 'A clearly marked sponsored slot', 'Linked to your announcement, resource or event'],
+    },
+    {
+      kicker: 'Your event, in practice terms',
+      lede: 'ADDD attends your event and turns it into content for architecture practices, starting with a LinkedIn carousel built from the day.',
+      body: [
+        '## What the day covers',
+        'For a company running or exhibiting at an event relevant to architecture practices, ADDD covers the day and produces a LinkedIn carousel that draws out what matters to architects.',
+        '## How it is agreed',
+        'Like every partnership, it starts with a call: the event, what the coverage should focus on, and whether the optional summary video set out above suits it.',
+      ],
+      points: ['Coverage of your event for the day', 'A LinkedIn carousel produced from it', 'An optional summary video, agreed separately'],
+    },
+  ]),
   },
   process: {
     lede: 'Every partnership follows the same four steps, whatever its format.',

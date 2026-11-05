@@ -113,8 +113,10 @@ export const homePage = {
     ]),
   },
   research: {
+    // the standfirst is no longer shown (2026-11-05)
     lede: 'The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture.',
-    heading: 'Research and insight',
+    // on two lines: a line break written here starts the second
+    heading: 'Research\n& Insights',
     signupTagline: 'ADDDitive newsletter',
     signupHeading: 'Get ADDDitive in your inbox',
   },

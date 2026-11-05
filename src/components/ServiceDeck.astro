@@ -48,8 +48,10 @@ interface Props {
   hrefs?: string[];
   /** or the folders themselves */
   folders?: Folder[];
+  /** the deck's anchor (AEC Tech Partners: "options", which its buttons scroll to) */
+  id?: string;
 }
-const { heading, headingField = "routes.heading", lede, ledeField, button, aside, cards = [], hrefs = [], folders: own } = Astro.props;
+const { heading, headingField = "routes.heading", lede, ledeField, button, aside, cards = [], hrefs = [], folders: own, id } = Astro.props;
 const pad = (n: number) => String(n).padStart(2, "0");
 const folders: Folder[] = own ?? cards.map((card, i) => {
   const route = SERVICES[i];
@@ -71,7 +73,7 @@ const folders: Folder[] = own ?? cards.map((card, i) => {
 ---
 <!-- the title and the word held over every card but the last (from
      992px, in runs of their own: service-deck.css, --deck-count) -->
-<div class="service-deck" style={`--deck-count:${folders.length}`}>
+<div class="service-deck" id={id} style={`--deck-count:${folders.length}`}>
   {heading && (
     <div class="service-deck__hold">
       {lede || button ? (

@@ -27,20 +27,35 @@ export const beforeRevitPage = {
   pricing: {
     tagline: 'Investment',
     heading: 'Before Revit',
+    // the standfirst under the heading (2026-11-05)
+    lede: 'The ADDD approach applied to the start of the design process, before the work moves into Revit or Archicad.',
     cards: keyed('card', [
       {
         title: 'Before Revit',
+        badge: 'Engagement',
         subtitle: 'Early-stage design workflow',
         pricePrefix: 'From',
         price: '£9,500',
+        includesLabel: 'Includes',
+        includes: [
+          'Early-stage workflow map — how work, tools, information and decisions move before modelling',
+          'Handover review — what carries forward into Revit or Archicad, and what is recreated or lost',
+          'Clear priorities — what should change first, who should own it and where investment counts most',
+        ],
         button: 'Enquire about Before Revit',
       },
       {
+        // shown since 2026-11-05 as a panel on to the Workflow Workshop under
+        // the prices: the title, the line and the button (not the price)
         title: 'Not sure where to start?',
         subtitle: 'The Workflow Workshop is a half-day diagnostic using a live project, for when something is not working but the starting point is unclear.',
         price: '£1,995',
         button: 'Explore the Workflow Workshop',
       },
     ]),
+    // the panel on to the Technology Blueprint under the prices (2026-11-05)
+    blueprintTitle: 'Need the whole practice in view?',
+    blueprintText: 'The Technology Blueprint reviews workflows, software, infrastructure and AI across the practice, and sets out a roadmap to follow.',
+    blueprintButton: 'Explore the Technology Blueprint',
   },
 };

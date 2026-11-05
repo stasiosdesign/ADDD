@@ -12,7 +12,7 @@ export const workshopPage = {
     secondaryButton: 'View Pricing',
   },
   symptoms: {
-    heading: 'The problem isn’t the software. It’s how you work.',
+    heading: 'Where workflows lose momentum.',
     tiles: keyed('symptom', [
       { title: 'Problems Keep Returning.', text: 'The same coordination delays, mistakes and rework appear project after project. Teams keep fixing the symptoms without addressing what’s causing them.' },
       { title: 'No Shared Approach.', text: 'Different teams follow different processes, making collaboration harder, knowledge difficult to transfer and effort unnecessarily duplicated.' },
@@ -110,9 +110,11 @@ export const workshopPage = {
     ]),
   },
   pricing: {
-    lede: 'One half-day session. Everything needed to find where time disappears.',
-    tagline: 'Investment',
-    heading: 'The workshop',
+    // the heading, one part since 2026-11-05 (a quieter lead can go in
+    // headingLead); the tagline "Investment" and the standfirst are no
+    // longer shown
+    headingLead: '',
+    heading: 'A half-day workshop with a written report.',
     tiles: keyed('stage', [
       { title: 'Before arrival', text: 'Short questionnaire and project selection guidance sent in advance' },
       { title: 'During the session', text: 'Four hours mapping workflows, identifying friction and prioritising opportunities' },
@@ -121,21 +123,27 @@ export const workshopPage = {
     cards: keyed('card', [
       {
         title: 'Standard workshop',
-        subtitle: 'Includes everything above',
+        badge: 'In person',
+        subtitle: 'A half-day diagnostic around a live project',
         price: '£1,040',
-        includesLabel: 'Includes',
+        priceSuffix: '/ workshop',
+        note: 'The session takes place at your office, with four to eight people from across the practice. An executive readout of the findings for leadership is available as an optional extra.',
+        // what the practice gains, one short line each (2026-11-05)
+        includesLabel: 'What your practice gains',
         includes: [
-          'Pre-workshop questionnaire — attendee and preparation guidance',
-          'Four-hour facilitated session — real project analysis and mapping',
-          'Tailored written report — key findings and priority areas',
-          'Practical recommendations — quick wins and next steps',
-          'Optional executive readout — leadership-facing presentation of findings',
+          'Identify where time is being lost across projects.',
+          'Understand what’s causing recurring workflow problems.',
+          'Know which improvements to prioritise.',
+          'Receive a tailored report with practical recommendations.',
         ],
         button: 'Enquire about a workshop',
       },
       {
+        // shown since 2026-11-05 as the panel on to the Blueprint under the
+        // prices: the title, the line and the button (not the price or list)
         title: 'Technology Blueprint',
-        price: 'Custom',
+        subtitle: 'When the problem runs deeper than one workflow: a practice-wide review of workflows, software, infrastructure and AI, with a roadmap to follow.',
+        // no price: the Technology Blueprint shows none in public (2026-11-05)
         includesLabel: 'Includes',
         includes: [
           'Practice-wide workflow analysis',

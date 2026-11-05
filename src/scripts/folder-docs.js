@@ -264,6 +264,20 @@ export function initFolderDocs(container) {
         if (state === "closed") document.getElementById(el.dataset.folderBook)?.booking?.show();
       }),
     );
+    // the paper's link (FolderDocument.astro, cta): the paper goes back into
+    // its folder first, then the link is followed as any link is (the
+    // site's wipe), so the page never leaves with the paper still open
+    dialog.querySelectorAll("a[data-folder-go]").forEach((el) =>
+      el.addEventListener("click", async (e) => {
+        if (el.dataset.folderPassing) return;
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        await close();
+        el.dataset.folderPassing = "1";
+        el.click();
+        delete el.dataset.folderPassing;
+      }),
+    );
     // Escape: the browser would close it at once; close it the same way
     dialog.addEventListener("cancel", (e) => {
       e.preventDefault();

@@ -1640,52 +1640,6 @@
    comparison and the pair of prices.
    ============================================================ */
 
-/* Themes Covered: four squares, a picture filling each (set in the
-   Studio; the light grey until then), each captioned under a hairline
-   with its number in the label face and the theme's name */
-/* the white sections between the light grey and the dark (the page's
-   ground is the light grey) */
-.adv-themes,
-.adv-pricing { background: var(--c-white); }
-
-.adv-themes__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 2rem;
-  margin: 5rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-.adv-theme { display: flex; flex-direction: column; min-width: 0; }
-.adv-theme__picture {
-  aspect-ratio: 1;
-  border-radius: var(--radius);
-  background-color: var(--c-light-bg);
-  background-size: cover;
-  background-position: center;
-}
-.adv-theme__caption {
-  display: flex;
-  align-items: baseline;
-  gap: 1rem;
-  margin: 1.25rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid var(--c-border);
-}
-.adv-theme__n {
-  font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  font-weight: var(--fw-label);
-  letter-spacing: var(--label-tracking);
-  color: var(--label-ink);
-}
-.adv-theme__name {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  line-height: 1.2;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
-}
-
 /* The gains: the homepage's banded cards (approach-stack.css, .step-card:
    the number's square and the title's block along the top, the label and
    the line in the copy's block under them), four in a row, the same
@@ -1721,6 +1675,12 @@
    rule the timelines light their columns with, its answers each marked
    with a small red square; the other column quieter */
 .adv-compare-sec { padding-top: 0; }
+/* the heading alone on the left (2026-11-05), from Grid Column 2, where the
+   table's first column starts */
+@media screen and (min-width: 992px) {
+  .page--grid .adv-compare__title .section-title__body { grid-column: 2 / 8; }
+  .page--grid .adv-compare__title .h2 { max-width: 9em; }
+}
 /* a table whose rows are laid out as grids (its roles set in the markup,
    so it is still read as a table), so each row can carry the dotted rule */
 .adv-compare {
@@ -1785,33 +1745,13 @@
   background: var(--c-red);
 }
 
-/* The prices: the Workshop's cards (workshop.css, .ws-price) side by
-   side, in the Workshop's light grey, their lines one to a row */
-.adv-pricing { --ws-card: var(--c-light-bg); }
-.adv-pricing__grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2rem;
-  margin-top: 5rem;
-  align-items: stretch;
-}
-/* in the pair, each card's name over its price (the Workshop's single card
-   has room for them side by side), the date under the price */
-.adv-pricing .ws-price__head { flex-direction: column; gap: 2rem; }
-.adv-pricing .ws-price__includes { flex: 1 0 auto; }
-.adv-pricing .ws-checks { grid-template-columns: 1fr; }
-.adv-pricing__note { margin: -1.25rem 0 0; color: color-mix(in srgb, var(--c-text) 62%, transparent); }
 
 @media screen and (max-width: 991px) {
-  .adv-themes__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 3rem; }
   .adv-gains__row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .adv-gains { padding-bottom: var(--sec-lg); }
-  .adv-pricing__grid { grid-template-columns: 1fr; }
   .adv-compare { --compare-cols: minmax(0, 1fr) 11rem 9rem; }
 }
 @media screen and (max-width: 767px) {
-  .adv-themes__grid { gap: 2.5rem 1rem; }
-  .adv-theme__name { font-size: 1.25rem; }
   .adv-gains__row { grid-template-columns: 1fr; }
   .adv-compare { --compare-cols: minmax(0, 1fr) 6.5rem 5rem; }
   .adv-compare th, .adv-compare td { padding: 1.125rem 0.75rem; }
@@ -1845,7 +1785,7 @@
 /* Why ADDD: the problem cards close under the heading row; each card's
    number in its field's top band, on the frame's left edge, in an ink
    that reads on its field */
-.tf-why__cards { margin: 5rem 0 0; }
+.tf-why__cards { margin: 6rem 0 0; }
 /* the three photographs in black and white, as the homepage's cards'
    are, so the strip reads as one set */
 .tf-why__cards .problem-card__image { filter: grayscale(1); }
@@ -1868,7 +1808,8 @@
 /* What that gives a technology company: its heading where the heading
    row's lede stands, the benefits where its heading stands, each on the
    site's dotted rule and marked in the blue, the note under them */
-.tf-gives { margin-top: 6rem; }
+/* well clear of the cards' stair, which drifts down into the room under it */
+.tf-gives { margin-top: 10rem; }
 .tf-gives__title,
 .tf-terms__title {
   margin: 0;
@@ -1914,79 +1855,24 @@
   transform: translateY(-0.12em);
 }
 
-/* The partnerships: the Workshop's price cards, white on the light grey,
-   three across, the same height; each its name, who it suits and what it
-   is over its price, a rule, what you receive (one to a row), a rule, its
-   conditions and its button at the foot */
-.tf-options { --ws-card: var(--c-white); }
-.tf-offers {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin-top: 5rem;
-  align-items: stretch;
+/* The partnerships as folders (2026-11-05): the Workflow Workshop's Inside
+   the Workshop (ServiceDeck.astro, service-deck.css), with the same room
+   over the title the Workshop gives it (workshop.css), the title on three
+   lines */
+@media screen and (min-width: 992px) {
+  .page--partners .service-deck { padding-top: calc(var(--sec-lg) * 1.6); }
+  .page--partners .service-deck__title { max-width: 7.5em; }
 }
-/* the three cards' parts on shared rows (subgrid), so their prices, rules,
-   lists, conditions and buttons line up across the row */
-.tf-offers .tf-offer {
-  /* not a size container here (the Workshop's card is one, though nothing
-     queries it): containment keeps a grid from being a subgrid */
-  container-type: normal;
-  display: grid;
-  grid-row: span 4;
-  grid-template-rows: subgrid;
-  row-gap: 0;
+@media screen and (max-width: 991px) {
+  .page--partners .service-deck__title { padding-top: calc(var(--sec-lg) * 1.4); }
 }
-/* the button at the foot of its row, at its own height */
-.tf-offers .tf-offer > .action-button { align-self: end; }
-.tf-offer .ws-price__head { flex-direction: column; justify-content: space-between; gap: 2rem; }
-.tf-offer .ws-price__name { gap: 1.25rem; }
-.tf-offer__fit { display: flex; flex-direction: column; gap: 0.5rem; }
-.tf-offer__fit p { margin: 0; }
-.tf-offer__fit .tagline { color: var(--label-ink); }
-.tf-offer__what { margin: 0; color: color-mix(in srgb, var(--c-text) 68%, transparent); }
-.tf-offer .ws-price__amount { flex-wrap: wrap; white-space: normal; row-gap: 0.25rem; }
-.tf-offer .ws-price__figure { font-size: 2.75rem; white-space: nowrap; }
-.tf-offer__note { margin: 0.625rem 0 0; font-size: var(--t-sm); color: color-mix(in srgb, var(--c-text) 62%, transparent); }
-.tf-offer .ws-price__includes { flex: 1 0 auto; gap: 1.25rem; justify-content: flex-start; }
-.tf-offer .ws-price__includes > .tagline { margin: 0; color: var(--label-ink); }
-.tf-offer .ws-checks { grid-template-columns: 1fr; gap: 0.875rem; }
-.tf-offer__conditions {
-  margin: 0 0 1.75rem;
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--c-text) 62%, transparent);
-}
-
-/* the smaller placements: the same cards, two across, the name and the
-   price side by side as the Workshop's card has them */
-.tf-more__title {
-  margin: 6rem 0 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: var(--t-h4);
-  line-height: 1.2;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
-}
-.tf-more {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.25rem;
-  margin-top: 2rem;
-  align-items: stretch;
-}
-.tf-offer.is--small .ws-price__head { flex-direction: row; gap: 2rem; padding-bottom: 2rem; }
-.tf-offer.is--small .ws-price__name { gap: 0.75rem; }
-.tf-offer.is--small .ws-price__amount { flex-wrap: nowrap; white-space: nowrap; }
-.tf-offer.is--small .ws-price__figure { font-size: 2.25rem; }
-.tf-offer.is--small .tf-offer__fit { flex: 1 0 auto; padding: 1.75rem 0; }
 
 /* The process: the timeline across the whole grid, as the Workshop's;
    under it the terms, how success is measured where the heading row's
    lede stands and the commitments where its heading stands */
-.tf-process__run { margin-top: 5rem; }
-.tf-terms { margin-top: 7rem; }
-.tf-terms__title { margin-bottom: 1.5rem; }
+.tf-process__run { margin-top: 6rem; }
+.tf-terms { margin-top: 9rem; }
+.tf-terms__title { margin-bottom: 2rem; }
 .tf-terms__measure p {
   max-width: 34rem;
   margin: 0 0 1rem;
@@ -2009,14 +1895,11 @@
   .page--grid .tf-process__run { grid-column: 1 / -1; }
 }
 @media screen and (max-width: 991px) {
-  .tf-offers { grid-template-columns: 1fr; }
-  .tf-offers .tf-offer { display: flex; grid-row: auto; }
   .tf-gives__title { margin-bottom: 1.5rem; }
-  .tf-terms { display: flex; flex-direction: column; gap: 3rem; margin-top: 4rem; }
+  .tf-terms { display: flex; flex-direction: column; gap: 4rem; margin-top: 5rem; }
+  .tf-gives { margin-top: 7rem; }
 }
 @media screen and (max-width: 767px) {
-  .tf-more { grid-template-columns: 1fr; }
-  .tf-offer.is--small .ws-price__head { flex-direction: column; gap: 1rem; }
-  .tf-gives { margin-top: 4rem; }
+  .tf-gives { margin-top: 5rem; }
   .tf-rules li { font-size: var(--t-rg); }
 }

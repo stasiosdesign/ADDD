@@ -337,14 +337,15 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        stands on its own. -->
   <section class="section research">
     <div class="container">
-      <div class="research__head section-title">
-        <p class="text-md" data-page-field="research.lede">{t("research.lede")}</p>
+      <!-- the heading alone, on its two lines (2026-11-05: the standfirst is
+           no longer shown), and the cards in their editorial form -->
+      <div class="research__head section-title is--alone">
         <div class="section-title__body">
-          <h2 class="h2" data-split="heading" data-page-field="research.heading">{t("research.heading")}</h2>
+          <h2 class="h2" data-split="heading" data-page-field="research.heading">{t("research.heading").split("\n").map((line) => <span>{line}</span>)}</h2>
         </div>
       </div>
 
-      <InsightSlider items={related} />
+      <InsightSlider items={related} editorial />
     </div>
   </section>
 

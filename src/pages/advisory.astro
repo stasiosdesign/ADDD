@@ -7,6 +7,7 @@ import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import Testimonials from "../components/Testimonials.astro";
+import PricingPlan from "../components/PricingPlan.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { advisoryPage as D } from "../sanity/defaults/advisory";
 
@@ -30,7 +31,7 @@ import { advisoryPage as D } from "../sanity/defaults/advisory";
 // the quote the site's testimonials (which open on it); the questions on
 // the light ground the other pages' are on. Styles: pages.css, "Ongoing
 // Advisory".
-const { t, list, lines, bg } = reader(await pageDocument(Astro.locals.sanity, "advisoryPage"), D);
+const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "advisoryPage"), D);
 
 const structureTiles = list<{ _key: string; title?: string; text?: string }>("structure.tiles");
 const impactTiles = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string }>("impact.tiles");
@@ -38,15 +39,60 @@ const rows = list<{ _key: string; label?: string; ours?: string; others?: string
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 const pad2 = (n: number) => String(n).padStart(2, "0");
 
-// The four themes: a square picture each, once one is set in the Studio,
-// and the theme's name under it
-const themes = [1, 2, 3, 4].map((n) => ({
-  n,
-  title: t(`themes.title${n}`),
-  titleField: `themes.title${n}`,
-  imageField: `themes.image${n}`,
-  picture: bg(`themes.image${n}`),
-}));
+// Themes Covered (2026-11-05, after the user's reference): the themes as one
+// large list, the one at the screen's middle (or pointed at) dark, the
+// others grey, and beside them its drawing, held while the list scrolls
+// (theme-list.js). Each theme's drawing is a line icon in the style of the
+// Technology Blueprint's (the SVG Collection's 24px strokes), by its name.
+const themes = lines("themes.items");
+const THEME_ICONS: Record<string, string> = {
+  ai: '<path d="M13 3L4 14H12L11 21L20 10H12L13 3Z"/>',
+  bim: '<path d="M12 2.5 21 7.5V16.5L12 21.5 3 16.5V7.5Z"/><path d="M3 7.5 12 12.5 21 7.5"/><path d="M12 12.5V21.5"/>',
+  technology: '<path d="M6 6H18V18H6Z"/><path d="M9.5 9.5H14.5V14.5H9.5Z"/><path d="M9 2V6M15 2V6M9 18V22M15 18V22M2 9H6M2 15H6M18 9H22M18 15H22"/>',
+  workflows: '<path d="M1.5 12H5.5L9.5 3L14.5 21L18.5 12H22.5"/>',
+  software: '<path d="M2 9V20H22V7H13.5L11 9H2Z"/><path d="M2 9V4H22V7"/><path d="M4.5 6V7"/><path d="M7 6V7"/><path d="M9.5 6V7"/>',
+  hardware: '<path d="M2 4H22V16H2Z"/><path d="M12 16V20"/><path d="M7 20H17"/>',
+  infrastructure: '<path d="M18.6 18C19.75 18 20.85 17.55 21.68 16.75C22.5 15.94 22.97 14.85 23 13.7C23 12.53 22.54 11.41 21.71 10.59C20.89 9.76 19.77 9.3 18.6 9.3H18.1C17.65 8.04 16.82 6.96 15.73 6.19C14.64 5.42 13.34 5 12 5C10.67 4.99 9.38 5.41 8.3 6.18C7.23 6.95 6.42 8.04 6 9.3H5.4C4.23 9.3 3.11 9.76 2.29 10.59C1.46 11.41 1 12.53 1 13.7C1.03 14.85 1.5 15.94 2.32 16.75C3.15 17.55 4.25 18 5.4 18H18.6Z"/>',
+  automation: '<path d="M20 12A8 8 0 0 1 6.3 17.7"/><path d="M4 12A8 8 0 0 1 17.7 6.3"/><path d="M17.5 2.5V6.5H13.5"/><path d="M6.5 21.5V17.5H10.5"/>',
+  integration: '<path d="M3 3H11V11H3Z"/><path d="M13 13H21V21H13Z"/><path d="M11 7H17V13"/><path d="M13 17H7V11"/>',
+  licensing: '<circle cx="7.5" cy="12" r="4.5"/><path d="M12 12H22"/><path d="M18 12V16"/><path d="M21 12V15"/>',
+  costs: '<path d="M21 7H3V21H21V7Z"/><path d="M21 11H17C16.2 11 15.44 11.32 14.88 11.88C14.32 12.44 14 13.2 14 14C14 14.8 14.32 15.56 14.88 16.12C15.44 16.68 16.2 17 17 17H21"/><path d="M17 14H18"/><path d="M5 7L13 3L15 7"/><path d="M14 5L17 4L18 7"/>',
+  strategy: '<path d="M6 21V4H20V14H6"/>',
+  security: '<path d="M20.5 10.5H3.5V21.5H20.5V10.5Z"/><path d="M12 14.5V17"/><path d="M18 10.5V8C18 6.41 17.37 4.88 16.24 3.76C15.12 2.63 13.59 2 12 2C10.41 2 8.88 2.63 7.76 3.76C6.63 4.88 6 6.41 6 8V10.5"/>',
+  productivity: '<path d="M3 17A9 9 0 1 1 21 17"/><path d="M12 17L16.5 10.5"/><path d="M2 21H22"/>',
+  leadership: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21V18A4 4 0 0 1 9 14H15A4 4 0 0 1 19 18V21"/>',
+  other: '<path d="M22 4H2V21H22V4Z"/><path d="M8 9V21"/><path d="M2 9H22"/>',
+};
+const themeIcon = (name = "") => THEME_ICONS[name.toLowerCase().split(/[^a-z]+/).find(Boolean) ?? ""] ?? THEME_ICONS.other;
+
+// How it Works (2026-11-05, after the user's reference): four panels in a
+// bento, each with a small drawing of its own, the ADDD mark where they meet
+const BENTO = ["sessions", "guidance", "tools", "membership"] as const;
+// the first panel's chips: themes that come round, those in session dark
+const CHIP_ROWS: [string, boolean][][] = [
+  [["Strategy", false], ["AI", false], ["Workflows", false], ["BIM", true], ["Licensing", false], ["Security", false], ["Costs", false]],
+  [["Hardware", false], ["Software", false], ["Automation", true], ["Integration", false], ["Leadership", false], ["Productivity", false], ["Infrastructure", false]],
+];
+// the dial: ticks on an arc about the panel's bottom-left corner (the mark),
+// in the svg's own units, its foot the panel's foot; every fourth longer
+const DIAL = (() => {
+  const O = [-14, 274];
+  const R = 270;
+  const ticks: [number, number, number, number, boolean][] = [];
+  for (let k = 0, a = 3; a <= 56; a += 2.2, k++) {
+    const r = (a * Math.PI) / 180;
+    const major = k % 4 === 0;
+    const r2 = R + (major ? 18 : 11);
+    ticks.push([+(O[0] + R * Math.cos(r)).toFixed(1), +(O[1] - R * Math.sin(r)).toFixed(1), +(O[0] + r2 * Math.cos(r)).toFixed(1), +(O[1] - r2 * Math.sin(r)).toFixed(1), major]);
+  }
+  const n = (26 * Math.PI) / 180;
+  const tip: [number, number] = [+(O[0] + 150 * Math.cos(n)).toFixed(1), +(O[1] - 150 * Math.sin(n)).toFixed(1)];
+  return { O, ticks, tip };
+})();
+
+// a booking or enquiry button: the free call's calendar (BookCallDialog.astro,
+// "book-call"), as Book a Call opens it (2026-11-05)
+const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
   title="Ongoing Advisory — ADDD"
@@ -83,7 +129,7 @@ const themes = [1, 2, 3, 4].map((n) => ({
     }}
   >
     <Fragment slot="actions">
-      <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+      <ActionButton {...BOOK}><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#pricing" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
   </BeforeRevitHero>
@@ -91,26 +137,78 @@ const themes = [1, 2, 3, 4].map((n) => ({
   <!-- How it Works: Before Revit's How it works (its light ground, heading
        row and rows on the site's dotted rule), the membership's five parts
        numbered in order -->
-  <section class="section section--light" id="how-it-works">
+  <section class="section adv-how" id="how-it-works">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="structure.lede">{t("structure.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="structure.tagline">{t("structure.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="structure.heading">{t("structure.heading")}</h2>
-        </div>
+      <div class="adv-how__head">
+        <p class="tagline" data-page-field="structure.tagline">{t("structure.tagline")}</p>
+        <h2 class="h2" data-split="heading" data-page-field="structure.heading">{t("structure.heading")}</h2>
       </div>
 
-      <div class="steps" data-page-list="structure.tiles">
-        {structureTiles.map((item, i) => (
-        <div class="steps__item" data-page-item={item._key}>
-          <p class="tagline tagline--sm steps__label">{pad2(i + 1)} / {pad2(structureTiles.length)}</p>
-          <div class="steps__body">
-            <h3 class="h4" data-page-item-field="title">{item.title}</h3>
-            <p data-page-item-field="text">{item.text}</p>
+      <div class="adv-bento" data-page-list="structure.tiles">
+        {structureTiles.slice(0, 4).map((item, i) => (
+        <article class:list={["adv-bento__cell", `is--${BENTO[i]}`]} data-page-item={item._key}>
+          <div class="adv-bento__words">
+            <h3 class="adv-bento__title"><span class="adv-bento__n">{pad2(i + 1)} /</span> <span data-page-item-field="title">{item.title}</span></h3>
+            <p class="adv-bento__text" data-page-item-field="text">{item.text}</p>
           </div>
-        </div>
+
+          {BENTO[i] === "sessions" && (<Fragment>
+          <!-- a month's themes coming round: two rows of chips, the ones
+               in session dark, running out past the panel's sides -->
+          <div class="adv-chips" aria-hidden="true">
+            {CHIP_ROWS.map((row) => (
+            <div class="adv-chips__row">
+              {row.map(([name, on]) => <span class:list={["adv-chip", { "is--on": on }]}>{name}</span>)}
+            </div>
+            ))}
+          </div>
+          </Fragment>
+          )}
+
+          {BENTO[i] === "guidance" && (<Fragment>
+          <!-- a dial turning about the ADDD mark at the panel's corner, its
+               needle out to the channel that stays open between sessions -->
+          <svg class="adv-dial" viewBox="0 0 400 260" preserveAspectRatio="xMinYMax meet" aria-hidden="true">
+            {DIAL.ticks.map(([x1, y1, x2, y2, major]) => <line class:list={["adv-dial__tick", { "is--major": major }]} x1={x1} y1={y1} x2={x2} y2={y2} />)}
+            <line class="adv-dial__needle" x1={DIAL.O[0]} y1={DIAL.O[1]} x2={DIAL.tip[0]} y2={DIAL.tip[1]} />
+            <circle class="adv-dial__dot" cx={DIAL.tip[0]} cy={DIAL.tip[1]} r="4.5" />
+            <text class="adv-dial__label" x={DIAL.tip[0] + 12} y={DIAL.tip[1] - 24}>Between sessions</text>
+            <text class="adv-dial__value" x={DIAL.tip[0] + 12} y={DIAL.tip[1] + 6}>Shared channel</text>
+          </svg>
+          </Fragment>
+          )}
+
+          {BENTO[i] === "tools" && (<Fragment>
+          <!-- from a question to a decision, down one dotted line -->
+          <div class="adv-path" aria-hidden="true">
+            <span class="adv-path__end is--start"><span class="adv-path__dot"></span>Question</span>
+            <span class="adv-path__line"></span>
+            <span class="adv-path__mid">Framework</span>
+            <span class="adv-path__line"></span>
+            <span class="adv-path__end"><span class="adv-path__dot is--ink"></span>Decision</span>
+          </div>
+          </Fragment>
+          )}
+
+          {BENTO[i] === "membership" && (<Fragment>
+          <!-- the whole practice under one membership: the roles as bars,
+               the membership dark, and the one large -->
+          <div class="adv-members" aria-hidden="true">
+            <ul class="adv-members__bars">
+              <li class="is--on"><span>One membership</span><span class="adv-members__tick"></span></li>
+              <li><span>Directors</span><span>Included</span></li>
+              <li><span>Operations leaders</span><span>Included</span></li>
+              <li><span>BIM and digital leads</span><span>Included</span></li>
+            </ul>
+            <p class="adv-members__big"><span class="adv-members__small">For the</span>1<span class="adv-members__small">whole practice</span></p>
+          </div>
+          </Fragment>
+          )}
+        </article>
         ))}
+        <!-- the ADDD mark where the four panels meet, in place of the
+             reference's round mark -->
+        <span class="adv-bento__mark" aria-hidden="true"><img src="/assets/logo.svg" alt="" width="96" height="96"></span>
       </div>
     </div>
   </section>
@@ -119,25 +217,40 @@ const themes = [1, 2, 3, 4].map((n) => ({
        one is set in the Studio (until then the site's stand-in for
        photography, .ph), each captioned under a hairline with its number
        and the theme's name (the four parts on the opening's loop) -->
-  <section class="section adv-themes">
+  <section class="section adv-topics" data-theme-list aria-labelledby="themes-heading">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="themes.lede">{t("themes.lede")}</p>
-        <div class="section-title__body">
-          <h2 class="h2" data-split="heading" data-page-field="themes.heading">{t("themes.heading")}</h2>
+      <div class="adv-topics__grid">
+        <div class="adv-topics__intro">
+          <div class="adv-topics__intro-in">
+            <h2 class="adv-topics__heading" id="themes-heading" data-page-field="themes.heading">{t("themes.heading")}</h2>
+            <p class="adv-topics__lede" data-page-field="themes.lede">{t("themes.lede")}</p>
+            <p class="adv-topics__count" aria-hidden="true"><span data-theme-count>01</span> / {pad2(themes.length)}</p>
+          </div>
+        </div>
+
+        <ol class="adv-topics__list" data-theme-items>
+          {themes.map((theme, i) => (
+          <li>
+            <button type="button" class:list={["adv-topic", { "is--active": i === 0 }]} data-theme-item={i} data-page-field={`themes.items.${i}`}>{theme}</button>
+          </li>
+          ))}
+        </ol>
+
+        <div class="adv-topics__aside" aria-hidden="true">
+          <div class="adv-topics__aside-in">
+            <div class="adv-topics__frame">
+              {themes.map((theme, i) => (
+              <div class:list={["adv-topic-vis", { "is--active": i === 0 }]} data-theme-vis={i}>
+                <span class="adv-topic-vis__n">{pad2(i + 1)}</span>
+                <svg class="adv-topic-vis__icon" viewBox="0 0 24 24" set:html={themeIcon(theme)}></svg>
+                <span class="adv-topic-vis__name">{theme}</span>
+              </div>
+              ))}
+            </div>
+            <p class="adv-topics__caption"><span>[</span><span data-theme-caption>{themes[0]}</span><span>]</span></p>
+          </div>
         </div>
       </div>
-      <ul class="adv-themes__grid" role="list">
-        {themes.map((theme) => (
-        <li class="adv-theme">
-          <div class:list={["adv-theme__picture", { ph: !theme.picture }]} style={theme.picture} data-page-bg={theme.imageField}></div>
-          <p class="adv-theme__caption">
-            <span class="adv-theme__n">{pad2(theme.n)}</span>
-            <span class="adv-theme__name" data-page-field={theme.titleField}>{theme.title}</span>
-          </p>
-        </li>
-        ))}
-      </ul>
     </div>
   </section>
 
@@ -180,10 +293,10 @@ const themes = [1, 2, 3, 4].map((n) => ({
        red rule, its answers each marked in red, the other column quiet -->
   <section class="section section--dark adv-compare-sec">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="difference.lede">{t("difference.lede")}</p>
+      <!-- the heading alone, on the left from Grid Column 2 (2026-11-05: no
+           tagline or standfirst any more) -->
+      <div class="section-title adv-compare__title">
         <div class="section-title__body">
-          <p class="tagline" data-page-field="difference.tagline">{t("difference.tagline")}</p>
           <h2 class="h2" data-split="heading" data-page-field="difference.heading">{t("difference.heading")}</h2>
         </div>
       </div>
@@ -207,55 +320,38 @@ const themes = [1, 2, 3, 4].map((n) => ({
     </div>
   </section>
 
-  <!-- Membership pricing: the Workflow Workshop's price cards (workshop.css,
-       .ws-price), the membership and the Technology Blueprint side by side,
-       each with its name, its price, what it includes and its way on -->
-  <section class="section adv-pricing" id="pricing">
+  <!-- Membership pricing (2026-11-05, after the user's reference:
+       PricingPlan.astro, plan.css): the head on the left over two rows that
+       choose the plan, the membership or the Technology Blueprint, and the
+       chosen plan's card on the right -->
+  <section class="section plan-section" id="pricing">
     <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="pricing.lede">{t("pricing.lede")}</p>
-        <div class="section-title__body">
-          <p class="tagline" data-page-field="pricing.tagline">{t("pricing.tagline")}</p>
-          <h2 class="h2" data-split="heading" data-page-field="pricing.heading">{t("pricing.heading")}</h2>
-        </div>
-      </div>
-
-      <div class="adv-pricing__grid">
-        {[0, 1].map((n) => {
+      <PricingPlan
+        tagline={t("pricing.tagline")}
+        taglineField="pricing.tagline"
+        heading={t("pricing.heading")}
+        headingField="pricing.heading"
+        lede={t("pricing.lede")}
+        ledeField="pricing.lede"
+        rowsLabel="Plans"
+        plans={[0, 1].map((n) => {
           const f = `pricing.cards.${n}`;
-          const includes = lines(`${f}.includes`);
-          return (
-        <article class="ws-price">
-          <div class="ws-price__head">
-            <div class="ws-price__name">
-              <h3 class="ws-card__title" data-page-field={`${f}.title`}>{t(`${f}.title`)}</h3>
-              {t(`${f}.subtitle`) && <p data-page-field={`${f}.subtitle`}>{t(`${f}.subtitle`)}</p>}
-            </div>
-            <div class="ws-price__amount">
-              {t(`${f}.pricePrefix`) && <span class="ws-price__affix" data-page-field={`${f}.pricePrefix`}>{t(`${f}.pricePrefix`)}</span>}
-              <span class="ws-price__figure" data-page-field={`${f}.price`}>{t(`${f}.price`)}</span>
-              {t(`${f}.priceSuffix`) && <span class="ws-price__affix" data-page-field={`${f}.priceSuffix`}>{t(`${f}.priceSuffix`)}</span>}
-            </div>
-            {t(`${f}.note`) && <p class="adv-pricing__note" data-page-field={`${f}.note`}>{t(`${f}.note`)}</p>}
-          </div>
-          {includes.length > 0 && (
-          <div class="ws-price__includes">
-            <ul class="ws-checks">
-              {includes.map((line, j) => (
-              <li data-page-field={`${f}.includes.${j}`}><span>{line}</span></li>
-              ))}
-            </ul>
-          </div>
-          )}
-          {n === 0 ? (
-          <ActionButton href="contact.html"><span data-page-field={`${f}.button`}>{t(`${f}.button`)}</span></ActionButton>
-          ) : (
-          <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field={`${f}.button`}>{t(`${f}.button`)}</span></ActionButton>
-          )}
-        </article>
-          );
+          return {
+            id: n === 0 ? "plan-membership" : "plan-blueprint",
+            field: f,
+            title: t(`${f}.title`),
+            badge: t(`${f}.badge`),
+            prefix: t(`${f}.pricePrefix`),
+            price: t(`${f}.price`),
+            suffix: t(`${f}.priceSuffix`),
+            caption: t(`${f}.subtitle`),
+            label: t(`${f}.includesLabel`),
+            includes: lines(`${f}.includes`),
+            note: t(`${f}.note`),
+            button: n === 0 ? { label: t(`${f}.button`), attrs: BOOK } : { href: "technology-blueprint.html", label: t(`${f}.button`) },
+          };
         })}
-      </div>
+      />
     </div>
   </section>
 

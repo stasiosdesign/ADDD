@@ -1,0 +1,158 @@
+---
+/*
+  A service page's prices (2026-11-05, after the user's pricing reference):
+  on the left the section's head (an optional tagline as a chip, the
+  heading with an optional quieter lead, the standfirst) and, at its foot,
+  a column of rows; on the right a white plan card: a mark, the name and a
+  badge, the price, the button with a line under it, what it includes
+  (each line a tick, its title and, for a line written "Title — detail",
+  the detail under it) and a note.
+
+  With one plan the rows are the page's own (the workshop's day, Before
+  Revit's steps), each numbered. With more than one, the rows choose the
+  plan: tabs (tabs.js, [data-tabs]), the open one white with a tick, the
+  others quieter with an arrow, each card a tab panel in one cell, so the
+  card keeps the tallest plan's height.
+
+  The "next" slot is for the navigation calls under the prices
+  (PlanNext.astro): never more price cards. Styles: plan.css.
+*/
+import ActionButton from "./ActionButton.astro";
+
+export type PlanRow = { title?: string; text?: string; titleField?: string; textField?: string };
+export type Plan = {
+  id: string;
+  title?: string;
+  badge?: string;
+  prefix?: string;
+  price?: string;
+  suffix?: string;
+  caption?: string;
+  label?: string;
+  includes?: string[];
+  note?: string;
+  button: { href?: string; label?: string; variant?: "primary" | "secondary"; attrs?: Record<string, unknown> };
+  /** the card's field in the page document, e.g. "pricing.cards.0" */
+  field: string;
+  /** what the plan's row says under its name; its price and badge if not given */
+  rowText?: string;
+};
+
+interface Props {
+  tagline?: string;
+  taglineField?: string;
+  lead?: string;
+  leadField?: string;
+  heading?: string;
+  headingField?: string;
+  lede?: string;
+  ledeField?: string;
+  rows?: PlanRow[];
+  rowsLabel?: string;
+  plans: Plan[];
+}
+
+const { tagline, taglineField, lead, leadField, heading, headingField, lede, ledeField, rows = [], rowsLabel, plans } = Astro.props;
+const tabbed = plans.length > 1;
+const pad = (n: number) => String(n).padStart(2, "0");
+// "Title — detail": the title, and the detail under it starting with a capital
+const parts = (line: string) => {
+  const [first, second] = line.split(/\s+—\s+/);
+  return [first, second && second.charAt(0).toUpperCase() + second.slice(1)];
+};
+const priceLine = (p: Plan) => (p.price ? [p.prefix, `${p.price}${p.suffix ?? ""}`].filter(Boolean).join(" ") : "");
+---
+<div class:list={["plan", { "is--tabbed": tabbed }]} data-tabs={tabbed ? "" : undefined}>
+  <div class="plan__intro">
+    {tagline && <p class="plan__chip" data-page-field={taglineField}>{tagline}</p>}
+    <h2 class="plan__heading" data-split="heading">
+      {lead && <Fragment><span class="plan__lead" data-page-field={leadField}>{lead}</span> </Fragment>}<span data-page-field={headingField}>{heading}</span>
+    </h2>
+    {lede && <p class="plan__lede" data-page-field={ledeField}>{lede}</p>}
+    <slot name="aside" />
+  </div>
+
+  {tabbed ? (
+  <div class="plan__rows" role="tablist" aria-label={rowsLabel ?? "Plans"} aria-orientation="vertical">
+    {plans.map((p, i) => (
+    <button type="button" class="plan-row" role="tab" id={`${p.id}-tab`} aria-controls={p.id} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1}>
+      <span class="plan-row__words">
+        <span class="plan-row__title">{p.title}</span>
+        <span class="plan-row__text">{p.rowText ?? [priceLine(p), p.badge].filter(Boolean).join(" • ")}</span>
+      </span>
+      <span class="plan-row__mark" aria-hidden="true">
+        <svg class="plan-row__tick" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" /></svg>
+        <svg class="plan-row__arrow" viewBox="0 0 16 16"><path d="M2.5 8h11M8.75 3.25 13.5 8l-4.75 4.75" /></svg>
+      </span>
+    </button>
+    ))}
+  </div>
+  ) : rows.length > 0 && (
+  <ol class="plan__rows" aria-label={rowsLabel}>
+    {rows.map((row, i) => (
+    <li class="plan-row is--static">
+      <span class="plan-row__words">
+        <span class="plan-row__title" data-page-field={row.titleField}>{row.title}</span>
+        {row.text && <span class="plan-row__text" data-page-field={row.textField}>{row.text}</span>}
+      </span>
+      <span class="plan-row__mark is--number" aria-hidden="true">{pad(i + 1)}</span>
+    </li>
+    ))}
+  </ol>
+  )}
+
+  <div class="plan__cards">
+    {plans.map((p, i) => (
+    <article class:list={["plan-card", { "is--active": !tabbed || i === 0 }]} id={p.id} role={tabbed ? "tabpanel" : undefined} aria-labelledby={tabbed ? `${p.id}-tab` : undefined}>
+      <header class="plan-card__head">
+        <span class="plan-card__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M3 19 8 5M12 5v14M16 5l5 14" /></svg>
+        </span>
+        <h3 class="plan-card__title" data-page-field={`${p.field}.title`}>{p.title}</h3>
+        {p.badge && <span class="plan-card__badge" data-page-field={`${p.field}.badge`}>{p.badge}</span>}
+      </header>
+      {p.price ? (
+      <p class="plan-card__price">
+        {p.prefix && <span class="plan-card__affix" data-page-field={`${p.field}.pricePrefix`}>{p.prefix}</span>}
+        <span class="plan-card__figure" data-page-field={`${p.field}.price`}>{p.price}</span>
+        {p.suffix && <span class="plan-card__affix" data-page-field={`${p.field}.priceSuffix`}>{p.suffix}</span>}
+      </p>
+      ) : (
+      // a plan without a public price (the Technology Blueprint): its line
+      // takes the price's place, over the button
+      p.caption && <p class="plan-card__lead" data-page-field={`${p.field}.subtitle`}>{p.caption}</p>
+      )}
+      <div class="plan-card__action">
+        <ActionButton href={p.button.href} variant={p.button.variant ?? "primary"} {...(p.button.attrs ?? {})}><span data-page-field={`${p.field}.button`}>{p.button.label}</span></ActionButton>
+        {p.price && p.caption && <p class="plan-card__caption" data-page-field={`${p.field}.subtitle`}>{p.caption}</p>}
+      </div>
+      {(p.includes?.length ?? 0) > 0 && (
+      <div class="plan-card__includes">
+        {p.label && <p class="plan-card__label" data-page-field={`${p.field}.includesLabel`}>{p.label}</p>}
+        <ul class="plan-card__list">
+          {p.includes!.map((line, j) => {
+            const [first, second] = parts(line);
+            return (
+          <li data-page-field={`${p.field}.includes.${j}`}>
+            <svg class="plan-card__check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25" /><path d="M6.5 10.25l2.4 2.4 4.6-5" /></svg>
+            <span class="plan-card__item">
+              <span class="plan-card__item-title">{first}</span>
+              {second && <span class="plan-card__item-text">{second}</span>}
+            </span>
+          </li>
+            );
+          })}
+        </ul>
+      </div>
+      )}
+      {p.note && (
+      <p class="plan-card__note">
+        <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" /><path d="M10 9v5" /><circle class="is--dot" cx="10" cy="6.25" r="1.1" /></svg>
+        <span data-page-field={`${p.field}.note`}>{p.note}</span>
+      </p>
+      )}
+    </article>
+    ))}
+  </div>
+</div>
+<slot name="next" />
