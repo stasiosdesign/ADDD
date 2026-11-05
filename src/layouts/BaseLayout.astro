@@ -192,12 +192,17 @@ const draftMode = staging && Astro.locals.draftMode;
 {/* Staging and development only: website comments, the CMS package's
     review layer, served by this site's Studio (static/cms-comments.js). It
     loads only in a tab the Studio's Comments page opened, and keeps the
-    comments in Sanity through that Studio; anywhere else nothing loads. */}
+    comments in Sanity through that Studio; anywhere else nothing loads.
+    The designer's own comments (src/sanity/review-notes.ts) go to it as
+    its seeds. */}
 {staging && (
 <script>
   if (window.opener && window.self === window.top) {
     const studio = import.meta.env.DEV ? "http://localhost:3333" : "https://addd.sanity.studio";
-    document.head.append(Object.assign(document.createElement("script"), { src: `${studio}/static/cms-comments.js` }));
+    import("../sanity/review-notes").then(({ designer, seeds }) => {
+      (window as unknown as { cmsComments?: object }).cmsComments = { users: [designer], seeds };
+      document.head.append(Object.assign(document.createElement("script"), { src: `${studio}/static/cms-comments.js` }));
+    });
   }
 </script>
 )}
