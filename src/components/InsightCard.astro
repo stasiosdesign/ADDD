@@ -8,10 +8,12 @@
   (initFilterGroups() in src/scripts/site.js): the category chip doubles
   as the card's filter token, so the token is never written out twice.
 
-  `editorial` (the homepage's Research & Insights, 2026-11-05): the
-  picture, then its number and a hairline with the arrow at its end, the
-  title and the line of description; no category, no metadata
-  (styles.css, "Research & Insights, editorial").
+  `editorial` (the homepage's Research & Insights, 2026-11-05, second pass
+  after the user's reference): the site's dotted rule across the top, a row
+  of the card's number in a square, the title and a square arrow, the line
+  of description, then the picture in a frame; no category, no metadata.
+  Pointed at (or the deck's front card on a touch screen), the rule and
+  the arrow take the red (styles.css, "Research & Insights, editorial").
 */
 import ArrowIcon from "./ArrowIcon.astro";
 
@@ -31,17 +33,15 @@ const { href, image, category, title, description, meta, filter = false, editori
 ---
 {editorial ? (
 <a class="insight-card is--editorial" href={href}>
-  <div class="insight-card__media">
-    <img class="insight-card__img" src={image} alt="" loading="lazy">
-  </div>
-  <div class="insight-card__body">
-    <p class="insight-card__line" aria-hidden="true">
-      <span class="insight-card__n">{n !== undefined ? String(n).padStart(2, "0") : ""}</span>
-      <span class="insight-card__rule"></span>
-      <span class="insight-card__go"><ArrowIcon /></span>
-    </p>
+  <span class="insight-card__rule" aria-hidden="true"></span>
+  <div class="insight-card__top">
+    <span class="insight-card__mark" aria-hidden="true">{n !== undefined ? String(n).padStart(2, "0") : ""}</span>
     <h3 class="insight-card__h">{title}</h3>
-    {description && <p class="insight-card__p">{description}</p>}
+    <span class="insight-card__go" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M3 8h9.5M8.5 4l4 4-4 4" /></svg></span>
+  </div>
+  {description && <p class="insight-card__p">{description}</p>}
+  <div class="insight-card__media">
+    <img class="insight-card__img" src={image} alt="" loading="lazy" draggable="false">
   </div>
 </a>
 ) : (

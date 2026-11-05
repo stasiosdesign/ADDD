@@ -1661,6 +1661,10 @@
   align-items: stretch;
 }
 .adv-gain { grid-template-rows: auto 1fr; }
+/* the number's block the head's full height (2026-11-05): kept square, a
+   two-line title made the head taller than it and left a strip of the
+   ground showing under it */
+.adv-gain .step-card__badge { aspect-ratio: auto; align-self: stretch; }
 .adv-gain .step-card__title { padding-block: 1rem; font-size: 1.5rem; }
 .adv-gain .step-card__foot {
   justify-content: flex-start;

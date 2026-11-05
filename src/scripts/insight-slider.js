@@ -39,6 +39,12 @@ export function initInsightSlider(container) {
 
     const minScale = Number(root.dataset.scale ?? 0.72);
     const maxRotation = Number(root.dataset.rotate ?? -5);
+    // data-slider-fill (the homepage's Research & Insights, 2026-11-05): the
+    // deck stops when its last card reaches the viewport's right edge, so the
+    // row is always full; without it, it runs on until the last card alone
+    // is left at the front
+    const fill = root.hasAttribute("data-slider-fill");
+    let last = slides.length - 1;
 
     const controls = root.querySelector("[data-slider-controls]");
     const prevBtn = controls && controls.querySelector("[data-slider-prev]");
@@ -82,12 +88,17 @@ export function initInsightSlider(container) {
 
     function syncControls() {
       dots.forEach((d, i) => d.classList.toggle("is--active", i === index));
+      // the deck's front card (the homepage's editorial cards light it on a
+      // touch screen, where nothing is pointed at: styles.css)
+      slides.forEach((s, i) => s.classList.toggle("is--current", i === index));
       if (prevBtn) prevBtn.disabled = index <= 0;
-      if (nextBtn) nextBtn.disabled = index >= slides.length - 1;
+      if (nextBtn) nextBtn.disabled = index >= last;
+      // a dot for a position the deck never reaches (fill) is not shown
+      dots.forEach((d, i) => { d.hidden = i > last; });
     }
 
     function goTo(i) {
-      const target = clamp(Math.max(0, Math.min(i, slides.length - 1)) * spacing);
+      const target = clamp(Math.max(0, Math.min(i, last)) * spacing);
       if (moveTween) moveTween.kill();
       if (draggable) draggable.endDrag?.();
 
@@ -108,7 +119,11 @@ export function initInsightSlider(container) {
     function measure() {
       const gapRight = parseFloat(getComputedStyle(slides[0]).marginRight) || 0;
       spacing = slides[0].offsetWidth + gapRight;
-      maxDrag = spacing * (slides.length - 1);
+      // how many cards the viewport shows whole (fill): the deck's last stop
+      // leaves that many at the front
+      const shown = fill && spacing > 0 ? Math.max(1, Math.floor((viewport.clientWidth + gapRight + 1) / spacing)) : 1;
+      last = Math.max(0, slides.length - shown);
+      maxDrag = spacing * last;
 
       dragX = clamp(dragX);
       paint();

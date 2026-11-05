@@ -41,30 +41,23 @@ const pad2 = (n: number) => String(n).padStart(2, "0");
 
 // Themes Covered (2026-11-05, after the user's reference): the themes as one
 // large list, the one at the screen's middle (or pointed at) dark, the
-// others grey, and beside them its drawing, held while the list scrolls
-// (theme-list.js). Each theme's drawing is a line icon in the style of the
-// Technology Blueprint's (the SVG Collection's 24px strokes), by its name.
+// others grey, and beside them a photograph, held while the list scrolls
+// (theme-list.js). Second pass (2026-11-05): the photographs are the
+// library's own of Allister presenting and speaking and a practice's team
+// round a model, landscape, taken in turn so no two themes side by side
+// share one.
 const themes = lines("themes.items");
-const THEME_ICONS: Record<string, string> = {
-  ai: '<path d="M13 3L4 14H12L11 21L20 10H12L13 3Z"/>',
-  bim: '<path d="M12 2.5 21 7.5V16.5L12 21.5 3 16.5V7.5Z"/><path d="M3 7.5 12 12.5 21 7.5"/><path d="M12 12.5V21.5"/>',
-  technology: '<path d="M6 6H18V18H6Z"/><path d="M9.5 9.5H14.5V14.5H9.5Z"/><path d="M9 2V6M15 2V6M9 18V22M15 18V22M2 9H6M2 15H6M18 9H22M18 15H22"/>',
-  workflows: '<path d="M1.5 12H5.5L9.5 3L14.5 21L18.5 12H22.5"/>',
-  software: '<path d="M2 9V20H22V7H13.5L11 9H2Z"/><path d="M2 9V4H22V7"/><path d="M4.5 6V7"/><path d="M7 6V7"/><path d="M9.5 6V7"/>',
-  hardware: '<path d="M2 4H22V16H2Z"/><path d="M12 16V20"/><path d="M7 20H17"/>',
-  infrastructure: '<path d="M18.6 18C19.75 18 20.85 17.55 21.68 16.75C22.5 15.94 22.97 14.85 23 13.7C23 12.53 22.54 11.41 21.71 10.59C20.89 9.76 19.77 9.3 18.6 9.3H18.1C17.65 8.04 16.82 6.96 15.73 6.19C14.64 5.42 13.34 5 12 5C10.67 4.99 9.38 5.41 8.3 6.18C7.23 6.95 6.42 8.04 6 9.3H5.4C4.23 9.3 3.11 9.76 2.29 10.59C1.46 11.41 1 12.53 1 13.7C1.03 14.85 1.5 15.94 2.32 16.75C3.15 17.55 4.25 18 5.4 18H18.6Z"/>',
-  automation: '<path d="M20 12A8 8 0 0 1 6.3 17.7"/><path d="M4 12A8 8 0 0 1 17.7 6.3"/><path d="M17.5 2.5V6.5H13.5"/><path d="M6.5 21.5V17.5H10.5"/>',
-  integration: '<path d="M3 3H11V11H3Z"/><path d="M13 13H21V21H13Z"/><path d="M11 7H17V13"/><path d="M13 17H7V11"/>',
-  licensing: '<circle cx="7.5" cy="12" r="4.5"/><path d="M12 12H22"/><path d="M18 12V16"/><path d="M21 12V15"/>',
-  costs: '<path d="M21 7H3V21H21V7Z"/><path d="M21 11H17C16.2 11 15.44 11.32 14.88 11.88C14.32 12.44 14 13.2 14 14C14 14.8 14.32 15.56 14.88 16.12C15.44 16.68 16.2 17 17 17H21"/><path d="M17 14H18"/><path d="M5 7L13 3L15 7"/><path d="M14 5L17 4L18 7"/>',
-  strategy: '<path d="M6 21V4H20V14H6"/>',
-  security: '<path d="M20.5 10.5H3.5V21.5H20.5V10.5Z"/><path d="M12 14.5V17"/><path d="M18 10.5V8C18 6.41 17.37 4.88 16.24 3.76C15.12 2.63 13.59 2 12 2C10.41 2 8.88 2.63 7.76 3.76C6.63 4.88 6 6.41 6 8V10.5"/>',
-  productivity: '<path d="M3 17A9 9 0 1 1 21 17"/><path d="M12 17L16.5 10.5"/><path d="M2 21H22"/>',
-  leadership: '<circle cx="12" cy="7" r="3.5"/><path d="M5 21V18A4 4 0 0 1 9 14H15A4 4 0 0 1 19 18V21"/>',
-  other: '<path d="M22 4H2V21H22V4Z"/><path d="M8 9V21"/><path d="M2 9H22"/>',
-};
-const themeIcon = (name = "") => THEME_ICONS[name.toLowerCase().split(/[^a-z]+/).find(Boolean) ?? ""] ?? THEME_ICONS.other;
-
+const THEME_PHOTOS = [
+  { src: "/assets/images/allister-presenting-landscape.webp", position: "55% 40%" },
+  { src: "/assets/images/team-model-review.webp", position: "50% 50%" },
+  { src: "/assets/images/allister-gesture-warm-landscape.webp", position: "52% 40%" },
+  { src: "/assets/images/allister-keynote-stage-landscape.webp", position: "50% 45%" },
+  { src: "/assets/images/allister-podium-landscape.webp", position: "58% 35%" },
+  { src: "/assets/images/conference-keynote-landscape.webp", position: "50% 50%" },
+  { src: "/assets/images/allister-gesture-close-landscape.webp", position: "50% 40%" },
+  { src: "/assets/images/allister-podium-full-landscape.webp", position: "40% 35%" },
+];
+const themePhoto = (i: number) => THEME_PHOTOS[i % THEME_PHOTOS.length];
 // How it Works (2026-11-05, after the user's reference): four panels in a
 // bento, each with a small drawing of its own, the ADDD mark where they meet
 const BENTO = ["sessions", "guidance", "tools", "membership"] as const;
@@ -222,9 +215,8 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
       <div class="adv-topics__grid">
         <div class="adv-topics__intro">
           <div class="adv-topics__intro-in">
-            <h2 class="adv-topics__heading" id="themes-heading" data-page-field="themes.heading">{t("themes.heading")}</h2>
+            <h2 class="visually-hidden" id="themes-heading" data-page-field="themes.heading">{t("themes.heading")}</h2>
             <p class="adv-topics__lede" data-page-field="themes.lede">{t("themes.lede")}</p>
-            <p class="adv-topics__count" aria-hidden="true"><span data-theme-count>01</span> / {pad2(themes.length)}</p>
           </div>
         </div>
 
@@ -241,9 +233,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
             <div class="adv-topics__frame">
               {themes.map((theme, i) => (
               <div class:list={["adv-topic-vis", { "is--active": i === 0 }]} data-theme-vis={i}>
-                <span class="adv-topic-vis__n">{pad2(i + 1)}</span>
-                <svg class="adv-topic-vis__icon" viewBox="0 0 24 24" set:html={themeIcon(theme)}></svg>
-                <span class="adv-topic-vis__name">{theme}</span>
+                <img src={themePhoto(i).src} alt="" width="960" height="640" loading={i < 2 ? "eager" : "lazy"} decoding="async" draggable="false" style={`object-position:${themePhoto(i).position}`}>
               </div>
               ))}
             </div>

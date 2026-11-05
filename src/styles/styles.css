@@ -2562,121 +2562,157 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ------------------------------------------------------------
-   Research & Insights, editorial (the homepage, 2026-11-05)
+   Research & Insights, editorial (the homepage; second pass,
+   2026-11-05, after the user's reference)
    ------------------------------------------------------------
-   The homepage's cards without a panel: the picture, in black and white
-   and a little taller than wide; under it the card's number and a
-   hairline running to a small arrow; then the title and one line of
-   description, cut at two lines. No category, no metadata, no red.
-   Pointed at, the picture comes into its colour and leans in a little,
-   the hairline darkens from the left and the arrow steps on: quiet, and
-   the same at every card. */
-.insight-slider.is--editorial { --insight-gutter: 2rem; }
+   Each card a panel in the section's own ground, opaque, so the cards the
+   deck stacks at its left edge (insight-slider.js: each scaled and tipped
+   as it parks) lie under the one in front instead of showing through it.
+   Across its top the site's dotted rule; under it a row of the card's
+   number in a hairline square, the title and a square arrow; the line of
+   description; then the picture, in black and white, in a frame of the
+   light grey, 4:3. Four across from 1200px (page-grid.css). Pointed at
+   (or, on a touch screen, the deck's front card, is--current), the rule
+   turns a solid red from the left and the arrow's square fills with the
+   red; the picture comes into its colour. */
+.insight-slider.is--editorial { --insight-gutter: 1.25rem; --card-ground: var(--c-light-bg); }
 .insight-slider.is--editorial .insight-card.is--editorial {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0;
   height: 100%;
+  padding: 1.75rem 0 0;
   border: 0;
   border-radius: 0;
-  background: none;
+  background: var(--card-ground);
   overflow: visible;
   transform: none;
 }
-.insight-slider.is--editorial .insight-card.is--editorial .insight-card__media {
-  display: block;
-  position: relative;
-  aspect-ratio: 4 / 5;
-  overflow: hidden;
-  border-radius: var(--radius);
-  background: var(--c-light-fg);
-}
-.insight-slider.is--editorial .insight-card.is--editorial .insight-card__img {
+/* the rule: the site's dotted rule, and over it a solid red one drawn in
+   from the left (a transform: nothing is laid out again) */
+.insight-card.is--editorial .insight-card__rule {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  aspect-ratio: auto;
-  border-radius: 0;
-  object-fit: cover;
-  filter: grayscale(1) contrast(1.02);
-  transform: scale(1.001);
-  transition: filter 0.6s var(--ease-osmo), transform 0.9s var(--ease-osmo);
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--dotted-rule);
+  color: var(--c-text);
 }
-.insight-slider.is--editorial .insight-card.is--editorial .insight-card__body {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 1.25rem 0 0;
-}
-.insight-card__line {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  margin: 0 0 1.125rem;
-}
-.insight-card__n {
-  font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  letter-spacing: var(--label-tracking);
-  color: color-mix(in srgb, var(--c-text) 55%, transparent);
-}
-/* the hairline: a quiet line, and over it the ink, drawn from the left on
-   hover (a transform: nothing is laid out again) */
-.insight-card__rule {
-  position: relative;
-  flex: 1 1 auto;
-  height: 1px;
-  background: rgba(10, 10, 10, 0.14);
-  overflow: hidden;
-}
-.insight-card__rule::after {
+.insight-card.is--editorial .insight-card__rule::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--c-text);
+  background: var(--c-red);
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.6s var(--ease-osmo);
+  transition: transform 0.5s var(--ease-osmo);
 }
-.insight-card__go {
-  display: flex;
-  width: 1rem;
-  height: 1rem;
+.insight-card__top {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.875rem;
+}
+.insight-card__mark {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(10, 10, 10, 0.55);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--label-tracking);
   color: var(--c-text);
-  transition: transform 0.45s var(--ease-osmo);
 }
-.insight-card__go svg { width: 100%; height: 100%; }
+/* placed by hand: an older rule (the archive cards') pins the title to the
+   first column */
+.insight-card.is--editorial .insight-card__mark { grid-column: 1; grid-row: 1; }
+.insight-card.is--editorial .insight-card__go { grid-column: 3; grid-row: 1; }
 .insight-slider.is--editorial .insight-card.is--editorial .insight-card__h {
-  align-self: stretch;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
   margin: 0;
   padding: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   line-height: 1.2;
-  letter-spacing: calc(var(--primary-tracking) - 0.025em);
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
   text-wrap: balance;
+}
+.insight-card.is--editorial .insight-card__go {
+  display: grid;
+  place-items: center;
+  width: 2.375rem;
+  height: 2.375rem;
+  border-radius: var(--radius-sm);
+  background: rgba(10, 10, 10, 0.08);
+  color: var(--c-text);
+  transition: background-color 0.35s var(--ease-osmo), color 0.35s var(--ease-osmo);
+}
+.insight-card.is--editorial .insight-card__go svg {
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: square;
 }
 .insight-slider.is--editorial .insight-card.is--editorial .insight-card__p {
   display: -webkit-box;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   overflow: hidden;
-  margin: 0.75rem 0 0;
+  margin: 1.125rem 0 0;
   padding: 0;
-  max-width: 24rem;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.45;
   color: color-mix(in srgb, var(--c-text) 58%, transparent);
 }
+.insight-slider.is--editorial .insight-card.is--editorial .insight-card__media {
+  display: block;
+  position: relative;
+  margin-top: auto;
+  padding-top: 1.75rem;
+  aspect-ratio: auto;
+  overflow: visible;
+  background: none;
+  border-radius: 0;
+}
+.insight-slider.is--editorial .insight-card.is--editorial .insight-card__img {
+  position: static;
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-sm);
+  background: var(--c-light-fg);
+  object-fit: cover;
+  filter: grayscale(1);
+  transition: filter 0.5s var(--ease-osmo);
+}
+/* active: pointed at, focused, pressed, or the deck's front card on a
+   touch screen */
+.insight-card.is--editorial:is(:focus-visible, :active) .insight-card__rule::after { transform: scaleX(1); }
+.insight-card.is--editorial:is(:focus-visible, :active) .insight-card__go { background: var(--c-red); color: var(--c-white); }
+.insight-card.is--editorial:is(:focus-visible, :active) .insight-card__img { filter: none; }
 @media (hover: hover) {
-  .insight-slider.is--editorial .insight-card.is--editorial:hover { transform: none; background: none; }
-  .insight-card.is--editorial:hover .insight-card__img { filter: none; transform: scale(1.035); }
+  .insight-slider.is--editorial .insight-card.is--editorial:hover { transform: none; background: var(--card-ground); }
   .insight-card.is--editorial:hover .insight-card__rule::after { transform: scaleX(1); }
-  .insight-card.is--editorial:hover .insight-card__go { transform: translateX(0.25rem); }
+  .insight-card.is--editorial:hover .insight-card__go { background: var(--c-red); color: var(--c-white); }
+  .insight-card.is--editorial:hover .insight-card__img { filter: none; }
+}
+@media (hover: none) {
+  .insight-slider__item.is--current .insight-card.is--editorial .insight-card__rule::after { transform: scaleX(1); }
+  .insight-slider__item.is--current .insight-card.is--editorial .insight-card__go { background: var(--c-red); color: var(--c-white); }
+  .insight-slider__item.is--current .insight-card.is--editorial .insight-card__img { filter: none; }
 }
 .insight-card.is--editorial:focus-visible { outline: 2px solid var(--c-text); outline-offset: 6px; }
-
+/* a dot for a stop the deck never reaches (data-slider-fill) */
+.insight-slider [data-slider-dot][hidden] { display: none; }
 /* the heading alone, on two lines, from Grid Column 2 */
 .research__head .h2 { font-size: 3.75rem; line-height: 1.05; }
 .research__head .h2 > span { display: block; }
