@@ -53,15 +53,23 @@ interface Props {
   /** Book a Free Call as the list's last item: true, or the booking dialog's id. */
   call?: boolean | string;
   callLabel?: string;
+  /** a small line over the heading, in the heading's band (Before Revit's "Common questions") */
+  tagline?: string;
+  taglineField?: string;
 }
-const { id, heading, headingField, items, field, icons = [], call, callLabel = "Book a Free Call" } = Astro.props;
+const { id, heading, headingField, items, field, icons = [], call, callLabel = "Book a Free Call", tagline, taglineField } = Astro.props;
 const questions = items.map((item, i) => ({ ...item, icon: icons[i] }));
 const callId = typeof call === "string" ? call : "book-call";
 // three words or more: two balanced lines
 const paired = (heading ?? "").trim().split(/\s+/).length >= 3;
 ---
 <div class="faq-panel">
-  {heading && <h2 class:list={["h2", "faq-panel__heading", { "is--pair": paired }]} data-split="heading" data-page-field={headingField}>{heading}</h2>}
+  {tagline ? (
+  <div class="faq-panel__head">
+    <p class="tagline faq-panel__tagline" data-page-field={taglineField}>{tagline}</p>
+    {heading && <h2 class:list={["h2", "faq-panel__heading", { "is--pair": paired }]} data-split="heading" data-page-field={headingField}>{heading}</h2>}
+  </div>
+  ) : heading && <h2 class:list={["h2", "faq-panel__heading", { "is--pair": paired }]} data-split="heading" data-page-field={headingField}>{heading}</h2>}
   <div class="faq-panel__list">
     <Accordion id={id} items={questions} field={field} variant="panel" />
     {call && (

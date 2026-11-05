@@ -65,7 +65,7 @@ export const project: CmsProjectConfig = {
   pageEditor: [
     {type: 'homePage', title: 'Home', description: 'The hero, logo strip, approach, routes, testimonials, credentials, fit, research and the closing call to action every page ends on.'},
     {type: 'workshopPage', title: 'Workflow Workshop', description: 'The half-day diagnostic: its opening, method, journey, case study, pricing and questions.'},
-    {type: 'beforeRevitPage', title: 'Before Revit', description: 'The early-stage design engagement: its opening, method and pricing.'},
+    {type: 'beforeRevitPage', title: 'Before Revit', description: 'The early-stage design workflow research: its opening, challenge, scope, method, output, why ADDD, pricing and questions.'},
     {type: 'blueprintPage', title: 'Technology Blueprint', description: 'The practice-wide strategy: its opening, benefits, delivery, enquiry and questions.'},
     {type: 'advisoryPage', title: 'Ongoing Advisory', description: 'The membership: its opening, structure, impact, comparison, pricing and questions.'},
     {type: 'stackDiagnosticPage', title: 'Stack Diagnostic', description: 'Free Tech Stacks: its opening, fit, method and where it leads.'},

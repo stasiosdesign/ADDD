@@ -4,11 +4,15 @@
   PricingPlan, each a title, a line and the site's button, leading to
   another service page. Navigation, not prices: no figure, no list. One
   panel lies across the row (title and line on the left, the button on
-  the right); two stand side by side. Styles: plan.css.
+  the right); two stand side by side. A panel may carry a short question
+  over its title (kicker: Before Revit's, 2026-11-05). Styles: plan.css.
 */
 import ActionButton from "./ActionButton.astro";
 
 export type NextLink = {
+  /** a short question over the panel's title (Before Revit: "Not sure where the problem lies?") */
+  kicker?: string;
+  kickerField?: string;
   title?: string;
   text?: string;
   button?: string;
@@ -30,6 +34,7 @@ const { links, heading, headingField } = Astro.props;
   {links.map((l) => (
   <div class="plan-next__panel" data-ground="dark">
     <div class="plan-next__words">
+      {l.kicker && <p class="plan-next__kicker" data-page-field={l.kickerField}>{l.kicker}</p>}
       <p class="plan-next__title"><span class="plan-next__mark" aria-hidden="true"></span><span data-page-field={l.titleField}>{l.title}</span></p>
       {l.text && <p class="plan-next__text" data-page-field={l.textField}>{l.text}</p>}
     </div>

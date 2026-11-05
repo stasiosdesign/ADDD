@@ -3,7 +3,9 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
-import BookCallDialog from "../components/BookCallDialog.astro";
+import FaqPanel from "../components/FaqPanel.astro";
+import FaqSection from "../components/FaqSection.astro";
+import LayersDiagram from "../components/LayersDiagram.astro";
 import ProblemCard from "../components/ProblemCard.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import PricingPlan from "../components/PricingPlan.astro";
@@ -14,63 +16,90 @@ import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 // Every section's words come from the Before Revit page document in Sanity
 // (studio/schemaTypes/pages/before-revit.ts), each element falling back to
 // its own (src/sanity/defaults/before-revit.ts): see src/sanity/content.ts.
-// The navigation, the footer, the two price cards' looks and where every
-// button leads stay here. Each element names the field it shows
+// The navigation, the footer, the figures, the price card's look and where
+// every button leads stay here. Each element names the field it shows
 // (data-page-field) so the Studio's Visual editor can outline it and write
 // drafts into it.
+//
+// The second rebuild (2026-11-05, the user's full brief): eight sections,
+// each in a section design the other service pages already use, so the
+// page reads as one of the family. The opening (BeforeRevitHero, as it
+// was); the challenge in the Workflow Workshop's problem cards; the scope
+// in the Technology Blueprint's "What we look at" tabs; the method in the
+// site's numbered rows; the output in the homepage's banded cards (as the
+// Ongoing Advisory's gains); why ADDD in the homepage's credentials; the
+// investment in the service pages' price card; the questions in the site's
+// FAQ panel. Page styles: pages.css, "Before Revit".
 const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "beforeRevitPage"), D);
 
+type Item = { _key: string; title?: string; text?: string };
+const problems = list<Item>("problem.tiles");
+const areas = list<Item>("scope.areas");
 const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("method.steps");
-const problems = list<{ _key: string; title?: string; text?: string }>("problem.tiles");
+const deliverables = list<Item>("output.deliverables");
+const points = list<Item>("why.points");
+const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 const pad = (n: number) => String(n).padStart(2, "0");
 
 // The problem cards' figures (problem-figures.js), in the cards' order:
-// tools going round, work handed on that stops short of connecting, and
-// choices no two of which line up
+// tools going round and round (no longer fit), work handed on that stops
+// short of connecting (repeated), and a file of crooked lines, no two of
+// which line up (too many options)
 const PROBLEM_FIGURES = [
   { figure: "turntable", label: "Blocks on a turntable that settles back where it started" },
   { figure: "plug", label: "A plug drawn towards its socket that stops short" },
   { figure: "format", label: "A file of crooked lines, each set to a different indent" },
 ];
 
+// The scope's tabs' icons, from the SVG Collection (source-assets/
+// svg-collection), as the Technology Blueprint's are, in the areas' order:
+// the early stages (a layout), the tools in use (a folder of software),
+// the move into BIM (a line that runs on) and the practical constraints
+// (a wallet); drawn in the tab's ink (currentColor)
+const AREA_ICONS = [
+  '<path d="M22 4H2V21H22V4Z"/><path d="M8 9V21"/><path d="M2 9H22"/>',
+  '<path d="M2 9V20H22V7H13.5L11 9H2Z"/><path d="M2 9V4H22V7"/><path d="M4.5 6V7"/><path d="M7 6V7"/><path d="M9.5 6V7"/>',
+  '<path d="M1.5 12H5.5L9.5 3L14.5 21L18.5 12H22.5"/>',
+  '<path d="M21 7H3V21H21V7Z"/><path d="M21 11H17C16.2044 11 15.4413 11.3161 14.8787 11.8787C14.3161 12.4413 14 13.2044 14 14C14 14.7956 14.3161 15.5587 14.8787 16.1213C15.4413 16.6839 16.2044 17 17 17H21"/><path d="M17 14H18"/><path d="M5 7L13 3L15 7"/><path d="M14 5L17 4L18 7"/>',
+];
+const iconOf = (i: number) => AREA_ICONS[i] ?? AREA_ICONS[0];
+
 // a booking or enquiry button: the free call's calendar (BookCallDialog.astro,
-// "book-call"), as Book a Call opens it (2026-11-05)
+// "book-call", which the FAQ's Book a Free Call renders), as Book a Call
+// opens it (2026-11-05)
 const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
   title="Before Revit — ADDD"
-  description="Before Revit is an engagement for architecture practices reviewing their early-stage design workflow: what happens in the early stages of design, before the work moves into Revit or Archicad."
+  description="Before Revit is ADDD's early-stage design workflow research for architecture practices: an independent recommendation for the tools and workflow that connect concept design to Revit or Archicad."
   pageName="Before Revit"
   doc={{ id: "beforeRevitPage" }}
 >
 <main class="page--grid page--before-revit">
 
-  <!-- The opening (BeforeRevitHero.astro, 2026-11-04, after the
-       reference): dark, the words large on the left, the exploded box
-       glowing red on the right, held while the words scroll away, its frame
-       then landing on the platform. "Inquire" goes to the Contact page;
-       "View Pricing" glides down to the prices. The red block that stands
-       under every service page's opening stays under it. -->
-  <!-- (2026-11-05, the rebuild: the brief's label, heading, standfirst and
-       one button, "Discuss your workflow", which opens the free call's
-       calendar; the practices' marks under it and the statement after it
-       as they were) -->
+  <!-- 01 The opening (BeforeRevitHero.astro, 2026-11-04): dark, the label,
+       the heading, the standfirst and the two buttons on the left over the
+       practices' marks, the exploded box glowing red on the right, held
+       while the words scroll away and the statement comes up, its frame
+       then landing on the platform. "Discuss your workflow" opens the free
+       call's calendar; "How it works" glides down to the method. -->
   <BeforeRevitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
     <Fragment slot="actions">
       <ActionButton {...BOOK}><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+      <ActionButton href="#how-it-works" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
     </Fragment>
   </BeforeRevitHero>
 
-  <!-- The problem (2026-11-05, the rebuild): the Workflow Workshop's problem
-       cards (ProblemCard.astro), each with a Hairline figure on its field of
-       dots (problem-figures.js), on the warm ground, set out as a stair by
-       the scroll as the Workshop's are: tools going round and round, work
-       handed on that never quite connects, and a set of choices no two of
-       which line up -->
+  <!-- 02 The challenge: the Workflow Workshop's problem cards
+       (ProblemCard.astro), each with a Hairline figure on its field of dots
+       (problem-figures.js), on the warm ground, set out as a stair by the
+       scroll as the Workshop's are -->
   <section class="section ws-section br-problems" id="overview">
     <div class="container">
       <div class="ws-head">
+        <p class="tagline" data-page-field="problem.tagline">{t("problem.tagline")}</p>
         <h2 class="h2" data-split="heading" data-page-field="problem.heading">{t("problem.heading")}</h2>
+        <p class="text-md" data-page-field="problem.lede">{t("problem.lede")}</p>
       </div>
       <div data-problem-parallax class="problem-grid ws-problems">
         {problems.map((tile, i) => (
@@ -84,11 +113,56 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     </div>
   </section>
 
-  <!-- How it works: the numbered rows on the site's dotted rule (.steps), on
-       the light grey, each its number and name, its title and its line -->
+  <!-- 03 The scope: the Technology Blueprint's "What we look at" (pages.css,
+       .examine; tabs.js), on black: the head centred over one panel in two
+       halves, the four focus areas as tabs on the left, each its number,
+       name and icon, and the open area's dark panel on the right, its line
+       as the heading, the layers drawing (the stages of the work threaded
+       on one line), and its number large at the foot -->
+  <section class="section examine-sec br-scope" aria-labelledby="scope-heading">
+    <div class="container">
+      <div class="br-scope__head">
+        <p class="tagline" data-page-field="scope.tagline">{t("scope.tagline")}</p>
+        <h2 class="h2" id="scope-heading" data-split="heading" data-page-field="scope.heading">{t("scope.heading")}</h2>
+        <p class="text-md" data-page-field="scope.lede">{t("scope.lede")}</p>
+      </div>
+      <div class="examine" data-tabs>
+        <div class="examine__list" role="tablist" aria-orientation="vertical" aria-label={t("scope.heading")} data-page-list="scope.areas">
+          {areas.map((area, i) => (
+          <button type="button" role="tab" class="examine__tab" id={`scope-tab-${i + 1}`} aria-controls={`scope-panel-${i + 1}`} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? undefined : "-1"} data-filter-status={i === 0 ? "active" : undefined} data-page-item={area._key}>
+            <span class="examine__tab-n" aria-hidden="true">{i + 1}</span>
+            <span class="examine__tab-label" data-page-item-field="title">{area.title}</span>
+            <span class="examine__ring" aria-hidden="true"><svg class="examine__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-miterlimit="10" set:html={iconOf(i)}></svg></span>
+          </button>
+          ))}
+        </div>
+        <div class="examine__stage">
+          <div class="examine__media" aria-hidden="true">
+            <LayersDiagram class="examine__diagram" />
+          </div>
+          {areas.map((area, i) => (
+          <div class:list={["examine__panel", { "is--active": i === 0 }]} role="tabpanel" id={`scope-panel-${i + 1}`} aria-labelledby={`scope-tab-${i + 1}`}>
+            <div class="examine__top">
+              <h3 class="examine__title" data-page-field={`scope.areas.${i}.text`}>{area.text}</h3>
+              <span class="examine__ring is--corner" aria-hidden="true"><svg class="examine__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-miterlimit="10" set:html={iconOf(i)}></svg></span>
+            </div>
+            <div class="examine__foot">
+              <p class="examine__big" aria-hidden="true">{pad(i + 1)}<span>/{pad(areas.length)}</span></p>
+              <p class="examine__small"><span>* {area.title}</span><span>Before Revit</span></p>
+            </div>
+          </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 The method: the numbered rows on the site's dotted rule (.steps),
+       on the light grey, the standfirst beside the heading -->
   <section class="section section--light" id="how-it-works">
     <div class="container">
       <div class="section-title">
+        <p class="text-md" data-page-field="method.lede">{t("method.lede")}</p>
         <div class="section-title__body">
           <p class="tagline" data-page-field="method.tagline">{t("method.tagline")}</p>
           <h2 class="h2" data-split="heading" data-page-field="method.heading">{t("method.heading")}</h2>
@@ -109,11 +183,76 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     </div>
   </section>
 
-  <!-- Investment (2026-11-05, the rebuild; PricingPlan.astro, plan.css, as
-       before): the head on the left over the three steps, the engagement's
-       card on the right (what you receive, the call, and its scope and fee
-       in the note), and under them, after "Looking for something
-       different?", two ink panels on to the Workflow Workshop and the
+  <!-- 05 The output: the four deliverables as the homepage's banded cards
+       (approach-stack.css, .step-card: the number in its square and the
+       title beside it, the line under them), on the ink as the Ongoing
+       Advisory's gains are, set out as a stair by the scroll
+       (data-problem-parallax), and under them the aim, beside a red mark -->
+  <section class="section section--dark adv-gains br-output" id="deliverables">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="output.lede">{t("output.lede")}</p>
+        <div class="section-title__body">
+          <p class="tagline" data-page-field="output.tagline">{t("output.tagline")}</p>
+          <h2 class="h2" data-split="heading" data-page-field="output.heading">{t("output.heading")}</h2>
+        </div>
+      </div>
+
+      <div class="adv-gains__row" data-problem-parallax data-problem-parallax-step="2.5" data-page-list="output.deliverables">
+        {deliverables.map((item, i) => (
+        <article class="step-card adv-gain" data-page-item={item._key}>
+          <header class="step-card__head">
+            <span class="step-card__badge" aria-hidden="true">{pad(i + 1)}</span>
+            <h3 class="step-card__title" data-page-item-field="title">{item.title}</h3>
+          </header>
+          <div class="step-card__foot">
+            <p class="step-card__p" data-page-item-field="text">{item.text}</p>
+          </div>
+        </article>
+        ))}
+      </div>
+
+      <p class="br-output__aim"><span class="br-mark" aria-hidden="true"></span><span data-page-field="output.statement">{t("output.statement")}</span></p>
+    </div>
+  </section>
+
+  <!-- 06 Why ADDD: the homepage's credentials (styles.css, .creds): the
+       head, then a photograph of Allister beside the words, standing on its
+       foot, and the two points on the site's dotted rule -->
+  <section class="section br-why">
+    <div class="container">
+      <div class="creds__title">
+        <p class="tagline" data-page-field="why.tagline">{t("why.tagline")}</p>
+        <h2 class="h2" data-split="heading" data-page-field="why.heading">{t("why.heading")}</h2>
+      </div>
+      <div class="creds__grid">
+        <div class="creds__media">
+          <img class="br-why__photo" src="/assets/images/allister-presenting-landscape.webp" width="960" height="640" alt="Allister Lewis presenting" loading="lazy" decoding="async" draggable="false">
+        </div>
+        <div class="creds__text">
+          <p class="text-md" data-page-field="why.lede">{t("why.lede")}</p>
+          <p data-page-field="why.text">{t("why.text")}</p>
+          <ul class="br-points" role="list" data-page-list="why.points">
+            {points.map((point) => (
+            <li data-page-item={point._key}>
+              <span class="br-mark" aria-hidden="true"></span>
+              <span class="br-points__words">
+                <span class="br-points__title" data-page-item-field="title">{point.title}</span>
+                <span class="br-points__text" data-page-item-field="text">{point.text}</span>
+              </span>
+            </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 Investment (PricingPlan.astro, plan.css): the head on the left
+       over the three steps, the engagement's card on the right (what you
+       receive, the call, the line on scope and pricing under it, and what
+       is not included in the note), and under them two ink panels, each
+       with its own question, on to the Workflow Workshop and the
        Technology Blueprint -->
   <section class="section plan-section" id="pricing">
     <div class="container">
@@ -141,21 +280,25 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
           button: { label: t("pricing.cards.0.button"), attrs: BOOK },
         }]}
       >
-        <PlanNext slot="next" heading={t("pricing.nextHeading")} headingField="pricing.nextHeading" links={[
+        <PlanNext slot="next" links={[
           {
+            kicker: t("pricing.cards.1.badge"),
             title: t("pricing.cards.1.title"),
             text: t("pricing.cards.1.subtitle"),
             button: t("pricing.cards.1.button"),
             href: "workshops-audits.html",
+            kickerField: "pricing.cards.1.badge",
             titleField: "pricing.cards.1.title",
             textField: "pricing.cards.1.subtitle",
             buttonField: "pricing.cards.1.button",
           },
           {
+            kicker: t("pricing.blueprintQuestion"),
             title: t("pricing.blueprintTitle"),
             text: t("pricing.blueprintText"),
             button: t("pricing.blueprintButton"),
             href: "technology-blueprint.html",
+            kickerField: "pricing.blueprintQuestion",
             titleField: "pricing.blueprintTitle",
             textField: "pricing.blueprintText",
             buttonField: "pricing.blueprintButton",
@@ -165,11 +308,18 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     </div>
   </section>
 
-  <!-- the free call's calendar, which every booking button here opens
-       (BookCallDialog.astro; booking.js) -->
-  <BookCallDialog id="book-call" />
+  <!-- 08 Common questions: the site's FAQ panel (FaqPanel.astro), its
+       tagline over the heading, each question with its icon, and Book a
+       Free Call as its last item (which renders the free call's calendar
+       every booking button here opens) -->
+  <FaqSection>
+      <FaqPanel id="faq" tagline={t("faq.tagline")} taglineField="faq.tagline" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
+        icons={["question", "compass", "settings", "file"]} call />
+  </FaqSection>
 
-  <ClosingCta />
+  <!-- the site's closing call to action, with one button of this page's
+       own, opening the free call's calendar -->
+  <ClosingCta single={{ label: t("closing.button"), field: "closing.button", doc: "beforeRevitPage", attrs: BOOK }} />
   <!-- Book a Call, floating at the screen's foot from past the hero to Book a
        Free Call (BookCallFloat.astro) -->
   <BookCallFloat />

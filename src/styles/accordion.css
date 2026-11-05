@@ -337,6 +337,18 @@
    size) wider than any of the headings' halves ("& Answers", 4.3em) and
    narrower than any of them whole ("Before You Book", 6.6em), centred */
 .faq-panel__heading.is--pair { max-width: 5.4em; margin-inline: auto; }
+/* with a tagline over it (FaqPanel.astro, tagline): the two together in
+   the heading's band, centred in it */
+.faq-panel__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: calc(2 * var(--major));
+  text-align: center;
+}
+.faq-panel__head .faq-panel__heading { min-height: 0; }
 /* the questions: whole majors wide (an even number, so they sit square on
    the middle), at most twelve, a major in from the panel's edges */
 .faq-panel__list {

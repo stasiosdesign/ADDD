@@ -24,7 +24,9 @@
   to action — For AEC Tech Firms, with its partnership routes — passes its
   own `doc` and field, so the two audiences never share one. A page can
   set one button of its own in place of the pair (single: the Workflow
-  Workshop's "Start a Tech Blueprint"). Where the buttons lead stays here.
+  Workshop's "Start a Tech Blueprint"), a link or, with attrs, a button
+  (Before Revit's, opening the free call's calendar). Where the buttons
+  lead stays here.
 */
 import ActionButton, { type ActionButtonShape } from "./ActionButton.astro";
 import { pageDocument, reader, type Doc } from "../sanity/content";
@@ -42,7 +44,7 @@ interface Props {
   /** One button in place of the pair (the Workflow Workshop's "Start a Tech
       Blueprint"): where it leads, its words, and the page's own field and
       document they come from, for the Visual editor. */
-  single?: { href: string; label: string; field?: string; doc?: string };
+  single?: { href?: string; label: string; field?: string; doc?: string; attrs?: Record<string, unknown> };
 }
 
 const {
@@ -177,7 +179,7 @@ const lede = t(`${field}.lede`);
       {lede && <p class="text-md cta__lede" data-page-field={`${field}.lede`}>{lede}</p>}
       {single ? (
       <div class="actions">
-        <ActionButton href={single.href} shape={shape}><span data-page-field={single.field} data-page-doc={single.doc} data-page-type={single.doc}>{single.label}</span></ActionButton>
+        <ActionButton href={single.href} shape={shape} {...(single.attrs ?? {})}><span data-page-field={single.field} data-page-doc={single.doc} data-page-type={single.doc}>{single.label}</span></ActionButton>
       </div>
       ) : (
       <div class="actions actions--pair">
