@@ -1,7 +1,7 @@
 const fs=require('node:fs');const path=require('node:path');const assert=require('node:assert/strict');
 const {pathToFileURL}=require('node:url');
-const {chromium}=require('C:/Users/Anast/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const original=fs.readFileSync('C:/Users/Anast/.codex/attachments/1b3923ae-92ea-4700-a2cc-35a619478a6a/pasted-text.txt','utf8').replace(/\r\n/g,'\n');
+const {chromium}=require('playwright');
+const original=fs.readFileSync(path.join(__dirname,'../v3/bouncy-tabs.test.js'),'utf8').replace(/\r\n/g,'\n');
 const fn=original.slice(0,original.indexOf('// Initialize Bouncy Content Tabs')).trimEnd();
 const merged=fs.readFileSync(path.join(__dirname,'footer.html'),'utf8');
 assert(merged.includes(fn),'Original Bouncy Tabs function must be copied verbatim');

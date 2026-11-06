@@ -1,7 +1,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const read = name => fs.readFileSync(path.join(__dirname,name),'utf8');
-const original = fs.readFileSync('C:/Users/Anast/.codex/attachments/1b3923ae-92ea-4700-a2cc-35a619478a6a/pasted-text.txt','utf8').replace(/\r\n/g,'\n');
+const original = fs.readFileSync(path.join(__dirname,'../v3/bouncy-tabs.test.js'),'utf8').replace(/\r\n/g,'\n');
 const tabs = original.slice(0, original.indexOf('// Initialize Bouncy Content Tabs')).trimEnd();
 const billingSource = read('../v3/footer.html');
 const billing = billingSource.slice(billingSource.indexOf('  function initBilling() {'),billingSource.indexOf('\n\n  if (document.readyState')).trimEnd();
