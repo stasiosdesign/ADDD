@@ -34,7 +34,7 @@ conventions and the CMS: read it before editing.
 staging dataset), `npm run build` (the static production build), `npm run
 preview`, `npm run check` (types for the site, then the Studio's checks),
 `npm run studio` (the Studio on 3333), `npm run studio:deploy`. Needs Node
-22.12+. On this computer Node isn't on PATH (workspace `CLAUDE.md`).
+22.12+. Node on this computer: the workspace `CLAUDE.md`, "This computer".
 
 ## Layout
 
@@ -98,11 +98,11 @@ scroll-linked effect that reads layout per frame.
 
 The Studio is the shared CMS package `@stasiosdesign/sanity-cms` (private,
 GitHub Packages; source in the `sanity-cms` repository, checked out on the
-development machine at `3 - Claude/1 - HQ/shared-sanity-cms`, with its own
-CLAUDE.md) set up for this website. This repository lives in its client
-folder, `3 - Claude/ADDD/addd-website`; shared changes are never made from
-here. Tomrow Studios (`3 - Claude/Tomrowstudios/tomrowstudios-website`) is
-the reference implementation this one follows. Before writing any Studio
+development computer at `1 - HQ/shared-sanity-cms` in the workspace folder,
+with its own CLAUDE.md) set up for this website. This repository lives in
+its client folder, `ADDD/addd-website`; shared changes are never made from
+here. Tomrow Studios (`../../Tomrowstudios/tomrowstudios-website`) is the
+reference implementation this one follows. Before writing any Studio
 code, decide whether it's for every Studio or only this one, using the
 workspace `CLAUDE.md` ("Every Studio, or only this one? Claude decides"), and
 say the decision in one line. Dashboard behaviour wanted only here goes in
