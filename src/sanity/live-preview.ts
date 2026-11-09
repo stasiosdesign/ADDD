@@ -52,8 +52,50 @@ const mark = (el: Element, path: Path, ref: Ref) => {
   if (el instanceof HTMLElement) el.dataset.sanity = createDataAttribute({ baseUrl: studioUrl, id: ref.id, type: ref.type, path }).toString();
 };
 
+// Text as a reader sees it: every run of spaces and line breaks one space
+const collapse = (text: string) => text.replace(/\s+/g, ' ').trim();
+
+// Whether an element holds text of its own beside its child elements
+const hasLooseText = (el: Element) => [...el.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim() !== '');
+
+// The element that holds a line's words: down through wrappers with one child
+// and no text of their own (.br-hero__line > .br-hero__ink)
+const textHolder = (el: Element): Element => {
+  let holder = el;
+  while (holder.children.length === 1 && !hasLooseText(holder)) holder = holder.children[0];
+  return holder;
+};
+
+/**
+ * A field's text in its element, keeping the page's markup. Text the page
+ * already shows (however its markup splits it into lines or runs) is left
+ * exactly as built: replacing it flattened statements set line by line (the
+ * Before Revit hero's three lines ran together across the page, and their
+ * animation lost its targets). Changed text set in lines (a "\n" per line,
+ * and one element per line on the page) goes line by line into those
+ * elements, a line added copying the first; anything else is plain text.
+ */
 const setText = (el: Element, value: unknown) => {
-  if (typeof value === 'string' && value.trim() !== '' && el.textContent !== value) el.textContent = value;
+  if (typeof value !== 'string' || value.trim() === '') return;
+  if (collapse(el.textContent ?? '') === collapse(value)) return;
+  const lines = value.split('\n');
+  const parts = [...el.children];
+  const inLines = lines.length > 1 && parts.length > 0 && !hasLooseText(el) && parts.every((part) => part.tagName === parts[0].tagName && part.className === parts[0].className);
+  if (!inLines) {
+    el.textContent = value;
+    return;
+  }
+  while (parts.length < lines.length) {
+    const copy = parts[0].cloneNode(true) as Element;
+    parts[parts.length - 1].after(copy);
+    parts.push(copy);
+  }
+  parts.forEach((part, index) => {
+    if (index < lines.length) textHolder(part).textContent = lines[index];
+    else part.remove();
+  });
+  // Its name for screen readers, where the lines themselves are hidden from them
+  if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', collapse(value));
 };
 
 const setImage = (el: Element, value: unknown) => {
