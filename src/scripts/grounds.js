@@ -60,3 +60,24 @@ export function lastInDocument(els) {
   });
   return top;
 }
+
+/**
+ * An IntersectionObserver over one line across this page's own window: the
+ * root margin cuts the window down to the line, `y` px from its top.
+ *
+ * The root is the document itself, not left out. Left out, the root is the
+ * top window's, and a browser ignores the margin for a page framed by
+ * another origin, as the Studio's Page editor frames the site: the "line"
+ * was then the whole of what showed, and the nav took the state of the
+ * last ground on screen (dark over the light home hero, 2026-11-09). With
+ * the document as the root, the margin is the page's, framed or not.
+ * Where a browser can't take a document as the root, the margin as before.
+ */
+export function observeLine(y, callback) {
+  const rootMargin = `${-y}px 0px ${-(window.innerHeight - y - 1)}px 0px`;
+  try {
+    return new IntersectionObserver(callback, { root: document, rootMargin });
+  } catch {
+    return new IntersectionObserver(callback, { rootMargin });
+  }
+}

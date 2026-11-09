@@ -17,7 +17,7 @@ import { mountIsoField } from "./dot-field.js";
 import { mountWordCycle } from "./word-cycle.js";
 import { LETTER_COUNT, morphPath, getMorphEase } from "./logo-morph.js";
 import { initTextScramble } from "./text-scramble.js";
-import { findGrounds, lastInDocument } from "./grounds.js";
+import { findGrounds, lastInDocument, observeLine } from "./grounds.js";
 
 // the nav's change between its light and dark states (initNavTheme)
 CustomEase.create("navTheme", "0.45, 0, 0.25, 1");
@@ -1312,10 +1312,10 @@ function initNavTheme(nav) {
 
     // the line: one pixel tall, at the middle of the bar
     const y = Math.round(bar.offsetHeight / 2);
-    observer = new IntersectionObserver((entries) => {
+    observer = observeLine(y, (entries) => {
       entries.forEach((e) => (e.isIntersecting ? onLine.add(e.target) : onLine.delete(e.target)));
       decide();
-    }, { rootMargin: `${-y}px 0px ${-(window.innerHeight - y - 1)}px 0px` });
+    });
     grounds.forEach((_, el) => observer.observe(el));
     // A new page, still covered: its state read here and now, from where
     // its grounds stand, rather than at the observer's first report, which

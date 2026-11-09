@@ -16,7 +16,7 @@
 // its middle. Found again when the window changes size.
 
 import { registerPageCleanup } from "./page.js";
-import { findGrounds, lastInDocument } from "./grounds.js";
+import { findGrounds, lastInDocument, observeLine } from "./grounds.js";
 
 // shown once the hero's foot is this far down the screen or higher
 const FROM = "bottom 15%";
@@ -46,13 +46,10 @@ export function initBookFloat(container) {
       // the line: one pixel tall, across the middle of the button
       const box = button.getBoundingClientRect();
       const y = Math.round(box.top + box.height / 2);
-      observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => (e.isIntersecting ? onLine.add(e.target) : onLine.delete(e.target)));
-          decide();
-        },
-        { rootMargin: `${-y}px 0px ${-(window.innerHeight - y - 1)}px 0px` },
-      );
+      observer = observeLine(y, (entries) => {
+        entries.forEach((e) => (e.isIntersecting ? onLine.add(e.target) : onLine.delete(e.target)));
+        decide();
+      });
       grounds.forEach((_, el) => observer.observe(el));
     }
 
