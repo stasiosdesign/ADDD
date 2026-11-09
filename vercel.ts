@@ -26,11 +26,11 @@ export const config: VercelConfig = {
   // no build there, and commits that change nothing it is built from (only
   // the Studio, GitHub's workflows or these notes; a CMS release records its
   // version on both branches) don't rebuild it: the Hobby plan allows few
-  // deployments a day. Exit 0 skips the build; anything else builds,
-  // including when the last deployed commit can't be compared. A review
-  // round's branch is built whenever it is pushed (once, as a rule).
-  ignoreCommand:
-    'if [ "$VERCEL_ENV" = "production" ]; then exit 1; fi; case "$VERCEL_GIT_COMMIT_REF" in review/*) exit 1;; esac; git diff --quiet "${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}" HEAD -- . ":(exclude)studio" ":(exclude).github" ":(exclude).claude" ":(exclude)CLAUDE.md" ":(exclude)README.md"',
+  // deployments a day. A review round's branch is built whenever it is
+  // pushed (once, as a rule). The rules are in scripts/vercel-ignore.sh:
+  // Vercel refuses an ignoreCommand over 256 characters, and failed the
+  // deployment when this one grew past it (9 Nov 2026).
+  ignoreCommand: 'sh scripts/vercel-ignore.sh',
   // Staging renders on request, where Astro's router has no /about.html: Vercel
   // rewrites each .html address to the route that renders it before the
   // function sees it (src/middleware.ts does the same, as a fallback; on Vercel
