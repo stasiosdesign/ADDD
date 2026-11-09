@@ -14,6 +14,11 @@ conventions and the CMS: read it before editing.
 - `staging` is the permanent **staging** branch: every push updates the
   stable staging URL (https://addd-staging.vercel.app). It
   is not a feature branch; never delete it.
+- `review/<round>` branches are Site Review rounds: frozen copies of the
+  site, code and content (README, "Site Review rounds"). Cut one only with
+  `npm run review:round -- <round>` when the user asks for a new round; never
+  commit to, merge, rebase or delete one. They are the one exception to "no
+  new long-lived branches" below.
 
 ## How to work
 

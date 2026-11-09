@@ -28,10 +28,12 @@ npm run studio:deploy  # deploys the hosted Studio
 | Production | https://addd-io.vercel.app              | `main`                      |
 | Staging    | https://addd-staging.vercel.app     | `staging`                   |
 | Studio     | https://addd.sanity.studio                            | `studio/`, deployed by hand |
+| Review round Final Design V1 | https://addd-git-review-final-design-v1-stasiosdesign.vercel.app | `review/final-design-v1` (frozen) |
 
 Staging's URL is Vercel's alias for the `staging` branch: it always shows the
 branch's latest deployment. The Vercel project is `addd`, in the
-`stasiosdesign` team; the Sanity project is `xqa8b0u9`.
+`stasiosdesign` team; the Sanity project is `xqa8b0u9`. Review rounds:
+"Site Review rounds" below.
 
 ## Production and staging
 
@@ -62,6 +64,51 @@ local (npm run dev, npm run studio)  →  staging  →  review  →  main
    shows unpublished drafts too.
 4. Promote to production once approved: `git switch main`, `git merge
    --ff-only staging`, `git push`, `git switch staging`.
+
+## Site Review rounds
+
+Site Review (the Studio's comments on the website) works in rounds: every few
+weeks the site is shared for comments as it stands, and the work then carries
+on on staging. Each round is a **frozen copy of the site, code and content**,
+so its comments always sit on what was reviewed:
+
+- **Its own branch**, `review/<round>` (`review/final-design-v1`, then
+  `review/final-design-v2`…), cut from staging and never changed. It sits
+  beside `main` and `staging`; it is never merged or deleted.
+- **Its content frozen on the branch**: `review/snapshot.json`, the staging
+  dataset's published content when the round was cut (pages, collections,
+  clients, pictures' asset records; never drafts, comments or secrets). A
+  review build reads it instead of Sanity (`src/sanity/snapshot.ts`, with
+  Sanity's GROQ engine, `groq-js`), so editing the Studio afterwards never
+  reaches it. Pictures stay on Sanity's image CDN, where an asset stays after
+  it is replaced in the Studio; only deleting it from the media library
+  would take it from an old round.
+- **Built as a review round** (`astro.config.mjs`, "review", from the branch's
+  name): static like production, website comments on, the Visual editor's
+  editing off, never indexed, behind Vercel Authentication like staging (the
+  Studio opens it with the same bypass).
+- **Its folder in Site Review** (`studio/project.ts`, `review.versions`):
+  title, date, its address and branch, and an `id` its comments are kept
+  under, never changed. Final Design V1 keeps the id `final-design` (its
+  comments were made on staging before rounds were frozen).
+- **Its own address**, which also keeps it: on the Hobby plan Vercel deletes
+  deployments after 30 days unless a domain or alias is assigned to them.
+  Assign `addd-<round>.vercel.app` to the branch (Vercel, project `addd`,
+  Settings → Domains → Add, Git branch `review/<round>`). If one were ever
+  lost, the branch rebuilds it exactly.
+
+A new round, from an up-to-date `staging` with nothing uncommitted:
+
+1. `npm run review:round -- final-design-v2`: checks, snapshots, makes and
+   pushes the branch; Vercel builds it in a minute or two.
+2. Assign its address in Vercel, as above.
+3. Add its folder to `review.versions` in `studio/project.ts` (a new `id`),
+   commit, push `staging`, `npm run studio:deploy`.
+
+The Page editor always shows staging, the latest version; a round is never
+edited. To build a round on your machine: `npm run review:round --
+<round> --snapshot-only` (writes `review/snapshot.json`, ignored by git
+here), then `ADDD_REVIEW=1 npm run build`.
 
 ## Content: draft, staging, live
 
