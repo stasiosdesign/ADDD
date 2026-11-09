@@ -62,6 +62,10 @@ export const project: CmsProjectConfig = {
         branch: 'review/final-design-v1',
       },
     ],
+    // The designer's notes in code (src/sanity/review-notes.ts, author
+    // "stas") are shown as Stas's own Sanity account: his name and picture,
+    // and replies to them in his inbox. The comments as kept are unchanged.
+    authors: {stas: 'pd3Yhpnkn'},
   },
 
   publishing: {
