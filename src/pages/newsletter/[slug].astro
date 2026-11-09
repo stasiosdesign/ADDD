@@ -6,20 +6,20 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ActionButton from "../../components/ActionButton.astro";
 import ClosingCta from "../../components/ClosingCta.astro";
 import InsightSlider from "../../components/InsightSlider.astro";
-import { sanityClient } from "../../sanity/client";
+import { contentClient } from "../../sanity/content-client";
 import { cardOf, type Card, type Insight } from "../../sanity/insights";
 import { ISSUE_QUERY, ISSUES_QUERY } from "../../sanity/queries";
 
 /* One page per newsletter issue in Sanity (studio/schemaTypes/documents/
    insights.ts), at /newsletter/<slug>.html, set as newsletter-template.astro
-   is. Production builds every published issue as a file; staging and
+   is. Production (and a review round) builds every published issue as a file; staging and
    development render each on request, so a draft shows in draft mode. The
    page sits one folder deep, so every link and asset path it writes is
    root-relative. */
 export const getStaticPaths =
-  __DEPLOYMENT__ === "production"
+  __DEPLOYMENT__ === "production" || __DEPLOYMENT__ === "review"
     ? ((async () => {
-        const items = await sanityClient.fetch<Insight[]>(ISSUES_QUERY);
+        const items = await contentClient.fetch<Insight[]>(ISSUES_QUERY);
         return items.map((item) => ({ params: { slug: item.slug } }));
       }) satisfies GetStaticPaths)
     : undefined;

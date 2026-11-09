@@ -103,9 +103,12 @@ const docAttrs = doc ? { "data-page-doc": doc.id, "data-page-type": doc.type ?? 
 // nav.css): set here for the document's first page, and again by site.js
 // (markPage) for each page a navigation brings in.
 const page = pageName.toLowerCase().replace(/\s+/g, "-");
-// Staging and development render on request and are never indexed; a page in
-// draft mode says so to the person looking at it (DraftModeLabel)
+// Everything but production is never indexed: staging and development, which
+// render on request, and a review round. A page in draft mode says so to the
+// person looking at it (DraftModeLabel). Only staging and development are
+// edited in the Studio's Visual editor.
 const staging = __DEPLOYMENT__ !== "production";
+const editable = __DEPLOYMENT__ === "staging" || __DEPLOYMENT__ === "development";
 const draftMode = staging && Astro.locals.draftMode;
 ---
 <!DOCTYPE html>
@@ -183,14 +186,15 @@ const draftMode = staging && Astro.locals.draftMode;
 <script src="../scripts/site.js"></script>
 {/* Staging and development only: inside the Studio's Visual editor, the
     click-to-edit layer and live drafts (src/sanity/live-preview.ts), loaded
-    on demand so visitors never download it. Production builds leave it out. */}
-{staging && (
+    on demand so visitors never download it. Production builds leave it out,
+    and so does a review round, which is never edited. */}
+{editable && (
 <script>
   if (window.self !== window.top) import("../sanity/live-preview");
 </script>
 )}
-{/* Staging and development only: website comments, the CMS package's
-    review layer, served by this site's Studio (static/cms-comments.js). It
+{/* Staging, a review round and development: website comments, the CMS
+    package's review layer, served by this site's Studio (static/cms-comments.js). It
     loads only in a tab the Studio's Comments page opened, and keeps the
     comments in Sanity through that Studio; anywhere else nothing loads.
     The designer's own comments (src/sanity/review-notes.ts) go to it as

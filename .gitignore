@@ -37,3 +37,7 @@ desktop.ini
 # Unpublished source material and new files to add: stays on this computer, never in Git.
 # The repositories are public and this may hold confidential originals.
 source-assets/
+
+# A review round's frozen content (scripts/review-round.mjs): committed on its
+# review/<round> branch only (the script adds it with -f), never on staging or main
+/review/

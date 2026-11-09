@@ -2,8 +2,9 @@
 import { defineConfig, envField } from "astro/config";
 import vercel from "@astrojs/vercel";
 
-/* One codebase, built three ways. Which one comes from Vercel (VERCEL_ENV),
-   never from a hostname, so a custom domain changes nothing here:
+/* One codebase, built four ways. Which one comes from Vercel (VERCEL_ENV,
+   and the branch for a review round), never from a hostname, so a custom
+   domain changes nothing here:
 
    production   `main` on Vercel, and `npm run build` on your machine. Fully
                 static: every page is built from the production dataset's
@@ -14,14 +15,24 @@ import vercel from "@astrojs/vercel";
                 has the latest content: published, or drafts in draft mode,
                 which the Studio's Visual editor switches on
                 (src/sanity/draft-mode/). Never indexed.
+   review       a `review/<round>` branch (scripts/review-round.mjs): one round
+                of Site Review, frozen. Fully static like production, but its
+                content is the snapshot of the staging dataset committed on
+                the branch (review/snapshot.json, src/sanity/snapshot.ts), so
+                nothing edited in the Studio afterwards reaches it. Website
+                comments on, editing off, never indexed. ADDD_REVIEW=1 builds
+                one on your machine (on a branch that has a snapshot).
    development  `npm run dev`: staging's behaviour, on your machine. */
-const { VERCEL_ENV, NODE_ENV } = process.env;
+const { VERCEL_ENV, NODE_ENV, VERCEL_GIT_COMMIT_REF = "", ADDD_REVIEW } = process.env;
 const deployment =
-  VERCEL_ENV === "production" ? "production"
+  VERCEL_GIT_COMMIT_REF.startsWith("review/") || ADDD_REVIEW === "1" ? "review"
+  : VERCEL_ENV === "production" ? "production"
   : VERCEL_ENV === "preview" ? "staging"
   : VERCEL_ENV === "development" || NODE_ENV === "development" ? "development"
   : "production";
-const onDemand = deployment !== "production";
+// Staging and development render every request; production and a review
+// round are built once, as files
+const onDemand = deployment === "staging" || deployment === "development";
 
 // Staging and development only: the routes that switch draft mode on and off,
 // and the Studio's publishing route. Production is built without them.

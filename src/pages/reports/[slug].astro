@@ -6,7 +6,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ActionButton from "../../components/ActionButton.astro";
 import ClosingCta from "../../components/ClosingCta.astro";
 import InsightSlider from "../../components/InsightSlider.astro";
-import { sanityClient } from "../../sanity/client";
+import { contentClient } from "../../sanity/content-client";
 import { hasImage, urlFor } from "../../sanity/image";
 import { cardOf, type Card, type Insight } from "../../sanity/insights";
 import { REPORT_QUERY, REPORTS_QUERY } from "../../sanity/queries";
@@ -18,9 +18,9 @@ import NavLinkLabel from "../../components/NavLinkLabel.astro";
    each on request, so a draft shows in draft mode. The page sits one folder
    deep, so every link and asset path it writes is root-relative. */
 export const getStaticPaths =
-  __DEPLOYMENT__ === "production"
+  __DEPLOYMENT__ === "production" || __DEPLOYMENT__ === "review"
     ? ((async () => {
-        const items = await sanityClient.fetch<Insight[]>(REPORTS_QUERY);
+        const items = await contentClient.fetch<Insight[]>(REPORTS_QUERY);
         return items.map((item) => ({ params: { slug: item.slug } }));
       }) satisfies GetStaticPaths)
     : undefined;

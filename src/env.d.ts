@@ -1,5 +1,5 @@
-/** Which deployment this build is for, fixed at build time from Vercel's VERCEL_ENV (astro.config.mjs). */
-declare const __DEPLOYMENT__: 'production' | 'staging' | 'development';
+/** Which deployment this build is for, fixed at build time from Vercel's VERCEL_ENV and branch (astro.config.mjs). */
+declare const __DEPLOYMENT__: 'production' | 'staging' | 'review' | 'development';
 
 declare namespace App {
   interface Locals {

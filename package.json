@@ -11,6 +11,7 @@
     "test": "npm --prefix studio test",
     "studio": "npm --prefix studio run dev",
     "studio:deploy": "npm --prefix studio run deploy",
+    "review:round": "node scripts/review-round.mjs",
     "astro": "astro"
   },
   "dependencies": {
@@ -22,7 +23,8 @@
     "@sanity/preview-url-secret": "^4.1.5",
     "@sanity/visual-editing-standalone": "^2.0.1",
     "astro": "^7.3.6",
-    "astro-portabletext": "^1.0.1"
+    "astro-portabletext": "^1.0.1",
+    "groq-js": "2.0.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

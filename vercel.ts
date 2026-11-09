@@ -5,10 +5,14 @@
    The site keeps its .html addresses (astro.config.mjs), so there are no
    clean URLs or redirects here, only headers. Production is `main`
    (VERCEL_ENV "production"); every other deployment, staging included, is
-   "preview". */
+   "preview". A review round (a `review/<round>` branch, astro.config.mjs) is a
+   preview too, but built as files like production. */
 import type { VercelConfig } from '@vercel/config/v1';
 
-const staging = process.env.VERCEL_ENV === 'preview';
+const preview = process.env.VERCEL_ENV === 'preview';
+const review = (process.env.VERCEL_GIT_COMMIT_REF ?? '').startsWith('review/');
+// The deployments rendered on request
+const staging = preview && !review;
 
 export const config: VercelConfig = {
   framework: 'astro',
@@ -23,9 +27,10 @@ export const config: VercelConfig = {
   // the Studio, GitHub's workflows or these notes; a CMS release records its
   // version on both branches) don't rebuild it: the Hobby plan allows few
   // deployments a day. Exit 0 skips the build; anything else builds,
-  // including when the last deployed commit can't be compared.
+  // including when the last deployed commit can't be compared. A review
+  // round's branch is built whenever it is pushed (once, as a rule).
   ignoreCommand:
-    'if [ "$VERCEL_ENV" = "production" ]; then exit 1; fi; git diff --quiet "${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}" HEAD -- . ":(exclude)studio" ":(exclude).github" ":(exclude).claude" ":(exclude)CLAUDE.md" ":(exclude)README.md"',
+    'if [ "$VERCEL_ENV" = "production" ]; then exit 1; fi; case "$VERCEL_GIT_COMMIT_REF" in review/*) exit 1;; esac; git diff --quiet "${VERCEL_GIT_PREVIOUS_SHA:-HEAD^}" HEAD -- . ":(exclude)studio" ":(exclude).github" ":(exclude).claude" ":(exclude)CLAUDE.md" ":(exclude)README.md"',
   // Staging renders on request, where Astro's router has no /about.html: Vercel
   // rewrites each .html address to the route that renders it before the
   // function sees it (src/middleware.ts does the same, as a fallback; on Vercel
@@ -43,9 +48,10 @@ export const config: VercelConfig = {
         { key: 'Cache-Control', value: 'no-store' },
       ],
     },
-    // Staging is never indexed. Every response says so, files and images too,
-    // on any domain (Vercel's own preview header is missing on a custom one).
-    // The rendered pages say it again themselves (src/middleware.ts).
-    ...(staging ? [{ source: '/(.*)', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }] : []),
+    // Staging and the review rounds are never indexed. Every response says so,
+    // files and images too, on any domain (Vercel's own preview header is
+    // missing on a custom one). The pages say it again themselves
+    // (BaseLayout.astro's robots meta; src/middleware.ts on staging).
+    ...(preview ? [{ source: '/(.*)', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }] : []),
   ],
 };
