@@ -45,12 +45,23 @@ export const project: CmsProjectConfig = {
 
   sites: {preview: PREVIEW_ORIGIN, live: LIVE_ORIGIN},
 
-  // Site Review's folders. Final Design V1 is the staging site, always the
-  // latest version (the `staging` branch); its comments are kept under the
-  // id "final-design", the package's default version's, so the id never
-  // changes. A later round gets a folder of its own, with an id of its own.
+  // Site Review's folders, one per review round: a frozen copy of the site,
+  // code and content, on its own branch (review/<round>, cut from staging by
+  // `npm run review:round`; README, "Site Review rounds"), so a round never
+  // changes once its comments are made. Final Design V1 keeps the id
+  // "final-design" its comments were made under (on staging, before rounds
+  // were frozen); every later round gets an id of its own, never changed.
+  // The Page editor always shows staging, the latest version.
   review: {
-    versions: [{id: 'final-design', title: 'Final Design V1', url: PREVIEW_ORIGIN, branch: 'staging'}],
+    versions: [
+      {
+        id: 'final-design',
+        title: 'Final Design V1',
+        date: '2026-11-09',
+        url: 'https://addd-git-review-final-design-v1-stasiosdesign.vercel.app',
+        branch: 'review/final-design-v1',
+      },
+    ],
   },
 
   publishing: {
