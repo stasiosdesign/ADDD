@@ -45,6 +45,14 @@ export const project: CmsProjectConfig = {
 
   sites: {preview: PREVIEW_ORIGIN, live: LIVE_ORIGIN},
 
+  // Site Review's folders. Final Design V1 is the staging site, always the
+  // latest version (the `staging` branch); its comments are kept under the
+  // id "final-design", the package's default version's, so the id never
+  // changes. A later round gets a folder of its own, with an id of its own.
+  review: {
+    versions: [{id: 'final-design', title: 'Final Design V1', url: PREVIEW_ORIGIN, branch: 'staging'}],
+  },
+
   publishing: {
     // The route is src/sanity/publish/ (the default /api/publish), on the
     // datasets staging and production (the defaults). A live publish that
