@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {HomeIcon} from '@sanity/icons/Home'
-import {buttonField, headingField, heroSection, itemsField, leadField, linesField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
 
 /* The Home page, one section per part of the page, in the order the page
    shows them (src/pages/index.astro; the page's own words in
@@ -18,9 +18,18 @@ export const homePage = defineType({
   type: 'document',
   icon: HomeIcon,
   fields: [
-    heroSection('The opening: the standfirst and tagline on the left, the headline and its two buttons on the right. The pattern behind them stays in the code.', 'Links to Free Tech Stacks.', 'Links to the Contact page.'),
+    // The other pages' opening (heroSection), with the headline's changing
+    // word (src/components/Hero.astro) after the headline
+    pageSection('hero', 'Opening', 'The opening: the standfirst and tagline on the left, the headline and its two buttons on the right. The pattern behind them stays in the code.', [
+      taglineField(),
+      textField('On two lines: a line break written here starts the second.', 'heading', 'Heading', 2),
+      linesField('headingWords', 'Changing words', 'The words that take turns in the headline, one per line, in order. The first must appear in the headline exactly as written there; the others replace it in turn. Leave one or none for a headline that stays still.'),
+      leadField(),
+      buttonField('Links to Free Tech Stacks.', 'primaryButton', 'First button label'),
+      buttonField('Links to the Contact page.', 'secondaryButton', 'Second button label'),
+    ]),
     pageSection('logos', 'Logo strip', 'The title above the logos, and the logos themselves, in order. Each opens the client to change its name or mark.', [
-      headingField('The line above the strip.', 'title', 'Title'),
+      textField('The title above the strip. On two lines: a line break written here starts the second.', 'title', 'Title', 2),
       defineField({
         name: 'clients',
         title: 'Logos',

@@ -21,13 +21,17 @@ export type Doc = Record<string, unknown>;
 export type ImageDefault = { path: string; alt?: string };
 
 /**
- * Detached (2026-10-10): while the copy is still being written, every page
- * shows its own words from src/sanity/defaults/, edited there, and not its
- * document in Sanity. Set to false to read the Studio's documents again
- * (bring the defaults' wording into the Studio first, or it shows the old).
- * The collections (clients, reports, newsletter issues) still come from Sanity.
+ * Detached from 2026-10-10 to 2026-11-09, while the copy was being written:
+ * every page showed its own words from src/sanity/defaults/ and not its
+ * document in Sanity, so the Studio's Page editor showed its older words
+ * over the page. Reattached on 2026-11-09, once the defaults' wording was
+ * written into both datasets' page documents: the Studio is where the words
+ * are edited again, and a change to a default now shows only where the
+ * Studio's field is empty. Set back to true only to detach again (the
+ * collections, clients, reports and newsletter issues, come from Sanity
+ * either way).
  */
-const DETACHED = true;
+const DETACHED = false;
 
 /** A page document from the request's client (published content, or drafts in draft mode) */
 export const pageDocument = (sanity: SanityClient, id: string): Promise<Doc | null> =>
