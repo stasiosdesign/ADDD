@@ -48,10 +48,10 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 // the card is the grid's own shape and shows it whole
 const gridOf = (list: { grid?: LineGridShape }[]) => list.find((s) => s.grid)?.grid;
 const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string[]; grid?: LineGridShape }[] = [
-  { href: "/workshops-audits.html", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: ["A half-day live-project diagnostic,", "followed by a written report."], grid: { cols: 6, rows: 4, sub: 4, bleed: 1 } },
-  { href: "/before-revit.html", name: "Before Revit", text: ["A review of early-stage design,", "before Revit or Archicad."] },
-  { href: "/technology-blueprint.html", name: "Tech - Blueprint", text: ["An eight-week practice-wide strategy", "and a sequenced roadmap."] },
-  { href: "/advisory.html", name: "ADDD Advisory", text: ["Monthly advice on AI, BIM, software", "and other digital priorities."] },
+  { href: "/workshops-audits", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: ["A half-day live-project diagnostic,", "followed by a written report."], grid: { cols: 6, rows: 4, sub: 4, bleed: 1 } },
+  { href: "/before-revit", name: "Before Revit", text: ["A review of early-stage design,", "before Revit or Archicad."] },
+  { href: "/technology-blueprint", name: "Tech - Blueprint", text: ["An eight-week practice-wide strategy", "and a sequenced roadmap."] },
+  { href: "/advisory", name: "ADDD Advisory", text: ["Monthly advice on AI, BIM, software", "and other digital priorities."] },
 ];
 const firstGrid = gridOf(services);
 const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
@@ -66,7 +66,7 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
              homepage itself it glides back to the top (isSamePage, page.js;
              nav.js). The intro is for genuine loads alone (ARRIVAL,
              site.js). -->
-        <a data-menu-logo href="/index.html" class="mega-nav__bar-logo" aria-label="ADDD home">
+        <a data-menu-logo href="/" class="mega-nav__bar-logo" aria-label="ADDD home">
           <!-- The ADDD triangles from assets/logo.svg, without the circle,
                cropped to their own bounds and drawn in currentColor; each
                one a letter of the morph at rest. The stroke, in the same
@@ -77,7 +77,7 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
           </svg>
         </a>
         <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
-          <a data-nav-list-item href="/tech-firms.html" class="mega-nav__feature nav-link">
+          <a data-nav-list-item href="/tech-firms" class="mega-nav__feature nav-link">
             <NavLinkLabel class="mega-nav__bar-link-label">AEC Tech Partners</NavLinkLabel>
           </a>
           <ul class="mega-nav__bar-list">
@@ -97,7 +97,7 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
               <a href="https://aectechjobs.com/" target="_blank" rel="noopener" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">AEC Jobs</NavLinkLabel></a>
             </li>
             <li data-nav-list-item>
-              <a href="/about.html" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">About</NavLinkLabel></a>
+              <a href="/about" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">About</NavLinkLabel></a>
             </li>
           </ul>
           <ul data-nav-list-item class="mega-nav__bar-list is--actions">
@@ -105,13 +105,13 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
               <a href="https://app.addd.io/login" target="_blank" rel="noopener" class="mega-nav__bar-cta nav-link"><NavLinkLabel class="mega-nav__bar-link-label">Sign in</NavLinkLabel></a>
             </li>
             <li class="mega-nav__bar-action">
-              <a href="/contact.html" class="contact-button nav-link"><NavLinkLabel class="contact-button__text">Contact</NavLinkLabel></a>
+              <a href="/contact" class="contact-button nav-link"><NavLinkLabel class="contact-button__text">Contact</NavLinkLabel></a>
             </li>
           </ul>
         </div>
         <div class="mega-nav__bar-end">
           <!-- Below 992px the bar carries Contact itself, beside the menu. -->
-          <a href="/contact.html" class="mega-nav__bar-end-cta">Contact</a>
+          <a href="/contact" class="mega-nav__bar-end-cta">Contact</a>
           <!-- The menu's mark: four of the logo's triangles round a square,
                each pointing on to the next — right, down, left, up — and
                turned to point at the middle while the menu is open
@@ -165,7 +165,7 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
                on past the box and clipped by it); the pointer over the box
                only lifts its middle card a little. The whole box is the
                link. -->
-          <a data-menu-fade href="/stack-diagnostic.html" class="resource-tile is--stacks">
+          <a data-menu-fade href="/stack-diagnostic" class="resource-tile is--stacks">
             <span class="resource-tile__name">Free Tech Stacks</span>
             <span class="resource-tile__desc">See how software fits together across architecture workflows.</span>
             <StackThumb />
@@ -182,11 +182,11 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
           <div data-menu-fade class="resource-block">
             <span class="resource-block__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18L5 13.5L16.5 2H17.5L20 4.5V5.5L8.5 17L4 18Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14.5 3.5L18.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M3.5 21.5H20.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
             <span class="resource-block__title">Reports</span>
-            <a href="/reports.html" class="resource-block__row resource-block__lead">
+            <a href="/reports" class="resource-block__row resource-block__lead">
               <span class="resource-block__name">Reports &amp; Guides</span>
               <span class="resource-block__desc">Deeper research into technology, AI, workflows and practice.</span>
             </a>
-            <a href="/report-template.html" class="resource-block__row resource-block__field resource-block__report">
+            <a href="/report-template" class="resource-block__row resource-block__field resource-block__report">
               <span class="resource-block__report-text">
                 <span class="resource-block__label">Latest report</span>
                 <span class="resource-block__name">The state of AI in architecture</span>
@@ -204,7 +204,7 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
           <div data-menu-fade class="resource-block">
             <span class="resource-block__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 5.5H21.5V18.5H2.5V5.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M2.5 5.5L12 12.5L21.5 5.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
             <span class="resource-block__title">Newsletter</span>
-            <a href="/newsletter.html" class="resource-block__row resource-block__lead">
+            <a href="/newsletter" class="resource-block__row resource-block__lead">
               <span class="resource-block__name">ADDDitive Newsletter</span>
               <span class="resource-block__desc">How technology actually gets used to make architecture.</span>
             </a>

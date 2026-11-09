@@ -63,7 +63,7 @@ const processScale = processTiles.map((_, i) => ({ label: lines("process.phases"
 
 // The name each partnership carries into the enquiry form
 // (contact.html?offer=…, initEnquiryOffer in site.js)
-const enquire = (offer?: string) => `contact.html?offer=${encodeURIComponent(offer ?? "partnership")}`;
+const enquire = (offer?: string) => `/contact?offer=${encodeURIComponent(offer ?? "partnership")}`;
 // The partnerships as folders (2026-11-05): the three, then the two smaller
 // placements, each with the Studio field its words come from; the sheet's
 // words through the notch and the pill at the foot stay here, as the

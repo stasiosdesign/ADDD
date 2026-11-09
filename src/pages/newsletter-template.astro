@@ -5,13 +5,13 @@ import ClosingCta from "../components/ClosingCta.astro";
 import InsightSlider from "../components/InsightSlider.astro";
 
 const related = [
-  { href: "newsletter-template.html", image: "assets/images/allister-gesture-close.jpg", category: "Strategy", title: "Why practices lag on strategy", meta: ["December 2024"] },
-  { href: "newsletter-template.html", image: "assets/images/conference-keynote.jpg", category: "Technology", title: "AEC software development cycles", meta: ["November 2024"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-presenting.jpg", category: "Workflows", title: "Understanding technology costs", meta: ["October 2024"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-presenting.jpg", category: "Strategy", title: "Digital transformation in practice", meta: ["September 2024"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Building better workflows", meta: ["August 2024"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Software selection reality", meta: ["July 2024"] },
-  { href: "newsletter-template.html", image: "assets/images/allister-headshot-bw.png", category: "Data", title: "Data structures that matter", meta: ["June 2024"] },
+  { href: "/newsletter-template", image: "assets/images/allister-gesture-close.jpg", category: "Strategy", title: "Why practices lag on strategy", meta: ["December 2024"] },
+  { href: "/newsletter-template", image: "assets/images/conference-keynote.jpg", category: "Technology", title: "AEC software development cycles", meta: ["November 2024"] },
+  { href: "/newsletter-template", image: "assets/images/allister-presenting.jpg", category: "Workflows", title: "Understanding technology costs", meta: ["October 2024"] },
+  { href: "/newsletter-template", image: "assets/images/allister-presenting.jpg", category: "Strategy", title: "Digital transformation in practice", meta: ["September 2024"] },
+  { href: "/newsletter-template", image: "assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Building better workflows", meta: ["August 2024"] },
+  { href: "/newsletter-template", image: "assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Software selection reality", meta: ["July 2024"] },
+  { href: "/newsletter-template", image: "assets/images/allister-headshot-bw.png", category: "Data", title: "Data structures that matter", meta: ["June 2024"] },
 ];
 ---
 <BaseLayout
@@ -119,7 +119,7 @@ const related = [
           <h2 class="h2" data-split="heading">More from the ADDDitive</h2>
           <p>Continue exploring architecture technology and practice strategy</p>
         </div>
-        <ActionButton href="newsletter.html" variant="secondary">View all</ActionButton>
+        <ActionButton href="/newsletter" variant="secondary">View all</ActionButton>
       </div>
 
       <InsightSlider items={related} />

@@ -23,7 +23,7 @@ export type Insight = {
 export type Card = { href: string; image: string; category: string; title: string; description?: string; meta: string[] };
 
 export const insightHref = (item: Pick<Insight, '_type' | 'slug'>) =>
-  item._type === 'report' ? `reports/${item.slug}.html` : `newsletter/${item.slug}.html`;
+  item._type === 'report' ? `/reports/${item.slug}` : `/newsletter/${item.slug}`;
 
 const formatDate = (iso: string) => {
   const date = new Date(iso);

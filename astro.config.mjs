@@ -110,12 +110,12 @@ export default defineConfig({
   },
 
   build: {
-    // Every page keeps its existing URL — /about.html, /workshops-audits.html
-    // and so on — rather than moving to /about/. The markup links between
-    // pages with relative hrefs ("about.html", "assets/logo.svg"), and Barba
-    // fetches those same URLs on a navigation, so the files have to sit flat
-    // at the root exactly as they did before. (Where staging renders on
-    // request, src/middleware.ts rewrites each .html address to its route.)
+    // Each page is built as a flat file (about.html, not about/index.html),
+    // which Vercel serves at its clean address, /about (vercel.ts,
+    // cleanUrls), sending the old /about.html there; the links between pages
+    // are clean and root-relative ("/about"), and so are the addresses Barba
+    // fetches. (Where staging renders on request, the routes are clean
+    // already; src/middleware.ts still answers an old .html address.)
     format: "file",
   },
 

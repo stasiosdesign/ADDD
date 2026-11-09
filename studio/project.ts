@@ -141,26 +141,26 @@ export const project: CmsProjectConfig = {
   // page's logo strip, a stack on the Free Tech Stacks page)
   documentRoute(doc) {
     const slug = doc.slug?.current
-    if (doc._type === 'report') return slug ? `/reports/${slug}.html` : null
-    if (doc._type === 'newsletterIssue') return slug ? `/newsletter/${slug}.html` : null
+    if (doc._type === 'report') return slug ? `/reports/${slug}` : null
+    if (doc._type === 'newsletterIssue') return slug ? `/newsletter/${slug}` : null
     if (doc._type === 'client') return '/'
-    if (doc._type === 'techStack') return '/stack-diagnostic.html'
+    if (doc._type === 'techStack') return '/stack-diagnostic'
     return null
   },
 
   visualEditor: {
     // A report's and an issue's own pages open the item beside the preview
     mainDocuments: [
-      {route: '/reports/:slug.html', filter: `_type == "report" && slug.current == $slug`},
-      {route: '/newsletter/:slug.html', filter: `_type == "newsletterIssue" && slug.current == $slug`},
+      {route: '/reports/:slug', filter: `_type == "report" && slug.current == $slug`},
+      {route: '/newsletter/:slug', filter: `_type == "newsletterIssue" && slug.current == $slug`},
     ],
     locations: {
       report: defineLocations({
         select: {title: 'title', slug: 'slug.current'},
         resolve: (doc) => ({
           locations: [
-            {title: doc?.title || 'Untitled', href: `/reports/${doc?.slug}.html`},
-            {title: 'Reports', href: '/reports.html'},
+            {title: doc?.title || 'Untitled', href: `/reports/${doc?.slug}`},
+            {title: 'Reports', href: '/reports'},
           ],
         }),
       }),
@@ -168,13 +168,13 @@ export const project: CmsProjectConfig = {
         select: {title: 'title', slug: 'slug.current'},
         resolve: (doc) => ({
           locations: [
-            {title: doc?.title || 'Untitled', href: `/newsletter/${doc?.slug}.html`},
-            {title: 'Newsletter', href: '/newsletter.html'},
+            {title: doc?.title || 'Untitled', href: `/newsletter/${doc?.slug}`},
+            {title: 'Newsletter', href: '/newsletter'},
           ],
         }),
       }),
       client: defineLocations({locations: [{title: 'Home (logo strip)', href: '/'}]}),
-      techStack: defineLocations({locations: [{title: 'Free Tech Stacks', href: '/stack-diagnostic.html'}]}),
+      techStack: defineLocations({locations: [{title: 'Free Tech Stacks', href: '/stack-diagnostic'}]}),
     },
   },
 

@@ -139,7 +139,7 @@ const costCards = list<{ _key: string; title?: string; text?: string; image?: un
 const routeCards = list<{ _key: string; tagline?: string; title?: string; text?: string }>("routes.cards");
 // The route cards' destinations stay here, by position (their diagrams
 // are the services' own: ServiceDiagram.astro)
-const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-blueprint.html", "advisory.html"];const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
+const routeHrefs = ["/workshops-audits", "/before-revit", "/technology-blueprint", "/advisory"];const related = insights?.length ? insights.slice(0, 6).map((item) => cardOf(item)) : INSIGHT_DEFAULTS;
 
 ---
 <BaseLayout
@@ -163,8 +163,8 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
         lede={t("hero.lede")}
         heading={t("hero.heading")}
         headingWords={lines("hero.headingWords")}
-        primaryCta={{ href: "stack-diagnostic.html", label: t("hero.primaryButton"), icon: "stack" }}
-        secondaryCta={{ href: "contact.html", label: t("hero.secondaryButton") }}
+        primaryCta={{ href: "/stack-diagnostic", label: t("hero.primaryButton"), icon: "stack" }}
+        secondaryCta={{ href: "/contact", label: t("hero.secondaryButton") }}
         ctaShape={CTA}
         cue="arrow"
       />
@@ -217,7 +217,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
          round it lifted a little (dot-lift.js), as they are round the
          logos above, so the eye is drawn to it without anything drawn
          round it -->
-    <ActionButton href="/stack-diagnostic.html" shape={CTA} icon="stack" slot="after" data-dot-fit=".sticky-title__dots" data-dot-lift=".sticky-title__dots" data-dot-lift-reach="8" data-dot-lift-amount="0.7"><span data-page-field="approach.button">{t("approach.button")}</span></ActionButton>
+    <ActionButton href="/stack-diagnostic" shape={CTA} icon="stack" slot="after" data-dot-fit=".sticky-title__dots" data-dot-lift=".sticky-title__dots" data-dot-lift-reach="8" data-dot-lift-amount="0.7"><span data-page-field="approach.button">{t("approach.button")}</span></ActionButton>
     <div class="logos__field" slot="before">
       <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
       <div class="logo-wall-wrap">
@@ -279,7 +279,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
        section's title held on the left (ServiceDeck.astro). The panel that takes the routes in turn
        (ServiceTabs.astro) now lives on the AEC Tech Partners page. -->
   <ServiceDeck heading={t("routes.heading")} aside="Services" cards={routeCards} hrefs={routeHrefs}
-    button={{ href: "stack-diagnostic.html", label: t("routes.button"), field: "routes.button", icon: "stack" }} />
+    button={{ href: "/stack-diagnostic", label: t("routes.button"), field: "routes.button", icon: "stack" }} />
 
   <!-- ========== 6. TESTIMONIALS ========== -->
   <!-- The slider alone (Testimonials.astro, shared with the Workflow
@@ -308,7 +308,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
         <div class="creds__text">
           <p data-page-field="credentials.text">{t("credentials.text")}</p>
           <div class="actions">
-            <ActionButton href="about.html" variant="secondary" shape={CTA}><span data-page-field="credentials.button">{t("credentials.button")}</span></ActionButton>
+            <ActionButton href="/about" variant="secondary" shape={CTA}><span data-page-field="credentials.button">{t("credentials.button")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -350,7 +350,7 @@ const routeHrefs = ["workshops-audits.html", "before-revit.html", "technology-bl
   </section>
 
   <!-- ========== 10. CTA ========== -->
-  <ClosingCta shape={CTA} primary={{ href: "stack-diagnostic.html", icon: "stack" }} />
+  <ClosingCta shape={CTA} primary={{ href: "/stack-diagnostic", icon: "stack" }} />
 
 </main>
 </BaseLayout>

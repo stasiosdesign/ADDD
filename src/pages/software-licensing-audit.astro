@@ -23,8 +23,8 @@ const steps = list<{ _key: string; label?: string; title?: string; text?: string
 const nextTiles = list<Tile>("next.tiles");
 
 // Where the outlined cards' and the closing cards' links lead, by position
-const alternativeHrefs = ["stack-diagnostic.html", "technology-blueprint.html"];
-const nextHrefs = ["technology-blueprint.html", "workshops-audits.html", "advisory.html"];
+const alternativeHrefs = ["/stack-diagnostic", "/technology-blueprint"];
+const nextHrefs = ["/technology-blueprint", "/workshops-audits", "/advisory"];
 ---
 <BaseLayout
   title="Software & Licensing Audit — ADDD"
@@ -44,7 +44,7 @@ const nextHrefs = ["technology-blueprint.html", "workshops-audits.html", "adviso
         <div class="pg-hero__col">
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions">
-            <ActionButton href="technology-blueprint.html"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+            <ActionButton href="/technology-blueprint"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
             <a class="btn btn--link nav-link" href="#how-it-works"><NavLinkLabel data-page-field="hero.linkLabel">{t("hero.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
           </div>
         </div>
@@ -77,7 +77,7 @@ const nextHrefs = ["technology-blueprint.html", "workshops-audits.html", "adviso
         <article class="tile tile--outline" data-page-item={item._key}>
           <h3 class="h4" data-page-item-field="title">{item.title}</h3>
           <p data-page-item-field="text">{item.text}</p>
-          <a class="btn btn--link nav-link" href={alternativeHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href={alternativeHrefs[i] ?? "/contact"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
         ))}
       </div>
@@ -107,8 +107,8 @@ const nextHrefs = ["technology-blueprint.html", "workshops-audits.html", "adviso
       </div>
 
       <div class="actions" style="margin-top:3rem">
-        <ActionButton href="contact.html"><span data-page-field="method.button">{t("method.button")}</span></ActionButton>
-        <a class="btn btn--link nav-link" href="reports.html"><NavLinkLabel data-page-field="method.linkLabel">{t("method.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+        <ActionButton href="/contact"><span data-page-field="method.button">{t("method.button")}</span></ActionButton>
+        <a class="btn btn--link nav-link" href="/reports"><NavLinkLabel data-page-field="method.linkLabel">{t("method.linkLabel")}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
       </div>
     </div>
   </section>
@@ -126,7 +126,7 @@ const nextHrefs = ["technology-blueprint.html", "workshops-audits.html", "adviso
         <article class="tile" data-page-item={item._key}>
           <h3 class="h4" data-page-item-field="title">{item.title}</h3>
           <p data-page-item-field="text">{item.text}</p>
-          <a class="btn btn--link nav-link" href={nextHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href={nextHrefs[i] ?? "/contact"}><NavLinkLabel data-page-item-field="linkLabel">{item.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
         ))}
       </div>

@@ -48,9 +48,10 @@ branch's latest deployment. The Vercel project is `addd`, in the
 Which is which comes from Vercel itself (`VERCEL_ENV`: `production` for
 `main`, `preview` for every other branch), read in `astro.config.mjs`. Nothing
 depends on a hostname, so adding a domain changes no code. `npm run dev`
-behaves like staging, on your machine. The site keeps its `.html` addresses
-in both (`build.format: "file"`; where staging renders on request,
-`src/middleware.ts` rewrites each `.html` address to the route that renders it).
+behaves like staging, on your machine. Addresses are clean in both (`/about`;
+since 9 Nov 2026): production's files are served at them by Vercel's
+`cleanUrls`, staging's routes are clean already, and an old `.html` address is
+sent on to its clean one (`vercel.ts`).
 
 ## Workflow
 
@@ -151,7 +152,7 @@ and quotes, the home page's logo strip (the clients) and the closing call to
 action most pages end on (from the Home page). Layout, navigation, the footer,
 forms, icons and where buttons lead stay in the code. Two collections,
 **Reports** and **Newsletter**, list on their pages and in the sliders, and
-each item has its own page (`/reports/<slug>.html`, `/newsletter/<slug>.html`).
+each item has its own page (`/reports/<slug>`, `/newsletter/<slug>`).
 
 Every bound element falls back to the page's own words
 (`src/sanity/defaults/`, exactly the text the pages had) while a field is
@@ -208,26 +209,27 @@ README, "Access"), then `npm install` in `studio/`.
 
 ## Pages
 
-Every page keeps its original URL. `build.format: "file"` in `astro.config.mjs`
-writes `src/pages/about.astro` to `/about.html` rather than `/about/`, so the
-relative links between pages (`href="about.html"`) and the URLs Barba fetches
-are unchanged.
+Every page is at a clean address (`/about`). `build.format: "file"` in
+`astro.config.mjs` writes `src/pages/about.astro` to `about.html`, which Vercel
+serves at `/about` (`vercel.ts`, `cleanUrls`); links between pages are
+root-relative and clean (`href="/about"`), and an old `/about.html` link is sent
+on to `/about`.
 
 | URL | Source |
 |---|---|
-| `/index.html` (`/`) | `src/pages/index.astro` — Home |
-| `/workshops-audits.html` | `src/pages/workshops-audits.astro` |
-| `/technology-blueprint.html` | `src/pages/technology-blueprint.astro` |
-| `/advisory.html` | `src/pages/advisory.astro` — ADDDvisory |
-| `/stack-diagnostic.html` | `src/pages/stack-diagnostic.astro` |
-| `/software-licensing-audit.html` | `src/pages/software-licensing-audit.astro` |
-| `/reports.html` | `src/pages/reports.astro` — Reports index |
-| `/report-template.html` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
-| `/newsletter.html` | `src/pages/newsletter.astro` — Newsletter index |
-| `/newsletter-template.html` | `src/pages/newsletter-template.astro` — "AI in architecture" |
-| `/tech-firms.html` | `src/pages/tech-firms.astro` — AEC Tech Partners (a centred black hero, `Hero.astro` "centred", on a dotted isometric lattice with stacks of blue plates round its words lying in its cells (one cell, `--cell`, sets out both), drawn in the flatter 2:1 view of the reference rather than the site's 30° isometric (`data-iso-angle`), `IsoStacks.astro`; the blue statements panel; then the original approach cards from the homepage — Understand, Diagnose, Prioritise) |
-| `/about.html` | `src/pages/about.astro` |
-| `/contact.html` | `src/pages/contact.astro` |
+| `/` | `src/pages/index.astro` — Home |
+| `/workshops-audits` | `src/pages/workshops-audits.astro` |
+| `/technology-blueprint` | `src/pages/technology-blueprint.astro` |
+| `/advisory` | `src/pages/advisory.astro` — ADDDvisory |
+| `/stack-diagnostic` | `src/pages/stack-diagnostic.astro` |
+| `/software-licensing-audit` | `src/pages/software-licensing-audit.astro` |
+| `/reports` | `src/pages/reports.astro` — Reports index |
+| `/report-template` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
+| `/newsletter` | `src/pages/newsletter.astro` — Newsletter index |
+| `/newsletter-template` | `src/pages/newsletter-template.astro` — "AI in architecture" |
+| `/tech-firms` | `src/pages/tech-firms.astro` — AEC Tech Partners (a centred black hero, `Hero.astro` "centred", on a dotted isometric lattice with stacks of blue plates round its words lying in its cells (one cell, `--cell`, sets out both), drawn in the flatter 2:1 view of the reference rather than the site's 30° isometric (`data-iso-angle`), `IsoStacks.astro`; the blue statements panel; then the original approach cards from the homepage — Understand, Diagnose, Prioritise) |
+| `/about` | `src/pages/about.astro` |
+| `/contact` | `src/pages/contact.astro` |
 
 External destinations (`Sign in`, `Software Database`, `AEC Jobs`) link out to
 their own sites and are not pages here.

@@ -42,13 +42,13 @@ const fromHere = (card: Card): Card => ({ ...card, href: `/${card.href}`, image:
 // The template's own tags and deck, kept while the issue has none
 const TAGS = ["Data", "Workflows", "Strategy"];
 const RELATED: Card[] = [
-  { href: "/newsletter-template.html", image: "/assets/images/allister-gesture-close.jpg", category: "Strategy", title: "Why practices lag on strategy", meta: ["December 2024"] },
-  { href: "/newsletter-template.html", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "AEC software development cycles", meta: ["November 2024"] },
-  { href: "/newsletter-template.html", image: "/assets/images/allister-presenting.jpg", category: "Workflows", title: "Understanding technology costs", meta: ["October 2024"] },
-  { href: "/newsletter-template.html", image: "/assets/images/allister-presenting.jpg", category: "Strategy", title: "Digital transformation in practice", meta: ["September 2024"] },
-  { href: "/newsletter-template.html", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Building better workflows", meta: ["August 2024"] },
-  { href: "/newsletter-template.html", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Software selection reality", meta: ["July 2024"] },
-  { href: "/newsletter-template.html", image: "/assets/images/allister-headshot-bw.png", category: "Data", title: "Data structures that matter", meta: ["June 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/allister-gesture-close.jpg", category: "Strategy", title: "Why practices lag on strategy", meta: ["December 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "AEC software development cycles", meta: ["November 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/allister-presenting.jpg", category: "Workflows", title: "Understanding technology costs", meta: ["October 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/allister-presenting.jpg", category: "Strategy", title: "Digital transformation in practice", meta: ["September 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Building better workflows", meta: ["August 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Software selection reality", meta: ["July 2024"] },
+  { href: "/newsletter-template", image: "/assets/images/allister-headshot-bw.png", category: "Data", title: "Data structures that matter", meta: ["June 2024"] },
 ];
 
 const tags = item.tags?.filter((tag) => tag?.trim()).length ? item.tags!.filter((tag) => tag?.trim()) : TAGS;
@@ -170,14 +170,14 @@ const related = others.length ? others.slice(0, 7).map((other) => fromHere(cardO
           <h2 class="h2" data-split="heading">More from the ADDDitive</h2>
           <p>Continue exploring architecture technology and practice strategy</p>
         </div>
-        <ActionButton href="/newsletter.html" variant="secondary">View all</ActionButton>
+        <ActionButton href="/newsletter" variant="secondary">View all</ActionButton>
       </div>
 
       <InsightSlider items={related} />
     </div>
   </section>
 
-  <ClosingCta primary={{ href: "/stack-diagnostic.html" }} secondary={{ href: "/contact.html" }} />
+  <ClosingCta primary={{ href: "/stack-diagnostic" }} secondary={{ href: "/contact" }} />
 
 </main>
 </BaseLayout>

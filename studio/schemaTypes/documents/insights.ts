@@ -3,8 +3,8 @@ import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {imageField, linesField} from '../shared/fields'
 
-/* The two collections of insight: reports (at /reports/<slug>.html, listed on
-   the Reports page) and newsletter issues (at /newsletter/<slug>.html, listed
+/* The two collections of insight: reports (at /reports/<slug>, listed on
+   the Reports page) and newsletter issues (at /newsletter/<slug>, listed
    on the Newsletter page). Both show as insight cards: on their index page,
    in the home page's research slider, and in the "related" sliders. */
 
@@ -101,7 +101,7 @@ export const report = defineType({
   icon: DocumentTextIcon,
   fields: [
     ...cardFields('Reports'),
-    slugField('/reports/<slug>.html'),
+    slugField('/reports/<slug>'),
     defineField({name: 'author', title: 'Author', type: 'string', description: 'Shown on the card’s meta row, before the reading time.'}),
     defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, description: 'The introduction beside the cover on the report’s page.'}),
     defineField({name: 'coversLede', title: 'What it covers: standfirst', type: 'text', rows: 3, description: 'The standfirst of the “What this report covers” section.'}),
@@ -121,7 +121,7 @@ export const newsletterIssue = defineType({
   icon: EnvelopeIcon,
   fields: [
     ...cardFields('Newsletter'),
-    slugField('/newsletter/<slug>.html'),
+    slugField('/newsletter/<slug>'),
     linesField('tags', 'Tags', 'The small tags under the title on the issue’s page.'),
     defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, description: 'The introduction beside the title on the issue’s page.'}),
     bodyField('The issue’s text: headings and paragraphs.'),

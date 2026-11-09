@@ -27,28 +27,28 @@ export interface ServiceRoute {
 
 export const SERVICES: ServiceRoute[] = [
   {
-    href: "/workshops-audits.html",
+    href: "/workshops-audits",
     ground: "plan",
     kind: "Workshop",
     format: "Half a day",
     covers: ["A half day on a live project", "How work actually moves", "Where tools and workflows create friction", "A written report of priorities", "No further commitment"],
   },
   {
-    href: "/before-revit.html",
+    href: "/before-revit",
     ground: "grid",
     kind: "Research",
     format: "Early design",
     covers: ["The early stages of design", "Tools, information and decisions", "What carries into Revit or Archicad", "What is recreated or lost on the way", "What should change first"],
   },
   {
-    href: "/technology-blueprint.html",
+    href: "/technology-blueprint",
     ground: "blueprint",
     kind: "Strategy",
     format: "Eight weeks",
     covers: ["Eight weeks, practice-wide", "Workflows and software", "Licensing costs", "Infrastructure, data and AI readiness", "A sequenced roadmap"],
   },
   {
-    href: "/advisory.html",
+    href: "/advisory",
     ground: "paper",
     kind: "Advisory",
     format: "Monthly",

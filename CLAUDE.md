@@ -43,8 +43,10 @@ preview`, `npm run check` (types for the site, then the Studio's checks),
 
 ## Layout
 
-- `src/pages/*.astro`: one per page. `build.format: "file"` makes `about.astro`
-  become `/about.html`; do not change it (links and Barba depend on it).
+- `src/pages/*.astro`: one per page, at a clean address (`/about`, since 9
+  Nov 2026). `build.format: "file"` builds `about.html`, which Vercel serves
+  at `/about` (`vercel.ts`, `cleanUrls`) and to which it sends old `.html`
+  links. Link with clean, root-relative addresses (`/about`), never `.html`.
   `src/pages/reports/[slug].astro` and `src/pages/newsletter/[slug].astro`
   are one page per report and newsletter issue in Sanity.
 - `src/layouts/BaseLayout.astro` the shared shell; `src/components/`,
@@ -55,7 +57,7 @@ preview`, `npm run check` (types for the site, then the Studio's checks),
   one module per component. A new component is a module exporting a
   mount/init function, listed in `PAGE_COMPONENTS` with its selector.
 - Links in the shared shell (the nav, the footer, the closing call to
-  action, the sliders) are root-relative (`/about.html`, `/assets/...`), so
+  action, the sliders) are root-relative (`/about`, `/assets/...`), so
   they work one folder deep on the report and issue pages too.
 - `src/sanity/`: the site's side of the CMS (below).
 - `webflow-billing-toggle/`: tracked, standalone Webflow embed snippets with

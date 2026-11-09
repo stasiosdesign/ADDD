@@ -16,7 +16,7 @@ const { t, list, bg } = reader(await pageDocument(Astro.locals.sanity, "aboutPag
 
 // The perspective cards' destinations, by position
 const tiles = list<{ _key: string; title?: string; text?: string; linkLabel?: string }>("perspective.tiles");
-const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "advisory.html"];
+const tileHrefs = ["/workshops-audits", "/technology-blueprint", "/advisory"];
 ---
 <BaseLayout
   title="About — ADDD"
@@ -36,8 +36,8 @@ const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
         <div class="pg-hero__col">
           <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
           <div class="actions actions--pair">
-            <ActionButton href="contact.html"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
-            <ActionButton href="technology-blueprint.html" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
+            <ActionButton href="/contact"><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
+            <ActionButton href="/technology-blueprint" variant="secondary"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
           </div>
         </div>
       </div>
@@ -51,8 +51,8 @@ const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
         <p class="tagline" data-page-field="foundation.tagline">{t("foundation.tagline")}</p>
         <p class="statement" data-split="heading" data-page-field="foundation.statement">{t("foundation.statement")}</p>
         <div class="actions actions--pair">
-          <ActionButton href="workshops-audits.html" variant="secondary"><span data-page-field="foundation.primaryButton">{t("foundation.primaryButton")}</span></ActionButton>
-          <ActionButton href="reports.html" variant="secondary"><span data-page-field="foundation.secondaryButton">{t("foundation.secondaryButton")}</span></ActionButton>
+          <ActionButton href="/workshops-audits" variant="secondary"><span data-page-field="foundation.primaryButton">{t("foundation.primaryButton")}</span></ActionButton>
+          <ActionButton href="/reports" variant="secondary"><span data-page-field="foundation.secondaryButton">{t("foundation.secondaryButton")}</span></ActionButton>
         </div>
       </div>
     </div>
@@ -73,7 +73,7 @@ const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
         <article class="tile" style="background:var(--c-paper)" data-page-item={tile._key}>
           <h3 class="h4" data-page-item-field="title">{tile.title}</h3>
           <p data-page-item-field="text">{tile.text}</p>
-          <a class="btn btn--link nav-link" href={tileHrefs[i] ?? "contact.html"}><NavLinkLabel data-page-item-field="linkLabel">{tile.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
+          <a class="btn btn--link nav-link" href={tileHrefs[i] ?? "/contact"}><NavLinkLabel data-page-item-field="linkLabel">{tile.linkLabel}</NavLinkLabel> <img class="icon" src="assets/icons/chevron_right.svg" alt=""></a>
         </article>
         ))}
       </div>
@@ -97,7 +97,7 @@ const tileHrefs = ["workshops-audits.html", "technology-blueprint.html", "adviso
         <div class="creds__text">
           <p data-page-field="validation.text">{t("validation.text")}</p>
           <div class="actions">
-            <ActionButton href="reports.html" variant="secondary"><span data-page-field="validation.button">{t("validation.button")}</span></ActionButton>
+            <ActionButton href="/reports" variant="secondary"><span data-page-field="validation.button">{t("validation.button")}</span></ActionButton>
           </div>
         </div>
       </div>

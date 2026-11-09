@@ -51,12 +51,12 @@ const HIGHLIGHT = {
   text: "A detailed look at the tools reshaping how architecture practices work with data and design.",
 };
 const RELATED: Card[] = [
-  { href: "/report-template.html", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Building a software strategy", meta: ["7 min read"] },
-  { href: "/report-template.html", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Redesigning processes effectively", meta: ["9 min read"] },
-  { href: "/report-template.html", image: "/assets/images/allister-podium-full.jpg", category: "AI and BIM", title: "Understanding AI’s real impact", meta: ["November 2024"] },
-  { href: "/report-template.html", image: "/assets/images/allister-gesture-warm.jpg", category: "Strategy", title: "Software selection frameworks", meta: ["October 2024"] },
-  { href: "/report-template.html", image: "/assets/images/allister-gesture-close.jpg", category: "Implementation", title: "Process mapping essentials", meta: ["September 2024"] },
-  { href: "/report-template.html", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "Evaluating emerging tools", meta: ["August 2024"] },
+  { href: "/report-template", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Building a software strategy", meta: ["7 min read"] },
+  { href: "/report-template", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Redesigning processes effectively", meta: ["9 min read"] },
+  { href: "/report-template", image: "/assets/images/allister-podium-full.jpg", category: "AI and BIM", title: "Understanding AI’s real impact", meta: ["November 2024"] },
+  { href: "/report-template", image: "/assets/images/allister-gesture-warm.jpg", category: "Strategy", title: "Software selection frameworks", meta: ["October 2024"] },
+  { href: "/report-template", image: "/assets/images/allister-gesture-close.jpg", category: "Implementation", title: "Process mapping essentials", meta: ["September 2024"] },
+  { href: "/report-template", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "Evaluating emerging tools", meta: ["August 2024"] },
 ];
 
 const coversLede = item.coversLede?.trim() || COVERS_LEDE;
@@ -124,7 +124,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
             <p data-page-field="highlightText">{highlightText}</p>
             <div class="actions">
               <ActionButton href="#download" variant="secondary">Read</ActionButton>
-              <a class="btn btn--link nav-link" href="/reports.html"><NavLinkLabel>Explore</NavLinkLabel> <img class="icon" src="/assets/icons/chevron_right.svg" alt=""></a>
+              <a class="btn btn--link nav-link" href="/reports"><NavLinkLabel>Explore</NavLinkLabel> <img class="icon" src="/assets/icons/chevron_right.svg" alt=""></a>
             </div>
           </div>
         </div>
@@ -148,7 +148,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
           <h2 class="h2" data-split="heading">Related reports</h2>
           <p>Explore more insight-led content to guide your practice forward</p>
         </div>
-        <ActionButton href="/reports.html" variant="secondary">View all</ActionButton>
+        <ActionButton href="/reports" variant="secondary">View all</ActionButton>
       </div>
 
       <InsightSlider items={related} />
@@ -180,7 +180,7 @@ const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardO
     </div>
   </section>
 
-  <ClosingCta primary={{ href: "/stack-diagnostic.html" }} secondary={{ href: "/contact.html" }} />
+  <ClosingCta primary={{ href: "/stack-diagnostic" }} secondary={{ href: "/contact" }} />
 
 </main>
 </BaseLayout>

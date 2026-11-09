@@ -67,7 +67,7 @@ const folders: Folder[] = own ?? cards.map((card, i) => {
     kind: route?.kind,
     go: "View service",
     action: `View ${card.title || "the service"}`,
-    href: hrefs[i] ?? route?.href ?? "contact.html",
+    href: hrefs[i] ?? route?.href ?? "/contact",
   };
 });
 ---

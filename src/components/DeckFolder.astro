@@ -59,6 +59,6 @@ const pad = (v: number) => String(v).padStart(2, "0");
   {opens ? (
     <button type="button" class="deck-folder__link" data-folder-open={opens} aria-haspopup="dialog" aria-controls={opens} aria-label={action}></button>
   ) : (
-    <a class="deck-folder__link" href={href ?? "contact.html"} aria-label={action}></a>
+    <a class="deck-folder__link" href={href ?? "/contact"} aria-label={action}></a>
   )}
 </article>

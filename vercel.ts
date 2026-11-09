@@ -2,8 +2,8 @@
    runs at the start of each build, so a setting can depend on the deployment.
    (Vercel reads this or a vercel.json, never both.)
 
-   The site keeps its .html addresses (astro.config.mjs), so there are no
-   clean URLs or redirects here, only headers. Production is `main`
+   Clean addresses (/about) with the old .html ones sent on to them (below),
+   and headers. Production is `main`
    (VERCEL_ENV "production"); every other deployment, staging included, is
    "preview". A review round (a `review/<round>` branch, astro.config.mjs) is a
    preview too, but built as files like production. */
@@ -31,12 +31,22 @@ export const config: VercelConfig = {
   // Vercel refuses an ignoreCommand over 256 characters, and failed the
   // deployment when this one grew past it (9 Nov 2026).
   ignoreCommand: 'sh scripts/vercel-ignore.sh',
-  // Staging renders on request, where Astro's router has no /about.html: Vercel
-  // rewrites each .html address to the route that renders it before the
-  // function sees it (src/middleware.ts does the same, as a fallback; on Vercel
-  // alone the fallback answers 404 while rendering the right page). Production
-  // serves the .html files themselves.
-  ...(staging ? { rewrites: [{ source: '/:path*.html', destination: '/:path*' }] } : {}),
+  // Clean addresses (/about, not /about.html), since 9 Nov 2026. Production is
+  // built as files (about.html, astro.config.mjs): Vercel serves each at its
+  // clean address and sends the old .html address there (308), so links
+  // shared before still work. Staging renders on request, where Astro's
+  // routes are already clean: the old .html addresses are sent on to them
+  // the same way (src/middleware.ts still answers one that reaches it, as in
+  // development). A review round is served like production; Final Design V1,
+  // frozen with its own copy of this file from before, keeps its .html ones.
+  ...(staging
+    ? {
+        redirects: [
+          { source: '/index.html', destination: '/', permanent: true },
+          { source: '/:path*.html', destination: '/:path*', permanent: true },
+        ],
+      }
+    : { cleanUrls: true }),
   headers: [
     // The build stamp (astro.config.mjs): read by the Studio, on another
     // origin, and never from a cache, so it always says when the site was
