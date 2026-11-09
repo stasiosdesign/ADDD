@@ -128,6 +128,15 @@ the package as an option that is off by default, switched on in
   to the page's own words in `src/sanity/defaults/<page>.ts`. Keep those
   defaults exactly as the page's text. `npm run seed` in `studio/` writes
   them to `staging` (never over a document that exists).
+- The words live in the Studio: a page shows its document's text, and a
+  default only where the field is empty. So a copy change made in the code
+  (a default) does not show on the site until the Studio's field says it
+  too. From 10 Oct to 9 Nov 2026 the pages were detached (`DETACHED` in
+  `src/sanity/content.ts`) while copy was written in the code; the Page
+  editor then painted the Studio's stale words over the pages and edits
+  there reached nothing. Never detach again without saying so to the user,
+  and after any copy change in the defaults, write it into both datasets
+  (staging, then Publish Site) and check the Page editor shows it.
 - Binding a new element: give it `data-page-field="section.field"` inside
   the Barba container (which names the page's document); a list of blocks
   gets `data-page-list` / `data-page-item` / `data-page-item-field`; a
