@@ -28,7 +28,7 @@ npm run studio:deploy  # deploys the hosted Studio
 | Production | https://addd-io.vercel.app              | `main`                      |
 | Staging    | https://addd-staging.vercel.app     | `staging`                   |
 | Studio     | https://addd.sanity.studio                            | `studio/`, deployed by hand |
-| Review round Final Design V1 | https://addd-git-review-final-design-v1-stasiosdesign.vercel.app | `review/final-design-v1` (frozen) |
+| Review round Final Design V1 | https://addd-final-design-v1.vercel.app | `review/final-design-v1` (frozen) |
 
 Staging's URL is Vercel's alias for the `staging` branch: it always shows the
 branch's latest deployment. The Vercel project is `addd`, in the

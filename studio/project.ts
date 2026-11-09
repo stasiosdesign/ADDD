@@ -58,7 +58,7 @@ export const project: CmsProjectConfig = {
         id: 'final-design',
         title: 'Final Design V1',
         date: '2026-11-09',
-        url: 'https://addd-git-review-final-design-v1-stasiosdesign.vercel.app',
+        url: 'https://addd-final-design-v1.vercel.app',
         branch: 'review/final-design-v1',
       },
     ],
