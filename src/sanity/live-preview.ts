@@ -283,15 +283,37 @@ function renderDoc(ref: Ref, doc: Doc) {
 type Barba = { hooks: { after: (hook: () => void) => void }; go?: (href: string) => Promise<void> };
 const getBarba = () => (window as unknown as { barba?: Barba }).barba;
 const samePage = (url: string) => new URL(url, location.href).pathname === location.pathname;
+
+/* Every change of address, however it is made (2026-11-17): Barba's
+   transitions (it may not be set up yet when this script runs, so its own
+   hooks can't be relied on: the Studio then kept showing the last page's
+   form, and the new page's blocks were never marked), links, back and
+   forward. Each listener hears the address once it has changed, and again
+   once the new page has had time to come in. */
+const urlListeners = new Set<() => void>();
+let lastUrl = location.href;
+const urlChanged = () => {
+  if (location.href === lastUrl) return;
+  lastUrl = location.href;
+  urlListeners.forEach((fn) => fn());
+};
+(["pushState", "replaceState"] as const).forEach((name) => {
+  const original = history[name].bind(history);
+  history[name] = ((...args: Parameters<History["pushState"]>) => {
+    original(...args);
+    queueMicrotask(urlChanged);
+  }) as History[typeof name];
+});
+window.addEventListener("popstate", urlChanged);
+const onUrlChange = (fn: () => void) => urlListeners.add(fn);
 enableVisualEditing({
   zIndex: 10000, // above the site's own layers
   history: {
     subscribe: (navigate) => {
-      const report = () => navigate({ type: 'replace', url: `${location.pathname}${location.search}${location.hash}` });
-      report();
-      getBarba()?.hooks.after(report);
-      window.addEventListener('popstate', report);
-      return () => window.removeEventListener('popstate', report);
+      const report = () => navigate({ type: 'push', url: `${location.pathname}${location.search}${location.hash}` });
+      navigate({ type: 'replace', url: `${location.pathname}${location.search}${location.hash}` });
+      onUrlChange(report);
+      return () => urlListeners.delete(report);
     },
     update: (change) => {
       if (change.type === 'pop') return history.back();
@@ -332,7 +354,9 @@ function update() {
 
 enableLiveMode({ client: sanityClient });
 update();
-getBarba()?.hooks.after(update);
+// a new page: its documents drawn and marked once it has come in (Barba
+// swaps the page in after the address changes), and again for a slow one
+onUrlChange(() => [400, 1200, 2500].forEach((ms) => setTimeout(update, ms)));
 
 // Opening a section in the Studio's side panel scrolls the page to it: the
 // Studio posts the section's field name (SHOW_SECTION_MESSAGE in

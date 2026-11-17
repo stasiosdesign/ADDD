@@ -114,6 +114,8 @@ export interface Section {
   agenda?: { n: string; title: string; text: string; href: string }[];
   /** questions for the call, numbered, each with a line of detail */
   questions?: { q: string; detail?: string }[];
+  /** tasks as numbered drop-downs: a title, a line and points */
+  tasks?: { title: string; text: string; items?: string[] }[];
   compare?: Compare;
   diagram?: Diagram;
   /** under the diagram, side by side: a heading and its bullet points each (2026-11-17) */
@@ -143,7 +145,7 @@ const LAUNCH_TIMELINE: Timeline = {
       from: 0,
       to: 7,
       who: "allister",
-      items: ["Final copywriting", "Operational information: timelines, deliverables", "FAQs", "Reports, each with its beehiiv automation named"],
+      items: ["Final copy", "Operational details", "FAQs", "Reports with automations", "Booking calendar"],
     },
     { title: "Automations connected", from: 1, to: 3, who: "us", items: ["Each report linked to its automation"] },
     { title: "Visual fixes and final refinements", from: 1, to: 8, who: "us", items: ["Anything new content upsets", "Fixes and changes", "Testing"] },
@@ -163,7 +165,7 @@ export const SECTIONS: Section[] = [
       { n: "2", title: "Editing the site", text: "The page editor and collections", href: "#editing" },
       { n: "3", title: "Adding a report", text: "From Sanity to an inbox", href: "#report" },
       { n: "4", title: "Adding a newsletter", text: "Written in beehiiv, shown on the site", href: "#newsletter" },
-      { n: "5", title: "Final tasks", text: "Who does what next", href: "#tasks" },
+      { n: "5", title: "Final tasks", text: "What Allister prepares before launch", href: "#tasks" },
       { n: "6", title: "Questions", text: "What we still need to know", href: "#questions" },
     ],
   },
@@ -446,12 +448,33 @@ export const SECTIONS: Section[] = [
   /* Final tasks (2026-11-17, at the user's word): who does what next */
   {
     id: "tasks",
-    tab: "Who does what",
-    title: "Who does what",
+    tab: "Allister’s tasks",
+    title: "Allister’s tasks",
     timeline: LAUNCH_TIMELINE,
-    lists: [
-      { title: "Allister", items: ["Final copy in Sanity", "Operational details: timelines, deliverables", "FAQs", "Reports, each with its beehiiv automation"] },
-      { title: "Stas", items: ["Connect each report’s automation, by Friday 20", "Visual fixes, refinements and testing, by Wednesday 25", "Technical and SEO setup, by Wednesday 25", "Connect beehiiv’s API for the newsletter", "Launch on Friday 27: domain, desktop and mobile"] },
+    tasks: [
+      {
+        title: "Final copy in Sanity",
+        text: "Every page’s words, as they should read at launch, written in the page editor.",
+        items: ["Headings, introductions and body text", "Buttons and what they say", "Pictures where a page needs a new one"],
+      },
+      {
+        title: "Operational details",
+        text: "The facts behind each service, so the pages promise what ADDD delivers.",
+        items: ["Timelines: each stage and how long it takes", "Deliverables: what the client receives", "Pricing", "Who takes part from the client’s side", "What the client prepares beforehand"],
+      },
+      {
+        title: "FAQs",
+        text: "The questions clients really ask, with ADDD’s answers, on each page that has them.",
+      },
+      {
+        title: "Reports, each with its beehiiv automation",
+        text: "Each report added in Sanity, its automation built in beehiiv first, then chosen from the report’s drop-down.",
+      },
+      {
+        title: "A booking calendar",
+        text: "A free booking page connected to your own calendar, so calls never clash. Send Stas its link.",
+        items: ["Calendly (calendly.com) or Cal.com (cal.com): both free", "Connect it to Google Calendar, or whichever calendar you use"],
+      },
     ],
   },
   /* Questions for the call (2026-11-17, at the user's word) */

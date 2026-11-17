@@ -164,7 +164,7 @@ export const report = defineType({
           type: 'string',
           options: {
             list: [
-              {title: 'Sign up: a beehiiv form', value: 'beehiiv'},
+              {title: 'Sign up: a beehiiv automation', value: 'beehiiv'},
               {title: 'Sign up: a HubSpot form', value: 'hubspot'},
               {title: 'Buy: a link to the checkout', value: 'buy'},
               {title: 'A link elsewhere', value: 'link'},
@@ -178,7 +178,9 @@ export const report = defineType({
           title: 'beehiiv form',
           type: 'string',
           description: 'The form’s ID or address (beehiiv → Grow → Subscribe forms → the form → Embed: the address in its iframe, https://subscribe-forms.beehiiv.com/…). Its automation sends the download.',
-          hidden: ({parent}) => parent?.method !== 'beehiiv',
+          // no longer asked for (2026-11-17, at the user's word): a sign-up
+          // starts the report's automation; kept, hidden, for the code on main
+          hidden: true,
         }),
         // the beehiiv automation its sign-ups start, from beehiiv's own list
         // (BEEHIIV_AUTOMATIONS above); not shown on the site
@@ -200,7 +202,7 @@ export const report = defineType({
           description:
             'Write its name as it is called in beehiiv, and Stas will connect it for you. Later you’ll be able to connect it yourself, here. Not shown on the site.',
         }),
-        defineField({name: 'beehiivHeight', title: 'Form height', type: 'number', description: 'In pixels: the form’s own height at the card’s width (240 if empty). Leave room for its thank-you message.', hidden: ({parent}) => parent?.method !== 'beehiiv'}),
+        defineField({name: 'beehiivHeight', title: 'Form height', type: 'number', description: 'In pixels: the form’s own height at the card’s width (240 if empty). Leave room for its thank-you message.', hidden: true}),
         defineField({
           name: 'hubspotRegion',
           title: 'HubSpot region',

@@ -110,6 +110,22 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
           </figure>
         )}
 
+        {s.tasks && (
+          <ol class="arch__tasks">
+            {s.tasks.map((task, k) => (
+              <li>
+                <details>
+                  <summary><span class="arch__task-n">{pad(k + 1)}</span><span class="arch__task-title">{task.title}</span><span class="arch__task-icon" aria-hidden="true"></span></summary>
+                  <div class="arch__task-body">
+                    <p>{task.text}</p>
+                    {task.items && <ul>{task.items.map((item) => <li>{item}</li>)}</ul>}
+                  </div>
+                </details>
+              </li>
+            ))}
+          </ol>
+        )}
+
         {s.questions && (
           <ol class="arch__questions">
             {s.questions.map((q, k) => (
