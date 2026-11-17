@@ -454,7 +454,6 @@
 
 /* the cards' palette and steps, which the Resources blocks and tiles share */
 .service-card,
-.resource-block,
 .resource-tile {
   --sc-ground: var(--c-white);
   --sc-ink: var(--c-text);
@@ -644,163 +643,6 @@
    are told apart by tone alone. A link row takes the cards' hover, a
    shade laid over it, and their focus ring. */
 
-/* The Resources blocks take the nav's state as the Services cards do,
-   mixed by the same --nav-dark: light, a hair off white (the cards'
-   --nav-card-bg), their mark's square and their feature's field each a
-   step under that; dark, the cards' near-black, the square and the field
-   each a step lighter, the words in the bar's ink. The hover's shade is
-   the block's ink, as a card's is, so it shows on either ground. The
-   three stand flush, as the cards do, each carrying its ground a pixel on
-   under the next so no seam of the dimmed page shows between them. */
-.resource-block {
-  --sc-ground: var(--nav-card-bg);
-  --sc-num: color-mix(in oklab, #e2e2e2, #202020 var(--nav-dark));
-  --sc-field: color-mix(in oklab, #e7e7e7, #1a1a1a var(--nav-dark));
-  --sc-ink: var(--nav-fg);
-  --sc-shade: currentColor;
-  position: relative;
-  display: grid;
-  grid-template-columns: var(--sc-head) minmax(0, 1fr);
-  grid-template-rows: var(--sc-head) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), auto);
-  background: var(--sc-ground);
-  color: var(--sc-ink);
-}
-.resource-block__mark {
-  grid-area: 1 / 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--sc-num);
-}
-.resource-block__mark svg { width: 1.25rem; height: 1.25rem; }
-.resource-block__title {
-  grid-area: 1 / 2;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  padding: 0 var(--sc-pad);
-  font-family: var(--font-display);
-  font-size: 1.125rem;
-  line-height: 1.2;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
-}
-/* A row across the block, its words from the name's line: the lead
-   link from a little under the header, as a card's description is; the
-   feature on the field, its words in the middle of it. */
-.resource-block__row {
-  grid-column: 1 / -1;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: .1875rem;
-  min-width: 0;
-  padding: calc(.75 * var(--sc-step)) var(--sc-pad) var(--sc-step) calc(var(--sc-head) + var(--sc-pad));
-  color: inherit;
-  text-decoration: none;
-  outline: none;
-}
-.resource-block__lead { grid-row: 2; }
-.resource-block__field {
-  grid-row: 3;
-  justify-content: center;
-  padding-block: var(--sc-step);
-  background: var(--sc-field);
-}
-.resource-block__name {
-  font-family: var(--font-display);
-  font-size: 1.0625rem;
-  line-height: 1.3;
-}
-.resource-block__desc {
-  max-width: 21em;
-  font-size: .875rem;
-  line-height: 1.35;
-  color: var(--sc-text);
-  text-wrap: pretty;
-}
-a.resource-block__row::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--sc-shade);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .25s ease;
-}
-a.resource-block__row:is(:hover, :focus-visible)::after { opacity: .07; }
-a.resource-block__row:active::after { opacity: .14; }
-a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
-
-/* The latest report: its label, title and call to read it from the
-   name's line, and its cover at the far end, the field's full height and
-   five steps wide, near a report's own proportion. */
-.resource-block__report {
-  flex-direction: row;
-  align-items: stretch;
-  padding-block: 0;
-  padding-right: 0;
-}
-.resource-block__report-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: .25rem;
-  min-width: 0;
-  padding: var(--sc-step) var(--sc-pad) var(--sc-step) 0;
-}
-.resource-block__label { font-size: .6875rem; line-height: 1.2; }
-.resource-block__cta {
-  display: inline-flex;
-  align-items: center;
-  gap: .125rem;
-  margin-top: .25rem;
-  color: var(--c-red);
-  font-size: .875rem;
-  line-height: 1.2;
-}
-/* the logo's triangle, pointing on, at the text's size */
-.resource-block__cta-mark { width: 1em; height: 1em; flex: none; }
-.resource-block__cover {
-  position: relative;
-  flex: none;
-  width: calc(5 * var(--sc-step));
-  overflow: hidden;
-  background: var(--sc-num);
-}
-.resource-block__cover img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .6s var(--ease-osmo);
-}
-.resource-block__report:hover .resource-block__cover img { transform: scale(1.05); }
-
-/* The signup, the shared one (styles.css), across the field from the
-   name's line, at a height that keeps to the rows' rhythm. */
-.resource-block__signup { max-width: none; gap: .75rem; }
-.resource-block__signup .newsletter-form { --signup-h: 2.75rem; max-width: none; }
-.resource-block__signup :is(input[type="email"], .newsletter-form__submit) { font-size: .9375rem; }
-/* Its submit in the ink, white words on it, as the site's primary buttons
-   and the footer's signup are (2026-11-04; the accent red before). On the
-   dark nav, where the block is near-black, a charcoal a step off it, so
-   the button still stands off the field. Hover lightens it from within. */
-.resource-block__signup .newsletter-form__submit {
-  padding: 0 1.25rem;
-  background: color-mix(in oklab, var(--c-text), #3a3a3a var(--nav-dark, 0%));
-  color: var(--c-white);
-}
-.resource-block__signup .newsletter-form__submit:hover { box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.14); }
-.resource-block__signup .newsletter-form__submit:focus-visible { outline-color: var(--c-white); }
-/* On touch the pair steps up to the body size — below 16px iOS zooms
-   the page in when the field takes focus — and so to a 44px row. */
-@media (pointer: coarse) {
-  .resource-block__signup :is(input[type="email"], .newsletter-form__submit) { font-size: 1rem; }
-}
-
 /* --- Resources tiles (Nav.astro, 2026-11-04) -------------------------
    Free Tech Stacks and the Software Database, each a box of its own on the
    left of the dropdown, one over the other and the same width: the block's
@@ -815,6 +657,8 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
 .resource-tile {
   --sc-ground: var(--nav-card-bg);
   --sc-ink: var(--nav-fg);
+  --sc-num: color-mix(in oklab, #e2e2e2, #202020 var(--nav-dark));
+  --sc-field: color-mix(in oklab, #e7e7e7, #1a1a1a var(--nav-dark));
   --sc-shade: currentColor;
   position: relative;
   display: flex;
@@ -841,8 +685,8 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   color: var(--sc-text);
   text-wrap: pretty;
 }
-.resource-tile.is--database .resource-tile__desc { max-width: 21em; }
-.resource-tile::after {
+.resource-tile:is(.is--database, .is--reports) .resource-tile__desc { max-width: 21em; }
+a.resource-tile::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -857,6 +701,100 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
 .resource-tile:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring); }
 
 .resource-tile.is--stacks { min-height: calc(8 * var(--sc-step)); overflow: hidden; }
+
+/* (2026-11-16) Reports and the Newsletter as tiles too, in the same
+   language without repeating it: the latest report a feature as Free
+   Tech Stacks is, its cover in place of the stacks' drawing; Reports &
+   Guides plain under it, as the Software Database is; the newsletter one
+   tall tile, its name at the top and its signup at the foot. */
+.resource-tile__label {
+  margin-top: .375rem;
+  font-family: var(--font-mono);
+  font-size: .6875rem;
+  line-height: 1.2;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--sc-ink) 55%, transparent);
+}
+.resource-tile.is--report {
+  overflow: hidden;
+  padding-right: calc(42% + var(--sc-pad));
+}
+.resource-tile.is--report .resource-tile__name { text-wrap: balance; }
+.resource-tile__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: .125rem;
+  margin-top: auto;
+  padding-top: var(--sc-step);
+  color: var(--c-red);
+  font-size: .875rem;
+  line-height: 1.2;
+}
+/* the logo's triangle, pointing on, at the text's size */
+.resource-tile__cta-mark { width: 1em; height: 1em; flex: none; }
+.resource-tile__cover {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 42%;
+  overflow: hidden;
+  background: var(--sc-num);
+}
+.resource-tile__cover img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .6s var(--ease-osmo);
+}
+.resource-tile.is--report:hover .resource-tile__cover img { transform: scale(1.05); }
+.resource-tile.is--newsletter { justify-content: space-between; gap: calc(2 * var(--sc-step)); }
+.resource-tile__link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .1875rem;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+.resource-tile__link .resource-tile__name {
+  text-decoration: underline 1px transparent;
+  text-underline-offset: .2em;
+  transition: text-decoration-color .25s ease;
+}
+.resource-tile__link:is(:hover, :focus-visible) .resource-tile__name { text-decoration-color: currentColor; }
+.resource-tile__link:focus-visible { box-shadow: 0 0 0 2px var(--sc-ring); }
+.resource-tile.is--newsletter .resource-tile__desc { max-width: 18em; }
+/* The whole tile is the newsletter's link (2026-11-16, at the user's word):
+   the link's box stretched over the tile, under the signup, which stays
+   its own; anywhere else on the tile the link's hover (its name
+   underlined) and its click. */
+.resource-tile.is--newsletter .resource-tile__link::before { content: ""; position: absolute; inset: 0; }
+.resource-tile.is--newsletter .resource-tile__signup { position: relative; z-index: 1; }
+/* The signup, the shared one (styles.css), across the tile's foot, on the
+   tile's field tone with its words in the nav's ink; its submit in the
+   ink (a charcoal a step off the near-black on the dark nav). */
+.resource-tile__signup { width: 100%; max-width: none; }
+.resource-tile__signup .newsletter-form { --signup-h: 2.75rem; max-width: none; background: var(--sc-field); }
+.resource-tile__signup input[type="email"] { color: var(--sc-ink); }
+.resource-tile__signup input[type="email"]::placeholder { color: color-mix(in srgb, var(--sc-ink) 50%, transparent); }
+.resource-tile__signup :is(input[type="email"], .newsletter-form__submit) { font-size: .9375rem; }
+.resource-tile__signup .newsletter-form__submit {
+  padding: 0 1.25rem;
+  background: color-mix(in oklab, var(--c-text), #3a3a3a var(--nav-dark, 0%));
+  color: var(--c-white);
+}
+.resource-tile__signup .newsletter-form__submit:hover { box-shadow: inset 0 0 0 100px rgba(255, 255, 255, 0.14); }
+.resource-tile__signup .newsletter-form__submit:focus-visible { outline-color: var(--c-white); }
+/* On touch the pair steps up to the body size: below 16px iOS zooms the
+   page in when the field takes focus. */
+@media (pointer: coarse) {
+  .resource-tile__signup :is(input[type="email"], .newsletter-form__submit) { font-size: 1rem; }
+}
 .resource-tile.is--stacks > :is(.resource-tile__name, .resource-tile__desc) { position: relative; z-index: 1; }
 /* The thumbnail (StackThumb.astro; 2026-11-04, fourth pass, at the user's
    word: the Free Tech Stacks page's own row, scaled down, not a flat or
@@ -873,19 +811,29 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   height: 100%;
   pointer-events: none;
 }
+/* Its inks follow the nav's theme (2026-11-16, at the user's word: on the
+   dark nav the cards stayed white and glared): the faces go from the
+   page's card tone to a charcoal a few steps over the dark tile, and the
+   marks, edges and brackets from a faint black to a faint white, each by
+   --nav-dark, as the rest of the dropdown does. */
+.resource-tile__thumb {
+  --thumb-ink: color-mix(in oklab, rgb(10, 10, 10), rgb(255, 255, 255) var(--nav-dark, 0%));
+}
 .resource-tile__thumb-brackets polyline {
   fill: none;
-  stroke: rgba(10, 10, 10, 0.32);
+  stroke: color-mix(in srgb, var(--thumb-ink) 32%, transparent);
   stroke-width: 1;
   stroke-dasharray: 0 3;
   stroke-linecap: round;
   vector-effect: non-scaling-stroke;
 }
-.resource-tile__thumb-card .is--edge { fill: none; stroke: rgba(10, 10, 10, 0.1); stroke-width: 0.75; vector-effect: non-scaling-stroke; }
-.resource-tile__thumb-card .is--line { fill: rgba(10, 10, 10, 0.1); }
-.resource-tile__thumb-card .is--mark { fill: rgba(10, 10, 10, 0.08); }
-.resource-tile__thumb-card .is--name { fill: rgba(10, 10, 10, 0.16); }
-.resource-tile__thumb-card .is--role { fill: rgba(10, 10, 10, 0.08); }
+.resource-tile__thumb-card .is--face { fill: color-mix(in oklab, var(--thumb-face), #2b2b2b var(--nav-dark, 0%)); }
+.resource-tile__thumb-card .is--band { fill: color-mix(in oklab, var(--thumb-band), #262626 var(--nav-dark, 0%)); }
+.resource-tile__thumb-card .is--edge { fill: none; stroke: color-mix(in srgb, var(--thumb-ink) 10%, transparent); stroke-width: 0.75; vector-effect: non-scaling-stroke; }
+.resource-tile__thumb-card .is--line { fill: color-mix(in srgb, var(--thumb-ink) 10%, transparent); }
+.resource-tile__thumb-card .is--mark { fill: color-mix(in srgb, var(--thumb-ink) 8%, transparent); }
+.resource-tile__thumb-card .is--name { fill: color-mix(in srgb, var(--thumb-ink) 16%, transparent); }
+.resource-tile__thumb-card .is--role { fill: color-mix(in srgb, var(--thumb-ink) 8%, transparent); }
 /* the stacks other than the one at the middle, faded into the box's ground
    as the page fades them (sixth pass: one colour for every card) */
 .resource-tile__thumb-card .is--veil { fill: var(--sc-ground); opacity: 0.45; }
@@ -1004,26 +952,36 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   .mega-nav__dropdown-inner.is--services[style*="--sc-grid-ratio"] {
     grid-template-rows: calc(var(--sc-card-w) * var(--sc-grid-ratio));
   }
-  /* Resources (2026-11-04): four boxes, each its own, a narrow seam of the
-     dimmed page between them (the floating cards' seam, below): on the
-     left Free Tech Stacks over the Software Database, the same width, the
-     database its words' height and Free Tech Stacks the rest; then the
-     Reports and Newsletter blocks, each the two rows' full height, its own
-     header, lead and feature rows the same in both, so they stand level. */
+  /* Resources (2026-11-16): five tiles, each its own, a narrow seam of the
+     dimmed page between them: on the left Free Tech Stacks over the
+     Software Database, in the middle the latest report over Reports &
+     Guides (the two rows shared about 3 : 2, so the two columns' seams
+     stand level), and on the right the newsletter, both rows tall. */
   .mega-nav__dropdown-inner.is--resources {
     --sc-float-gap: calc(var(--nav-float-top) / 4);
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    /* Free Tech Stacks a little shorter, the Software Database a little
-       taller (second pass): the two share the blocks' height about 3 : 2 */
     grid-template-rows: minmax(calc(8 * var(--sc-step)), 1.5fr) minmax(calc(5 * var(--sc-step)), 1fr);
     gap: var(--sc-float-gap);
   }
   .is--resources > .resource-tile.is--stacks { grid-area: 1 / 1; }
   .is--resources > .resource-tile.is--database { grid-area: 2 / 1; }
-  .is--resources > .resource-block {
-    grid-row: 1 / span 2;
-    grid-template-rows: var(--sc-head) minmax(calc(6 * var(--sc-step)), auto) minmax(calc(7 * var(--sc-step)), 1fr);
+  .is--resources > .resource-tile.is--report { grid-area: 1 / 2; }
+  .is--resources > .resource-tile.is--reports { grid-area: 2 / 2; }
+  .is--resources > .resource-tile.is--newsletter { grid-area: 1 / 3 / span 2; }
+  /* the newsletter tile on the grid's two rows (subgrid), its signup filling
+     the second row with the tile's own padding above and below it, so the
+     field stands centred beside Reports & Guides (2026-11-16, at the
+     user's word: it sat low and short there) */
+  .is--resources > .resource-tile.is--newsletter {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: subgrid;
+    row-gap: var(--sc-float-gap);
+    align-content: stretch;
   }
+  .is--resources > .resource-tile.is--newsletter > .resource-tile__link { grid-row: 1; align-self: start; }
+  .is--resources > .resource-tile.is--newsletter > .resource-tile__signup { grid-row: 2; align-self: stretch; display: flex; margin-top: var(--sc-step); }
+  .is--resources > .resource-tile.is--newsletter > .resource-tile__signup .newsletter-form { --signup-h: 100%; flex: 1; height: auto; }
 
   /* Floating (past the hero), the Services cards float as the bar does:
      four boxes of their own rather than one strip, set off from the bar
@@ -1069,7 +1027,7 @@ a.resource-block__row:focus-visible { box-shadow: inset 0 0 0 2px var(--sc-ring)
   .mega-nav.is--floating .mega-nav__dropdown-inner.is--resources {
     padding-top: var(--sc-float-gap);
   }
-  .mega-nav.is--floating .is--resources > :is(.resource-block, .resource-tile) {
+  .mega-nav.is--floating .is--resources > .resource-tile {
     border-radius: var(--nav-bar-radius);
     overflow: clip;
     box-shadow: none;

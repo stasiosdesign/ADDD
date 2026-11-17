@@ -19,14 +19,18 @@
 */
 import { LETTER_COUNT } from "../scripts/logo-morph.js";
 import { FIELD_TEXT } from "./field-text";
+import { reader, siteDocument } from "../sanity/content";
+import { homePage as HOME } from "../sanity/defaults/home";
 
 const letters = Array.from({ length: LETTER_COUNT });
+// the text behind it: the Home hero's pattern text (hero.fieldText in Sanity)
+const fieldText = reader(await siteDocument(Astro.locals), HOME).t("hero.fieldText") || FIELD_TEXT;
 ---
 <div data-morph-loader aria-hidden="true" class="morph-loader">
   <!-- the ground: on every page but the homepage, the hero's text field
        in dark grey on the black (slash-field.js, mounted by the loader for
        as long as it plays) -->
-  <div data-morph-loader-bg class="morph-loader__bg" data-text={FIELD_TEXT}></div>
+  <div data-morph-loader-bg class="morph-loader__bg" data-text={fieldText}></div>
   <!-- the red shape the disc becomes on its way to the nav's logo slot -->
   <div data-morph-loader-shape class="morph-loader__shape"></div>
   <svg data-morph-loader-logo class="morph-loader__logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">

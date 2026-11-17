@@ -56,6 +56,8 @@ interface Props {
   text: string[];
   /** Set the card on a line grid of this shape instead of its route's ground (line-grid.ts). */
   grid?: LineGridShape;
+  /** The card's block in the Studio (nav.services.0), for the Visual editor */
+  field?: string;
   [attr: string]: unknown;
 }
 
@@ -64,7 +66,8 @@ import type { LineGridShape } from "./line-grid";
 import ServiceGround from "./ServiceGround.astro";
 import { SERVICES } from "./services";
 
-const { href, index, title, cycle, text, grid, ...attrs } = Astro.props;
+const { href, index, title, cycle, text, grid, field, ...attrs } = Astro.props;
+const at = (name: string) => (field ? `${field}.${name}` : undefined);
 
 // the ground's box: the card's shape at its widest
 const W = 400;
@@ -84,9 +87,9 @@ const ground = SERVICES[index]?.ground;
     <LineGrid class="service-card__grid" {...grid} />
   ) : ground && <ServiceGround kind={ground} class="service-card__dots" module={MODULES[ground]} />}
   {cycle ? (
-    <span class="service-card__title"><span class="service-card__sr">{title}</span><span aria-hidden="true">{cycle.stem}<span class="service-card__cycle"><span class="service-card__cycle-word" data-word-cycle={cycle.words.join("|")}>{cycle.words[0]}</span>{cycle.words.map((word) => <span class="service-card__cycle-ghost">{word}</span>)}</span></span></span>
+    <span class="service-card__title"><span class="service-card__sr" data-page-field={at("name")}>{title}</span><span aria-hidden="true">{cycle.stem}<span class="service-card__cycle"><span class="service-card__cycle-word" data-word-cycle={cycle.words.join("|")}>{cycle.words[0]}</span>{cycle.words.map((word) => <span class="service-card__cycle-ghost">{word}</span>)}</span></span></span>
   ) : (
-    <span class="service-card__title">{title}</span>
+    <span class="service-card__title" data-page-field={at("name")}>{title}</span>
   )}
-  <span class="service-card__text">{text.map((line, i) => <>{i > 0 && <br />}{line}</>)}</span>
+  <span class="service-card__text" data-page-field={at("lines")}>{text.map((line, i) => <>{i > 0 && <br />}{line}</>)}</span>
 </a>

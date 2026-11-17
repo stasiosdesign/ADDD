@@ -2,11 +2,12 @@ import {defineField, defineType} from 'sanity'
 import {BlockContentIcon} from '@sanity/icons/BlockContent'
 import {CommentIcon} from '@sanity/icons/Comment'
 import {HelpCircleIcon} from '@sanity/icons/HelpCircle'
+import {LinkIcon} from '@sanity/icons/Link'
 import {ListIcon} from '@sanity/icons/List'
 import {SquareIcon} from '@sanity/icons/Square'
 import {TagIcon} from '@sanity/icons/Tag'
 import {BlockItem} from '@stasiosdesign/sanity-cms'
-import {buttonField, imageField, linesField, textField} from '../shared/fields'
+import {buttonField, hrefField, imageField, linesField, textField} from '../shared/fields'
 
 /* The repeatable blocks of the pages: each a framed block in its list, edited
    within the page (BlockItem), never a CMS collection of its own. A page's
@@ -101,9 +102,63 @@ export const priceCard = defineType({
     defineField({name: 'includesLabel', title: 'List label', type: 'string', description: 'The small line above the list, e.g. “Includes”.'}),
     linesField('includes', 'What it includes', 'One line per item.'),
     defineField({name: 'conditions', title: 'Conditions', type: 'text', rows: 2, description: 'Eligibility or other conditions under the list, where the design shows them. Leave empty for none.'}),
-    buttonField('Where the button leads stays in the site’s code.'),
+    buttonField('Where it leads: Button link.'),
+    hrefField('Where the button leads, where the card has its own: a page of the site (/contact) or another site. Leave empty for the page’s own.', 'href', 'Button link'),
   ],
   preview: {select: {title: 'title', subtitle: 'price'}},
+})
+
+/**
+ * A folder of a deck (ServiceDeck.astro, DeckFolder.astro): the card's
+ * small label, title and line, the format beside its number, the kind in
+ * the pill at its foot, the lines on the sheet showing through its notch,
+ * and where it leads. The Home page's routes, each a service.
+ */
+const folderFields = () => [
+  defineField({name: 'title', title: 'Title', type: 'string'}),
+  textField('The folder’s line of text.'),
+  defineField({name: 'format', title: 'Beside the number', type: 'string', description: 'At the top right, beside the number, e.g. “Half a day”.'}),
+  defineField({name: 'kind', title: 'Kind', type: 'string', description: 'The pill at the foot, e.g. “Workshop”.'}),
+  linesField('covers', 'On the sheet', 'The lines on the sheet standing up inside the folder, one per line.'),
+]
+
+export const routeCard = defineType({
+  name: 'routeCard',
+  title: 'Folder',
+  type: 'object',
+  icon: SquareIcon,
+  components: {item: BlockItem},
+  fields: [
+    defineField({name: 'tagline', title: 'Tagline', type: 'string', description: 'The small line above the title, where the design shows one.'}),
+    ...folderFields(),
+    hrefField('Where the folder leads, e.g. /workshops-audits.'),
+  ],
+  preview: {select: {title: 'title', subtitle: 'kind'}},
+})
+
+/** A folder that opens a paper on its page (the Workflow Workshop’s outcomes, the AEC Tech Partners’ partnerships): routeCard without a destination */
+export const folderCard = defineType({
+  name: 'folderCard',
+  title: 'Folder',
+  type: 'object',
+  icon: SquareIcon,
+  components: {item: BlockItem},
+  fields: folderFields(),
+  preview: {select: {title: 'title', subtitle: 'kind'}},
+})
+
+/** A text link: its words and where it leads (the footer’s columns, the navigation’s links) */
+export const link = defineType({
+  name: 'link',
+  title: 'Link',
+  type: 'object',
+  icon: LinkIcon,
+  components: {item: BlockItem},
+  fields: [
+    defineField({name: 'label', title: 'Label', type: 'string', validation: (rule) => rule.required()}),
+    hrefField(),
+  ],
+  preview: {select: {title: 'label', subtitle: 'href'}},
 })
 
 /** A row of a comparison table: what is compared, and each side’s answer */

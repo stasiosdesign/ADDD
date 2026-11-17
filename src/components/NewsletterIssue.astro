@@ -1,0 +1,140 @@
+---
+/*
+  One newsletter issue's page, at /newsletter/<slug>: from beehiiv
+  (src/newsletter/beehiiv.ts), or until that is set up from the ADDDitive's
+  archive (src/data/archive.ts). Laid out after the user's reference (2026-11-16, an
+  architecture studio's journal post):
+
+    - the hero: the title large on the left, a line under it, when it went
+      out and how long it reads on the right, at the title's foot;
+    - its picture across the whole window (an empty ground until the post
+      has one of its own: the archive's pictures are still to come);
+    - its content in rows, one per section (src/newsletter/sections.ts): a
+      rule across, the section's heading on the left, its words on the
+      right, as written in beehiiv in the site's prose styles (pages.css,
+      .prose.is--newsletter);
+    - beside the rows, its author's card, held on screen while they scroll;
+    - then more posts, and the site's closing call to action.
+
+  Styles: pages.css, "A post's page".
+*/
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ActionButton from "./ActionButton.astro";
+import ClosingCta from "./ClosingCta.astro";
+import InsightSlider from "./InsightSlider.astro";
+import { newsletterDate, newsletterPosts, type NewsletterPost } from "../newsletter/beehiiv";
+import { postSections } from "../newsletter/sections";
+import { contactPage } from "../sanity/defaults/contact";
+
+interface Props {
+  post: NewsletterPost;
+  /** the section it belongs to (its "View all"): the Newsletter's by default */
+  section?: string;
+  /** the cards under it: the other beehiiv issues by default */
+  related?: { href: string; image: string; category: string; title: string; meta: string[] }[];
+}
+const { post, section = "/newsletter", related: given } = Astro.props;
+const date = newsletterDate(post.date);
+const readTime = post.readTime ? `${post.readTime.replace(/ minutes?$/, " min")} read` : "";
+const sections = post.html ? await postSections(post.html) : [];
+// the people who write the posts, as their card shows them; anyone else is
+// named alone
+const AUTHORS: Record<string, { photo: string; position: string; line: string; email: string }> = {
+  "Allister Lewis": {
+    photo: "/assets/images/allister-headshot-bw-crop.webp",
+    position: "50% 22%",
+    line: "Founder, ADDD",
+    email: contactPage.hero.email,
+  },
+};
+const authors = post.authors.map((name) => ({ name, ...AUTHORS[name] }));
+// the other issues, newest first, as cards
+const related = given ?? ((await newsletterPosts()) ?? [])
+  .filter((other) => other.id !== post.id)
+  .slice(0, 7)
+  .map((other) => ({ href: `/newsletter/${other.slug}`, image: other.image, category: other.tags[0] ?? "Newsletter", title: other.title, meta: [newsletterDate(other.date)] }));
+---
+<BaseLayout
+  title={`${post.title} — ADDDitive — ADDD`}
+  description={post.description || `${post.title}: an issue of ADDDitive, the ADDD newsletter.`}
+  pageName={post.title}
+  share={{ image: post.imageIsOwn ? post.image : undefined, article: true }}
+>
+<main class="page--grid">
+
+  <article class="post">
+    <header class="post-hero">
+      <div class="post-hero__title">
+        <h1 class="h2" data-split="heading">{post.title}</h1>
+        {post.description && <p class="post-hero__lede">{post.description}</p>}
+      </div>
+      <ul class="post-hero__meta" role="list">
+        <li class="post-chip">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="10" /><path d="M2.5 6.5h11M5.5 2v3M10.5 2v3" /></svg>
+          <time datetime={post.date}>{date}</time>
+        </li>
+        {readTime && <li class="post-chip">{readTime}</li>}
+      </ul>
+    </header>
+
+    <figure class:list={["post-cover", { "is--empty": !post.imageIsOwn }]}>
+      {post.imageIsOwn && <img src={post.image} alt="" decoding="async">}
+    </figure>
+
+    <div class="post-body">
+      <div class="post-body__rows">
+        {sections.length ? sections.map((part) => (
+        <section class:list={["post-section", { "is--untitled": !part.heading }]}>
+          {part.heading ? <h2 class="post-section__title" set:html={part.heading} /> : <span aria-hidden="true"></span>}
+          <div class="prose is--newsletter" set:html={part.html} />
+        </section>
+        )) : (
+        <section class="post-section is--untitled">
+          <span aria-hidden="true"></span>
+          <div class="prose is--newsletter"><p>This issue has no web version.</p></div>
+        </section>
+        )}
+      </div>
+
+      {authors.length > 0 && (
+      <aside class="post-body__side" aria-label="Written by">
+        {authors.map((author) => (
+        <div class="post-author">
+          {author.photo && <img class="post-author__photo" src={author.photo} alt={author.name} width="320" height="360" loading="lazy" decoding="async" style={`object-position:${author.position}`}>}
+          <div class="post-author__text">
+            <p class="post-author__name">{author.name}</p>
+            {author.line && <p class="post-author__line">{author.line}</p>}
+          </div>
+          {author.email && <ActionButton href={`mailto:${author.email}`}>Email {author.name.split(" ")[0]}</ActionButton>}
+        </div>
+        ))}
+        {post.tags.length > 0 && (
+        <ul class="post-author__tags" role="list" aria-label="Tags">
+          {post.tags.map((tag) => <li class="post-chip">{tag}</li>)}
+        </ul>
+        )}
+      </aside>
+      )}
+    </div>
+  </article>
+
+  {related.length > 0 && (
+  <section class="section post-related">
+    <div class="container">
+      <div class="research__controls" style="margin-top:0">
+        <div class="stack stack--16">
+          <p class="tagline">Reading</p>
+          <h2 class="h2" data-split="heading">More from the ADDDitive</h2>
+          <p>Continue exploring architecture technology and practice strategy</p>
+        </div>
+        <ActionButton href={section} variant="secondary">View all</ActionButton>
+      </div>
+      <InsightSlider items={related} />
+    </div>
+  </section>
+  )}
+
+  <ClosingCta />
+
+</main>
+</BaseLayout>

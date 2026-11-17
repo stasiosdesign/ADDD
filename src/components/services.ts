@@ -31,7 +31,7 @@ export const SERVICES: ServiceRoute[] = [
     ground: "plan",
     kind: "Workshop",
     format: "Half a day",
-    covers: ["A half day on a live project", "How work actually moves", "Where tools and workflows create friction", "A written report of priorities", "No further commitment"],
+    covers: ["A half day with your team", "How work actually moves", "Where tools and workflows create friction", "A written report of priorities", "No further commitment"],
   },
   {
     href: "/before-revit",

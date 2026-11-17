@@ -311,7 +311,9 @@
   --faq-ground: var(--c-white);
   --faq-major: rgba(10, 10, 10, 0.075);
   grid-column: 1 / -1;
-  padding: var(--major) var(--cell);
+  /* (2026-11-16, at the user's word: no room of its own over and under
+     it, the section's padding is enough; it was a major each way) */
+  padding: 0 var(--cell);
   color: var(--faq-ink);
   text-align: center;
 }
@@ -441,7 +443,7 @@
   border: 0;
   border-radius: 2px;
   color: var(--faq-ink);
-  transition: background-color 0.35s ease, box-shadow 0.45s var(--ease-osmo);
+  transition: background-color 0.35s ease;
 }
 @media (hover: hover) {
   .is--panel .accordion__item:hover,
@@ -451,8 +453,8 @@
   }
 }
 .is--panel .accordion__item[data-accordion-status="active"] {
+  /* no shadow under it (2026-11-16, at the user's word) */
   background: var(--faq-box-open);
-  box-shadow: 0 0.75rem 2rem rgba(10, 10, 10, 0.07);
 }
 .is--panel .accordion__toggle {
   justify-content: flex-start;
@@ -545,7 +547,7 @@
   color: color-mix(in srgb, var(--faq-ink) 64%, transparent);
 }
 @media screen and (max-width: 767px) {
-  .faq-panel { padding: calc(0.75 * var(--major)) calc(0.5 * var(--cell)); }
+  .faq-panel { padding: 0 calc(0.5 * var(--cell)); }
   .faq-panel__list { width: auto; }
   .is--panel .accordion__toggle,
   .faq-call { gap: calc(0.75 * var(--cell)); padding: 0 calc(0.75 * var(--cell)); }

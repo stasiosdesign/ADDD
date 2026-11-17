@@ -580,7 +580,15 @@ export function mountSlashField(el) {
     // without them, and the container can settle back to its crop without
     // a stroke in it changing.
     const box = !empty && opts.extend === "screen" ? el.getBoundingClientRect() : null;
-    const [rowH, cutTop] = empty ? [opts.cellH, CUT_TOP] : fitRows(height, opts.cellH, box && { top: box.top, height: window.innerHeight });
+    // (text, 2026-11-16, at the user's word: the rows at their own height,
+    // placed so the container's foot falls in the gap between two lines,
+    // never through a line of letters, which read as a strange shadow;
+    // the cut part-way through a row suits the strokes, not text)
+    const [rowH, cutTop] = empty
+      ? [opts.cellH, CUT_TOP]
+      : opts.text
+        ? [Math.round(opts.cellH), Math.ceil(height / Math.round(opts.cellH)) - height / Math.round(opts.cellH)]
+        : fitRows(height, opts.cellH, box && { top: box.top, height: window.innerHeight });
     cellH = opts.text ? Math.round(rowH) : rowH;
     above = box ? Math.ceil(Math.max(0, box.top) / cellH) : 0;
     below = box ? Math.ceil(Math.max(0, window.innerHeight - box.bottom) / cellH) : 0;
@@ -1959,7 +1967,9 @@ export function mountSlashField(el) {
   }
 
   /* ---------- the sequence: the wave, front after front ---------- */
-  const running = () => canDecode && !reducedMotion.matches && onScreen && words.length > 0 && cols > 0 && rows > 0;
+  // (a field with no words of its own runs too when it scatters: the
+  // testimonials' cards, 2026-11-16; before, it stood still)
+  const running = () => canDecode && !reducedMotion.matches && onScreen && (words.length > 0 || opts.motion === "scatter") && cols > 0 && rows > 0;
 
   function plan(seconds) {
     next?.kill();
@@ -2074,6 +2084,45 @@ export function mountSlashField(el) {
       }
     }
     schedule(list);
+  }
+
+  // The characters round a box in the container (px), lit as those round
+  // a word are (glowAround), the nearer the more often: for something set
+  // over the field rather than in it (the testimonials' marks, 2026-11-16,
+  // so the field answers each mark as it comes in).
+  function glowBox({ x, y, w, h }) {
+    if (!running()) return;
+    const g = SCATTER.glow;
+    const c0 = Math.floor((x + ox) / cellW);
+    const c1 = Math.ceil((x + w + ox) / cellW) - 1;
+    const r0 = Math.floor((y + oy) / cellH);
+    const r1 = Math.ceil((y + h + oy) / cellH) - 1;
+    const list = [];
+    for (let r = r0 - g.rows; r <= r1 + g.rows; r++) {
+      if (r < 0 || r >= rows) continue;
+      for (let c = c0 - g.cols; c <= c1 + g.cols; c++) {
+        if (c < 0 || c >= cols) continue;
+        const i = r * cols + c;
+        if (!glyph[i] || gone[i] || taken[i]) continue;
+        const dx = c < c0 ? c0 - c : c > c1 ? c - c1 : 0;
+        const dy = r < r0 ? r0 - r : r > r1 ? r - r1 : 0;
+        const d = Math.hypot(dx / g.cols, dy / (g.rows + 0.5));
+        if (d >= 1 || Math.random() > g.pick * (1 - d)) continue;
+        const near = 1 - d;
+        list.push({
+          at: Math.random() * g.time,
+          i,
+          op: FLASH,
+          ink: g.ink * near,
+          flash: g.flash * near,
+          red: Math.random() < g.red * near * near ? 0.5 + 0.5 * near : 0,
+          hold: g.hold,
+          turn: between(g.turn),
+        });
+      }
+    }
+    schedule(list);
+    wake();
   }
 
   // the front after the last one sent: once that is a share of the way
@@ -2272,6 +2321,8 @@ export function mountSlashField(el) {
 
   const instance = {
     refresh: () => el.slashField === instance && layout(),
+    // the characters round a box in the container lit (glowBox)
+    glowBox,
     // the words brought back in as the page comes in (site.js)
     enter,
     // the homepage's first-load intro (logo-morph-loader.js): the grid, to

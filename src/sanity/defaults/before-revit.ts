@@ -1,17 +1,21 @@
 import { keyed } from './types';
 
-/* The Before Revit page's own words (src/pages/before-revit.astro), section
+/* The Early Stage Design page's own words (formerly Before Revit) (src/pages/before-revit.astro), section
    by section, as the Before Revit page document is shaped
    (studio/schemaTypes/pages/before-revit.ts). The page's eight sections
    (2026-11-05, the second rebuild, from the user's full brief): the
    opening, the challenge, the scope, the method, the output, why ADDD, the
    investment and the common questions. */
 export const beforeRevitPage = {
+  seo: {
+    title: 'Early Stage Design — ADDD',
+    description: "Early Stage Design is ADDD's workflow research for architecture practices: an independent recommendation for the tools and workflow that connect concept design to Revit or Archicad.",
+  },
   hero: {
     // the label over the heading, the heading (a line break where its
     // second line starts), the standfirst and the two buttons
-    tagline: 'Before Revit / Early-stage design workflow',
-    heading: 'Find the right workflow\nbefore Revit.',
+    tagline: 'Early Stage Design / Workflow research',
+    heading: 'Find the right workflow\nfor early-stage design.',
     lede: 'For architecture practices rethinking their early-stage design tools. ADDD researches the options and recommends a workflow that connects concept design to BIM.',
     primaryButton: 'Discuss your workflow',
     // scrolls down to the method (#how-it-works)
@@ -19,6 +23,21 @@ export const beforeRevitPage = {
     // the statement that comes up as the opening's words scroll away
     // (2026-11-04), one line per line
     statement: 'The tools, information\nand decisions that shape\na project before it is modelled.',
+    // the drawing’s words: the frame landing on the platform, the note
+    // beside it, the platform’s name and the tags round it
+    figureFrame: 'Revit · Archicad',
+    figureNote: ['What shapes a project', 'before it is modelled'],
+    figurePlatform: 'Early-stage design',
+    figureTags: ['Tools', 'Information', 'Decisions'],
+    // the row of practices at the foot of the opening: its label, and the
+    // practices (the logo strip’s clients, by reference)
+    trustLabel: 'Practices we’ve worked with',
+    practices: [
+      { _key: 'practice-1', _type: 'reference', _ref: 'client-adam' },
+      { _key: 'practice-2', _type: 'reference', _ref: 'client-epr' },
+      { _key: 'practice-3', _type: 'reference', _ref: 'client-studio-seilern' },
+      { _key: 'practice-4', _type: 'reference', _ref: 'client-haworth-tompkins' },
+    ],
   },
   problem: {
     tagline: 'The challenge',
@@ -34,6 +53,8 @@ export const beforeRevitPage = {
   // tabs, each its name on the tab and its line as the panel's heading
   scope: {
     tagline: 'The scope',
+    // the name at the foot of each area’s panel
+    panelLabel: 'Early Stage Design',
     heading: 'The whole workflow, not just the software.',
     lede: 'We examine what your practice needs from early-stage design, which tools can support it and how the work connects to what comes next.',
     areas: keyed('area', [
@@ -70,8 +91,9 @@ export const beforeRevitPage = {
   why: {
     tagline: 'Why ADDD',
     heading: 'Architectural knowledge. Independent judgement.',
-    lede: 'ADDD is led by Allister Lewis, an architect, BIM specialist and AEC technology advisor with more than 20 years of industry experience.',
+    lede: 'ADDD is led by Allister Lewis, an architect, BIM specialist and AEC technology advisor with 25 years of industry experience.',
     text: 'We assess technology in the context of how architecture practices actually design and deliver projects, rather than recommending software in isolation.',
+    image: { path: '/assets/images/allister-presenting-landscape.webp', alt: 'Allister Lewis presenting', width: 960, height: 640 },
     points: keyed('point', [
       { title: 'Grounded in practice', text: 'Recommendations reflect real architectural workflows, not just software features.' },
       { title: 'Independent advice', text: 'Software recommendations are based on your requirements, never paid product placements.' },
@@ -79,15 +101,14 @@ export const beforeRevitPage = {
   },
   pricing: {
     tagline: 'Investment',
-    heading: 'Before Revit',
+    heading: 'Early Stage Design',
     lede: 'A focused research engagement to help your practice choose and structure its early-stage design workflow.',
     cards: keyed('card', [
       {
         title: 'Early-stage design workflow research',
-        pricePrefix: 'From',
-        price: '£9,500',
-        // under the button
-        subtitle: 'Scope and pricing are agreed following an initial conversation.',
+        // no public price (2026-11-16: a variable, high-ticket service):
+        // this line takes the price's place, over the button
+        subtitle: 'Scoped to your practice. Book a free call to receive a tailored proposal.',
         includesLabel: 'What you receive',
         includes: [
           'Independent research into suitable software options.',
@@ -96,7 +117,7 @@ export const beforeRevitPage = {
           'Practical priorities and next steps.',
         ],
         note: 'This is a research and recommendation engagement. Software implementation and training are not included.',
-        button: 'Book a call',
+        button: 'Book a free call',
       },
       {
         // the first panel under the prices, on to the Workflow Workshop:
@@ -106,6 +127,7 @@ export const beforeRevitPage = {
         title: 'Workflow Workshop',
         subtitle: 'Start with a half-day review to identify where your workflows need attention.',
         button: 'Explore the Workshop',
+        href: '/workshops-audits',
       },
     ]),
     // no longer shown (2026-11-05: each panel has its own question)
@@ -115,15 +137,16 @@ export const beforeRevitPage = {
     blueprintTitle: 'Technology Blueprint',
     blueprintText: 'Review software, infrastructure, workflows and AI across your entire practice.',
     blueprintButton: 'Explore the Blueprint',
+    blueprintHref: '/technology-blueprint',
   },
   faq: {
     tagline: 'Common questions',
     heading: 'Before you get started.',
     questions: keyed('question', [
-      { question: 'Is Before Revit only for practices using Revit?', answer: 'No. The engagement focuses on early-stage design before projects move into a BIM environment. We can also consider workflows into Archicad.' },
+      { question: 'Is Early Stage Design only for practices using Revit?', answer: 'No. The engagement focuses on early-stage design before projects move into a BIM environment. We can also consider workflows into Archicad.' },
       { question: 'Do we need to know which software we want to replace?', answer: 'No. The research helps establish whether you need different tools, a better-connected workflow or changes to your existing setup.' },
-      { question: 'Does ADDD implement the recommended software?', answer: 'No. Before Revit focuses on research and recommendations. Implementation and software training are separate from this engagement.' },
-      { question: 'How is the final price determined?', answer: 'The starting price is £9,500. The final fee depends on your practice’s requirements, size and the scope of the research.' },
+      { question: 'Does ADDD implement the recommended software?', answer: 'No. Early Stage Design focuses on research and recommendations. Implementation and software training are separate from this engagement.' },
+      { question: 'How is the final price determined?', answer: 'Each engagement is scoped individually. The fee depends on your practice’s requirements, size and the scope of the research, and is agreed with you after an initial conversation.' },
     ]),
   },
   // the closing call to action's one button (ClosingCta.astro: its heading

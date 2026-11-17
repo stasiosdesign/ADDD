@@ -59,6 +59,13 @@ interface Props {
       hero as its words go (AEC Tech Partners, 2026-11-05), and its field */
   statement?: string;
   statementField?: string;
+  /** band: the words scattered over the pattern, each in its place by its
+      position in the list (the first ten over the field, the next ten on
+      the screen's part), and the text the pattern is set in; the page's
+      Opening section in Sanity, else the words here */
+  fieldWords?: string[];
+  screenWords?: string[];
+  fieldText?: string;
 }
 
 const {
@@ -77,6 +84,9 @@ const {
   field = "hero",
   statement = "",
   statementField = "hero.statement",
+  fieldWords: ownFieldWords = [],
+  screenWords: ownScreenWords = [],
+  fieldText: ownFieldText = "",
 } = Astro.props;
 
 // The heading around its cycling word, when it has one and is written with it.
@@ -90,7 +100,7 @@ const cycle = cycleAt < 0 ? null : {
 // The field's ground: text in place of strokes (slash-field.js, "text"),
 // the stream the intro's ground reads too (field-text.ts); the wave
 // scrambles its letters as it passes.
-const fieldText = FIELD_TEXT;
+const fieldText = ownFieldText || FIELD_TEXT;
 
 // The Slash Field's vocabulary: BIM, Software, Infrastructure and AI, and
 // the practice's other subjects — two from the hero's own copy, four from
@@ -98,7 +108,7 @@ const fieldText = FIELD_TEXT;
 // band (its centre), scattered high and low across its width so none fall
 // into a row or a list; from is the narrowest band, in px, a word appears in, so a phone's
 // field carries six words rather than ten.
-const fieldWords = [
+const FIELD_WORDS = [
   { text: "BIM", spot: [0.07, 0.26] },
   { text: "Software", spot: [0.56, 0.2] },
   { text: "Infrastructure", spot: [0.86, 0.66] },
@@ -118,7 +128,7 @@ const fieldWords = [
 // in the middle. Born into the field by the logo's pulse like the rest, they
 // are cropped away as the hero's copy rises over them and leave the field
 // once the hero has settled (data-slash-screen; slash-field.js).
-const screenWords = [
+const SCREEN_WORDS = [
   { text: "Digital twins", spot: [0.11, 0.6] },
   { text: "Parametric design", spot: [0.32, 0.66], from: 740 },
   { text: "Reality capture", spot: [0.68, 0.62] },
@@ -130,6 +140,11 @@ const screenWords = [
   { text: "Robotics", spot: [0.34, 0.91] },
   { text: "Cloud", spot: [0.93, 0.94], from: 740 },
 ];
+// the words in their places: the page's own where it gives them (one per
+// place, in order), else these
+const placed = (spots: typeof FIELD_WORDS, own: string[]) => spots.map((spot, i) => ({ ...spot, text: own[i]?.trim() || spot.text }));
+const fieldWords = placed(FIELD_WORDS, ownFieldWords);
+const screenWords = placed(SCREEN_WORDS, ownScreenWords);
 ---
 {layout === "centred" ? (
 <section class:list={["hero", "hero--centred", { "hero--blue": accent === "blue", "has--statement": statement }]} data-partner-hero>
@@ -172,11 +187,11 @@ const screenWords = [
 <section class:list={["hero", { "hero--split": layout === "split", "hero--blue": accent === "blue" }]}>
   <div class="hero__media" data-slash-field data-text={fieldText}>
     <ul class="hero__labels">
-      {fieldWords.map(({ text, spot: [fx, fy], from }) => (
-        <li data-slash-label data-slash-spot={`${fx},${fy}`} data-slash-from={from} class="hero__label" style={`left:${fx * 100}%;top:${fy * 100}%`}>{text}</li>
+      {fieldWords.map(({ text, spot: [fx, fy], from }, i) => (
+        <li data-slash-label data-slash-spot={`${fx},${fy}`} data-slash-from={from} class="hero__label" style={`left:${fx * 100}%;top:${fy * 100}%`} data-page-field={`${field}.fieldWords.${i}`}>{text}</li>
       ))}
-      {screenWords.map(({ text, spot: [fx, fy], from }) => (
-        <li data-slash-label data-slash-screen data-slash-spot={`${fx},${fy}`} data-slash-from={from} class="hero__label" aria-hidden="true">{text}</li>
+      {screenWords.map(({ text, spot: [fx, fy], from }, i) => (
+        <li data-slash-label data-slash-screen data-slash-spot={`${fx},${fy}`} data-slash-from={from} class="hero__label" aria-hidden="true" data-page-field={`${field}.screenWords.${i}`}>{text}</li>
       ))}
     </ul>
   </div>

@@ -18,9 +18,14 @@
 // One loop (gsap.ticker) writes both transforms each frame from the float
 // and the eased tip together, so nothing fights over a property (before
 // 2026-11-04 the swing, the turn and a rock were separate tweens retargeted
-// on every pointer move). The tip eases exponentially towards where the
-// pointer asks, with no overshoot, so a pointer crossing the card gives a
-// smooth, steady answer. The pointer is tested against the card's resting
+// on every pointer move). The tip follows where the pointer asks on a
+// critically damped spring: it starts gently and settles without
+// overshoot, so it never jumps when the pointer comes on (2026-11-16, at
+// the user's word: calmer, as the pass carries real details and a real
+// button; before, an exponential ease that set off at full speed, and
+// tips of 9° and 7°). Over the button or a link the card stops following
+// the pointer and settles where it was going, so what is under the
+// pointer holds still. The pointer is tested against the card's resting
 // box, measured with the transforms off, so its own tilt never moves the
 // edge out from under the pointer: no flicker at the edge. The loop runs
 // only while the pass is on screen (and the browser stops it with the tab
@@ -40,13 +45,14 @@ const SWAY = [0.6, 7.3];
 const TURN = [1.3, 9.1];
 const NOD = [0.45, 11.7];
 const FLOAT_IN = 2;
-// the tip under the pointer: at most this far (deg) about each axis, eased
-// in at this rate (per second) and back out at a slower one, and a
-// perspective that keeps it a card, not a sheet bending
-const TIP_Y = 9;
-const TIP_X = 7;
-const EASE_IN = 7;
-const EASE_OUT = 3.5;
+// the tip under the pointer: at most this far (deg) about each axis, its
+// spring's rate (per second) while the pointer is on the card and a slower
+// one back to the float, and a perspective that keeps it a card, not a
+// sheet bending
+const TIP_Y = 4;
+const TIP_X = 3;
+const SPRING_IN = 3.2;
+const SPRING_OUT = 2.4;
 const PERSPECTIVE = 900;
 
 export function initLanyard(container) {
@@ -77,10 +83,12 @@ export function initLanyard(container) {
     // where the pointer asks the card to tip (-1 to 1 across and down), and
     // where it is now
     const want = { x: 0, y: 0 };
-    const tip = { x: 0, y: 0 };
+    const tip = { x: 0, y: 0, vx: 0, vy: 0 };
     let over = false;
     const onMove = (e) => {
       if (!box) return;
+      // over the button or a link: hold where it was going
+      if (e.target instanceof Element && e.target.closest("a, button") && card.contains(e.target)) return;
       const nx = (e.pageX - box.left) / box.width;
       const ny = (e.pageY - box.top) / box.height;
       over = nx >= 0 && nx <= 1 && ny >= 0 && ny <= 1;
@@ -107,9 +115,15 @@ export function initLanyard(container) {
       const dt = Math.min(deltaMs, 64) / 1000;
       t += dt;
       const come = Math.min(1, t / FLOAT_IN);
-      const k = 1 - Math.exp(-dt * (over ? EASE_IN : EASE_OUT));
-      tip.x += (want.x - tip.x) * k;
-      tip.y += (want.y - tip.y) * k;
+      // the spring, stepped exactly for the frame's length
+      const w = over ? SPRING_IN : SPRING_OUT;
+      const e = Math.exp(-w * dt);
+      for (const [p, v, to] of [["x", "vx", want.x], ["y", "vy", want.y]]) {
+        const y = tip[p] - to;
+        const k = (tip[v] + w * y) * dt;
+        tip[p] = to + (y + k) * e;
+        tip[v] = (tip[v] - w * k) * e;
+      }
       gsap.set(rig, { rotation: wave(SWAY, 0) * come });
       gsap.set(card, {
         // the right side back when the pointer is on the right; the top

@@ -1,0 +1,97 @@
+---
+/*
+  TEMPORARY (2026-11-16): one diagram of the Backend and integrations page at
+  /backend (see platforms.ts, sections.ts). Its plane (w by h) is
+  scaled to the column as one piece (presentation.css: every size in the
+  plane's units), and its edges are drawn in an SVG of the same plane, each
+  from the edge of one box to the edge of the next with a small gap, worked
+  out here from the boxes' sizes, so nothing is measured in the browser.
+*/
+import { PLATFORMS } from "./platforms";
+import type { Diagram, DiagramNode } from "./sections";
+
+interface Props {
+  /** unique on the page (the arrowhead's id) */
+  id: string;
+  diagram: Diagram;
+}
+const { id, diagram } = Astro.props;
+const { w: W, h: H, nodes, edges } = diagram;
+const GAP = 10;
+const arrow = `${id}-arrow`;
+const byId = new Map(nodes.map((n) => [n.id, n]));
+
+// where a line from a box's centre towards (dx, dy) leaves the box
+function exit(n: DiagramNode, x: number, y: number, dx: number, dy: number) {
+  const t = Math.min(dx ? n.w / 2 / Math.abs(dx) : Infinity, dy ? n.h / 2 / Math.abs(dy) : Infinity);
+  return { x: x + dx * t, y: y + dy * t };
+}
+
+const lines = edges.flatMap((e) => {
+  const a = byId.get(e.from);
+  const b = byId.get(e.to);
+  if (!a || !b) return [];
+  let bx = b.x, by = b.y;
+  if (e.straight) {
+    // down when the far box spans the first one's column, across when it
+    // spans its row, else whichever way is longer
+    const under = Math.abs(b.x - a.x) <= b.w / 2;
+    const beside = Math.abs(b.y - a.y) <= b.h / 2;
+    if (under || (!beside && Math.abs(b.y - a.y) >= Math.abs(b.x - a.x))) bx = a.x;
+    else by = a.y;
+  }
+  const dx = bx - a.x, dy = by - a.y;
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len, uy = dy / len;
+  const p = exit(a, a.x, a.y, dx, dy);
+  const q = exit(b, bx, by, -dx, -dy);
+  // the gap at each end, less where the boxes stand close
+  const g = Math.min(GAP, Math.hypot(q.x - p.x, q.y - p.y) * 0.2);
+  const x1 = p.x + ux * g, y1 = p.y + uy * g;
+  const x2 = q.x - ux * g, y2 = q.y - uy * g;
+  // a label above a line across, beside a line down
+  return [{ ...e, x1, y1, x2, y2, mx: (x1 + x2) / 2, my: (y1 + y2) / 2, down: Math.abs(dy) > Math.abs(dx) }];
+});
+
+const pct = (v: number, of: number) => `${+((v / of) * 100).toFixed(4)}%`;
+const place = (n: DiagramNode) => `left:${pct(n.x - n.w / 2, W)};top:${pct(n.y - n.h / 2, H)};width:${pct(n.w, W)};height:${pct(n.h, H)}`;
+---
+<div class="dg" style={`--w:${W};aspect-ratio:${W} / ${H}`}>
+  <div class="dg__plane">
+    <svg class="dg__lines" viewBox={`0 0 ${W} ${H}`} aria-hidden="true">
+      <defs>
+        <marker id={arrow} viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse" markerUnits="userSpaceOnUse">
+          <path d="M1.5 1.5 8.5 5 1.5 8.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" />
+        </marker>
+      </defs>
+      {lines.map((l) => (
+        <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} class:list={["dg__edge", { "is--dashed": l.dashed }]} marker-end={l.plain ? undefined : `url(#${arrow})`} />
+      ))}
+    </svg>
+
+    {nodes.map((n) => {
+      const kind = n.kind ?? "card";
+      const p = n.platform ? PLATFORMS[n.platform] : null;
+      const name = n.title ?? p?.name ?? "";
+      const text = n.text ?? (n.title ? undefined : p?.role);
+      return (
+        <div class:list={["dg__node", `is--${kind}`, { "is--muted": n.muted, "has--logo": p?.logo }]} style={place(n)}>
+          {kind === "card" && p?.logo && (
+            <span class="dg__logo" data-initial={p.name.charAt(0)}>
+              <img src={p.logo} alt="" decoding="async" onerror="this.parentElement.classList.add('is--fallback');this.remove()" />
+            </span>
+          )}
+          {kind === "step" && n.n !== undefined && <span class="dg__n">{n.n}</span>}
+          <span class="dg__body">
+            <span class="dg__name">{name}</span>
+            {text && <span class="dg__text">{text}</span>}
+          </span>
+        </div>
+      );
+    })}
+
+    {lines.filter((l) => l.label).map((l) => (
+      <span class:list={["dg__edge-label", { "is--down": l.down }]} style={`left:${pct(l.mx, W)};top:${pct(l.my, H)}`}>{l.label}</span>
+    ))}
+  </div>
+</div>

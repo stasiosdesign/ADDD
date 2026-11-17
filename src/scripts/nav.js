@@ -38,8 +38,8 @@ function initMegaNav() {
   // On desktop both panels open item by item: the open panel stands in
   // the dropdown's flow, so the dropdown is its height without being
   // measured or animated, and each of its columns (Services' cards,
-  // Resources' blocks) drops in from under the bar on its own, clipped by
-  // the dropdown's top edge, one after the next, left to right, while the
+  // Resources' tiles, a column's together) drops in from under the bar,
+  // clipped by the dropdown's top edge, one after the next, left to right, while the
   // dimmed page comes up behind them; closing, they lift back up under
   // it, the last first. Going from one panel to the other is one move,
   // not a close and an open: the two panels cross over, the one leaving
@@ -200,19 +200,42 @@ function initMegaNav() {
     gsap.set(backdrop, { autoAlpha: 0 });
   }
 
-  // DESKTOP — a panel's blocks dropping in from under the bar, one after
-  // the next, from wherever they are (so a panel caught leaving comes
-  // straight back rather than starting over)
+  // DESKTOP — where a block stands out of sight: just above the
+  // dropdown's top edge, wherever it sits in the panel (its own top and
+  // height from the panel's top, untransformed), so a block in a second
+  // row is as hidden as one in the first (2026-11-16: each was lifted by
+  // its own height, which left the Resources' lower tiles showing under
+  // the bar before the upper ones had come)
+  // A column moves as one piece: every block in it lifted by the column's
+  // own foot, so its blocks keep their places as they fall (each lifted
+  // by its own foot, the lower ones travelled further in the same time
+  // and overtook the ones over them).
+  const above = (_, el) => {
+    const column = [...el.parentElement.children].filter((b) => b.hasAttribute("data-menu-fade") && b.offsetLeft === el.offsetLeft);
+    return -Math.max(...column.map((b) => b.offsetTop + b.offsetHeight));
+  };
+  // and its column's place, left to right: the blocks of one column fall
+  // together, the columns one after the next
+  const byColumn = (each) => (i, el, list) => {
+    const lefts = [...new Set(list.map((b) => b.offsetLeft))].sort((a, b) => a - b);
+    return lefts.indexOf(el.offsetLeft) * each;
+  };
+
+  // DESKTOP — a panel's blocks dropping in from under the bar, a column
+  // after the next, from wherever they are (so a panel caught leaving
+  // comes straight back rather than starting over)
   function dropIn(tl, blocks, at = 0) {
     if (!blocks.length) return;
     gsap.set(blocks, { autoAlpha: 1 });
-    tl.to(blocks, { yPercent: 0, duration: DUR.dropIn, stagger: DUR.dropStagger, ease: "osmo" }, at);
+    tl.to(blocks, { y: 0, duration: DUR.dropIn, stagger: byColumn(DUR.dropStagger), ease: "osmo" }, at);
   }
 
-  // DESKTOP — and lifting back up under it, the last first
+  // DESKTOP — and lifting back up under it, the last column first
   function liftOut(tl, blocks, at = 0) {
     if (!blocks.length) return;
-    tl.to(blocks, { yPercent: -100, duration: DUR.liftOut, stagger: { each: DUR.liftStagger, from: "end" }, ease: "power2.in" }, at);
+    const list = [...blocks];
+    const last = new Set(list.map((b) => b.offsetLeft)).size - 1;
+    tl.to(blocks, { y: above, duration: DUR.liftOut, stagger: (i, el) => (last - byColumn(1)(i, el, list)) * DUR.liftStagger, ease: "power2.in" }, at);
   }
 
   // DESKTOP — open dropdown (first open)
@@ -230,10 +253,7 @@ function initMegaNav() {
     const reopening = state.closing && state.activePanel === panelName;
 
     killDropdown();
-    if (!reopening) {
-      resetDesktop();
-      gsap.set(blocks, { yPercent: -100 });
-    }
+    if (!reopening) resetDesktop();
 
     state.isOpen = true;
     state.closing = false;
@@ -243,6 +263,8 @@ function initMegaNav() {
     if (toggle) toggle.setAttribute("aria-expanded", "true");
 
     showPanel(el);
+    // out of sight above the edge, measured now the panel is in the flow
+    if (!reopening) gsap.set(blocks, { y: above });
     const tl = gsap.timeline();
     state.tl = tl;
     tl.to(backdrop, { autoAlpha: 1, duration: DUR.backdropIn, ease: "power2.out" }, 0);
@@ -297,7 +319,7 @@ function initMegaNav() {
     // drawn where it was while it goes; its columns as they stand
     gsap.set(fromEl, { position: "absolute", zIndex: 0, pointerEvents: "none" });
     // the one arriving: in the flow, its columns at rest
-    gsap.set(toBlocks, { autoAlpha: 1, yPercent: 0 });
+    gsap.set(toBlocks, { autoAlpha: 1, y: 0 });
     if (!arriving) gsap.set(toEl, { opacity: 0, x: DUR.switchShift * way });
     gsap.set(toEl, { position: "relative", zIndex: 1, visibility: "visible", pointerEvents: "auto" });
     gsap.set(backdrop, { autoAlpha: 1 });
@@ -851,6 +873,28 @@ function initMegaNav() {
 
   // INIT
   state.isMobile ? setupMobile() : resetDesktop();
+
+  // The backdrop's blur drawn once, all but unseen, while the page is idle
+  // (2026-11-16): the first time the browser worked out a blur over the
+  // whole page, the first dropdown opened held a frame of 130–270ms and
+  // its blocks jumped; drawn once beforehand, it opens as smoothly as
+  // every time after.
+  const idle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1200));
+  // The panels likewise: each laid out once, its blocks in place, all but
+  // unseen, so their first drawing is not the first open's either.
+  idle(() => {
+    if (state.isMobile || state.isOpen) return;
+    gsap.set(backdrop, { visibility: "visible", opacity: 0.01 });
+    panels.forEach((p) => {
+      gsap.set(p, { position: "relative", visibility: "visible", opacity: 0.01 });
+      gsap.set(getFade(p), { autoAlpha: 1, y: 0 });
+    });
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (state.isOpen) return;
+      panels.forEach(hidePanel);
+      gsap.set(backdrop, { autoAlpha: 0 });
+    }));
+  }, { timeout: 3000 });
 }
 
 /* ============================================================

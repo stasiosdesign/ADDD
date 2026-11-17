@@ -17,6 +17,9 @@ export type Insight = {
   readTime?: string | null;
   author?: string | null;
   publishedAt?: string | null;
+  /** a report as a product (2026-11-17): what it is, and its price (none: free) */
+  format?: string | null;
+  price?: string | null;
 };
 
 /** The props InsightCard.astro takes */
@@ -35,7 +38,7 @@ const formatDate = (iso: string) => {
  * (Report / Newsletter) and the reading time, as the home page shows them; an
  * index page passes its own choice (the author or the date, then the time).
  */
-export function cardOf(item: Insight, meta?: (item: Insight) => string[]): Card {
+export function cardOf(item: Insight, meta?: (item: Insight) => string[], freeLabel = 'Free'): Card {
   const image = hasImage(item.cover) ? imageAttrs(item.cover, 900).src : 'assets/images/allister-presenting.jpg';
   const kind = item._type === 'report' ? 'Report' : 'Newsletter';
   return {
@@ -44,10 +47,13 @@ export function cardOf(item: Insight, meta?: (item: Insight) => string[]): Card 
     category: item.category ?? kind,
     title: item.title,
     description: item.summary ?? undefined,
-    meta: (meta ? meta(item) : [kind, item.readTime ?? '']).filter(Boolean),
+    meta: (meta ? meta(item) : item.format ? productMeta(item, freeLabel) : [kind, item.readTime ?? '']).filter(Boolean),
   };
 }
 
-/** A card's meta row for an index page: the author or the date, then the reading time */
-export const indexMeta = (item: Insight): string[] =>
-  [item.author ?? (item.publishedAt ? formatDate(item.publishedAt) : ''), item.readTime ?? ''].filter(Boolean);
+/** A product's meta row: what it is, then its price or Free */
+export const productMeta = (item: Insight, freeLabel = 'Free'): string[] => [item.format ?? '', item.price?.trim() || freeLabel].filter(Boolean);
+
+/** A card's meta row for an index page: a product's kind and price, else the author or the date, then the reading time */
+export const indexMeta = (item: Insight, freeLabel = 'Free'): string[] =>
+  item.format ? productMeta(item, freeLabel) : [item.author ?? (item.publishedAt ? formatDate(item.publishedAt) : ''), item.readTime ?? ''].filter(Boolean);

@@ -36,6 +36,11 @@ export type Plan = {
   field: string;
   /** what the plan's row says under its name; its price and badge if not given */
   rowText?: string;
+  rowTextField?: string;
+  /** the Studio fields of the card's parts, where they aren't <field>.<part>
+      (a report's: its format, price and lists), each name to its path;
+      a part named with no path is shown unbound */
+  bind?: Partial<Record<"title" | "badge" | "price" | "subtitle" | "includes" | "note" | "button", string | false>>;
 };
 
 interface Props {
@@ -60,6 +65,16 @@ const parts = (line: string) => {
   const [first, second] = line.split(/\s+—\s+/);
   return [first, second && second.charAt(0).toUpperCase() + second.slice(1)];
 };
+// a card part's Studio field: its own path if the plan binds it, else <field>.<part>
+const at = (p: Plan, part: keyof NonNullable<Plan["bind"]> | "pricePrefix" | "priceSuffix" | "includesLabel") => {
+  if (p.bind && part in p.bind) return p.bind[part as keyof NonNullable<Plan["bind"]>] || undefined;
+  return p.bind ? undefined : `${p.field}.${part}`;
+};
+// a form in place of the card's button (the report pages' sign-up), when the
+// page gives one: rendered first, as a slot passed under a condition counts
+// as given even when the condition leaves it empty
+const action = Astro.slots.has("action") ? (await Astro.slots.render("action")).trim() : "";
+const hasAction = action !== "";
 const priceLine = (p: Plan) => (p.price ? [p.prefix, `${p.price}${p.suffix ?? ""}`].filter(Boolean).join(" ") : "");
 ---
 <div class:list={["plan", { "is--tabbed": tabbed }]} data-tabs={tabbed ? "" : undefined}>
@@ -77,8 +92,8 @@ const priceLine = (p: Plan) => (p.price ? [p.prefix, `${p.price}${p.suffix ?? ""
     {plans.map((p, i) => (
     <button type="button" class="plan-row" role="tab" id={`${p.id}-tab`} aria-controls={p.id} aria-selected={i === 0 ? "true" : "false"} tabindex={i === 0 ? 0 : -1}>
       <span class="plan-row__words">
-        <span class="plan-row__title">{p.title}</span>
-        <span class="plan-row__text">{p.rowText ?? [priceLine(p), p.badge].filter(Boolean).join(" • ")}</span>
+        <span class="plan-row__title" data-page-field={`${p.field}.title`}>{p.title}</span>
+        <span class="plan-row__text" data-page-field={p.rowText ? p.rowTextField : undefined}>{p.rowText || [priceLine(p), p.badge].filter(Boolean).join(" • ")}</span>
       </span>
       <span class="plan-row__mark" aria-hidden="true">
         <svg class="plan-row__tick" viewBox="0 0 16 16"><path d="M3.5 8.5l3 3 6-7" /></svg>
@@ -108,32 +123,36 @@ const priceLine = (p: Plan) => (p.price ? [p.prefix, `${p.price}${p.suffix ?? ""
         <span class="plan-card__icon" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M3 19 8 5M12 5v14M16 5l5 14" /></svg>
         </span>
-        <h3 class="plan-card__title" data-page-field={`${p.field}.title`}>{p.title}</h3>
-        {p.badge && <span class="plan-card__badge" data-page-field={`${p.field}.badge`}>{p.badge}</span>}
+        <h3 class="plan-card__title" data-page-field={at(p, "title")}>{p.title}</h3>
+        {p.badge && <span class="plan-card__badge" data-page-field={at(p, "badge")}>{p.badge}</span>}
       </header>
       {p.price ? (
       <p class="plan-card__price">
-        {p.prefix && <span class="plan-card__affix" data-page-field={`${p.field}.pricePrefix`}>{p.prefix}</span>}
-        <span class="plan-card__figure" data-page-field={`${p.field}.price`}>{p.price}</span>
-        {p.suffix && <span class="plan-card__affix" data-page-field={`${p.field}.priceSuffix`}>{p.suffix}</span>}
+        {p.prefix && <span class="plan-card__affix" data-page-field={at(p, "pricePrefix")}>{p.prefix}</span>}
+        <span class="plan-card__figure" data-page-field={at(p, "price")}>{p.price}</span>
+        {p.suffix && <span class="plan-card__affix" data-page-field={at(p, "priceSuffix")}>{p.suffix}</span>}
       </p>
       ) : (
       // a plan without a public price (the Technology Blueprint): its line
       // takes the price's place, over the button
-      p.caption && <p class="plan-card__lead" data-page-field={`${p.field}.subtitle`}>{p.caption}</p>
+      p.caption && <p class="plan-card__lead" data-page-field={at(p, "subtitle")}>{p.caption}</p>
       )}
+      {hasAction ? (
+      <div class="plan-card__action is--form" set:html={action} />
+      ) : (
       <div class="plan-card__action">
-        <ActionButton href={p.button.href} variant={p.button.variant ?? "primary"} {...(p.button.attrs ?? {})}><span data-page-field={`${p.field}.button`}>{p.button.label}</span></ActionButton>
-        {p.price && p.caption && <p class="plan-card__caption" data-page-field={`${p.field}.subtitle`}>{p.caption}</p>}
+        <ActionButton href={p.button.href} variant={p.button.variant ?? "primary"} {...(p.button.attrs ?? {})}><span data-page-field={at(p, "button")}>{p.button.label}</span></ActionButton>
+        {p.price && p.caption && <p class="plan-card__caption" data-page-field={at(p, "subtitle")}>{p.caption}</p>}
       </div>
+      )}
       {(p.includes?.length ?? 0) > 0 && (
       <div class="plan-card__includes">
-        {p.label && <p class="plan-card__label" data-page-field={`${p.field}.includesLabel`}>{p.label}</p>}
+        {p.label && <p class="plan-card__label" data-page-field={at(p, "includesLabel")}>{p.label}</p>}
         <ul class="plan-card__list">
           {p.includes!.map((line, j) => {
             const [first, second] = parts(line);
             return (
-          <li data-page-field={`${p.field}.includes.${j}`}>
+          <li data-page-field={at(p, "includes") ? `${at(p, "includes")}.${j}` : undefined}>
             <svg class="plan-card__check" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="8.25" /><path d="M6.5 10.25l2.4 2.4 4.6-5" /></svg>
             <span class="plan-card__item">
               <span class="plan-card__item-title">{first}</span>
@@ -148,7 +167,7 @@ const priceLine = (p: Plan) => (p.price ? [p.prefix, `${p.price}${p.suffix ?? ""
       {p.note && (
       <p class="plan-card__note">
         <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" /><path d="M10 9v5" /><circle class="is--dot" cx="10" cy="6.25" r="1.1" /></svg>
-        <span data-page-field={`${p.field}.note`}>{p.note}</span>
+        <span data-page-field={at(p, "note")}>{p.note}</span>
       </p>
       )}
     </article>

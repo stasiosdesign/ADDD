@@ -21,10 +21,20 @@
   would be too small to read. The row runs on past the box's edges and the
   box clips it (nav.css, "Resources tiles").
 
+  Its faces follow the nav's theme (2026-11-16, at the user's word: on the
+  dark nav they stayed white): their tones are set in nav.css, mixed
+  towards the dark by --nav-dark as the dropdown's other parts are.
+
   The only motion: with the pointer over the box the middle card lifts a
   little, as a card does on the page under the pointer (nav.css).
 */
-import { SAMPLE_STACKS, STACK_TONE } from "../data/stack-ecosystem";
+import { STACK_TONE } from "../data/stack-ecosystem";
+import { techStacks } from "../sanity/tech-stacks";
+
+// the stacks as the page shows them: the Tech Stacks page document's, in
+// the Studio's order (src/sanity/tech-stacks.ts), so the row here is the
+// page's own
+const TECH_STACKS = await techStacks(Astro.locals);
 
 // the page's view and cards (stack-space.js): CORNER_IN, the elevation for
 // a 1440 × 900 screen, CARD_RATIO, RADIUS, SPACING, the face's measures
@@ -48,9 +58,9 @@ const CY = 92;
 const P = (x: number, y: number, z: number) => [CX + (x - y) * R2, CY + (x + y) * R2 * SIN_E - z * COS_E];
 
 // the page's cards in its order: each stack's tools (named and held back)
-const slots = SAMPLE_STACKS.flatMap((s, i) => Array.from({ length: s.toolCount }, (_, k) => ({ stack: i, first: k === 0, last: k === s.toolCount - 1 })));
-const N = slots.length;
-const start = Math.floor((SAMPLE_STACKS[0].toolCount - 1) / 2);
+const slots = TECH_STACKS.flatMap((s, i) => s.stages.map((_, k) => ({ stack: i, first: k === 0, last: k === s.stages.length - 1 })));
+const N = Math.max(1, slots.length);
+const start = Math.floor(((TECH_STACKS[0]?.stages.length ?? 1) - 1) / 2);
 const REACH = 13;
 const at = (d: number) => slots[(((start + d) % N) + N) % N];
 
@@ -90,15 +100,15 @@ for (let d = -REACH; d <= REACH; d++) {
   brackets.push(pts.map(([x, y]) => `${f(x)},${f(y)}`).join(" "));
 }
 ---
-<svg class="resource-tile__thumb" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
+<svg class="resource-tile__thumb" style={`--thumb-face:${STACK_TONE.ground};--thumb-band:${shade(STACK_TONE.ground, 0.045)}`} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMaxYMid slice" aria-hidden="true" focusable="false">
   <g class="resource-tile__thumb-brackets">
     {brackets.map((points) => <polyline points={points} />)}
   </g>
   {cards.map((c) => (
     <g class:list={["resource-tile__thumb-card", { "is--lift": c.lift }]}>
       <g transform={c.transform}>
-        <rect width={CW} height={CH} rx={R} fill={c.tone} />
-        <path d={`M0 ${f(BAND)}H${f(CW)}V${f(CH - R)}Q${f(CW)} ${f(CH)} ${f(CW - R)} ${f(CH)}H${f(R)}Q0 ${f(CH)} 0 ${f(CH - R)}Z`} fill={c.band} />
+        <rect width={CW} height={CH} rx={R} class="is--face" />
+        <path d={`M0 ${f(BAND)}H${f(CW)}V${f(CH - R)}Q${f(CW)} ${f(CH)} ${f(CW - R)} ${f(CH)}H${f(R)}Q0 ${f(CH)} 0 ${f(CH - R)}Z`} class="is--band" />
         <rect x={M} y={f(BAND - 0.6)} width={f(CW - 2 * M)} height="0.6" class="is--line" />
         <rect x={f(M)} y={f(M)} width={f(L)} height={f(L)} rx={f(L * 0.16)} class="is--mark" />
         <rect x={f(M + L + GAP)} y={f(M + L * 0.18)} width={f(CW * 0.34)} height={f(L * 0.3)} rx={f(L * 0.06)} class="is--name" />

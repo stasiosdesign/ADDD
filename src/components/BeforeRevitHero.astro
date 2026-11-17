@@ -83,6 +83,12 @@ interface Props {
   words?: FigureWords;
   /** the row of practices' marks at the screen's foot */
   marks?: boolean;
+  /** the row's label and its marks (the page's hero.trustLabel and
+      hero.practices in Sanity); the four the row was built with if none */
+  trustLabel?: string;
+  trustLabelField?: string;
+  practices?: { name: string; src: string; width?: number; height?: number }[];
+  practicesField?: string;
   /** the drawing: Before Revit's press, or the Ongoing Advisory's cycle (cycle-figure.js) */
   figure?: "press" | "cycle";
 }
@@ -98,6 +104,10 @@ const {
   tone = "red",
   words: givenWords,
   marks: showMarks = true,
+  trustLabel = "Practices we’ve worked with",
+  trustLabelField,
+  practices: givenPractices,
+  practicesField,
   figure = "press",
 } = Astro.props;
 
@@ -182,14 +192,16 @@ const figureWords: FigureWords = givenWords ?? {
 // its ink asks (the homepage strip's balance: the same area of ink each,
 // nudged for light and heavy drawing; logo-balance.ts), so the wide
 // wordmarks and the compact marks weigh alike
+const builtWith = ["client-adam", "client-epr", "client-studio-seilern", "client-haworth-tompkins"]
+  .map((id) => CLIENTS.find((c) => c._id === id))
+  .filter((c): c is NonNullable<typeof c> => Boolean(c))
+  .map((c) => ({ name: c.name, src: `/${c.logo.path}`, width: undefined, height: undefined }));
+const practices = givenPractices?.length ? givenPractices : builtWith;
 const marks = !showMarks ? [] : await Promise.all(
-  ["client-adam", "client-epr", "client-studio-seilern", "client-haworth-tompkins"]
-    .map((id) => CLIENTS.find((c) => c._id === id))
-    .filter((c): c is NonNullable<typeof c> => Boolean(c))
-    .map(async (c) => {
-      const shape = await logoShape(`/${c.logo.path}`);
-      return { ...c, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined };
-    }),
+  practices.map(async (c) => {
+    const shape = c.src ? await logoShape(c.src, c.width, c.height) : undefined;
+    return { ...c, style: shape ? `--logo-shape:${shape.toFixed(3)}` : undefined };
+  }),
 );
 ---
 <section class:list={["br-hero", { "is--white": tone === "white", "has--marks": showMarks }]} data-br-hero data-tone={tone} data-figure={figure} data-ground="dark">
@@ -218,9 +230,9 @@ const marks = !showMarks ? [] : await Promise.all(
       <div class="br-hero__actions"><slot name="actions" /></div>
       {showMarks && (
       <div class="br-hero__trust">
-        <p class="br-hero__trust-label">Practices we’ve worked with</p>
-        <ul class="br-hero__marks" role="list">
-          {marks.map((m) => <li><img src={`/${m.logo.path}`} alt={m.name} style={m.style} loading="lazy" decoding="async" draggable="false"></li>)}
+        <p class="br-hero__trust-label" data-page-field={trustLabelField}>{trustLabel}</p>
+        <ul class="br-hero__marks" role="list" data-page-field={practicesField}>
+          {marks.map((m) => <li><img src={m.src} alt={m.name} style={m.style} loading="lazy" decoding="async" draggable="false"></li>)}
         </ul>
       </div>
       )}

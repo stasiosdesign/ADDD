@@ -1,12 +1,12 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
-import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {imageField, linesField} from '../shared/fields'
 
-/* The two collections of insight: reports (at /reports/<slug>, listed on
-   the Reports page) and newsletter issues (at /newsletter/<slug>, listed
-   on the Newsletter page). Both show as insight cards: on their index page,
-   in the home page's research slider, and in the "related" sliders. */
+/* The site's one collection: reports (at /reports/<slug>, listed on the
+   Reports page), shown as insight cards on the Reports page, in the home
+   page's research slider and in the "related" sliders. (The newsletter's
+   issues were a second collection until 2026-11-16: they come from
+   beehiiv now, src/newsletter/beehiiv.ts, and are never written here.) */
 
 // A slug is the last part of the page's address, so it may only use lowercase
 // letters, numbers and single hyphens
@@ -103,28 +103,101 @@ export const report = defineType({
     ...cardFields('Reports'),
     slugField('/reports/<slug>'),
     defineField({name: 'author', title: 'Author', type: 'string', description: 'Shown on the card’s meta row, before the reading time.'}),
-    defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, description: 'The introduction beside the cover on the report’s page.'}),
-    defineField({name: 'coversLede', title: 'What it covers: standfirst', type: 'text', rows: 3, description: 'The standfirst of the “What this report covers” section.'}),
-    linesField('contents', 'What it covers', 'The list of subjects, one per line.'),
-    defineField({name: 'highlightTitle', title: 'Highlight title', type: 'string', description: 'The large card beside the list.'}),
-    defineField({name: 'highlightText', title: 'Highlight text', type: 'text', rows: 2}),
-    bodyField('The report’s own text, if it is published as a page rather than a download. Optional.'),
-  ],
-  orderings: [{title: 'Newest first', name: 'publishedAtDesc', by: [{field: 'publishedAt', direction: 'desc'}]}],
-  preview: {select: {title: 'title', subtitle: 'category', media: 'cover'}},
-})
-
-export const newsletterIssue = defineType({
-  name: 'newsletterIssue',
-  title: 'Newsletter issue',
-  type: 'document',
-  icon: EnvelopeIcon,
-  fields: [
-    ...cardFields('Newsletter'),
-    slugField('/newsletter/<slug>'),
-    linesField('tags', 'Tags', 'The small tags under the title on the issue’s page.'),
-    defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, description: 'The introduction beside the title on the issue’s page.'}),
-    bodyField('The issue’s text: headings and paragraphs.'),
+    // the product (2026-11-17, when ADDD's six products came over from
+    // their Carrd and beehiiv pages): what it is, its price, its facts
+    defineField({name: 'format', title: 'What it is', type: 'string', description: 'E.g. “Report”, “Cheat sheet”, “White paper”, “Spreadsheet”: over the title, on its card and on the card that gets it.'}),
+    defineField({name: 'price', title: 'Price', type: 'string', description: 'As shown, e.g. “£99”. Leave empty for a free download.'}),
+    defineField({name: 'wasPrice', title: 'Price before', type: 'string', description: 'Struck through beside the price, e.g. “£499”. Leave empty for none.'}),
+    linesField('facts', 'Facts', 'A few short facts, shown as tags under the standfirst: “380 pages”, “30+ tools compared”. One per line.'),
+    defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, description: 'The introduction under the title, beside the cover.'}),
+    defineField({name: 'coversLede', title: 'What’s inside: standfirst', type: 'text', rows: 3, description: 'The line beside the heading of what is inside.'}),
+    linesField('contents', 'What’s inside', 'The subjects, one per line, each a numbered row. A line written “Title — detail” shows the detail under the title. Leave empty to leave the section out.'),
+    defineField({name: 'highlightTitle', title: 'Highlight', type: 'string', description: 'A line set apart under the rows, beside a red mark. Leave empty for none.'}),
+    defineField({name: 'highlightText', title: 'Highlight text', type: 'text', rows: 2, description: 'Under the highlight.'}),
+    defineField({
+      name: 'gallery',
+      title: 'Pages',
+      type: 'array',
+      description: 'Pages from inside, in a row under what is inside. Leave empty for none.',
+      of: [
+        defineArrayMember({
+          type: 'image',
+          options: {hotspot: true},
+          fields: [defineField({name: 'alt', title: 'Alternative text', type: 'string', description: 'What the page shows, for screen readers.'})],
+        }),
+      ],
+      options: {layout: 'grid'},
+    }),
+    bodyField('More text, under the pages, where the report needs it: headings, paragraphs, lists and links. Optional.'),
+    linesField('audience', 'Who it’s for', 'The readers it is for, one per line, on the dark band. Leave empty to leave the band out.'),
+    defineField({name: 'audienceLede', title: 'Who it’s for: line', type: 'text', rows: 2, description: 'Under the band’s heading. Optional.'}),
+    linesField('includes', 'What you get', 'On the card that gets it, one per line. A line written “Title — detail” shows the detail under the title.'),
+    defineField({
+      name: 'access',
+      title: 'How to get it',
+      type: 'object',
+      description: 'A free report is signed up for (its form sends it); a paid one is bought (its link).',
+      options: {collapsible: true, collapsed: false},
+      fields: [
+        defineField({
+          name: 'method',
+          title: 'How',
+          type: 'string',
+          options: {
+            list: [
+              {title: 'Sign up: a beehiiv form', value: 'beehiiv'},
+              {title: 'Sign up: a HubSpot form', value: 'hubspot'},
+              {title: 'Buy: a link to the checkout', value: 'buy'},
+              {title: 'A link elsewhere', value: 'link'},
+            ],
+            layout: 'radio',
+          },
+          initialValue: 'beehiiv',
+        }),
+        defineField({
+          name: 'beehiivForm',
+          title: 'beehiiv form',
+          type: 'string',
+          description: 'The form’s ID or address (beehiiv → Grow → Subscribe forms → the form → Embed: the address in its iframe, https://subscribe-forms.beehiiv.com/…). Its automation sends the download.',
+          hidden: ({parent}) => parent?.method !== 'beehiiv',
+        }),
+        defineField({name: 'beehiivHeight', title: 'Form height', type: 'number', description: 'In pixels: the form’s own height at the card’s width (240 if empty). Leave room for its thank-you message.', hidden: ({parent}) => parent?.method !== 'beehiiv'}),
+        defineField({
+          name: 'hubspotRegion',
+          title: 'HubSpot region',
+          type: 'string',
+          description: 'From the form’s embed code: data-region, e.g. “na1” or “eu1”.',
+          options: {list: ['na1', 'eu1']},
+          hidden: ({parent}) => parent?.method !== 'hubspot',
+        }),
+        defineField({name: 'hubspotPortal', title: 'HubSpot portal ID', type: 'string', description: 'From the embed code: data-portal-id.', hidden: ({parent}) => parent?.method !== 'hubspot'}),
+        defineField({name: 'hubspotForm', title: 'HubSpot form ID', type: 'string', description: 'From the embed code: data-form-id.', hidden: ({parent}) => parent?.method !== 'hubspot'}),
+        defineField({
+          name: 'href',
+          title: 'Link',
+          type: 'url',
+          description: 'Where the button leads: the checkout, or the page elsewhere.',
+          validation: (rule) => rule.uri({scheme: ['http', 'https'], allowRelative: true}),
+          hidden: ({parent}) => parent?.method !== 'buy' && parent?.method !== 'link',
+        }),
+        defineField({name: 'buttonLabel', title: 'Button words', type: 'string', description: 'The opening’s button and the card’s. Leave empty for the Reports page’s (“Get it free” or “Buy now”).'}),
+        defineField({name: 'note', title: 'Note', type: 'text', rows: 2, description: 'At the card’s foot, e.g. “By downloading, you’ll join the ADDDitive newsletter. You can unsubscribe anytime.”'}),
+      ],
+    }),
+    defineField({
+      name: 'partner',
+      title: 'Partner panel',
+      type: 'object',
+      description: 'A dark panel under the card, for a partner the report is made with. Leave the title empty for none.',
+      options: {collapsible: true, collapsed: true},
+      fields: [
+        defineField({name: 'kicker', title: 'Question', type: 'string', description: 'Over the title, e.g. “Working at enterprise scale?”'}),
+        defineField({name: 'title', title: 'Title', type: 'string'}),
+        defineField({name: 'text', title: 'Text', type: 'text', rows: 3}),
+        defineField({name: 'buttonLabel', title: 'Button words', type: 'string'}),
+        defineField({name: 'href', title: 'Link', type: 'url', validation: (rule) => rule.uri({scheme: ['http', 'https'], allowRelative: true})}),
+      ],
+    }),
   ],
   orderings: [{title: 'Newest first', name: 'publishedAtDesc', by: [{field: 'publishedAt', direction: 'desc'}]}],
   preview: {select: {title: 'title', subtitle: 'category', media: 'cover'}},

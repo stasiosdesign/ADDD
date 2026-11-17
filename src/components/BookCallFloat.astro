@@ -21,14 +21,21 @@
   screen.
 */
 import ActionButton from "./ActionButton.astro";
+import { reader, siteDocument, SITE_SCOPE } from "../sanity/content";
+import { homePage as HOME } from "../sanity/defaults/home";
 
 interface Props {
   /** the calendar it opens: BookCall.astro's id on the page */
   opens?: string;
+  /** its words, where a page has its own (default: the Home page's Booking section) */
   label?: string;
 }
-const { opens = "book-call", label = "Book a Call" } = Astro.props;
+// The words and the portrait: the Home page document's Booking section in
+// Sanity (2026-11-16), shared by every page that offers the call
+const { t, img } = reader(await siteDocument(Astro.locals), HOME);
+const { opens = "book-call", label } = Astro.props;
+const photo = img("booking.photo", 128);
 ---
-<div class="book-float" data-book-float>
-  <ActionButton type="button" photo={{ src: "/assets/images/allister-headshot-bw-crop.webp", position: "50% 22%" }} data-booking-open={opens} aria-haspopup="dialog" aria-controls={opens}>{label}</ActionButton>
+<div class="book-float" data-book-float {...SITE_SCOPE}>
+  <ActionButton type="button" photo={{ src: photo.src, position: "50% 22%", field: "booking.photo" }} data-booking-open={opens} aria-haspopup="dialog" aria-controls={opens}>{label ?? <span data-page-field="booking.floatLabel">{t("booking.floatLabel")}</span>}</ActionButton>
 </div>

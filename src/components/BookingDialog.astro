@@ -26,6 +26,12 @@ interface Props {
   slots?: { name: string; time: string }[];
   /** the weekdays that can be picked (0 Sunday … 6 Saturday) */
   days?: number[];
+  /** the line before a date and time are chosen, the button, and the thanks after it */
+  summary?: string;
+  button?: string;
+  done?: string;
+  /** the Home page section the words come from (booking), for the Visual editor */
+  field?: string;
 }
 const {
   id,
@@ -37,9 +43,16 @@ const {
     { name: "Afternoon", time: "13:30–17:30" },
   ],
   days = [2, 3, 4],
+  summary = "Choose a date and a time",
+  button = "Request this date",
+  done = "Thank you. This calendar is a preview, so nothing has been booked yet: we will be in touch to confirm your date.",
+  field,
 } = Astro.props;
+const at = (name: string) => (field ? `${field}.${name}` : undefined);
+// the words are the Home page's, wherever the dialog sits
+const scope = field ? { "data-page-doc": "homePage", "data-page-type": "homePage" } : {};
 ---
-<dialog class="booking" id={id} aria-labelledby={`${id}-title`} data-booking data-booking-days={days.join(",")} data-lenis-prevent>
+<dialog class="booking" id={id} aria-labelledby={`${id}-title`} data-booking data-booking-days={days.join(",")} data-lenis-prevent {...scope}>
   <div class="booking__scrim" data-booking-close aria-hidden="true"></div>
   <div class="booking__card">
     <button type="button" class="booking__close" data-booking-close aria-label="Close">
@@ -48,9 +61,9 @@ const {
     <!-- landscape from 768px (booking.css): the words and the times on the
          left, the calendar on the right -->
     <div class="booking__intro">
-      <p class="booking__label">{label}</p>
-      <h2 class="booking__title" id={`${id}-title`}>{title}</h2>
-      <p class="booking__note">{note}</p>
+      <p class="booking__label" data-page-field={at("label")}>{label}</p>
+      <h2 class="booking__title" id={`${id}-title`} data-page-field={at("title")}>{title}</h2>
+      <p class="booking__note" data-page-field={at("note")}>{note}</p>
     </div>
 
     <div class="booking__calendar">
@@ -69,14 +82,14 @@ const {
     </div>
 
     <div class="booking__times">
-      <div class="booking__slots" role="group" aria-label="Time">
+      <div class="booking__slots" role="group" aria-label="Time" data-page-field={at("slots")}>
         {slots.map((slot) => <button type="button" class="booking__slot" data-booking-slot={`${slot.name}, ${slot.time}`} aria-pressed="false">{slot.name}<span>{slot.time}</span></button>)}
       </div>
       <div class="booking__foot">
-        <p class="booking__summary" data-booking-summary aria-live="polite">Choose a date and a time</p>
-        <ActionButton type="button" data-booking-confirm disabled>Request this date</ActionButton>
+        <p class="booking__summary" data-booking-summary aria-live="polite" data-booking-prompt={summary}>{summary}</p>
+        <ActionButton type="button" data-booking-confirm disabled>{field ? <span data-page-field={at("button")}>{button}</span> : button}</ActionButton>
       </div>
-      <p class="booking__done" data-booking-done hidden>Thank you. This calendar is a preview, so nothing has been booked yet: we will be in touch to confirm your date.</p>
+      <p class="booking__done" data-booking-done hidden data-page-field={at("done")}>{done}</p>
     </div>
   </div>
 </dialog>

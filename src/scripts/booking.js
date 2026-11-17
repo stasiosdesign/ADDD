@@ -94,7 +94,7 @@ export function initBooking(container) {
 
     function update() {
       const ready = picked && slot;
-      summary.textContent = picked ? `${dayName(picked)}${slot ? ` · ${slot.split(",")[0]}` : ""}` : "Choose a date and a time";
+      summary.textContent = picked ? `${dayName(picked)}${slot ? ` · ${slot.split(",")[0]}` : ""}` : summary.dataset.bookingPrompt || "Choose a date and a time";
       confirm.disabled = !ready;
       done.hidden = true;
     }

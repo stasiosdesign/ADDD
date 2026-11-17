@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import BookCallDialog from "../components/BookCallDialog.astro";
 import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import ClosingCta from "../components/ClosingCta.astro";
@@ -10,7 +11,7 @@ import ProblemCard from "../components/ProblemCard.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import FolderDocument from "../components/FolderDocument.astro";
-import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
+import StageTimeline, { type Stage, type StageItem } from "../components/StageTimeline.astro";
 import PricingPlan from "../components/PricingPlan.astro";
 import PlanNext from "../components/PlanNext.astro";
 import type { Folder } from "../components/DeckFolder.astro";
@@ -25,39 +26,36 @@ import { workshopPage as D } from "../sanity/defaults/workshop";
 // shows (data-page-field) so the Studio's Visual editor can outline it and
 // write drafts into it. The layout is the desktop design of 2026-11-04
 // ("Workshops • Desktop"), styled in src/styles/workshop.css.
-const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "workshopPage"), D);
+const { t, list, lines, items } = reader(await pageDocument(Astro.locals.sanity, "workshopPage"), D);
 
 type Tile = { _key: string; tagline?: string; title?: string; text?: string; image?: unknown };
 type Step = { _key: string; label?: string; title?: string; text?: string };
 const symptoms = list<Tile>("symptoms.tiles");
-const methods = list<Tile>("method.tiles");
 const journey = list<Step>("journey.steps");
 // Workshop Process: each step with its timing and its more (journey.details,
-// in the steps' order), and a photograph from the library (the
-// page's own, not the Studio's)
+// in the steps' order)
 const details = list<{ _key: string; meta?: string; more?: string }>("journey.details");
-const STAGE_PHOTOS = [
-  { src: "/assets/images/allister-gesture-close-crop.webp", alt: "" },
-  { src: "/assets/images/conference-keynote-crop.webp", alt: "" },
-  { src: "/assets/images/allister-keynote-stage-crop.webp", alt: "" },
-  { src: "/assets/images/team-model-review.webp", alt: "" },
-];
-// On the chart (StageTimeline.astro): each step's timing a phase across
-// the top, the step a row of its own, its name on the row's strip, its box
-// in its own phase
+// On the chart (StageTimeline.astro, the staircase of 2026-11-16): each
+// step a row, its box in its own phase, its name (Prepare, Attend…) and its
+// timing at its top, and under them what it holds, in the step's own words
+// (its text and more; not in the Studio yet, as the site is detached)
+// (journey.stageItems in Sanity since 2026-11-16, each point marked by who
+// does it)
+const EXPECT_ITEMS: StageItem[][] = items("journey.stageItems").map((stage) =>
+  stage.list<{ _key: string; label?: string; by?: StageItem["by"] }>("items").map((item) => ({ label: item.label ?? "", by: item.by || "addd" })),
+);
 const expectStages: Stage[] = journey.map((step, i) => ({
   lane: step.label,
-  title: step.title,
+  title: step.label,
+  when: details[i]?.meta,
   text: step.text,
   more: details[i]?.more,
-  image: STAGE_PHOTOS[i],
+  items: EXPECT_ITEMS[i],
   start: i,
   span: 1,
   fields: {
-    lane: `journey.steps.${i}.label`,
-    title: `journey.steps.${i}.title`,
-    text: `journey.steps.${i}.text`,
-    more: `journey.details.${i}.more`,
+    title: `journey.steps.${i}.label`,
+    when: `journey.details.${i}.meta`,
   },
 }));
 const expectScale = journey.map((_, i) => ({ label: details[i]?.meta, field: `journey.details.${i}.meta` }));
@@ -79,22 +77,28 @@ const PROBLEM_FIGURES = [
 // theirs in services.ts.
 type Doc = { _key: string; kicker?: string; lede?: string; body?: string[]; points?: string[] };
 const documents = list<Doc>("method.documents");
-const FOLDER_PARTS = [
-  { meta: "Your project", covers: ["Recent project", "Real delays"], kind: "Evidence" },
-  { meta: "The friction", covers: ["Duplication", "Lost data"], kind: "Diagnosis" },
-  { meta: "The map", covers: ["Brief", "Completion"], kind: "Clarity" },
-];
+// (since 2026-11-16 each folder's format, sheet and pill are its tile's in
+// Sanity, and the label's word and the way on the section's)
 const pad = (n: number) => String(n).padStart(2, "0");
-const folders: Folder[] = methods.map((tile, i) => ({
+const folderLabel = t("method.folderLabel");
+const folders: Folder[] = items("method.tiles").map((tile, i) => ({
   n: i + 1,
-  label: `Outcome N°${pad(i + 1)}`,
-  ...FOLDER_PARTS[i],
-  title: tile.title,
-  text: tile.text,
+  label: `${folderLabel} N°${pad(i + 1)}`,
+  labelWord: folderLabel,
+  labelField: "method.folderLabel",
+  meta: tile.t("format"),
+  metaField: `method.tiles.${i}.format`,
+  covers: tile.lines("covers"),
+  coversField: `method.tiles.${i}.covers`,
+  kind: tile.t("kind"),
+  kindField: `method.tiles.${i}.kind`,
+  title: tile.t("title"),
+  text: tile.t("text"),
   titleField: `method.tiles.${i}.title`,
   textField: `method.tiles.${i}.text`,
-  go: "Open folder",
-  action: `Open ${tile.title || "the folder"}`,
+  go: t("method.folderGo"),
+  goField: "method.folderGo",
+  action: `Open ${tile.t("title") || "the folder"}`,
   opens: `workshop-folder-${i + 1}`,
 }));
 
@@ -104,8 +108,8 @@ const folders: Folder[] = methods.map((tile, i) => ({
 const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
-  title="Workflow Workshop — ADDD"
-  description="A half-day diagnostic using a live project, for practice leaders who know something is not working but need clarity on where to start. Map how work moves, find the friction and receive a written report."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="Workflow Workshop"
   doc={{ id: "workshopPage" }}
 >
@@ -128,8 +132,8 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     statement={t("hero.statement")}
     marks={false}
     words={{
-      frame: "Your project",
-      note: ["A half-day session", "around a real project"],
+      frame: t("hero.figureFrame"),
+      note: lines("hero.figureNote"),
       platform: t("hero.tagline") || "Workflow Workshop",
       tags: journey.slice(0, 3).map((step) => step.label ?? "").filter(Boolean),
     }}
@@ -175,13 +179,19 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     heading={t("method.heading")}
     headingField="method.heading"
     aside={t("method.tagline")}
+    asideField="method.tagline"
     folders={folders}
   />
   {folders.map((folder, i) => (
   <FolderDocument
     id={folder.opens!}
     n={folder.n}
-    series="ADDD :: Workflow Workshop"
+    series={t("method.series")}
+    seriesField="method.series"
+    summaryLabel={t("method.summaryLabel")}
+    summaryLabelField="method.summaryLabel"
+    pointsLabel={t("method.pointsLabel")}
+    pointsLabelField="method.pointsLabel"
     title={folder.title}
     titleField={folder.titleField}
     kicker={documents[i]?.kicker}
@@ -206,7 +216,8 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
         <p class="ws-expect__lede" data-page-field="journey.lede">{t("journey.lede")}</p>
       </div>
       <div class="ws-expect__run">
-        <StageTimeline id="workshop-stages" stages={expectStages} scale={expectScale} dark />
+        <StageTimeline id="workshop-stages" stages={expectStages} scale={expectScale} dark itemsField="journey.stageItems" keyField="journey"
+          keyLabels={{ addd: t("journey.keyAddd"), you: t("journey.keyYou"), optional: t("journey.keyOptional") }} />
       </div>
     </div>
   </section>
@@ -247,7 +258,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
           title: t("pricing.cards.1.title"),
           text: t("pricing.cards.1.subtitle"),
           button: t("pricing.cards.1.button"),
-          href: "/technology-blueprint",
+          href: t("pricing.cards.1.href") || "/technology-blueprint",
           titleField: "pricing.cards.1.title",
           textField: "pricing.cards.1.subtitle",
           buttonField: "pricing.cards.1.button",
@@ -260,12 +271,14 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
        question with its icon, and Book a Free Call as its last item -->
   <FaqSection>
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["user", "chat", "clipboard", "map-pin", "file"]} call />
+        icons={["user", "chat", "clipboard", "map-pin", "file"]} />
+      {/* the free call's calendar, which the FAQ's Book a Free Call used to bring (removed 2026-11-16); the page's own booking buttons open it */}
+      <BookCallDialog id="book-call" />
   </FaqSection>
 
   <!-- the site's closing call to action, with one button of this page's
        own: on to the Technology Blueprint -->
-  <ClosingCta single={{ href: "/technology-blueprint", label: t("closing.button"), field: "closing.button", doc: "workshopPage" }} />
+  <ClosingCta single={{ href: t("closing.buttonHref"), label: t("closing.button"), field: "closing.button", doc: "workshopPage" }} />
   <!-- Book a Call, floating at the screen's foot from past the hero to Book a
        Free Call (BookCallFloat.astro) -->
   <BookCallFloat />

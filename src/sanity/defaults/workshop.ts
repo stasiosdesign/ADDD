@@ -4,15 +4,24 @@ import { keyed } from './types';
    section by section, as the Workflow Workshop page document is shaped
    (studio/schemaTypes/pages/workshop.ts). */
 export const workshopPage = {
+  seo: {
+    title: 'Workflow Workshop — ADDD',
+    description: 'A half-day workshop for practice leaders who know something is not working but need clarity on where to start. Map how work moves around the practice, find the friction and receive a written report.',
+  },
   hero: {
     tagline: 'Workflow Workshop',
     heading: 'Find out where your practice is losing time',
-    lede: 'A half-day session with your team around a real project. You’ll map how work moves through the practice, identify where workflows and tools create friction, and receive a written report with findings and priorities',
+    lede: 'A half-day session with your team, starting from a real project. You’ll map how work moves around the practice, identify where workflows and tools create friction, and receive a written report with findings and priorities.',
     primaryButton: 'Start Workshop',
     secondaryButton: 'View Pricing',
     // the statement that comes up as the opening's words scroll away
     // (2026-11-05), one line per line, Before Revit's length
     statement: 'Half a day with your team\naround a real project, to find\nwhere time is being lost.',
+    // the drawing's words: the project held over the platform and the note
+    // beside it (its platform is the tagline, its tags the first three
+    // stages of the Workshop Process)
+    figureFrame: 'Your project',
+    figureNote: ['A half-day session', 'around a real project'],
   },
   symptoms: {
     heading: 'Where workflows lose momentum.',
@@ -25,10 +34,17 @@ export const workshopPage = {
   method: {
     tagline: 'Outcomes',
     heading: 'Inside the Workshop',
+    // the folders: the word before each number, the way on at each foot,
+    // and the papers they open (their series, and the labels on them)
+    folderLabel: 'Outcome',
+    folderGo: 'Open folder',
+    series: 'ADDD :: Workflow Workshop',
+    summaryLabel: 'In short',
+    pointsLabel: 'What you take away',
     tiles: keyed('method', [
-      { title: 'Examine one project', text: 'Every finding comes from a project your team knows, not a generic checklist, so the problems it names are ones you recognise.' },
-      { title: 'Identify friction and lost time', text: 'A clear view of where duplication happens, where information disappears and where decisions go unrecorded, so you know what is costing you time.' },
-      { title: 'Map the actual flow', text: 'A shared picture of how information, decisions and work really move through the practice, from brief to completion, that the whole team agrees on.' },
+      { title: 'Examine one project', text: 'Every finding comes from a project your team knows, not a generic checklist, so the problems it names are ones you recognise.', format: 'Your project', covers: ['Recent project', 'Real delays'], kind: 'Evidence' },
+      { title: 'Identify friction and lost time', text: 'A clear view of where duplication happens, where information disappears and where decisions go unrecorded, so you know what is costing you time.', format: 'The friction', covers: ['Duplication', 'Lost data'], kind: 'Diagnosis' },
+      { title: 'Map the actual flow', text: 'A shared picture of how information, decisions and work really move through the practice, from brief to completion, that the whole team agrees on.', format: 'The map', covers: ['Brief', 'Completion'], kind: 'Clarity' },
     ]),
     // the document each folder opens (FolderDocument.astro), in the
     // folders' order
@@ -111,6 +127,17 @@ export const workshopPage = {
       { meta: 'Within one week', more: 'The report is specific to your practice and the project examined, with suggested next steps. An optional executive readout presents the findings to leadership.' },
       { meta: 'After the report', more: 'Quick wins and next steps are set out, so the team can begin with what matters most, without a larger commitment or further investment.' },
     ]),
+    // what each stage holds on the timeline, each point marked by who does
+    // it (by: you, optional; ADDD when not given), in the steps' order
+    stageItems: keyed('stage', [
+      { items: keyed('point', [{ label: 'Questionnaire', by: 'you' }, { label: 'Project selection', by: 'you' }, { label: 'Who should attend', by: 'you' }]) },
+      { items: keyed('point', [{ label: 'Map the actual flow', by: 'addd' }, { label: 'Find the friction', by: 'addd' }, { label: 'Agree what matters most', by: 'addd' }]) },
+      { items: keyed('point', [{ label: 'Written report', by: 'addd' }, { label: 'Priority areas', by: 'addd' }, { label: 'Executive readout', by: 'optional' }]) },
+      { items: keyed('point', [{ label: 'Quick wins', by: 'you' }, { label: 'Next steps', by: 'you' }]) },
+    ]),
+    keyAddd: 'ADDD',
+    keyYou: 'Your team',
+    keyOptional: 'Optional',
   },
   pricing: {
     // the heading, one part since 2026-11-05 (a quieter lead can go in
@@ -127,8 +154,8 @@ export const workshopPage = {
       {
         title: 'Standard workshop',
         badge: 'In person',
-        subtitle: 'A half-day diagnostic around a live project',
-        price: '£1,040',
+        subtitle: 'A half-day workshop focused on your practice',
+        price: '£1,480',
         priceSuffix: '/ workshop',
         note: 'The session takes place at your office, with four to eight people from across the practice. An executive readout of the findings for leadership is available as an optional extra.',
         // what the practice gains, one short line each (2026-11-05)
@@ -159,6 +186,7 @@ export const workshopPage = {
           'Prioritised recommendations and quick wins',
         ],
         button: 'Explore the Technology Blueprint',
+        href: '/technology-blueprint',
       },
     ]),
   },
@@ -177,5 +205,6 @@ export const workshopPage = {
   // ClosingCta.astro: its heading is the Home page's)
   closing: {
     button: 'Start a Tech Blueprint',
+    buttonHref: '/technology-blueprint',
   },
 };

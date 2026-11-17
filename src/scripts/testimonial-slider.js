@@ -53,10 +53,6 @@ const LINES = { from: 60, duration: 0.3, stagger: 0.04, ease: "power2.out" };
 const CONTROL = { duration: 0.35, ease: "power3.out" };
 // the plain change's fades (s), the stylesheet's swap fade
 const FADE = 0.3;
-// The quotes' room, eased to the next quote's height as it comes in,
-// straight there and settled, no overshoot (2026-11-03: it was elastic,
-// past the height and back, which read as springy)
-const SIZE = { duration: 0.6, ease: "power3.out" };
 // how long each quote stands before the slider moves on by itself (s)
 const AUTOPLAY = 5;
 
@@ -174,52 +170,38 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
   }
   quotes.forEach((_, i) => show(i, i === current));
 
-  // The quotes' room is the height of the quote showing, not of the
-  // longest: the count, the attribution, the controls, the rule and the
-  // section's foot follow it. Set outright at rest and whenever a quote's
-  // height changes (the width, the webfont, a split), eased on a change.
-  // Once a change has settled the page below has moved, and the page's
-  // own height watch measures every scroll position again (site.js,
-  // watchPageHeight): once, so not here as well, which made every change
-  // cost two whole-page measures mid-scroll.
-  // Only from 992px, where the controls stand in the side column, fixed
-  // under the logo, clear of the quotes' room. Below it they sit under
-  // the quote, so a room that changed would move them under the finger:
-  // there the room stays the longest quote's, as every stack is.
+  // The section keeps one height whichever quote shows, the longest
+  // quote's, so the page below never moves (2026-11-16, at the user's
+  // word: until then, from 992px, the room was eased to the quote showing
+  // and the page grew and shrank with each one). From 992px who said it
+  // still stands a step under the quote showing: the quotes' room is that
+  // quote's height, and what it leaves of the longest's is kept under the
+  // attribution (--slider-spare), so the two always add up to the same.
+  // Below 992px the controls sit under the quote, so nothing there moves
+  // at all: the room is the longest quote's (the stylesheet's stack).
   const box = root.querySelector(".testimonial-slider__quotes");
   const wide = window.matchMedia("(min-width: 992px)");
-  let sizing = null;
-  let measured = 0;
-  function fit(i, { ease = false } = {}) {
+  function fit() {
     if (!box) return;
     if (!wide.matches) {
-      sizing?.kill();
-      measured = 0;
-      gsap.set(box, { clearProps: "height" });
+      box.style.removeProperty("height");
+      root.style.removeProperty("--slider-spare");
       return;
     }
-    const h = quotes[i].offsetHeight;
-    if (h === measured && !ease) return;
-    measured = h;
-    sizing?.kill();
-    if (!ease || reducedMotion) {
-      gsap.set(box, { height: h });
-      return;
-    }
-    sizing = gsap.to(box, { height: h, ...SIZE });
+    const heights = quotes.map((q) => q.offsetHeight);
+    const h = heights[current];
+    box.style.height = `${h}px`;
+    root.style.setProperty("--slider-spare", `${Math.max(...heights) - h}px`);
   }
-  fit(current);
-  const resized = new ResizeObserver(() => {
-    if (!sizing?.isActive()) fit(current);
-  });
+  fit();
+  const resized = new ResizeObserver(() => fit());
   quotes.forEach((quote) => resized.observe(quote));
-  const onWide = () => fit(current);
-  wide.addEventListener("change", onWide);
+  wide.addEventListener("change", fit);
   cleanups.push(() => {
-    wide.removeEventListener("change", onWide);
+    wide.removeEventListener("change", fit);
     resized.disconnect();
-    sizing?.kill();
-    if (box) gsap.set(box, { clearProps: "height" });
+    box?.style.removeProperty("height");
+    root.style.removeProperty("--slider-spare");
   });
 
   function goTo(next) {
@@ -236,7 +218,7 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
         .add(() => {
           show(from, false);
           show(next, true);
-          fit(next, { ease: true });
+          fit();
         })
         .fromTo(quotes[next], { opacity: 0 }, { opacity: 1, duration: FADE, ease: "power1.inOut" });
       return;
@@ -247,11 +229,10 @@ export function mountTestimonialSlider(root, { reducedMotion = false, still = fa
     // if it never came in); then the next quote's run
     if (revealed && out && out.time() > 0) change.add(out.tweenTo(0, { ease: "none" }));
     revealed = true;
-    // the room stretches or gathers to the next quote as its lines rise
     change.add(() => {
       show(from, false);
       show(next, true);
-      fit(next, { ease: true });
+      fit();
     });
     if (into) change.add(into.tweenFromTo(0, into.duration(), { ease: "none" }));
   }

@@ -33,6 +33,7 @@ import { initColumnGrid } from "./column-grid.js";
 import { initScrollbar } from "./scrollbar.js";
 import { initLogoMorphLoader } from "./logo-morph-loader.js";
 import { mountSlashField } from "./slash-field.js";
+import { initEnquiryForm } from "./enquiry-form.js";
 import { mountApproachStack } from "./approach-stack.js";
 import { mountStickyTitle } from "./sticky-title.js";
 import { mountWordCycle } from "./word-cycle.js";
@@ -57,7 +58,8 @@ import { initThemeList } from "./theme-list.js";
 import { initPartnerHero } from "./partner-hero.js";
 import { initBlueprintHero } from "./blueprint-hero.js";
 import { initBeforeRevitHero } from "./before-revit-hero.js";
-import { initCtaDiagram } from "./cta-diagram.js";
+import { initCtaTiles } from "./cta-tiles.js";
+import { initProductForms } from "./product-forms.js";
 import { initStackSpace } from "./stack-space.js";
 import { initBookFloat } from "./book-float.js";
 import { initLanyard } from "./lanyard.js";
@@ -485,6 +487,7 @@ const PAGE_COMPONENTS = [
   ["[data-iso-field]", initIsoFields],
   [".dot-grid", initDotGrids],
   ["[data-service-diagram]", initServiceDiagrams],
+  ["[data-enquiry-form]", initEnquiryForm],
   ["[data-enquiry-offer]", initEnquiryOffer],
   ["[data-slash-field]", initSlashField],
   ["[data-word-cycle]", initWordCycle],
@@ -509,11 +512,12 @@ const PAGE_COMPONENTS = [
   ["[data-partner-hero]", initPartnerHero],
   ["[data-blueprint-hero]", initBlueprintHero],
   ["[data-br-hero]", initBeforeRevitHero],
-  ["[data-cta-diagram]", initCtaDiagram],
+  ["[data-cta-tiles]", initCtaTiles],
   ["[data-stack-space]", initStackSpace],
   ["[data-book-float]", initBookFloat],
   ["[data-lanyard]", initLanyard],
   ["[data-scramble-word]", initScrambleWords],
+  ["[data-product-form]", initProductForms],
 ];
 
 function initPage(container) {
@@ -1039,13 +1043,20 @@ function initEnquiryOffer(container) {
   const form = container.querySelector("[data-enquiry-offer]");
   const offer = new URLSearchParams(window.location.search).get("offer");
   if (!form || !offer) return;
+  // the topic and the opening lines: the Contact page document's
+  // (form.partnerTopic, partnerMessage, offerMessage), on the form
+  const { offerTopic, offerGeneral, offerNamed } = form.dataset;
   const topic = form.querySelector("#topic");
-  if (topic) topic.value = "AEC Tech Partners";
+  if (topic) {
+    topic.value = offerTopic || "AEC Tech Partners";
+    // the shown select follows (enquiry-form.js)
+    topic.dispatchEvent(new Event("change", { bubbles: true }));
+  }
   const message = form.querySelector("#msg");
   if (message && !message.value) {
     message.value = offer === "partnership"
-      ? "I’d like to discuss a partnership with ADDD.\n\n"
-      : `I’m interested in: ${offer}.\n\n`;
+      ? `${offerGeneral || "I’d like to discuss a partnership with ADDD."}\n\n`
+      : `${(offerNamed || "I’m interested in: {offer}.").replace("{offer}", offer)}\n\n`;
   }
 }
 

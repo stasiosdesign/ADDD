@@ -98,6 +98,38 @@
    darker than the cards' charcoal (the logos' and the approach's band,
    --c-dark-fg); the nav takes its theme from it (nav.js) */
 .service-deck { background: var(--c-dark-fg); }
+/* (2026-11-16, at the user's word: the homepage's) the band's field of
+   fine white dots behind the title and the cards, as How we work's has
+   (approach-stack.css; the dots dot-field.js's, styles.css .dot-grid
+   .band-field), as quiet as that one */
+.service-deck.has--dots { isolation: isolate; }
+/* The field held still with the title (2026-11-16, at the user's word: it
+   scrolled with the cards, which made the cards hard to read): a layer the
+   band's whole height, and in it the field one screen tall, sticky, so
+   from the band's top to its foot the dots stay where they are on the
+   screen while the cards pass over them. Below 992px, where the title is
+   not held, the field runs the band's height as before. */
+.service-deck__dots-hold {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.service-deck__dots {
+  position: absolute;
+  inset: 0;
+  --dot-x: 50%;
+  --dot-grid-ink: rgba(255, 255, 255, 0.09);
+}
+@media (min-width: 992px) {
+  .service-deck__dots {
+    position: sticky;
+    top: 0;
+    display: block;
+    height: 100vh;
+    height: 100lvh;
+  }
+}
 /* The section's title (routes.heading), centred over the cards, in
    the approach heading's setting (approach-stack.css,
    .approach-stack__head), on two lines: a measure narrower than the

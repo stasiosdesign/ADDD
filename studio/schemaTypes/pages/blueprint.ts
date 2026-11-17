@@ -1,6 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {BlockElementIcon} from '@sanity/icons/BlockElement'
-import {buttonField, headingField, itemsField, leadField, pageSection, quoteSection, sectionHead, taglineField, textField, stageDetailsField} from '../shared/fields'
+import {buttonField, headingField, hrefField, itemsField, leadField, pageSection, quoteSection, sectionHead, seoSection, stageItemsField, taglineField, textField, stageDetailsField, timelineKeyFields} from '../shared/fields'
 
 /* The Technology Blueprint page, one section per part of the page, in the
    order the page shows them (src/pages/technology-blueprint.astro; the
@@ -18,6 +18,7 @@ export const blueprintPage = defineType({
   type: 'document',
   icon: BlockElementIcon,
   fields: [
+    seoSection(),
     pageSection('hero', 'Opening', 'The opening, as the Workflow Workshop’s: the tagline and headline on the left, the standfirst and the two buttons on the panel on the right.', [
       taglineField(),
       headingField(),
@@ -34,6 +35,7 @@ export const blueprintPage = defineType({
     pageSection('examine', 'What we look at', 'The heading row, and the tabs with the panel each opens.', [
       ...sectionHead(),
       itemsField('tabs', 'Tabs', 'step', 'The tabs, in order: the name on the tab (Label), and its panel’s heading and text.'),
+      headingField('At the foot of each tab’s panel, after the heading.', 'panelLabel', 'Panel label'),
       // the single card the page showed before its tabs worked (2026-11-04);
       // kept so the code on main can still read it, hidden from the form
       {...taglineField('No longer shown.', 'cardTagline', 'Card tagline'), hidden: true},
@@ -43,23 +45,31 @@ export const blueprintPage = defineType({
     pageSection('delivery', 'Delivery', 'The tagline, heading and button, and the four stages of the eight weeks on a timeline, each opening to tell more.', [
       taglineField(),
       headingField(),
-      buttonField('Links to the Contact page.'),
+      buttonField('Where it leads: Button link.'),
+      hrefField('Where the button leads.', 'buttonHref', 'Button link'),
       // the “Learn” link beside the button, no longer shown (2026-11-04);
       // kept so the code on main can still read it, hidden from the form
       {...linkField('No longer shown.'), hidden: true},
       itemsField('steps', 'Stages', 'step', 'The stages, in order: the weeks (Label), the title and the text. The photographs stay in the site’s code.'),
       stageDetailsField(),
+      stageItemsField(),
+      ...timelineKeyFields(),
     ]),
     // the page now shows the Home page's testimonials (2026-11-04); kept
     // so the code on main can still read it, hidden from the form
     {...quoteSection('The quote between the delivery steps and the enquiry, and who said it. The avatar placeholder stays in the code.'), hidden: true},
-    pageSection('enquiry', 'Start here', 'The tagline, heading, standfirst and contact details beside the enquiry form, and the words on its button. The form’s fields and where the details link stay in the site’s code.', [
+    pageSection('enquiry', 'Start here', 'The tagline, heading, standfirst and contact details beside the enquiry form, and the form’s words.', [
       taglineField(),
       headingField(),
       leadField('The line under the heading.'),
-      defineField({name: 'email', title: 'Email address', type: 'string', description: 'As shown; the link it opens stays in the site’s code.'}),
-      defineField({name: 'phone', title: 'Phone number', type: 'string', description: 'As shown; the link it opens stays in the site’s code.'}),
+      defineField({name: 'email', title: 'Email address', type: 'string', description: 'Shown and linked as an email.'}),
+      defineField({name: 'phone', title: 'Phone number', type: 'string', description: 'As shown, e.g. “+44 (0) 207 183 3675”; the link dials it without the (0) and the spaces.'}),
       defineField({name: 'address', title: 'Address', type: 'string'}),
+      headingField('The form’s first field.', 'nameLabel', 'Form: name label'),
+      headingField('The form’s second field.', 'emailLabel', 'Form: email label'),
+      headingField('The form’s third field.', 'messageLabel', 'Form: message label'),
+      headingField('Inside the message box, before anything is typed.', 'messagePlaceholder', 'Form: message prompt'),
+      headingField('Beside the tick box.', 'consent', 'Form: consent'),
       buttonField('The form’s submit button.'),
     ]),
     pageSection('faq', 'Answers', 'The heading and the questions, in order; all start closed.', [

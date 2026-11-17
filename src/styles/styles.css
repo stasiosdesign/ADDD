@@ -15,6 +15,9 @@
      section, the one white the site stands on (the routes' warm white).
      A card, tile or field on it is paper, so it still stands off it. */
   --c-light-bg: #f3f3f1;
+  /* a step under the off-white, still reading as white: the ground of the
+     section after the testimonials, so the two stand apart */
+  --c-light-bg-step: #ebebe8;
   /* a light grey a step under the off-white: the hero's pattern band,
      the testimonial's quote panel, and the fills inside white surfaces */
   --c-light-fg: #f0f0f0;
@@ -200,7 +203,6 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .tag,
 .field > label,
 .tile__num,
-.resource-block__label,
 .insight-card__meta,
 .filters button {
   font-family: var(--font-mono);
@@ -1955,8 +1957,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    page's ground. On Grid Columns 5–11, on one left edge: the count,
    small, in the label face; the quote in the display face, a little under
    its third step; and under it who said it, in the body face. The quotes' room is
-   the height of the quote showing, eased straight to the next as it changes,
-   and the section, its rule and its controls follow it; the smaller
+   the longest quote's, so the section keeps its height as they change; the smaller
    stacks (the count, the attribution, the logo) are as large as their
    largest member.
    ------------------------------------------------------------ */
@@ -1972,18 +1973,33 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
      rule round them) is always the section's own, whatever a page sets it
      to (2026-11-04: the Technology Blueprint's white left the off-white
      openings standing on it as grey boxes over the logo and the arrows) */
-  --slider-ground: var(--c-light-bg);
-  --slider-block: var(--c-paper);
+  /* (2026-11-16, at the user's word: white, and the section after it a
+     step darker than the page, so the two stand apart both ways) */
+  --slider-ground: var(--c-white);
+  --slider-block: var(--c-light-bg);
   position: relative;
   padding-top: var(--slider-above);
   background: var(--slider-ground);
+}
+/* the section after it, a step under the page's off-white (its patches
+   that open its own lines follow it: --section-ground) */
+.testimonials + .section:not(.faq-section) {
+  --section-ground: var(--c-light-bg-step);
+  --plan-ground: var(--c-light-bg-step);
+  background: var(--section-ground);
+}
+/* Where the FAQ follows (Ongoing Advisory), it is white already: there the
+   testimonials keep the page's off-white, the contrast the other way. */
+.testimonials:has(+ .faq-section) {
+  --slider-ground: var(--c-light-bg);
+  --slider-block: var(--c-paper);
 }
 
 .testimonial-slider {
   /* the room the rule runs through above the quote and under the
      attribution; the controls' size; how far the ground opens the rule
      round the logo and the controls */
-  --slider-pad: var(--sec-md);
+  --slider-pad: var(--sec-lg);
   --slider-control: 3.5rem;
   --slider-clear: 1.25rem;
   /* its rule well darker than the site's dotted rule (30% of the ink),
@@ -2011,9 +2027,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .testimonial-slider__stack { display: grid; }
 .testimonial-slider__stack > * { grid-area: 1 / 1; }
 
-/* as tall as the quote showing (testimonial-slider.js eases it from one
-   to the next); the others, stacked in it and out of sight, may run past
-   its foot */
+/* the quote showing's height from 992px, the longest's below it
+   (testimonial-slider.js); the others, stacked in it and out of sight,
+   may run past its foot */
 .testimonial-slider__quotes {
   grid-column: 1 / -1;
   grid-row: 2;
@@ -2050,7 +2066,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 .testimonial-slider__credits {
   grid-column: 1 / -1;
   grid-row: 3;
-  margin: 3rem 0 0;
+  /* under it, what the quote showing leaves of the longest quote's
+     height (testimonial-slider.js), so the section keeps one height */
+  margin: 3rem 0 var(--slider-spare, 0px);
 }
 .testimonial-slider__credit {
   display: flex;
@@ -2258,75 +2276,35 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   align-items: flex-start;
 }
 
-/* The homepage's credentials (.creds--on-rule, at every width): a
-   section's step and a half under the testimonials, so it reads as a
-   chapter of its own, and the photograph upright (4:5), cut from the
-   middle of the picture with Allister in it */
-.creds--on-rule { padding-top: calc(1.5 * var(--sec-lg)); }
+/* The homepage's credentials (.creds--on-rule, at every width): the
+   photograph upright (4:5), cut from the middle of the picture with
+   Allister in it. (Until 2026-11-16 a section's step and a half under
+   the testimonials, to read as a chapter of its own: its darker ground
+   does that now.) */
 .creds--on-rule .creds__media .ph { aspect-ratio: 4 / 5; background-position: 55% 50%; }
+/* the photograph set in the Studio (credentials.image), in place of the
+   placeholder: whole, at its own proportion */
+.creds__photo { display: block; width: 100%; height: auto; }
 
-/* Credentials on the rule — an experiment (.creds--on-rule on the
-   section, index.astro; take the class off and the section is as it
-   was). From 992px the testimonials' rule (.testimonial-slider__side,
-   above) runs on down through the section from its top to its foot, on
-   the same line, the left edge of Grid Column 3, in the same dots. Two
-   columns: on the left, the photograph alone on the line, centred on it
-   (from the left edge of Grid Column 1 to the left edge of Grid Column
-   5, so both its edges are on the grid too), the line opened a step
-   above and below it, as the testimonials' logo and controls open it,
-   and running on over and under it; on the right, from Grid Column 6 (a
-   Grid Column's air from the photograph), everything else on one left
-   edge: the label and the heading, then the copy and its button. The
-   photograph stands at the middle of the copy beside it. The section's
-   rows are the right column's two (.creds__grid stands aside so its two
-   take their places in them). Below 992px the testimonials' rule lies
-   across the page, so the section is as it always was. */
+/* The credentials' two columns (.creds--on-rule on the section,
+   index.astro). From 992px: on the left, the photograph alone (from the
+   left edge of Grid Column 1 to the left edge of Grid Column 5); on the
+   right, from Grid Column 6, everything else on one left edge: the label
+   and the heading, then the copy and its button. The photograph stands at
+   the middle of the copy beside it. The section's rows are the right
+   column's two (.creds__grid stands aside so its two take their places
+   in them). Below 992px the section is as it always was. (Until
+   2026-11-16 the testimonials' dotted rule ran on down through this
+   section, the photograph centred on it; at the user's word the rule now
+   ends with the testimonials, under this section's ground.) */
 @media screen and (min-width: 992px) {
-  .creds--on-rule {
-    /* the left edge of Grid Column 3, from the section's own edge */
-    --creds-rule-x: calc(var(--grid-margin) + 2 * ((100% - 2 * var(--grid-margin) - (var(--grid-columns) - 1) * var(--grid-gutter)) / var(--grid-columns) + var(--grid-gutter)));
-    /* the testimonials' (--slider-clear, and their rule's dots) */
-    --creds-clear: 1.25rem;
-    position: relative;
-  }
-  .creds--on-rule::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: calc(var(--creds-rule-x) - 1px);
-    width: 2px;
-    /* whole steps from its top to its foot, the room left over shared
-       between them (space: a fraction of a pixel each), so it starts and
-       ends on a whole step; fitted to its height instead (round), a rule
-       can start or end part-way into a dot, and the two would not meet
-       at the one pitch */
-    background: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 70%, transparent) 5px 7px, transparent 7px) 0 0 / 2px 12px space;
-  }
-  /* and the testimonials' rule the same, so its last dot ends the same
-     step above the join as this one's first begins below it, at any
-     height or pixel ratio */
-  .testimonials:has(+ .creds--on-rule) .testimonial-slider__side::before {
-    background: linear-gradient(to bottom, transparent 5px, color-mix(in srgb, currentColor 70%, transparent) 5px 7px, transparent 7px) 0 0 / 2px 12px space;
-  }
-  .creds--on-rule .creds__media {
-    position: relative;
-    z-index: 1;
-  }
-  .creds--on-rule .creds__media::before {
-    content: "";
-    position: absolute;
-    inset: calc(-1 * var(--creds-clear)) 0;
-    z-index: -1;
-    background: var(--c-light-bg);
-  }
   /* the copy's two rows between two that share what the photograph's
      height leaves, so the copy keeps its own spacing and stands at the
      photograph's middle */
   .page--grid .creds--on-rule .container { grid-template-rows: 1fr auto auto 1fr; }
   .page--grid .creds--on-rule .creds__grid { display: contents; }
-  /* a little smaller than its four columns (2026-11-05: 86%), still
-     centred on the rule */
+  /* a little smaller than its four columns (2026-11-05: 86%), centred
+     in them */
   .page--grid .creds--on-rule .creds__media {
     grid-column: 1 / 5;
     grid-row: 1 / 5;
@@ -2341,13 +2319,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* ============================================================
    8 — FAQ (index.astro; the site's FAQ panel, FaqPanel.astro)
    ============================================================ */
-/* A step roomier than a standard section, as the comparison it replaced
-   was, scaled from the token so it closes up on smaller screens. */
+/* A standard section's room (2026-11-16, at the user's word: it was a
+   step roomier, as the comparison it replaced was). */
 .section.faq-home {
   /* (its dots' rows are counted from the panel's top: FaqSection.astro) */
-  --faq-section-top: calc(var(--sec-lg) * 135 / 112);
+  --faq-section-top: var(--sec-lg);
   padding-top: var(--faq-section-top);
-  padding-bottom: calc(var(--sec-lg) * 135 / 112);
+  padding-bottom: var(--sec-lg);
 }
 
 /* ============================================================
@@ -2479,7 +2457,9 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   --card-pad: 1.5rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: auto auto auto auto 1fr auto;
+  grid-template-rows: var(--card-rows, auto auto auto auto 1fr auto);
+  grid-row: var(--card-span, auto);
+  row-gap: 0;
   border: 0;
   border-radius: var(--radius);
   background: var(--c-paper);
@@ -2942,104 +2922,79 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 /* ============================================================
    10 — CTA
    ============================================================ */
-/* The closing call (ClosingCta.astro), since 2026-11-04 after the
-   reference the user supplied: on the FAQs' field of dots, a diagram the
-   window's full width of eight software marks in white rings joined by
-   thin grey lines to the ADDD mark alone in the middle, the whole set out
-   on the dots, and the heading, its line and the buttons centred under it. One unit (--u) sizes the whole diagram:
-   a twelfth of the dots' pitch on a laptop or a desktop (1.07px at 1440,
-   scaled with the page as the grid is), held under what a tablet's or a
-   phone's width allows; the diagram is drawn on an svg cropped to the
-   window (slice), its middle on the page's, so the lines run on off its
-   sides at any width. The words start a little under the mark.
-   cta-diagram.js draws it in. */
-/* Since 2026-11-04 (third pass) a unit is a twelfth of the dots' pitch
-   (--field-dot), so the diagram's step (12 units) is exactly the dots' on
-   a laptop or a desktop, at every width; under 992px the diagram is held
-   to what the screen's width allows instead (below), off the dots. The
-   heading starts a little closer under the mark than it did. */
+/* The closing call (ClosingCta.astro). Third design (2026-11-16, at the
+   user's word): the homepage statement's background turned to the light.
+   A white ground, its dots drawn as a grid of cells at the statement's
+   pitch and cell (cta-tiles.js); a software mark in a pale box in a cell
+   here and there, as the statement's; the heading short and large in the
+   middle, one button under it. Now and then a tile has a fine red line
+   round its cell and changes its mark (cta-tiles.js). */
 .cta {
-  --u: calc(var(--field-dot) / 12);
-  --cta-pad: 7rem;
-  /* the lines rising out of the call fade away: from nothing at the
-     call's own top (the drawing's top is 180 units above it) to whole a
-     little under it, so they never end on its edge */
-  --cta-fade-from: calc(180 * var(--u));
-  --cta-fade-to: calc(222 * var(--u));
   position: relative;
-  /* the lines run off the screen's sides, cropped there; the risers reach
-     up over the section above */
-  overflow-x: clip;
-  overflow-y: visible;
-  min-height: calc(560 * var(--u));
+  overflow: clip;
+  display: flex;
+  align-items: center;
+  min-height: clamp(34rem, 80vh, 52rem);
+  padding: 9rem var(--page-pad);
   background: var(--c-white);
   color: var(--c-text);
-  padding: calc(290 * var(--u)) var(--page-pad) var(--cta-pad);
 }
-/* After a light FAQ the two are one ground (one lattice of dots, below),
-   and the rising lines carry on up into the FAQ's foot, fading as they go. */
-.faq-section:not(.section--dark) + .cta {
-  --cta-fade-from: calc(30 * var(--u));
-  --cta-fade-to: calc(190 * var(--u));
-}
-/* The drawing: the window's width, from 180 units above the call's top to
-   560 under it (ClosingCta.astro: RISE, DEPTH), its middle on the page's;
-   moved up or down by at most half a step so its bus is on a row of the
-   dots wherever the lattice falls (--cta-snap, cta-diagram.js). */
-.cta__diagram {
-  position: absolute;
-  left: 0;
-  top: calc(-180 * var(--u));
-  width: 100%;
-  height: calc(740 * var(--u));
-  translate: 0 var(--cta-snap, 0px);
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent var(--cta-fade-from), #000 var(--cta-fade-to));
-  mask-image: linear-gradient(to bottom, transparent var(--cta-fade-from), #000 var(--cta-fade-to));
-}
-.cta__diagram.is--snapping { transition: translate 0.45s var(--ease-osmo); }
-/* the lines: one light grey, a hairline at every size */
-.cta__lines path {
-  fill: none;
-  stroke: #dcdce1;
-  stroke-width: 1.25px;
-  vector-effect: non-scaling-stroke;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-/* the rings: white, a hairline edge and the faintest shadow, the mark in
-   its own colours, its name under it in a quiet grey */
-.cta__ring {
-  fill: var(--c-white);
-  stroke: #e8e8ec;
-  stroke-width: 1px;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 1px 2px rgba(10, 10, 20, 0.06));
-}
-.cta__name {
-  font-family: var(--font-body);
-  font-size: 11.5px;
-  fill: #8d8d95;
-}
-/* The ground: the FAQs' field of dots (FaqSection.astro: .dot-grid
-   band-field, 1.5px, the same ink), the section's whole width and height.
-   Since 2026-11-04 (third pass) on the FAQs' own lattice: their pitch
-   (--field-dot), their columns either side of the page's middle, and a row
-   on the bus; and after an FAQ its rows are that section's, carried on
-   across the boundary (data-dot-follow, dot-field.js), the diagram moved
-   to the nearest row with them. Every ring, turn and line of the diagram
-   stands on the dots; the mark in the middle stands between two columns. */
+/* The ground: a field of dots (.dot-grid band-field, the FAQs' pitch and
+   ink), its columns either side of the page's middle, drawn as a grid of
+   cells inside a margin of plain dots (cta-tiles.js) */
 .cta .cta__dots.dot-grid {
-  --dot-pitch: var(--field-dot);
-  --dot-x: calc(50% + var(--field-dot) / 2);
-  --dot-y: calc(240 * var(--u));
+  /* the homepage statement's pitch, as approach-stack.js fits it there
+     (measured: 0.822rem from 992px, 0.868 on a tablet, 0.891 on a phone),
+     so the call's cells and marks are the statement's size (cta-tiles.js) */
+  --dot-pitch: 0.822rem;
+  --dot-x: calc(50% + var(--dot-pitch) / 2);
   --dot-grid-ink: rgba(10, 10, 10, 0.14);
   position: absolute;
   inset: 0;
 }
-/* The page's closing composition, centred: the heading, its line and the
-   buttons one stack down the page's middle (2026-11-04; it was set off a
-   label on the left, with a mark on the right). */
+/* The tiles (cta-tiles.js): each one cell of the grid the dots are drawn
+   as, exactly as the homepage statement's marks are (sticky-title.css,
+   cell-grid.js), turned to the light: a box a shade under the white over
+   the cell and 2px past its lines, so no ring of dots shows round it; the
+   mark, the vendor's own file, 58% of the cell less a pitch, in its
+   middle. Hidden until the grid is laid out. */
+.cta__tiles { position: absolute; inset: 0; pointer-events: none; }
+.cta__tile {
+  position: absolute;
+  left: var(--cell-x);
+  top: var(--cell-y);
+  width: var(--cell-size);
+  height: var(--cell-size);
+  visibility: hidden;
+}
+.cta__tile.is--placed { visibility: visible; }
+.cta__tile::before { content: ""; position: absolute; inset: -2px; background: #f3f3f1; }
+.cta__tile-win { position: absolute; inset: var(--cell-inset); }
+.cta__tile-mark {
+  position: absolute;
+  inset: 0;
+  width: 58%;
+  height: 58%;
+  margin: auto;
+  object-fit: contain;
+  transition: opacity 0.8s ease;
+}
+.cta__tile-mark.is--b,
+.cta__tile.is--b .cta__tile-mark.is--a { opacity: 0; }
+.cta__tile.is--b .cta__tile-mark.is--b { opacity: 1; }
+/* the change: a red hairline on the cell's lines, quickly in, slowly out */
+.cta__tile-line {
+  position: absolute;
+  inset: -0.5px;
+  z-index: 1;
+  box-shadow: inset 0 0 0 1px var(--c-red);
+  opacity: 0;
+  transition: opacity 0.9s ease;
+}
+.cta__tile.is--turning .cta__tile-line { opacity: 1; transition-duration: 0.3s; }
+
+/* The words: the heading short and large in the page's middle, a line
+   under it where the page has one, the button under them */
 .cta__grid {
   position: relative;
   display: flex;
@@ -3056,20 +3011,37 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   align-items: center;
   gap: 2.5rem;
 }
-/* One line of copy carrying the section on its own, two lines under the
-   mark, held between the diagram's lines running to the foot. */
 .cta__heading {
-  max-width: 13em;
-  font-size: 3.625rem;
-  line-height: 1.08;
-  letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  max-width: 11em;
+  font-size: 4.25rem;
+  line-height: 1.02;
+  letter-spacing: calc(var(--primary-tracking) - 0.035em);
   text-wrap: balance;
 }
+.cta__lede { max-width: 32em; margin-top: -1rem; color: color-mix(in srgb, var(--c-text) 62%, transparent); }
 .cta .btn,
 .cta .action-button { position: relative; z-index: 2; }
-/* The pair of buttons centred under the heading, wrapping about the
-   middle where they must */
 .cta .actions { justify-content: center; }
+/* Below 992px the grid's rows over and under the words take the tiles
+   (cta-tiles.js, their narrow places); a phone shows four */
+@media (max-width: 991px) {
+  /* tall enough for a row of tiles over the words and one under them,
+     clear of the grid's outer ring */
+  .cta { min-height: 46rem; padding-block: 9rem; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .cta__tile.is--no-tablet { display: none; }
+}
+@media (max-width: 767px) {
+  .cta { min-height: 40rem; }
+}
+@media (max-width: 991px) {
+  .cta .cta__dots.dot-grid { --dot-pitch: 0.868rem; }
+}
+@media (max-width: 767px) {
+  .cta .cta__dots.dot-grid { --dot-pitch: 0.891rem; }
+  .cta__tile.is--no-phone { display: none; }
+}
 
 /* ============================================================
    11 — footer
@@ -3348,7 +3320,7 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   :root { --t-h1: 3rem; --t-h2: 2.375rem; --t-h3: 2rem; --t-h4: 1.75rem; --sec-lg: 5rem; --sec-md: 4rem; --page-pad: 2rem; }
 
   .hero__heading { font-size: 2.18rem; }
-  .cta__heading { font-size: 2.1371rem; }
+  .cta__heading { font-size: 3.25rem; }
   .approach__card-mark { width: 2.5rem; }
   .approach__card-p { font-size: 1rem; }
 
@@ -3425,11 +3397,10 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
   .logos { padding: 5rem 0; }
   /* the diagram smaller than the words here: the words start under its
      rings rather than under the mark (ClosingCta.astro) */
-  .cta { --u: min(calc(var(--field-dot) / 12), calc(100vw / 1100)); --cta-pad: 5.5rem; padding-top: calc(400 * var(--u)); }
   /* The split is a desktop composition, as it is in the hero: stacked,
      the label leads and the mark has no gutter left to sit in. */
   .cta__body { gap: 2.5rem; }
-  .cta__heading { max-width: none; }
+  .cta__heading { max-width: 11em; }
 
   .case__quote-wrap { padding: 3.5rem 2rem 2.5rem; min-height: 0; }
   .quote { font-size: 1.5rem; }
@@ -3438,9 +3409,8 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 @media (max-width: 767px) {
   :root { --t-h1: 2.375rem; --t-h2: 2rem; --t-h3: 1.75rem; --t-h4: 1.5rem; --page-pad: 1.25rem; }
   .hero__heading { font-size: 2.14rem; }
-  .cta__heading { font-size: 2.125rem; }
+  .cta__heading { font-size: 2.5rem; }
   /* the marks' names too small to read on a phone: the marks alone */
-  .cta__name { display: none; }
   /* Held to a share of the height, as on tablet, for a phone on its side. */
   .approach__card-h { font-size: min(3.0938rem, 15svh); }
   .tagline { font-size: 0.8125rem; }
@@ -3466,12 +3436,13 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 }
 
 /* ============================================================
-   Line reveal — the marked headings rising line by line
-   (data-split="heading", initLineReveal in src/scripts/site.js)
+   Heading reveal — the marked headings coming in as a scramble
+   (data-split="heading", initLineReveal in src/scripts/reveals.js)
    ------------------------------------------------------------
    Hidden from the first paint once the <head> script has marked the
-   document (BaseLayout.astro), so none shows whole before its lines
-   are set to rise; the script shows each as it splits it. Should the
+   document (BaseLayout.astro), so none shows whole before it comes in;
+   the script shows each as it starts its scramble, the moment it is on
+   the screen. Should the
    script never run, the headings show anyway after a moment. Never
    hidden with reduced motion, nor in the Studio's preview (draft
    mode), where the Visual editor writes into the headings' text. The
@@ -3487,6 +3458,14 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
 @keyframes line-reveal-fallback {
   to { visibility: visible; }
 }
+/* a heading the script is holding until it comes in (reveals.js) */
+html[data-line-reveal]:not([data-draft]) [data-split="heading"][data-scramble-pending] { visibility: hidden; animation: none; }
+/* its stand-ins while it scrambles in (reveals.js): a layer at the end of
+   the body, taking no room, each stand-in centred over its letter in the
+   letter's own type (the letters themselves are plain inline spans, so
+   nothing about the heading's lines changes) */
+.scramble-layer { position: absolute; top: 0; left: 0; width: 0; height: 0; pointer-events: none; }
+.scramble-layer__glyph { position: absolute; top: 0; left: 0; white-space: pre; opacity: 0; }
 /* A line's mask (SplitText's, for the headings and the testimonial
    quotes) is one line box tall, and clips. The display face's glyphs
    reach past a tight line

@@ -29,6 +29,12 @@ interface Card {
   tagline?: string;
   title?: string;
   text?: string;
+  /** the card's own format, kind, sheet lines and destination (the Home
+      page's route cards since 2026-11-16), else the route's (services.ts) */
+  format?: string;
+  kind?: string;
+  covers?: string[];
+  href?: string;
 }
 interface Props {
   /** the section's title, held beside the cards */
@@ -43,6 +49,13 @@ interface Props {
   /** a word set beside the cards on the right, from 992px (held there as
       the title is) */
   aside?: string;
+  asideField?: string;
+  /** the routes' folders: the word before each number ("Service" N°01) and
+      the way on at each foot ("View service"), with their fields */
+  label?: string;
+  labelField?: string;
+  go?: string;
+  goField?: string;
   /** the homepage's routes: their words, and where each leads */
   cards?: Card[];
   hrefs?: string[];
@@ -50,30 +63,39 @@ interface Props {
   folders?: Folder[];
   /** the deck's anchor (AEC Tech Partners: "options", which its buttons scroll to) */
   id?: string;
+  /** a field of fine dots behind it, as How we work's band has (the homepage's, 2026-11-16) */
+  dots?: boolean;
 }
-const { heading, headingField = "routes.heading", lede, ledeField, button, aside, cards = [], hrefs = [], folders: own, id } = Astro.props;
+const { heading, headingField = "routes.heading", lede, ledeField, button, aside, asideField, label = "Service", labelField, go = "View service", goField, cards = [], hrefs = [], folders: own, id, dots = false } = Astro.props;
 const pad = (n: number) => String(n).padStart(2, "0");
 const folders: Folder[] = own ?? cards.map((card, i) => {
   const route = SERVICES[i];
   return {
     n: i + 1,
-    label: `Service N°${pad(i + 1)}`,
-    meta: route?.format,
+    label: `${label} N°${pad(i + 1)}`,
+    labelWord: label,
+    labelField,
+    meta: card.format || route?.format,
+    metaField: `routes.cards.${i}.format`,
     title: card.title,
     text: card.text,
     titleField: `routes.cards.${i}.title`,
     textField: `routes.cards.${i}.text`,
-    covers: route?.covers,
-    kind: route?.kind,
-    go: "View service",
-    action: `View ${card.title || "the service"}`,
-    href: hrefs[i] ?? route?.href ?? "/contact",
+    covers: card.covers?.length ? card.covers : route?.covers,
+    coversField: `routes.cards.${i}.covers`,
+    kind: card.kind || route?.kind,
+    kindField: `routes.cards.${i}.kind`,
+    go,
+    goField,
+    action: `${go.split(" ")[0] || "View"} ${card.title || "the service"}`,
+    href: card.href || hrefs[i] || route?.href || "/contact",
   };
 });
 ---
 <!-- the title and the word held over every card but the last (from
      992px, in runs of their own: service-deck.css, --deck-count) -->
-<div class="service-deck" id={id} style={`--deck-count:${folders.length}`}>
+<div class:list={["service-deck", { "has--dots": dots }]} id={id} style={`--deck-count:${folders.length}`}>
+  {dots && <span class="service-deck__dots-hold" aria-hidden="true"><span class="service-deck__dots dot-grid band-field"></span></span>}
   {heading && (
     <div class="service-deck__hold">
       {lede || button ? (
@@ -91,7 +113,7 @@ const folders: Folder[] = own ?? cards.map((card, i) => {
       )}
     </div>
   )}
-  {aside && <div class="service-deck__hold is--aside"><p class="service-deck__aside" aria-hidden="true">{aside}</p></div>}
+  {aside && <div class="service-deck__hold is--aside"><p class="service-deck__aside" aria-hidden="true" data-page-field={asideField}>{aside}</p></div>}
   <div class="service-deck__grid">
     {folders.map((folder, i) => <DeckFolder {...folder} index={i} />)}
   </div>

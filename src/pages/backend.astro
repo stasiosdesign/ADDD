@@ -1,0 +1,161 @@
+---
+/*
+  TEMPORARY (2026-11-16): how the software behind the ADDD website fits
+  together, as it is set up from now on, for a screen-shared client call. Not
+  linked from anywhere and never indexed. To remove it, delete this file
+  and src/presentation/.
+
+  One scrolling page (second pass, at the user's word, after a portfolio
+  they pointed to): on the left, held on screen, a tab for every section,
+  all of them shown, the one being read marked; on the right the sections.
+  A page of its own: none of the site's layout, nav or scripts, and only
+  the site's own typeface. The words and diagrams are data
+  (src/presentation/sections.ts).
+*/
+import { Image } from "astro:assets";
+import Diagram from "../presentation/Diagram.astro";
+import { GROUPS, SECTIONS } from "../presentation/sections";
+import "../presentation/presentation.css";
+import "../styles/lenis.css";
+
+// each section's group and its number in it, for the tab list and the
+// line over its title
+const place = new Map(GROUPS.flatMap((g) => g.sections.map((id, k) => [id, { group: g, n: k + 1 }] as const)));
+const byId = new Map(SECTIONS.map((s) => [s.id, s]));
+
+---
+<!doctype html>
+<html lang="en-GB" class="arch-root">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Backend and integrations · ADDD</title>
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://use.typekit.net" crossorigin>
+  <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
+  <script is:inline>document.documentElement.classList.add("has--js");</script>
+  <!-- Lenis, the site's smooth scroll, at the version the site pins (BaseLayout.astro) -->
+  <script is:inline src="https://cdn.jsdelivr.net/npm/lenis@1.2.3/dist/lenis.min.js"></script>
+</head>
+<body class="arch">
+  <aside class="arch__side">
+    <a class="arch__brand" href="#overview">
+      <img src="/assets/logo.svg" alt="" width="28" height="28">
+      <span>ADDD</span>
+    </a>
+    <!-- the groups, each opening onto its numbered sections: the one being
+         read open, the others closed -->
+    <nav class="arch__tabs" aria-label="Sections">
+      <ol class="arch__groups">
+        {GROUPS.map((g, gi) => (
+          <li class:list={["arch__group", { "is--open": gi === 0 }]} data-group={g.id}>
+            <a href={`#${g.sections[0]}`} class:list={["arch__tab", { "is--active": gi === 0 }]} data-group-tab={g.id} aria-expanded={gi === 0 ? "true" : "false"} aria-controls={`${g.id}-list`}><span class="arch__dot" aria-hidden="true"></span>{g.tab}</a>
+            <div class="arch__subs" id={`${g.id}-list`}>
+              <ol>
+                {g.sections.map((id, k) => (
+                  <li><a href={`#${id}`} class:list={["arch__sub", { "is--active": gi === 0 && k === 0 }]} data-tab={id} tabindex={gi === 0 ? undefined : "-1"}><span class="arch__sub-n">{k + 1}</span>{byId.get(id)?.tab}</a></li>
+                ))}
+              </ol>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </aside>
+
+  <main class="arch__main">
+    {SECTIONS.map((s, i) => (
+      <section id={s.id} class:list={["arch__section", { "is--intro": i === 0 }]} data-section>
+        <header class="arch__head">
+          {i > 0 && place.get(s.id) && <p class="arch__crumb">{place.get(s.id)!.group.tab}<span aria-hidden="true">·</span>{place.get(s.id)!.n}</p>}
+          {i === 0 ? <h1 class="arch__title">{s.title}</h1> : <h2 class="arch__title">{s.title}</h2>}
+          <p class="arch__lede">{s.lede}</p>
+        </header>
+
+        {i === 0 && (
+          <ul class="arch__key" aria-label="How to read the diagrams">
+            <li><span class="arch__key-line"></span>A connection</li>
+            <li><span class="arch__key-line is--dashed"></span>Where it suits</li>
+          </ul>
+        )}
+
+        {s.image && (
+          <figure class="arch__shot">
+            <Image src={s.image.src} alt={s.image.alt} widths={[960, 1400, s.image.src.width]} sizes="(min-width: 860px) min(68rem, 100vw - 23rem), 100vw" loading="lazy" />
+          </figure>
+        )}
+
+        {s.diagram && (
+          <div class="arch__panel">
+            <Diagram id={s.id} diagram={s.diagram} />
+          </div>
+        )}
+
+        {s.notes && (
+          <ul class="arch__notes">
+            {s.notes.map((note) => <li>{note}</li>)}
+          </ul>
+        )}
+      </section>
+    ))}
+  </main>
+
+  <script>
+    // smooth scrolling, as the site's (scroll.js: its lerp and wheel), and
+    // the tabs gliding to their section with it; without Lenis (or with
+    // reduced motion) the browser's own scroll and jumps
+    const Smooth = (window as unknown as { Lenis?: new (o: object) => { scrollTo: (t: Element, o?: object) => void } }).Lenis;
+    const lenis = Smooth && !matchMedia("(prefers-reduced-motion: reduce)").matches
+      ? new Smooth({ lerp: 0.08, wheelMultiplier: 1, autoRaf: true })
+      : null;
+    document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => a.addEventListener("click", (e) => {
+      const target = document.querySelector(a.getAttribute("href")!);
+      if (!target || !lenis) return;
+      e.preventDefault();
+      lenis.scrollTo(target, { duration: 1.2 });
+      history.replaceState(null, "", a.getAttribute("href"));
+    }));
+
+    // the tab of the section being read, marked as the page scrolls; a
+    // section's words and diagram coming in once, gently, as it arrives
+    const tabs = new Map([...document.querySelectorAll<HTMLAnchorElement>("[data-tab]")].map((a) => [a.dataset.tab!, a]));
+    const sections = [...document.querySelectorAll<HTMLElement>("[data-section]")];
+    const groups = [...document.querySelectorAll<HTMLElement>("[data-group]")];
+    const mark = (id: string) => {
+      tabs.forEach((a, key) => {
+        const on = key === id;
+        a.classList.toggle("is--active", on);
+        if (on) a.setAttribute("aria-current", "true");
+        else a.removeAttribute("aria-current");
+      });
+      // its group open and marked, the others closed
+      groups.forEach((g) => {
+        const open = !!g.querySelector(`[data-tab="${id}"]`);
+        g.classList.toggle("is--open", open);
+        const tab = g.querySelector<HTMLElement>("[data-group-tab]")!;
+        tab.classList.toggle("is--active", open);
+        tab.setAttribute("aria-expanded", String(open));
+        g.querySelectorAll<HTMLElement>("[data-tab]").forEach((a) => (open ? a.removeAttribute("tabindex") : a.setAttribute("tabindex", "-1")));
+      });
+    };
+    const reading = new IntersectionObserver(
+      (entries) => entries.forEach((e) => e.isIntersecting && mark(e.target.id)),
+      { rootMargin: "-45% 0px -50% 0px" },
+    );
+    const arriving = new IntersectionObserver(
+      (entries) => entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("is--in");
+        arriving.unobserve(e.target);
+      }),
+      { rootMargin: "0px 0px -12% 0px" },
+    );
+    sections.forEach((s) => { reading.observe(s); arriving.observe(s); });
+    // the last section may never reach the middle of the screen
+    addEventListener("scroll", () => {
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) mark(sections[sections.length - 1].id);
+    }, { passive: true });
+  </script>
+</body>
+</html>

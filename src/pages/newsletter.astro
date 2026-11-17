@@ -2,10 +2,12 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import InsightCard from "../components/InsightCard.astro";
-import { pageDocument, reader } from "../sanity/content";
+import { collection, pageDocument, reader } from "../sanity/content";
 import { cardOf, indexMeta, type Insight } from "../sanity/insights";
 import { ISSUES_QUERY } from "../sanity/queries";
 import { newsletterPage as D, ISSUE_CARD_DEFAULTS, ISSUE_FILTER_DEFAULTS } from "../sanity/defaults/newsletter";
+import { newsletterPosts, newsletterDate } from "../newsletter/beehiiv";
+import { ARCHIVE, archiveCard } from "../data/archive";
 
 // The heading row's words come from the Newsletter page document in Sanity
 // (studio/schemaTypes/pages/newsletter.ts), each falling back to the page's
@@ -13,11 +15,28 @@ import { newsletterPage as D, ISSUE_CARD_DEFAULTS, ISSUE_FILTER_DEFAULTS } from 
 // cards are the newsletter issues, newest first, and the filter buttons
 // their categories in order of first appearance; while there are no issues
 // the page keeps the cards and filters it was built with.
+//
+// (2026-11-16) Once beehiiv is set up (src/newsletter/beehiiv.ts), the
+// cards are the newsletters published there instead, newest first, each to
+// its own page, with no filters (none wanted for now). Until then, the
+// ADDDitive's archive (src/data/archive.ts), the same issues, newest first,
+// also with no filters (moved here from Reports & Guides, 2026-11-16).
 const { sanity } = Astro.locals;
-const [doc, items] = await Promise.all([pageDocument(sanity, "newsletterPage"), sanity.fetch<Insight[]>(ISSUES_QUERY)]);
+const [doc, items, beehiiv] = await Promise.all([pageDocument(sanity, "newsletterPage"), collection<Insight>(sanity, ISSUES_QUERY), newsletterPosts()]);
 const { t } = reader(doc, D);
 
-const articles = items?.length ? items.map((item) => cardOf(item, indexMeta)) : ISSUE_CARD_DEFAULTS;
+const posts = beehiiv ?? (ARCHIVE.length ? ARCHIVE : null);
+const articles = beehiiv
+  ? beehiiv.map((post) => ({
+      href: `/newsletter/${post.slug}`,
+      image: post.image,
+      category: post.tags[0] ?? "Newsletter",
+      title: post.title,
+      description: post.description || undefined,
+      meta: [newsletterDate(post.date)],
+    }))
+  : posts ? ARCHIVE.map(archiveCard)
+  : items?.length ? items.map((item) => cardOf(item, indexMeta)) : ISSUE_CARD_DEFAULTS;
 // One button per category, shown as written, matched in lowercase (the
 // card's chip is its filter token: InsightCard.astro)
 const filters = items?.length
@@ -25,8 +44,8 @@ const filters = items?.length
   : ISSUE_FILTER_DEFAULTS;
 ---
 <BaseLayout
-  title="Newsletter — ADDD"
-  description="ADDDitive, the ADDD newsletter on The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="Newsletter"
   doc={{ id: "newsletterPage" }}
 >
@@ -46,19 +65,31 @@ const filters = items?.length
            cards they act on have to sit inside the same [data-filter-group].
            Several categories can be held at once, and a card shows if it
            matches any of them. -->
+      {posts ? (
+      <div class="insight-archive">
+        {posts.length ? (
+        <div class="insight-grid">
+          {articles.map((article) => <InsightCard {...article} />)}
+        </div>
+        ) : (
+        <p class="text-md" data-page-field="archive.empty">{t("archive.empty")}</p>
+        )}
+      </div>
+      ) : (
       <div class="insight-archive" data-filter-group data-filter-target-match="multi" data-filter-name-match="multi">
         <div class="filters">
-          <button type="button" data-filter-target="all">All articles</button>
+          <button type="button" data-filter-target="all" data-page-field="archive.allLabel">{t("archive.allLabel")}</button>
           {filters.map((filter, i) => (
           <Fragment>{i > 0 && "\n          "}<button type="button" data-filter-target={filter.target}>{filter.label}</button></Fragment>
           ))}
-          <button type="button" class="filters__reset" data-filter-target="reset">Clear filters</button>
+          <button type="button" class="filters__reset" data-filter-target="reset" data-page-field="archive.resetLabel">{t("archive.resetLabel")}</button>
         </div>
 
         <div class="insight-grid">
           {articles.map((article) => <InsightCard {...article} filter />)}
         </div>
       </div>
+      )}
     </div>
   </section>
 

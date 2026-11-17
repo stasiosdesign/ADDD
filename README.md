@@ -146,18 +146,29 @@ deployment), and Sanity's own drafts in the one the Studio edits:
 ### What is editable
 
 Every page has a document in the Studio's Page editor (`studio/schemaTypes/pages/`),
-holding the words and pictures its code no longer fixes: taglines, headings,
-standfirsts, the words on buttons, the cards, steps, questions, price cards
-and quotes, the home page's logo strip (the clients) and the closing call to
-action most pages end on (from the Home page). Layout, navigation, the footer,
-forms, icons and where buttons lead stay in the code. Two collections,
-**Reports** and **Newsletter**, list on their pages and in the sliders, and
-each item has its own page (`/reports/<slug>`, `/newsletter/<slug>`).
+holding every word, picture and link on it (since 2026-11-16): its title and
+search summary, taglines, headings, standfirsts, buttons and where they lead,
+the cards, folders, steps, timelines, questions, price cards and quotes, the
+forms' labels and messages, and the pictures. Lists are built from blocks, so
+a card, a folder, a question or a link is added, removed or moved in the
+Studio, and the page draws it. The Home page's document also holds what every
+page shares (`studio/schemaTypes/pages/site-wide.ts`): the navigation and its
+dropdowns, the newsletter signup, the footer, the free call's booking, and
+the closing call to action. The Tech Stacks page's document holds the stacks
+themselves, each with its stages in order, open (the tool, what it does, its
+alternatives, its logo) or locked (the stage alone; its tool stays in the
+ADDD app, as the dataset can be read publicly). Layout, design, drawings,
+animations and icons stay in the code. **Reports** is the one collection:
+each report lists on the Reports page and in the sliders, and has its own
+page (`/reports/<slug>`), whose shared words are the Reports page's. The
+newsletter's issues come from beehiiv.
 
 Every bound element falls back to the page's own words
 (`src/sanity/defaults/`, exactly the text the pages had) while a field is
 empty, so the site reads the same until something is published. `npm run
-seed` in `studio/` writes those defaults into the staging dataset, once.
+seed` in `studio/` writes those defaults into the staging dataset, filling
+only the fields a document leaves empty (`-- --dry` says what it would
+write); it is also how a new field's words first reach the Studio.
 
 ## Environment variables
 
@@ -168,12 +179,60 @@ Set in Vercel (Settings → Environment Variables) and locally in
 | ---------------------------------- | ---------- | ------------------------ | ------------------------- |
 | `SANITY_API_READ_TOKEN` (secret)   | not set    | Git branch `staging` only| optional, for drafts      |
 | `SANITY_API_WRITE_TOKEN` (secret)  | not set    | Git branch `staging` only| optional, for Publish Live|
-| `VERCEL_DEPLOY_HOOK_URL` (secret)  | not set    | Git branch `staging` only| optional                  |
+| `VERCEL_DEPLOY_HOOK_URL` (secret)  | set (the newsletter's rebuilds) | Git branch `staging` only| optional |
+| `BEEHIIV_API_KEY` (secret)         | set        | set                      | optional                  |
+| `BEEHIIV_PUBLICATION_ID`           | set        | set                      | optional                  |
+| `BEEHIIV_RSS_URL` (instead of the two above) | set | set               | optional                  |
+| `BEEHIIV_WEBHOOK_SECRET` (secret)  | set        | not set                  | not set                   |
+| `CRON_SECRET` (secret)             | set        | not set                  | not set                   |
 
 The Studio's, in committed files: `SANITY_STUDIO_PREVIEW_ORIGIN` (staging's
 URL in `studio/.env.production`, http://localhost:4321 in
 `studio/.env.development`) and `SANITY_STUDIO_PRODUCTION_ORIGIN` (the live
 site). Both are public settings.
+
+## Newsletter (beehiiv)
+
+The ADDDitive is written, managed and sent in beehiiv alone. The site reads the
+published newsletters and gives each a card on `/newsletter` and a page of its
+own at `/newsletter/<slug>` (`src/newsletter/beehiiv.ts`,
+`src/components/NewsletterIssue.astro`). Nothing is copied by hand.
+
+- **What shows:** posts that are published (beehiiv's "confirmed"), whose time
+  has come (a scheduled post waits), on the web (not email-only), for free
+  readers (not premium-only) and not hidden from the feed. One per post,
+  newest first, at beehiiv's own slug. Their content is beehiiv's version for
+  other sites, cleaned of beehiiv's styles, scripts and tracking, and set in
+  the site's prose styles (`pages.css`, `.prose.is--newsletter`).
+- **How it reaches the live site:** the live site is static, so a new or
+  edited newsletter needs a rebuild. beehiiv's webhook calls `/api/beehiiv`
+  (`api/beehiiv.js`, a Vercel Function) when a post is sent, updated or
+  deleted; it checks beehiiv's signature and starts the production build
+  through `VERCEL_DEPLOY_HOOK_URL`. A daily Vercel cron (`vercel.ts`) does
+  the same, as a safety net. A build reads beehiiv once; staging reads it on
+  request, kept for ten minutes.
+- **When beehiiv is down:** a production build fails rather than publish an
+  empty newsletter page, and Vercel keeps serving the last good one. Staging
+  serves the last list it had.
+- **Without beehiiv set up** the pages keep what they had (the Sanity issues,
+  or the template's).
+
+Setting it up (once):
+
+1. beehiiv → Settings → API: create an API key, and copy the publication's V2
+   id (`pub_…`). The API and webhooks need a paid beehiiv plan. On the free
+   plan, enable the RSS feed (Settings → RSS Feed) and use its address as
+   `BEEHIIV_RSS_URL` instead; there is no webhook then, and the daily rebuild
+   brings new issues in within a day.
+2. Vercel → Settings → Environment Variables: `BEEHIIV_API_KEY` and
+   `BEEHIIV_PUBLICATION_ID` (Production and Preview); `CRON_SECRET` (any long
+   random string, Production); and `VERCEL_DEPLOY_HOOK_URL` (the `main`
+   branch's deploy hook) in Production too.
+3. Push and promote as usual, so `api/beehiiv.js` and the cron are live.
+4. beehiiv → Settings → Webhooks → Create Webhook Endpoint: the live site's
+   `/api/beehiiv`, events `post.sent`, `post.updated` and `post.deleted`. Copy
+   its signing secret (`whsec_…`) into Vercel as `BEEHIIV_WEBHOOK_SECRET`
+   (Production), then redeploy production once so the function has it.
 
 ## Vercel
 
@@ -223,7 +282,8 @@ on to `/about`.
 | `/advisory` | `src/pages/advisory.astro` — ADDDvisory |
 | `/stack-diagnostic` | `src/pages/stack-diagnostic.astro` |
 | `/software-licensing-audit` | `src/pages/software-licensing-audit.astro` |
-| `/reports` | `src/pages/reports.astro` — Reports index |
+| `/reports` | `src/pages/reports.astro` — Reports & Guides: every report in Sanity as a card, filtered by category |
+| `/reports/<slug>` | `src/pages/reports/[slug].astro` — one report or guide (since 2026-11-17 ADDD's products: the BIM 2.0 Report, the cheat sheet, the white paper, the infographic, the FASS spreadsheet, 10 Data Shifts): the opening with its cover, what's inside, its pages, who it's for, and the price card that gets it, holding its sign-up form (beehiiv or HubSpot, `src/scripts/product-forms.js`) or its Buy button (styles: `report.css`) |
 | `/report-template` | `src/pages/report-template.astro` — "The ultimate BIM 2.0 report" |
 | `/newsletter` | `src/pages/newsletter.astro` — Newsletter index |
 | `/newsletter-template` | `src/pages/newsletter-template.astro` — "AI in architecture" |

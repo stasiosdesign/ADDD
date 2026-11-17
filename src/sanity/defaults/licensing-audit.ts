@@ -5,6 +5,10 @@ import { keyed } from './types';
    Software & Licensing Audit page document is shaped
    (studio/schemaTypes/pages/licensing-audit.ts). */
 export const licensingAuditPage = {
+  seo: {
+    title: 'Software & Licensing Audit — ADDD',
+    description: 'Software cost and licensing review, assessed by ADDD as part of the wider technology strategy and the Technology Blueprint: every seat, renewal date and overlapping subscription set against real usage.',
+  },
   hero: {
     tagline: 'Part of the Technology Blueprint',
     heading: 'Software & Licensing Audit',

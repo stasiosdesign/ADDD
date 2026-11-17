@@ -65,6 +65,7 @@ import "../styles/stage-timeline.css";
 import "../styles/workshop.css";
 import "../styles/plan.css";
 import "../styles/advisory.css";
+import "../styles/report.css";
 
 interface Props {
   /** The document <title>. */
@@ -89,9 +90,12 @@ interface Props {
   /** The footer under the page (default); false for a page that is one
       screen and does not scroll (the Stack Diagnostic's stack). */
   footer?: boolean;
+  /** For sharing (2026-11-16, the newsletter's issues): the picture a link
+      to the page shows, and that the page is an article; none by default. */
+  share?: { image?: string; article?: boolean };
 }
 
-const { title, description, pageName, home = false, held = false, theme: pageTheme = "light", doc, footer = true } = Astro.props;
+const { title, description, pageName, home = false, held = false, theme: pageTheme = "light", doc, footer = true, share } = Astro.props;
 // A held page (src/holding.ts) shows the holding page in place of its own,
 // on black: the page's own content is not rendered, and is back as it was
 // once the switch is off or the page is no longer held
@@ -118,6 +122,13 @@ const draftMode = staging && Astro.locals.draftMode;
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <meta name="description" content={description}>
+{share && (<>
+<meta property="og:type" content={share.article ? "article" : "website"}>
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+{share.image && <meta property="og:image" content={share.image}>}
+<meta name="twitter:card" content={share.image ? "summary_large_image" : "summary"}>
+</>)}
 <meta name="build" content={BUILD_STAMP}>
 {staging && <meta name="robots" content="noindex, nofollow">}
 {/* How this document load arrives — the logo intro or the wipe's reveal —

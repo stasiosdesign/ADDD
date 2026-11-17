@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {PresentationIcon} from '@sanity/icons/Presentation'
-import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, stageDetailsField, taglineField, textField} from '../shared/fields'
+import {buttonField, headingField, hrefField, itemsField, leadField, linesField, pageSection, sectionHead, seoSection, stageDetailsField, stageItemsField, taglineField, textField, timelineKeyFields} from '../shared/fields'
 
 /* The Workflow Workshop page, one section per part of the page, in the
    order the page shows them (src/pages/workshops-audits.astro; the page's
@@ -36,6 +36,7 @@ export const workshopPage = defineType({
   type: 'document',
   icon: PresentationIcon,
   fields: [
+    seoSection(),
     pageSection('hero', 'Opening', 'The opening on black: the headline, the standfirst and its two buttons on the left, the drawing held on the right while they scroll away and the statement comes up after them.', [
       taglineField('The name on the drawing’s platform.'),
       headingField(),
@@ -43,6 +44,8 @@ export const workshopPage = defineType({
       buttonField('Opens the Book a Call calendar.', 'primaryButton', 'First button label'),
       buttonField('Scrolls down to the pricing.', 'secondaryButton', 'Second button label'),
       textField('The statement that comes up as the opening’s words scroll away. One line here is one line on the page, all at one size: break the lines where a reader would pause.', 'statement', 'Statement', 3),
+      headingField('The drawing: the label on the project held over the platform.', 'figureFrame', 'Drawing: project label'),
+      linesField('figureNote', 'Drawing: note', 'The note beside the drawing, one line per line. Its platform is the Tagline, its tags the first three stages of the Workshop Process.'),
     ]),
     pageSection('symptoms', 'Does this sound like your practice?', 'The heading, the standfirst and the three cards naming the problems the workshop finds, each with its figure (the homepage problem cards’ design).', [
       ...sectionHead(),
@@ -54,13 +57,20 @@ export const workshopPage = defineType({
       {...leadField('No longer shown.'), hidden: true},
       taglineField(),
       headingField(),
-      itemsField('tiles', 'Folders', 'tile', 'The three folders, top to bottom: the title and the line on the front of each.'),
+      headingField('The word before each folder’s number, e.g. “Outcome” (Outcome N°01).', 'folderLabel', 'Folder label'),
+      headingField('The way on at each folder’s foot.', 'folderGo', 'Folder link words'),
+      itemsField('tiles', 'Folders', 'folderCard', 'The three folders, top to bottom: the words on the front of each, beside the number, in the pill, and on the sheet inside.'),
+      headingField('At the top of every paper a folder opens, e.g. “ADDD :: Workflow Workshop”.', 'series', 'Papers: series'),
+      headingField('Over each paper’s summary.', 'summaryLabel', 'Papers: summary label'),
+      headingField('Over each paper’s list of what you take away.', 'pointsLabel', 'Papers: list label'),
       defineField({name: 'documents', title: 'Folder documents', type: 'array', description: 'What each folder opens, in the folders’ order.', of: [folderDocument]}),
     ]),
     pageSection('journey', 'Workshop Process', 'The heading and the line beside it, and the four stages on a timeline, from preparing to acting on the report.', [
       ...sectionHead('The line beside the heading.'),
       itemsField('steps', 'Stages', 'step', 'The stages, left to right: the name at the head of its column (Label), and the title and line in its block. The photographs stay in the site’s code.'),
       stageDetailsField('For each stage, in the same order: its timing under the name, and what its block tells when opened.'),
+      stageItemsField(),
+      ...timelineKeyFields(),
     ]),
     pageSection('pricing', 'Pricing', 'The heading, what the day holds, the workshop’s card, and the panel on to the Technology Blueprint under them. The looks and where the buttons lead stay in the site’s code.', [
       // the standfirst and the small tab over the heading, no longer shown
@@ -82,6 +92,7 @@ export const workshopPage = defineType({
     ]),
     pageSection('closing', 'Closing call to action', 'The one button under the closing heading (the heading is the Home page’s, shared by every page). It leads to the Technology Blueprint page.', [
       buttonField('The button’s words.'),
+      hrefField('Where the button leads.', 'buttonHref', 'Button link'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Workflow Workshop page'})},

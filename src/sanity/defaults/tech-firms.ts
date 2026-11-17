@@ -7,6 +7,10 @@ import { keyed } from './types';
    2026-11-04 (they said again what Ways to work with ADDD says); kept
    while the live site still reads them. */
 export const techFirmsPage = {
+  seo: {
+    title: 'AEC Tech Partners — ADDD',
+    description: 'Partnerships for technology companies: founder stories, featured workflow episodes and practice intelligence that help architects understand where your technology fits.',
+  },
   hero: {
     tagline: 'AEC Tech Partners',
     // the opening's words (2026-11-05, the user's exact copy)
@@ -27,16 +31,19 @@ export const techFirmsPage = {
         number: '01',
         title: 'Insight from practice work',
         text: 'Workshops, audits and Technology Blueprint sessions with practices show ADDD the problems, constraints and priorities behind their technology choices.',
+        image: { path: '/assets/images/team-model-review.webp', alt: '', width: 450, height: 268 },
       },
       {
         number: '02',
         title: 'Content about real work',
         text: 'Workflow videos and articles follow real projects, the people behind them, and the processes and tools they use to deliver them.',
+        image: { path: '/assets/images/allister-keynote-stage-crop.webp', alt: '', width: 600, height: 400 },
       },
       {
         number: '03',
         title: 'Distribution to the audience',
         text: 'That content reaches architects through workflow videos, online sessions, the ADDDitive newsletter and ADDD’s social channels.',
+        image: { path: '/assets/images/conference-keynote-crop.webp', alt: '', width: 640, height: 478 },
       },
     ]),
     benefitsTitle: 'What that gives a technology company',
@@ -49,9 +56,9 @@ export const techFirmsPage = {
   routes: {
     items: keyed('route', [
       {
-        title: 'Build ongoing visibility',
-        text: 'Keep a sustained presence with ADDD’s architecture audience through a 12-month channel sponsorship.',
-        linkLabel: 'Main channel sponsorship',
+        title: 'Tell your story',
+        text: 'Introduce your company and the people behind it to ADDD’s architecture audience through a founder story.',
+        linkLabel: 'Founder story',
         image: { path: 'assets/images/allister-podium-portrait.jpg', alt: '' },
       },
       {
@@ -76,8 +83,8 @@ export const techFirmsPage = {
       'Understand what architecture practices really need, and where the industry is heading.',
     ],
     cards: keyed('route', [
-      { title: 'Workflow Workshop', text: 'A half-day diagnostic on a live project: map how work moves through the practice, find where tools and workflows create friction, and leave with a written report of priorities.' },
-      { title: 'Before Revit', text: 'A review of the early stages of design, before work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.' },
+      { title: 'Workflow Workshop', text: 'A half-day session with your team, focused on the practice as a whole: map how work moves around the practice, find where tools and workflows create friction, and leave with a written report of priorities.' },
+      { title: 'Early Stage Design', text: 'A review of the early stages of design, before work moves into Revit or Archicad: the tools, information and decisions that shape a project before it is modelled.' },
       { title: 'Technology Blueprint', text: 'An eight-week, practice-wide strategy across workflows, software and licensing costs, infrastructure, data and AI readiness, ending in a sequenced roadmap.' },
       { title: 'Ongoing Advisory', text: 'Regular strategic guidance for practice leaders on AI, BIM, software and digital priorities, before isolated decisions add more complexity.' },
     ]),
@@ -98,31 +105,35 @@ export const techFirmsPage = {
     lede: 'Three partnerships, each for a different objective. Every one starts with a call to agree the fit, the deliverables and how success is measured.',
     tagline: 'Partnership options',
     heading: 'Choose the partnership that fits your objective',
+    // the folders: the word before each number, the way on at each foot,
+    // and the papers they open: their series, labels and button
+    folderLabel: 'Partnership',
+    folderGo: 'Open folder',
+    series: 'ADDD :: AEC Tech Partners',
+    summaryLabel: 'In short',
+    audienceLabel: 'Best suited to',
+    pricingLabel: 'Pricing',
+    pricingValue: 'Shared on enquiry, once the scope is agreed',
+    termsLabel: 'Terms',
+    pointsLabel: 'You receive',
+    ctaLabel: 'Discuss a partnership',
     cards: keyed('offer', [
       {
-        title: 'Main channel sponsorship',
-        audience: 'Infrastructure, hardware, licensing, managed service and cloud providers looking for an ongoing relationship with the audience.',
-        subtitle: 'A 12-month sponsorship supporting ADDD’s workflow content and Technology Blueprint sessions.',
-        price: '£2,000–£2,500',
-        priceSuffix: '/month',
-        note: '12-month commitment',
+        // the first partnership (2026-11-16): Founder story in place of the
+        // main channel sponsorship, at the client's direction; its details
+        // are still to come, so the words stay general and list no inclusions
+        title: 'Founder story',
+        audience: 'Technology companies that want to introduce themselves, and the people behind them, to architects and practice leaders.',
+        subtitle: 'Your company’s story, told for ADDD’s audience of architects and practice leaders.',
         includesLabel: 'You receive',
-        includes: [
-          'Named sponsorship across workflow sessions and Technology Blueprint sessions',
-          'A monthly newsletter slot',
-          'Category exclusivity',
-          'A tracked trial link',
-          'Monthly tracked-link reporting',
-        ],
-        conditions: 'Open to companies whose products are not the subject of ADDD’s editorial coverage. Design-tool vendors are better suited to a featured workflow episode.',
+        includes: [],
+        conditions: 'The format, scope and timing are agreed on a first call. Sponsorship is always disclosed.',
         button: 'Discuss a partnership',
       },
       {
         title: 'Featured workflow episode',
         audience: 'Software and design-tool companies with a suitable architectural project or workflow to demonstrate.',
         subtitle: 'A project-led episode showing the people, process and technology behind real architectural work.',
-        price: '£2,500',
-        priceSuffix: '/episode',
         note: 'Per episode',
         includesLabel: 'You receive',
         includes: [
@@ -139,8 +150,6 @@ export const techFirmsPage = {
         title: 'Practice intelligence',
         audience: 'Technology companies that want a clearer understanding of practices in their market category.',
         subtitle: 'An ongoing intelligence relationship, with quarterly briefings drawn from ADDD’s practice workshops and sessions.',
-        price: '£1,480',
-        priceSuffix: '/month',
         note: 'Briefings every quarter',
         includesLabel: 'You receive',
         includes: [
@@ -159,8 +168,6 @@ export const techFirmsPage = {
         title: 'Newsletter placement',
         audience: 'Companies with a specific announcement, resource or event for architecture practices.',
         subtitle: 'A placement in ADDDitive, the ADDD newsletter.',
-        price: '£350',
-        priceSuffix: '/issue',
         includes: [],
         button: 'Discuss a partnership',
       },
@@ -168,10 +175,8 @@ export const techFirmsPage = {
         title: 'Event coverage',
         audience: 'Companies running or exhibiting at an event relevant to architecture practices.',
         subtitle: 'ADDD covers your event and produces a LinkedIn carousel from it.',
-        price: '£1,500',
-        priceSuffix: '/day',
         includes: [],
-        conditions: 'An 8–10 minute summary video, with interviews, short quotes and a summary of the carousel, can be added. It is not included in the day rate; its fee is agreed on the call.',
+        conditions: 'An 8–10 minute summary video, with interviews, short quotes and a summary of the carousel, can be added. It is agreed separately on the call.',
         button: 'Discuss a partnership',
       },
     ]),
@@ -184,19 +189,22 @@ export const techFirmsPage = {
   documents: {
     items: keyed('document', [
     {
-      kicker: 'An ongoing presence',
-      lede: 'A year-long sponsorship of ADDD’s workflow content and Technology Blueprint sessions, for companies that want to stay in front of architects and practice leaders over time rather than for a single moment.',
+      folderMeta: 'Price on enquiry',
+      folderKind: 'Story',
+      folderCovers: ['Your story', 'For architects'],
+      kicker: 'Your story, for architects',
+      lede: 'A founder story introduces your company, and the people behind it, to the architects and practice leaders who follow ADDD.',
       body: [
-        '## What it involves',
-        'Your company is named as the sponsor across ADDD’s workflow sessions and Technology Blueprint sessions for twelve months, and takes a slot in the ADDDitive newsletter every month. Within your category, you are the only sponsor.',
-        'Before anything is published, a tracked trial link is agreed and set up, so interest that comes through ADDD’s audience can be followed back to it. Reporting on that link arrives every month.',
-        '## Who it is for',
-        'It suits infrastructure, hardware, licensing, managed service and cloud providers: companies whose products support how practices work, rather than being the subject of ADDD’s editorial coverage. Design-tool vendors are usually better served by a featured workflow episode, which shows a tool inside a real project.',
+        '## How it is shaped',
+        'Like every partnership, it starts with a call: what you want architects to understand about your company, and the format, scope and timing that suit it.',
         '## How it stays independent',
-        'The sponsorship is always disclosed. Sponsors do not preview editorial content, and the sponsorship does not buy inclusion in recommendations, rankings or reviews, or a place in the ADDD Stack.',
+        'Sponsorship is always disclosed. Sponsors do not preview editorial content, and a founder story does not buy inclusion in recommendations, rankings or reviews, or a place in the ADDD Stack.',
       ],
     },
     {
+      folderMeta: 'Price on enquiry',
+      folderKind: 'Content',
+      folderCovers: ['Real project', '8–10 min video'],
       kicker: 'Your technology in real work',
       lede: 'One episode built around a real architectural project or workflow: the people who did the work, how they did it, and where your technology fitted into it.',
       body: [
@@ -210,6 +218,9 @@ export const techFirmsPage = {
       ],
     },
     {
+      folderMeta: 'Price on enquiry',
+      folderKind: 'Intelligence',
+      folderCovers: ['Quarterly', 'Anonymised'],
       kicker: 'What practices are doing',
       lede: 'An ongoing intelligence relationship: every quarter, a briefing on what architecture practices in your category are doing, drawn from ADDD’s workshops and sessions with them.',
       body: [
@@ -222,6 +233,9 @@ export const techFirmsPage = {
       ],
     },
     {
+      folderMeta: 'Price on enquiry',
+      folderKind: 'Placement',
+      folderCovers: ['ADDDitive', 'One issue'],
       kicker: 'One issue, one message',
       lede: 'A placement in ADDDitive, the ADDD newsletter, for a specific announcement, resource or event that is relevant to architecture practices.',
       body: [
@@ -233,6 +247,9 @@ export const techFirmsPage = {
       points: ['A placement in one issue of ADDDitive', 'A clearly marked sponsored slot', 'Linked to your announcement, resource or event'],
     },
     {
+      folderMeta: 'Price on enquiry',
+      folderKind: 'Coverage',
+      folderCovers: ['Your event', 'LinkedIn carousel'],
       kicker: 'Your event, in practice terms',
       lede: 'ADDD attends your event and turns it into content for architecture practices, starting with a LinkedIn carousel built from the day.',
       body: [
@@ -269,6 +286,17 @@ export const techFirmsPage = {
       'Intelligence is anonymised.',
       'Sponsorship does not buy a place in the ADDD Stack.',
     ],
+    // what each step holds on the timeline, each point marked by who does
+    // it (by: you, optional; ADDD when not given), in the steps' order
+    stageItems: keyed('stage', [
+      { items: keyed('point', [{ label: 'Your objective', by: 'you' }, { label: 'Audience fit', by: 'addd' }]) },
+      { items: keyed('point', [{ label: 'Partnership', by: 'addd' }, { label: 'Deliverables', by: 'addd' }, { label: 'Measures', by: 'addd' }]) },
+      { items: keyed('point', [{ label: 'Content', by: 'addd' }, { label: 'Distribution', by: 'addd' }, { label: 'Intelligence briefing', by: 'optional' }]) },
+      { items: keyed('point', [{ label: 'Reporting against the measures', by: 'addd' }]) },
+    ]),
+    keyAddd: 'ADDD',
+    keyYou: 'Your team',
+    keyOptional: 'Optional',
   },
   closingCta: {
     label: 'For technology companies',

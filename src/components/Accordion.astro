@@ -40,6 +40,7 @@ interface Item {
   /** this item's own fields, where it is not from a list (data-page-field) */
   questionField?: string;
   pointsField?: string;
+  answerField?: string;
 }
 interface Props {
   id: string;
@@ -52,17 +53,12 @@ const { id, items, field, variant = "tiles" } = Astro.props;
 ---
 <div data-accordion-init data-accordion-close-siblings="true" class:list={["accordion", { "is--boxed": variant === "boxed", "is--panel": variant === "panel" }]}>
   <ul class="accordion__list" data-page-list={field}>
-    {items.map(({ _key, question, answer, points, mark = "fill", icon, questionField, pointsField }, i) => {
+    {items.map(({ _key, question, answer, points, mark = "fill", icon, questionField, pointsField, answerField }, i) => {
       const answerId = `${id}-answer-${i + 1}`;
       return (
         <li data-accordion-status="not-active" class="accordion__item" data-page-item={field ? _key : undefined}>
           <h3 class="accordion__heading">
             <button type="button" data-accordion-toggle aria-expanded="false" aria-controls={answerId} class="accordion__toggle">
-              {variant === "panel" && (icon ? (
-                <span class="accordion__glyph" aria-hidden="true"><span style={`--glyph:url(/assets/icons/faq/faq-${icon}.svg)`}></span></span>
-              ) : (
-                <span class="accordion__glyph is--n" aria-hidden="true">{i + 1}</span>
-              ))}
               <span class="accordion__q" data-page-item-field={field ? "question" : undefined} data-page-field={questionField}>{question}</span>
               {variant === "panel" ? (
                 <span class="accordion__icon is--plus" aria-hidden="true"></span>
@@ -79,7 +75,7 @@ const { id, items, field, variant = "tiles" } = Astro.props;
                     {points.map((point, j) => <li data-page-field={pointsField ? `${pointsField}.${j}` : undefined}>{point}</li>)}
                   </ul>
                 ) : (
-                  <p class="accordion__text" data-page-item-field={field ? "answer" : undefined}>{answer}</p>
+                  <p class="accordion__text" data-page-item-field={field ? "answer" : undefined} data-page-field={answerField}>{answer}</p>
                 )}
               </div>
             </div>

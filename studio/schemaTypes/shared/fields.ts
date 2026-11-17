@@ -87,6 +87,97 @@ export const stageDetailsField = (description = 'For each stage, in the same ord
     ],
   })
 
+/**
+ * Where a link or button leads: a page of the site (/about), another site
+ * (https://…), an email address (mailto:…) or a telephone number (tel:…).
+ * A link to another site opens in a new tab.
+ */
+export const hrefField = (description = 'A page of the site (/about), another site (https://…), mailto: or tel:.', name = 'href', title = 'Link') =>
+  defineField({
+    name,
+    title,
+    type: 'url',
+    description,
+    validation: (rule) => rule.uri({allowRelative: true, scheme: ['http', 'https', 'mailto', 'tel']}),
+  })
+
+/** A list of text links, each its words and where it leads (the link type, objects/blocks.ts). */
+export const linksField = (name: string, title: string, description?: string) =>
+  defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [defineArrayMember({type: 'link'})],
+  })
+
+/**
+ * The page in the browser's tab and in search results (2026-11-16): its
+ * title and its summary. Every page's first section, folded away.
+ */
+export const seoSection = () =>
+  pageSection('seo', 'Search and sharing', 'The page’s title in the browser’s tab and in search results, and the summary search results show under it.', [
+    defineField({name: 'title', title: 'Title', type: 'string', description: 'About 50–60 characters, e.g. “Contact — ADDD”.'}),
+    defineField({name: 'description', title: 'Summary', type: 'text', rows: 3, description: 'One or two sentences, about 150 characters.'}),
+  ])
+
+/**
+ * What each stage of a timeline holds (StageTimeline.astro, the staircase
+ * on the Workflow Workshop, Technology Blueprint and AEC Tech Partners
+ * pages): for each stage, in the stages' order, its points, each marked by
+ * who does it, ADDD, your team, or optional.
+ */
+export const stageItemsField = (description = 'For each stage, in the same order: the points listed in its box, each marked by who does it.', name = 'stageItems', title = 'What each stage holds') =>
+  defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'object',
+        name: 'timelineStage',
+        title: 'Stage',
+        fields: [
+          defineField({
+            name: 'items',
+            title: 'Points',
+            type: 'array',
+            of: [
+              defineArrayMember({
+                type: 'object',
+                name: 'timelinePoint',
+                title: 'Point',
+                fields: [
+                  defineField({name: 'label', title: 'Point', type: 'string'}),
+                  defineField({
+                    name: 'by',
+                    title: 'Who',
+                    type: 'string',
+                    options: {list: [{title: 'ADDD', value: 'addd'}, {title: 'Your team', value: 'you'}, {title: 'Optional', value: 'optional'}], layout: 'radio', direction: 'horizontal'},
+                    initialValue: 'addd',
+                  }),
+                ],
+                preview: {select: {title: 'label', subtitle: 'by'}},
+              }),
+            ],
+          }),
+        ],
+        preview: {
+          select: {items: 'items'},
+          prepare: ({items}) => ({title: ((items ?? []) as {label?: string}[]).map((i) => i.label).filter(Boolean).join(' · ') || 'Stage'}),
+        },
+      }),
+    ],
+  })
+
+/** The timeline's key under it: the words for who does what */
+export const timelineKeyFields = () => [
+  defineField({name: 'keyAddd', title: 'Key: ADDD', type: 'string', description: 'Under the timeline: what a plain point stands for.'}),
+  defineField({name: 'keyYou', title: 'Key: your team', type: 'string', description: 'What a point marked “Your team” stands for.'}),
+  defineField({name: 'keyOptional', title: 'Key: optional', type: 'string', description: 'What a point marked “Optional” stands for.'}),
+]
+
 /** A list of lines of text (a check-list, the rows of a comparison side). */
 export const linesField = (name: string, title: string, description?: string) =>
   defineField({
@@ -98,13 +189,14 @@ export const linesField = (name: string, title: string, description?: string) =>
   })
 
 /** The hero most content pages open with: the tagline, the heading, the standfirst and two buttons. */
-export const heroSection = (description: string, primary: string, secondary: string) =>
+export const heroSection = (description: string, primary: string, secondary: string, more: ReturnType<typeof defineField>[] = []) =>
   pageSection('hero', 'Opening', description, [
     taglineField(),
     headingField(),
     leadField(),
     buttonField(primary, 'primaryButton', 'First button label'),
     buttonField(secondary, 'secondaryButton', 'Second button label'),
+    ...more,
   ])
 
 /** The heading row most sections open with: a standfirst on the left, a tagline and heading on the right. */

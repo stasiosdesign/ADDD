@@ -7,5 +7,7 @@ declare namespace App {
     sanity: import('@sanity/client').SanityClient;
     /** Whether this request is in draft mode. Only ever true on staging and in development. */
     draftMode: boolean;
+    /** Page documents fetched once per request by id (cachedDocument, src/sanity/content.ts): the Home page, which holds what every page shares, and the Tech Stacks page, whose stacks the navigation draws too. */
+    documents?: Map<string, Promise<Record<string, unknown> | null>>;
   }
 }

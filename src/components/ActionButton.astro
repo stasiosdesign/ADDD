@@ -55,7 +55,7 @@ interface Props {
   /** in the frame's short part in place of the arrow: a stack of layers */
   icon?: "stack";
   /** a small photograph at the start of the frame */
-  photo?: { src: string; position?: string };
+  photo?: { src: string; position?: string; field?: string };
   [attr: string]: unknown;
 }
 
@@ -66,7 +66,7 @@ const pill = shape === "pill";
 ---
 {shape === "frame" ? (
   <Tag href={href} class:list={["action-button", "is--frame", "nav-link", { "is--secondary": !primary, "has--photo": photo }]} {...attrs}>
-    {photo && <span class="action-button__photo" aria-hidden="true"><img src={photo.src} alt="" width="64" height="64" loading="lazy" decoding="async" draggable="false" style={photo.position ? `object-position:${photo.position}` : undefined} /></span>}
+    {photo && <span class="action-button__photo" aria-hidden="true"><img src={photo.src} alt="" width="64" height="64" loading="lazy" decoding="async" draggable="false" style={photo.position ? `object-position:${photo.position}` : undefined} data-page-field={photo.field} data-page-width={photo.field ? "128" : undefined} /></span>}
     <span class="action-button__body"><span class="nav-link__box"><span class="action-button__text nav-link__text"><slot /></span></span></span>
     <span class="action-button__tip" aria-hidden="true">
       {icon === "stack" ? (

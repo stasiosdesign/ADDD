@@ -1,6 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {BillIcon} from '@sanity/icons/Bill'
-import {buttonField, headingField, itemsField, leadField, pageSection, sectionHead, taglineField} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, pageSection, sectionHead, taglineField, seoSection} from '../shared/fields'
 
 /* The Software & Licensing Audit page, one section per part of the page, in
    the order the page shows them (src/pages/software-licensing-audit.astro;
@@ -15,6 +15,7 @@ export const licensingAuditPage = defineType({
   type: 'document',
   icon: BillIcon,
   fields: [
+    seoSection(),
     pageSection('hero', 'Opening', 'The opening: the tagline and headline on the left, the standfirst, its button and the text link beside it on the right.', [
       taglineField(),
       headingField(),

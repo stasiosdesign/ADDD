@@ -3,6 +3,39 @@
    come from the reports in Sanity; while there are none the page keeps the
    six it was built with (REPORT_CARD_DEFAULTS, below), filters included. */
 export const reportsPage = {
+  // the words every report's own page shares (src/pages/reports/[slug].astro)
+  reportPage: {
+    formatDefault: 'Report',
+    freeLabel: 'Free',
+    wasLabel: 'Was',
+    freeButton: 'Get it free',
+    buyButton: 'Buy now',
+    insideLink: 'What’s inside',
+    coversTagline: 'Inside',
+    coversHeading: 'What’s inside',
+    audienceTagline: 'Readers',
+    audienceHeading: 'Who it’s for',
+    getTagline: 'Get it',
+    getHeading: 'Get your copy',
+    includesLabel: 'What you get',
+    formTitle: 'Sign-up form',
+    partnerButton: 'Find out more',
+    relatedTagline: 'Resources',
+    relatedHeading: 'Related reports',
+    relatedText: 'Explore more insight-led content to guide your practice forward',
+    relatedButton: 'View all',
+  },
+  // the reports' archive: what it says while there are none, and the
+  // filters' first and last buttons (the others are the categories)
+  archive: {
+    empty: 'The first reports and guides are on their way.',
+    allLabel: 'View all',
+    resetLabel: 'Clear filters',
+  },
+  seo: {
+    title: 'Reports — ADDD',
+    description: 'Independent ADDD research into how technology actually gets used to make architecture: AI, BIM, software and workflows in architecture practices.',
+  },
   hero: {
     lede: 'Independent research into how technology actually gets used to make architecture: AI, BIM, software and workflows in practice',
     tagline: 'Reports',

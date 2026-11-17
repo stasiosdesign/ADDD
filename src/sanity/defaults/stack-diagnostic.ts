@@ -1,16 +1,75 @@
 import { keyed } from './types';
+import { TECH_STACKS } from '../../data/tech-stacks';
+
+/* The stacks as the page document holds them (stacks.items): each with its
+   key (its id), its stages keyed in order, a stage's logo as a picture
+   the seed uploads, and a locked stage as its name alone (its tool is the
+   ADDD app's, never written here or in the dataset). */
+const STACK_ITEMS = TECH_STACKS.map((stack) => ({
+  _key: stack.id,
+  name: stack.name,
+  short: stack.short,
+  summary: stack.summary,
+  ...(stack.note ? { note: stack.note } : {}),
+  stages: stack.stages.map((stage, i) =>
+    !('tool' in stage)
+      ? { _key: `${stack.id}-${i + 1}`, stage: stage.stage, locked: true }
+      : {
+          _key: `${stack.id}-${i + 1}`,
+          stage: stage.stage,
+          locked: false,
+          tool: stage.tool,
+          does: stage.does,
+          alternatives: stage.alternatives,
+          ...(stage.logo ? { logo: { path: stage.logo, alt: stage.tool } } : {}),
+        },
+  ),
+}));
 
 /* The Stack Diagnostic page's own words (src/pages/stack-diagnostic.astro),
    section by section, as the Stack Diagnostic page document is shaped
    (studio/schemaTypes/pages/stack-diagnostic.ts). */
 export const stackDiagnosticPage = {
+  seo: {
+    title: 'Tech Stacks — ADDD',
+    description: 'A short, focused assessment of the technology your practice actually runs—what each tool is for, who depends on it, and where two tools do the same job.',
+  },
   hero: {
     tagline: 'Resources · Free Tech Stacks',
     heading: 'Free Tech Stacks',
     lede: 'Explore curated combinations of software built for specific architectural workflows.',
     button: 'Access the Free Stack',
+    // where the Free Stack, every stack's way in and its locked stages lead:
+    // the ADDD app's sign-up (the app enforces the access)
+    buttonHref: 'https://app.addd.io/sign-up',
     linkLabel: 'How it works',
     legend: 'Each card is a piece of software. Cards that stand together in one tone are a curated stack, tools chosen to work together on one workflow: open any of them to see the stack.',
+  },
+  // the ten stacks, in the page's order (src/data/tech-stacks.ts)
+  stacks: {
+    items: STACK_ITEMS,
+  },
+  // the words round the stacks: the switch between the views, the list's
+  // blocks and the sheet a stack opens into (stack-sheet.js). In the
+  // sentences, {n} is a number, {stage} "stage" or "stages" to go with
+  // it, and {stack} the stack's name.
+  sheet: {
+    view3d: '3D',
+    viewList: 'List',
+    listCount: '{n} stages · {locked} locked',
+    listOpen: 'Open the stack',
+    kicker: 'Stack · {n} stages',
+    lockedCount: '{n} locked',
+    allOpen: 'All open',
+    locked: 'Locked',
+    lockedLink: 'Access the Free Tech Stack',
+    alternatives: 'Alternatives:',
+    noteLabel: 'Note',
+    unlockTitle: 'Unlock the full stack',
+    unlockText: 'The {n} locked {stage} of {stack}, with each tool, what it does and its alternatives, are in the ADDD app. Sign up, or sign in, to see the whole stack.',
+    openTitle: 'See it in the ADDD app',
+    openText: 'The whole of {stack} is in the ADDD app. Sign up, or sign in, to see it.',
+    button: 'Unlock the full stack',
   },
   fit: {
     lede: 'The Stack Diagnostic suits practices that have accumulated tools faster than they have retired them, and now need one clear picture before deciding anything else.',
@@ -43,7 +102,7 @@ export const stackDiagnosticPage = {
     lede: 'The diagnostic is a starting point, not a commitment. Most practices use it to decide which of these comes next.',
     heading: 'Where it leads',
     tiles: keyed('tile', [
-      { title: 'Workflow Workshop', text: 'Find where the time goes, using a live project as the test case.', linkLabel: 'Explore' },
+      { title: 'Workflow Workshop', text: 'Find where the time goes across the practice, in a half-day session with your team.', linkLabel: 'Explore' },
       { title: 'Technology Blueprint', text: 'Take the findings into a sequenced roadmap across the whole practice.', linkLabel: 'Explore' },
       { title: 'Ongoing Advisory', text: 'Keep an external reference point as the decisions arrive month to month.', linkLabel: 'Explore' },
     ]),

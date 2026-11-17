@@ -4,6 +4,17 @@
    the page keeps the six it was built with (ISSUE_CARD_DEFAULTS, below),
    filters included. */
 export const newsletterPage = {
+  // the issues' archive: what it says while there are none, and the
+  // filters' first and last buttons (the others are the categories)
+  archive: {
+    empty: 'The first issue is on its way.',
+    allLabel: 'All articles',
+    resetLabel: 'Clear filters',
+  },
+  seo: {
+    title: 'Newsletter — ADDD',
+    description: 'ADDDitive, the ADDD newsletter on The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture.',
+  },
   hero: {
     lede: 'The Process of Architecture: the people, process and projects behind how technology actually gets used to make architecture',
     tagline: 'Newsletter',

@@ -35,6 +35,8 @@
   (who it suits across the row). cta: a link at the foot in the site's CTA.
 */
 import ActionButton from "./ActionButton.astro";
+import { reader, siteDocument, SITE_SCOPE } from "../sanity/content";
+import { homePage as HOME } from "../sanity/defaults/home";
 
 interface Props {
   id: string;
@@ -47,18 +49,27 @@ interface Props {
   body?: string[];
   points?: string[];
   pointsLabel?: string;
+  /** the Studio fields of the labels, for the Visual editor */
+  seriesField?: string;
+  summaryLabel?: string;
+  summaryLabelField?: string;
+  pointsLabelField?: string;
   field?: string;
   /** the id of the page's free-call calendar, for a Book a Free Call button at the foot */
   book?: string;
   /** facts set out under the summary, each a label over its value (the AEC
       Tech Partners' partnerships: who it suits, the price, its terms), with
       the Studio field each comes from */
-  facts?: { label: string; value?: string; field?: string }[];
+  facts?: { label: string; value?: string; field?: string; labelField?: string }[];
   /** a link at the paper's foot (the site's CTA): the paper goes back into
       its folder, then the link is followed (folder-docs.js) */
   cta?: { href: string; label: string; field?: string };
 }
-const { id, n, series, title, titleField, kicker, lede, body = [], points = [], pointsLabel = "What you take away", field, book, facts = [], cta } = Astro.props;
+const { id, n, series, title, titleField, kicker, lede, body = [], points = [], pointsLabel = "What you take away", seriesField, summaryLabel = "In short", summaryLabelField, pointsLabelField, field, book, facts = [], cta } = Astro.props;
+// Book a Free Call's words and portrait: the Home page document's Booking
+// section in Sanity (2026-11-16), shared by every page that offers the call
+const site = book ? reader(await siteDocument(Astro.locals), HOME) : undefined;
+const bookPhoto = site?.img("booking.photo", 128);
 const shownFacts = facts.filter((fact) => fact.value);
 const pad = (v: number) => String(v).padStart(2, "0");
 const f = (path: string) => (field ? `${field}.${path}` : undefined);
@@ -74,19 +85,19 @@ const f = (path: string) => (field ? `${field}.${path}` : undefined);
       <!-- what scrolls: the writing, inside the paper -->
       <div class="folder-doc__scroll" tabindex="-1" data-folder-doc-scroll>
         <div class="folder-doc__sheet">
-          <p class="folder-doc__meta"><span>{series}</span><span>N°{pad(n)}</span></p>
+          <p class="folder-doc__meta"><span data-page-field={seriesField}>{series}</span><span>N°{pad(n)}</span></p>
           {kicker && <p class="folder-doc__kicker" data-page-field={f("kicker")}>{kicker}</p>}
           <h2 class="folder-doc__title" id={`${id}-title`} data-page-field={titleField}>{title}</h2>
           {lede && (
             <div class="folder-doc__summary">
-              <p class="folder-doc__label">In short</p>
+              <p class="folder-doc__label" data-page-field={summaryLabelField}>{summaryLabel}</p>
               <p class="folder-doc__lede" data-page-field={f("lede")}>{lede}</p>
             </div>
           )}
           {shownFacts.length > 0 && (
             <dl class="folder-doc__facts">
               {shownFacts.map((fact) => (
-                <div><dt class="folder-doc__label">{fact.label}</dt><dd data-page-field={fact.field}>{fact.value}</dd></div>
+                <div><dt class="folder-doc__label" data-page-field={fact.labelField}>{fact.label}</dt><dd data-page-field={fact.field}>{fact.value}</dd></div>
               ))}
             </dl>
           )}
@@ -99,7 +110,7 @@ const f = (path: string) => (field ? `${field}.${path}` : undefined);
           </div>
           {points.length > 0 && (
             <div class="folder-doc__points">
-              <p class="folder-doc__label">{pointsLabel}</p>
+              <p class="folder-doc__label" data-page-field={pointsLabelField}>{pointsLabel}</p>
               <ul role="list">{points.map((point, i) => <li data-page-field={f(`points.${i}`)}>{point}</li>)}</ul>
             </div>
           )}
@@ -110,7 +121,7 @@ const f = (path: string) => (field ? `${field}.${path}` : undefined);
           )}
           {book && (
             <div class="folder-doc__book">
-              <ActionButton type="button" photo={{ src: "/assets/images/allister-headshot-bw-crop.webp", position: "50% 22%" }} data-folder-book={book} aria-haspopup="dialog" aria-controls={book}>Book a Free Call</ActionButton>
+              <ActionButton type="button" photo={{ src: bookPhoto?.src ?? "", position: "50% 22%", field: "booking.photo" }} data-folder-book={book} aria-haspopup="dialog" aria-controls={book} {...SITE_SCOPE}><span data-page-field="booking.faqLabel">{site?.t("booking.faqLabel")}</span></ActionButton>
             </div>
           )}
         </div>

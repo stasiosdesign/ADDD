@@ -32,10 +32,11 @@
    The pointer: the card under it lifts, smoothly and clearly, and settles
    back when the pointer moves on (fifth pass: back to lifting, not
    sliding out); its neighbours stay where they are. Pressing any card
-   of a stack opens the stack's sheet straight out of its cards, from
-   wherever they stand on the screen (stack-sheet.js: each container grows
-   from its card), with no glide to the middle first; closing sends them
-   back into the row.
+   of a stack opens the stack's sheet out of its cards, from wherever they
+   stand on the screen: they rise out of the row, come to the front and
+   turn into the sheet's containers; closing brings them back and sets
+   them down (stack-sheet.js moves them; rowSource() here is the row's
+   side of it).
 
    The wheel and a finger move through the row on Lenis, the site's own
    smooth scroll (fifth pass): a Lenis of its own on a scroller over the
@@ -67,7 +68,7 @@
    listeners, the loop and the observer go with the page.
    ============================================================ */
 import { motion, registerPageCleanup } from "./page.js";
-import { mountStackSheet } from "./stack-sheet.js";
+import { mountStackSheet, initialsOf } from "./stack-sheet.js";
 
 // the view (fifth pass, 2026-11-04: back to the row's first angle, at the
 // user's word): seen from above at 45° across, the elevation from the
@@ -134,6 +135,14 @@ const LOCK = [
 ];
 
 const ease = (rate, dt) => 1 - Math.exp(-rate * dt);
+// A stack opened (stack-sheet.js flies its cards; rowSource() below): they
+// rise this far out of the row (a share of their height) as they leave it,
+// which is what takes the nearest of them clear of the card in front; less
+// where the screen has little room over them (never less than LIFT_MIN),
+// keeping ROOM_PX over the highest
+const LIFT_OUT = 0.44;
+const LIFT_MIN = 0.2;
+const ROOM_PX = 12;
 const pad2 = (n) => String(n).padStart(2, "0");
 
 // a colour as [r, g, b], and one mixed towards another by t
@@ -144,15 +153,6 @@ const rgbOf = (hex) => {
 };
 const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(",")})`;
 const isDark = ([r, g, b]) => 0.299 * r + 0.587 * g + 0.114 * b < 140;
-
-// a tool's initials, for the square kept for its mark
-export function initialsOf(name) {
-  const words = name.split(/[\s.]+/).filter(Boolean);
-  if (words.length > 1 && !/^tech$/i.test(words[1])) return (words[0][0] + words[1][0]).toUpperCase();
-  const caps = name.slice(1).match(/[A-Z]/);
-  if (caps && /[a-z]/.test(name)) return (name[0] + caps[0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase();
-}
 
 export function initStackSpace(container) {
   container.querySelectorAll("[data-stack-space]").forEach((root) => {
@@ -182,15 +182,20 @@ export function initStackSpace(container) {
     // which is the one it opens. Software stands on its own only where no
     // stack is published (production, for now).
     const data = JSON.parse(dataEl.textContent);
-    const groups = (data.stacks ?? []).map((s, i) => ({ ...s, index: i, read: 0, rgb: rgbOf(s.tone.ground) }));
+    // "Locked" on a locked card: the page document's word (sheet.locked)
+    const LOCKED_WORD = data.words?.locked || "Locked";
+    const groups = (data.stacks ?? []).map((s, i) => ({ ...s, index: i, read: 0, rgb: rgbOf(s.tone.ground), toolCount: s.stages.length }));
     const cards = [];
+    // a card for each of a stack's stages, in its order: an open stage's
+    // tool (its name, its stage as its role), or a locked stage (its name
+    // and a lock; nothing of its tool is on the page)
     groups.forEach((g) => {
       g.a = cards.length;
-      g.preview.forEach((t, k) => cards.push({ kind: "tool", name: t.name, category: t.category, logo: t.logo, group: g, n: k + 1 }));
-      for (let k = g.preview.length; k < g.toolCount; k++) cards.push({ kind: "locked", group: g, n: k + 1 });
+      g.stages.forEach((s, k) => cards.push(s.locked
+        ? { kind: "locked", stage: s.stage, group: g, n: k + 1 }
+        : { kind: "tool", name: s.tool, category: s.stage, logo: s.logo, group: g, n: k + 1 }));
       g.b = cards.length - 1;
     });
-    (data.tools ?? []).forEach((t) => cards.push({ kind: "tool", name: t.name, category: t.category, logo: t.logo, group: null, n: 0 }));
     const N = cards.length;
     if (!N) return;
     root.stackSpace = true;
@@ -200,8 +205,10 @@ export function initStackSpace(container) {
       c.tone = c.group ? c.group.tone : TONE_FREE;
       c.rgb = rgbOf(c.tone.ground);
       c.dark = isDark(c.rgb);
-      // its lift (share of its height)
+      // its lift (share of its height), and how far it is carried off its
+      // place on the screen (px: only while its stack opens or closes)
       c.lift = 0;
+      c.dx = c.dy = 0;
       Object.assign(c, { nameScale: 1, image: null });
     });
     // the marks: drawn on their cards once they have come
@@ -289,6 +296,12 @@ export function initStackSpace(container) {
       const z = lift * ch;
       return [P(-cw / 2, y, ch / 2 + z), P(cw / 2, y, ch / 2 + z), P(cw / 2, y, -ch / 2 + z), P(-cw / 2, y, -ch / 2 + z)];
     }
+    // a card's corners as it is drawn now: where it stands, lifted, and
+    // carried off its place as far as it is
+    function shown(c, s) {
+      const q = corners(s, c.lift);
+      return c.dx || c.dy ? q.map(([x, y]) => [x + c.dx, y + c.dy]) : q;
+    }
     // every place a card shows: its slot less the reading position, wrapped,
     // and once more round either way where that is on the screen too
     function placesOf(c) {
@@ -301,7 +314,7 @@ export function initStackSpace(container) {
       return out;
     }
 
-    // ---- the pointer: which card, tested against its resting shape -----
+    // ---- the pointer: which card is drawn under it ----------------------
     let px = -1;
     let py = -1;
     function inside(q, x, y) {
@@ -314,30 +327,39 @@ export function initStackSpace(container) {
       const b = (ux * qy - uy * qx) / det;
       return a >= 0 && a <= 1 && b >= 0 && b <= 1;
     }
-    function hit(x, y) {
+    // What is drawn at a point: the front-most card (the nearer the
+    // bottom-left, the nearer the eye: draw() paints them back to front by
+    // s) whose quad, as drawn now (at its lift), holds the point, with the
+    // place it stands in. (2026-11-16: until now cards were tested at their
+    // resting shape while drawn lifted, so the strip a lifted card leaves
+    // showed one card and opened another, the cause of a stack opening
+    // that was not the one clicked.)
+    function pick(x, y) {
       if (x < 0) return null;
-      // the card already out, where it is now (so the pointer following it
-      // out keeps it), then front to back: the nearer the bottom-left, the
-      // nearer the eye
-      if (hover) {
-        const near = placesOf(hover).sort((p, q) => Math.abs(p.s) - Math.abs(q.s));
-        for (const p of near) {
-          // in front of it, only the cards nearer the eye could cover it
-          const front = cards.some((c) => c !== hover && placesOf(c).some((o) => o.s < p.s && inside(corners(o.s), x, y)));
-          if (!front && inside(corners(p.s, hover.lift), x, y)) return hover;
-        }
-      }
       let best = null;
-      let bestS = Infinity;
       for (const c of cards) {
+        if (c.away) continue;
         for (const p of placesOf(c)) {
-          if (p.s < bestS && inside(corners(p.s), x, y)) {
-            best = c;
-            bestS = p.s;
-          }
+          if ((!best || p.s < best.s) && inside(shown(c, p.s), x, y)) best = p;
         }
       }
       return best;
+    }
+    // The card the pointer is over, for its lift: what is drawn there,
+    // except that the card already up keeps the pointer over the whole of
+    // its footprint (where it stands and where it is lifted to), unless a
+    // card in front of it is drawn there; so it does not drop as soon as it
+    // rises from under the pointer. A click never uses this: it opens what
+    // is drawn (pick).
+    function hit(x, y) {
+      const top = pick(x, y);
+      if (hover && !hover.away && top?.c !== hover) {
+        for (const p of placesOf(hover)) {
+          const over = inside(corners(p.s, 0), x, y) || inside(corners(p.s, hover.lift), x, y);
+          if (over && (!top || top.s > p.s)) return hover;
+        }
+      }
+      return top?.c ?? null;
     }
     function setHover(c) {
       if (c === hover) return;
@@ -356,91 +378,100 @@ export function initStackSpace(container) {
     // Every face painted once into one atlas, at up to 1.5 pixels to a
     // unit of the card, whenever the cards change size, a mark comes or the
     // fonts come; each frame then places it on its card's plane with one
-    // image drawn. The locked cards share a face for each stack.
+    // image drawn. Each card its own face (a locked card names its stage).
     const atlas = document.createElement("canvas");
     const actx = atlas.getContext("2d");
     const ATLAS_COLS = 6;
     const lockPaths = LOCK.map((d) => new Path2D(d));
+    // a line cut to the room it has, in a context's current font
+    const fit = (x, text, most) => {
+      let s = text;
+      while (s.length > 4 && x.measureText(s).width > most) s = s.slice(0, -2).trimEnd() + "…";
+      return s;
+    };
     function paintFaces() {
       const { cw, ch } = view;
       const k = Math.min(1.5, view.dpr || 1);
       const pad = 2;
       const w = Math.ceil((cw + 2 * pad) * k) + 2;
       const h = Math.ceil((ch + 2 * pad) * k) + 2;
-      const faces = [];
-      const lockedBy = new Map();
-      cards.forEach((c) => {
-        if (c.kind !== "locked") return faces.push(c);
-        // one face for each stack's locked cards (the number aside)
-        const key = c.group.index;
-        if (!lockedBy.has(key)) {
-          const face = { kind: "locked", group: c.group, tone: c.tone, rgb: c.rgb, dark: c.dark };
-          lockedBy.set(key, face);
-          faces.push(face);
-        }
-        c.face = lockedBy.get(key);
-      });
       atlas.width = w * ATLAS_COLS;
-      atlas.height = h * Math.ceil(faces.length / ATLAS_COLS);
+      atlas.height = h * Math.ceil(cards.length / ATLAS_COLS);
       view.face = { k, pad };
-      faces.forEach((f, i) => {
-        f.sx = (i % ATLAS_COLS) * w + 1 + pad * k;
-        f.sy = Math.floor(i / ATLAS_COLS) * h + 1 + pad * k;
-        paintFace(f);
+      cards.forEach((c, i) => {
+        c.sx = (i % ATLAS_COLS) * w + 1 + pad * k;
+        c.sy = Math.floor(i / ATLAS_COLS) * h + 1 + pad * k;
+        actx.setTransform(k, 0, 0, k, c.sx, c.sy);
+        actx.clearRect(-pad - 1, -pad - 1, cw + 2 * pad + 2, ch + 2 * pad + 2);
+        faceGround(actx, c);
+        faceFoot(actx, c);
+        faceTop(actx, c);
       });
     }
-    function paintFace(c) {
+    // A face is painted in three parts, in a context set to the card's own
+    // units with its top-left corner at the origin: its ground (the card
+    // itself), its foot (its number in the stack) and its top (its mark, its
+    // name, its role). The atlas has all three; a card in flight
+    // (rowSource().face()) has its top and its foot as pictures of their
+    // own, over a ground that changes shape under them.
+    const inkOf = (c) => {
+      const rgb = rgbOf(c.tone.ink).join(", ");
+      return (a) => `rgba(${rgb}, ${a})`;
+    };
+    // the ground's own colours, for the atlas and for a card in flight
+    const faceLook = (c) => ({
+      band: mix(c.rgb, c.dark ? [255, 255, 255] : [0, 0, 0], c.dark ? 0.07 : 0.045),
+      line: inkOf(c)(c.dark ? 0.14 : 0.1),
+      edge: c.dark ? "rgba(255, 255, 255, 0.08)" : "rgba(10, 10, 10, 0.1)",
+    });
+    function faceGround(x, c) {
       const { cw, ch } = view;
-      const { k, pad } = view.face;
-      const x = actx;
-      const ink = c.tone.ink;
-      const inkRgb = rgbOf(ink).join(", ");
-      const shade = (a) => `rgba(${inkRgb}, ${a})`;
-      x.setTransform(k, 0, 0, k, c.sx, c.sy);
-      x.clearRect(-pad - 1, -pad - 1, cw + 2 * pad + 2, ch + 2 * pad + 2);
+      const look = faceLook(c);
       const r = cw * RADIUS;
+      const m = cw * FACE_M;
       // the card, a solid block of its stack's colour, a hairline round it
       // where it would otherwise melt into the one behind
       x.save();
       x.beginPath();
       x.roundRect(0, 0, cw, ch, r);
+      // (a locked card is the same white in the row: it says "Locked", and is
+      // greyed only in the sheet, 2026-11-16, at the user's word)
       x.fillStyle = c.tone.ground;
       x.fill();
       x.clip();
-      // the band at its foot: the stack's name on a step of the colour
+      // the band at its foot, a step of the colour, and the hairline over it
       const bandY = ch * (1 - FACE_BAND);
-      x.fillStyle = mix(c.rgb, c.dark ? [255, 255, 255] : [0, 0, 0], c.dark ? 0.07 : 0.045);
+      x.fillStyle = look.band;
       x.fillRect(0, bandY, cw, ch - bandY);
+      x.fillStyle = look.line;
+      x.fillRect(m, bandY - 1, cw - 2 * m, 1);
       x.restore();
       x.beginPath();
       x.roundRect(0.5, 0.5, cw - 1, ch - 1, r);
-      x.strokeStyle = c.dark ? "rgba(255, 255, 255, 0.08)" : "rgba(10, 10, 10, 0.1)";
+      x.strokeStyle = look.edge;
       x.lineWidth = 1;
       x.stroke();
-
+    }
+    // in the band, on the right: its number in the stack (2026-11-16: no
+    // stack name there any more: the card in front covers its left, and the
+    // bracket beside the row names the stack)
+    function faceFoot(x, c) {
+      if (!c.n) return;
+      const { cw, ch } = view;
+      const bandY = ch * (1 - FACE_BAND);
+      x.fillStyle = inkOf(c)(0.5);
+      x.font = `400 ${cw * FACE_SMALL}px ${fonts.mono}`;
+      x.textAlign = "right";
+      x.textBaseline = "middle";
+      x.fillText(`${pad2(c.n)}/${pad2(c.group.toolCount)}`, cw - cw * FACE_M, bandY + (ch - bandY) / 2);
+    }
+    function faceTop(x, c) {
+      const { cw } = view;
+      const shade = inkOf(c);
       const m = cw * FACE_M;
       const l = cw * FACE_LOGO;
       const small = cw * FACE_SMALL;
-      // the hairline over the band
-      x.fillStyle = shade(c.dark ? 0.14 : 0.1);
-      x.fillRect(m, bandY - 1, cw - 2 * m, 1);
-      // in the band, the stack's name, and the card's number in it
-      if (c.group) {
-        x.fillStyle = shade(0.62);
-        x.font = `400 ${small}px ${fonts.mono}`;
-        x.textBaseline = "middle";
-        x.textAlign = "left";
-        x.fillText(c.group.name.toUpperCase(), m, bandY + (ch - bandY) / 2);
-      }
-      // in the band, on the right: its number in the stack (a locked
-      // card's is drawn over its shared face: drawCard)
-      if (c.n) {
-        x.fillStyle = shade(0.5);
-        x.font = `400 ${small}px ${fonts.mono}`;
-        x.textAlign = "right";
-        x.textBaseline = "middle";
-        x.fillText(`${pad2(c.n)}/${pad2(c.group.toolCount)}`, cw - m, bandY + (ch - bandY) / 2);
-      }
+      const nx = m + l + cw * FACE_GAP;
       // the mark's square: the product's own mark on white, or its
       // initials (or the lock) in a quiet square of the card's own ink
       x.beginPath();
@@ -457,22 +488,16 @@ export function initStackSpace(container) {
         x.lineCap = x.lineJoin = "round";
         lockPaths.forEach((p) => x.stroke(p));
         x.restore();
-        // quiet bars where its name and role would be; nothing that says
-        // what it is
-        const nx = m + l + cw * FACE_GAP;
-        x.fillStyle = shade(0.12);
-        x.beginPath();
-        x.roundRect(nx, m + l * 0.12, cw * 0.32, l * 0.26, l * 0.06);
-        x.fill();
-        x.fillStyle = shade(0.07);
-        x.beginPath();
-        x.roundRect(nx, m + l * 0.6, cw * 0.2, l * 0.18, l * 0.05);
-        x.fill();
-        x.fillStyle = shade(0.4);
-        x.font = `400 ${small}px ${fonts.mono}`;
+        // "Locked" where an open card's tool name is, and the stage it
+        // fills where its stage is: the same two lines, the same places
+        x.fillStyle = shade(0.46);
+        x.font = `400 ${cw * FACE_NAME}px ${fonts.display}`;
         x.textAlign = "left";
-        x.textBaseline = "alphabetic";
-        x.fillText("IN THE FULL STACK", m, bandY - m * 0.7);
+        x.textBaseline = "middle";
+        x.fillText(LOCKED_WORD, nx, m + l * 0.34);
+        x.fillStyle = shade(0.52);
+        x.font = `400 ${small}px ${fonts.mono}`;
+        x.fillText(fit(x, c.stage.toUpperCase(), cw - nx - m), nx, m + l * 0.82);
         return;
       }
       if (c.image) {
@@ -499,8 +524,7 @@ export function initStackSpace(container) {
         x.fillText(c.initials, m + l / 2, m + l / 2 + l * 0.02);
       }
       // its name, beside the mark, and its role under the name
-      const nx = m + l + cw * FACE_GAP;
-      x.fillStyle = ink;
+      x.fillStyle = c.tone.ink;
       x.font = `400 ${cw * FACE_NAME * c.nameScale}px ${fonts.display}`;
       x.textAlign = "left";
       x.textBaseline = "middle";
@@ -508,11 +532,7 @@ export function initStackSpace(container) {
       if (c.category) {
         x.fillStyle = shade(0.52);
         x.font = `400 ${small}px ${fonts.mono}`;
-        x.textBaseline = "middle";
-        let role = c.category.toUpperCase();
-        const most = cw - nx - m;
-        while (role.length > 4 && x.measureText(role).width > most) role = role.slice(0, -2) + "…";
-        x.fillText(role, nx, m + l * 0.82);
+        x.fillText(fit(x, c.category.toUpperCase(), cw - nx - m), nx, m + l * 0.82);
       }
     }
     // Each stack's name, for the near end of its bracket: painted once,
@@ -520,14 +540,20 @@ export function initStackSpace(container) {
     // the pointer), and placed with one image each frame.
     const labels = document.createElement("canvas");
     const lctx = labels.getContext("2d");
+    // (2026-11-16: its number small in the mono, then its name as written,
+    // in the display face, rather than all of it in mono capitals)
     function paintLabels() {
       if (!groups.length) return;
       const { dpr, rem } = view;
-      const size = 0.625 * rem;
-      const font = `400 ${size}px ${fonts.mono}`;
+      const size = 0.875 * rem;
+      const small = 0.625 * rem;
+      const name = `400 ${size}px ${fonts.display}`;
+      const num = `400 ${small}px ${fonts.mono}`;
       lctx.setTransform(1, 0, 0, 1, 0, 0);
-      lctx.font = font;
-      const widths = groups.map((g) => lctx.measureText(g.name.toUpperCase()).width);
+      lctx.font = num;
+      const lead = lctx.measureText("00").width + 0.5 * rem;
+      lctx.font = name;
+      const widths = groups.map((g) => lead + lctx.measureText(g.name).width);
       const w = Math.ceil((Math.max(...widths) + 4) * dpr);
       const cell = Math.ceil(size * 1.6 * dpr);
       labels.width = w;
@@ -535,32 +561,24 @@ export function initStackSpace(container) {
       groups.forEach((g, i) => {
         [0.5, 0.92].forEach((a, j) => {
           lctx.setTransform(dpr, 0, 0, dpr, 0, (i * 2 + j) * cell);
-          lctx.font = font;
           lctx.textBaseline = "middle";
+          lctx.font = num;
+          lctx.fillStyle = `rgba(10, 10, 10, ${a * 0.55})`;
+          lctx.fillText(pad2(i + 1), 2, (size * 1.6) / 2 + 0.5);
+          lctx.font = name;
           lctx.fillStyle = `rgba(10, 10, 10, ${a})`;
-          lctx.fillText(g.name.toUpperCase(), 2, (size * 1.6) / 2);
+          lctx.fillText(g.name, 2 + lead, (size * 1.6) / 2);
         });
         g.label = { sy: i * 2 * cell, w: Math.ceil((widths[i] + 4) * dpr), h: cell };
       });
     }
     // a card on the screen: its face from the atlas on its own plane, flat
-    // (fifth pass: no thickness), lifted as far as it is
+    // (fifth pass: no thickness), lifted (and carried) as far as it is
     function drawCard(c, s) {
       const { cw, ch } = view;
-      const q = corners(s, c.lift);
-      const f = c.face ?? c;
       const { k, pad } = view.face;
-      plane(q);
-      ctx.drawImage(atlas, f.sx - pad * k, f.sy - pad * k, (cw + 2 * pad) * k, (ch + 2 * pad) * k, -pad, -pad, cw + 2 * pad, ch + 2 * pad);
-      // a locked card's number, which its shared face leaves out
-      if (c.kind === "locked") {
-        ctx.fillStyle = c.dark ? "rgba(255, 255, 255, 0.45)" : "rgba(10, 10, 10, 0.45)";
-        ctx.font = `400 ${cw * FACE_SMALL}px ${fonts.mono}`;
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-        const m = cw * FACE_M;
-        ctx.fillText(`${pad2(c.n)}/${pad2(c.group.toolCount)}`, cw - m, ch * (1 - FACE_BAND / 2));
-      }
+      plane(shown(c, s));
+      ctx.drawImage(atlas, c.sx - pad * k, c.sy - pad * k, (cw + 2 * pad) * k, (ch + 2 * pad) * k, -pad, -pad, cw + 2 * pad, ch + 2 * pad);
       // a stack not being read, a little faded into the ground
       const veil = c.group ? (1 - c.group.read) * (1 - FADED) : 0;
       if (veil > 0.002) {
@@ -626,7 +644,7 @@ export function initStackSpace(container) {
       for (const c of cards) places.push(...placesOf(c));
       // back to front: the farthest up the row first
       places.sort((p, q) => q.s - p.s);
-      for (const p of places) if (!p.c.group?.hidden) drawCard(p.c, p.s);
+      for (const p of places) if (!p.c.away) drawCard(p.c, p.s);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
@@ -670,7 +688,14 @@ export function initStackSpace(container) {
     // ---- a stack opened ------------------------------------------------
     const sheetEl = root.querySelector("[data-stack-sheet]");
     const sheet = sheetEl ? mountStackSheet(sheetEl, data) : null;
-    function choose(g, from) {
+    // the sheet drawn once, unseen, while the page is idle (stack-sheet.js,
+    // warm()), so the first stack opened moves as smoothly as the rest
+    const idle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1500));
+    idle(() => document.fonts?.ready.then(() => {
+      if (alive && !chosen && groups[0]) sheet?.warm(groups[0], rowSource(groups[0], cards[groups[0].a]));
+    }), { timeout: 3000 });
+    // at: the place pressed (pick()), when a card was pressed
+    function choose(g, from, at) {
       if (!g || chosen || !sheet) return;
       chosen = g;
       // the row (and the list) stay where they are: the sheet comes
@@ -678,60 +703,191 @@ export function initStackSpace(container) {
       rowLenis?.stop();
       listLenis?.stop();
       showInfo(null);
-      say(`${g.name}: ${g.toolCount} tools`);
-      // the card pressed (or, from the keys, the one read), for the sheet
-      // to start from
-      const pressed = hover?.group === g ? hover : cardAt(Math.round(pos));
-      sheet.open(g, release, from ?? rowMorph(g, pressed));
-      // the card under the pointer stays up while its container leaves it
-      stop();
+      say(`${g.name}: ${g.toolCount} stages`);
+      // the card pressed (or, from the keys, the one read), and where it
+      // stands, for the sheet to start from
+      const pressed = at?.c.group === g ? at.c : hover?.group === g ? hover : cardAt(Math.round(pos));
+      sheet.open(g, release, from ?? rowSource(g, pressed, at?.c === pressed ? at.d : null));
     }
-    // What the sheet needs to grow out of the stack's cards and go back into
-    // them (stack-sheet.js): where its head, each tool's container (named,
-    // then locked) and its way in come from, as four corners on the screen
-    // (the head from the stack's middle card, each tool from its own, the
-    // way in from its last), and a way to take the cards out of the row
-    // while their containers are out.
-    function rowMorph(g, pressed) {
+    // The row's side of a stack opening and closing. stack-sheet.js flies
+    // the stack's containers between the cards and the column, each on a
+    // playhead of its own; this is what it flies them from and back to (a
+    // "source": the list has one too, flatSource()). It says where each
+    // card stands and what it looks like, and each frame it is told how far
+    // each card has risen and been carried, and whether its container now
+    // covers it: the row then draws the card there, in its own place among
+    // the others (so the cards in front still cover it as it rises), or
+    // leaves it out. Drawn in the same frame the containers move in, so a
+    // card and its container are never apart.
+    //
+    // Every card of the stack is placed from the one pressed, at the place
+    // it was pressed in: a stack's cards stand in consecutive slots, so each
+    // is that place plus its distance from the pressed one, on the screen
+    // or not. All in the row's own units, so it holds if the window is
+    // resized while the sheet is up.
+    let flying = false;
+    function rowSource(g, pressed, pressedAt) {
+      const mine = cards.filter((c) => c.group === g);
+      const pi = Math.max(0, mine.indexOf(pressed));
+      // Where the pressed card stands NOW (the row is stopped from here on).
+      // Of its places round the loop, the one nearest where it was pressed,
+      // or else the one nearest the middle. (Until 2026-11-16, second fix:
+      // the place recorded at the press itself, and the row can still glide
+      // between the press and the click, so a stack pressed mid-glide flew
+      // from where a neighbouring card had come to stand.)
+      const d0 = wrap(mine[pi].slot - pos);
+      const aim = pressedAt ?? 0;
+      const base = [d0, d0 - N, d0 + N].reduce((a, b) => (Math.abs(b - aim) < Math.abs(a - aim) ? b : a));
+      const sOf = (k) => (base + (k - pi)) * view.sp;
+      // the stage's place in the window; how far the cards rise; the lift
+      // each starts from (under the pointer, some already stand a little up)
+      let left = 0;
+      let top = 0;
+      let out = LIFT_OUT;
+      let from = mine.map(() => 0);
+      let changed = false;
+      const liftOf = (i, rise) => from[i] + (out - from[i]) * rise;
       return {
-        quads() {
+        count: mine.length,
+        origin: pi,
+        // the cards' plane on the screen: a unit across a card, and down it
+        get basis() {
+          return [R2, R2 * view.sinE, 0, view.cosE];
+        },
+        // a flight begins (opening, or closing from the open sheet)
+        begin(opening) {
           const r = stage.getBoundingClientRect();
-          const items = cards.filter((c) => c.group === g).map((c) => {
-            const p = placesOf(c).sort((x, y) => Math.abs(x.s) - Math.abs(y.s))[0];
-            const q = p ? corners(p.s, c.lift) : corners(0);
-            return q.map(([x, y]) => [x + r.left, y + r.top]);
+          left = r.left;
+          top = r.top;
+          // They rise as far as the screen has room over those of them on
+          // it: all by the same, so the stack leaves as one piece.
+          let room = Infinity;
+          mine.forEach((_, k) => {
+            const y = corners(sOf(k), 0)[0][1];
+            if (y > 0 && y < view.h) room = Math.min(room, (y - ROOM_PX) / (view.ch * view.cosE));
           });
-          const mine = cards.filter((c) => c.group === g);
-          const origin = Math.max(0, mine.indexOf(pressed));
-          return { head: items[Math.floor((items.length - 1) / 2)], items, cta: items[items.length - 1], tone: g.tone, origin };
+          out = Math.max(LIFT_MIN, Math.min(LIFT_OUT, room));
+          from = mine.map((c) => (opening ? c.lift : 0));
         },
-        // drawn at once, so the row and the sheet change in the same frame
-        hide(on) {
-          g.hidden = on;
+        // a card's size on its plane, its corner, its colour
+        box(i) {
+          return { w: view.cw, h: view.ch, r: view.cw * RADIUS, ground: mine[i].rgb };
+        },
+        // its top-left corner in the window, risen by a share of its rise
+        at(i, rise) {
+          const [x, y] = corners(sOf(i), liftOf(i, rise))[0];
+          return [x + left, y + top];
+        },
+        // What its container wears as it leaves: the card's own top (its
+        // mark, its name, its role) and its number as pictures, painted as
+        // the atlas's are, and the look of the band at its foot and of its
+        // edge, which the container draws itself, as its ground changes
+        // shape. mark: where the mark's square is on the card.
+        face(i) {
+          const c = mine[i];
+          const { cw, ch } = view;
+          const { k } = view.face;
+          const bandY = ch * (1 - FACE_BAND);
+          const picture = (h, dy, paint) => {
+            const pic = document.createElement("canvas");
+            pic.width = Math.round(cw * k);
+            pic.height = Math.round(h * k);
+            pic.style.width = `${cw}px`;
+            pic.style.height = `${h}px`;
+            const x = pic.getContext("2d");
+            x.setTransform(k, 0, 0, k, 0, -dy * k);
+            paint(x, c);
+            return pic;
+          };
+          const look = faceLook(c);
+          return {
+            top: picture(bandY, 0, faceTop),
+            foot: picture(ch - bandY, bandY, faceFoot),
+            band: { h: ch - bandY, colour: look.band, line: look.line, inset: cw * FACE_M },
+            edge: look.edge,
+            mark: { x: cw * FACE_M, y: cw * FACE_M, size: cw * FACE_LOGO },
+          };
+        },
+        // how far the stack is faded into the ground now (while it is not
+        // yet the one read), and into what
+        veil() {
+          return (1 - g.read) * (1 - FADED);
+        },
+        veilColour: sdGround,
+        // each frame: a card risen and carried this far, or covered by its
+        // container (and so not drawn in the row)
+        hold(i, rise, dx, dy, covered) {
+          const c = mine[i];
+          const lift = liftOf(i, rise);
+          flying = true;
+          if (covered !== Boolean(c.away) || (!covered && (lift !== c.lift || dx !== c.dx || dy !== c.dy))) changed = true;
+          c.away = covered;
+          c.lift = lift;
+          c.dx = dx;
+          c.dy = dy;
+          // once it is out and fully up, it will come back to rest, not to
+          // where the pointer had it
+          if (covered && rise >= 1) from[i] = 0;
+        },
+        // the row drawn, if any of that changed it (or it is moving anyway)
+        commit() {
+          if (changed || running) draw();
+          changed = false;
+        },
+        // the flight over: the sheet open (the cards out of the row), or
+        // closed (back in it, any lift left to settle on its own)
+        end(opened) {
+          flying = false;
+          mine.forEach((c) => {
+            c.away = opened;
+            c.dx = c.dy = 0;
+          });
+          if (!opened && hover?.group === g) hover = null;
           draw();
-        },
-        // the colour its cards stand in now (a little faded, if it was not
-        // the stack read), for its containers to start from and end in
-        colour() {
-          return mix(g.rgb, rgbOf(sdGround), (1 - g.read) * (1 - FADED));
+          wake();
         },
       };
     }
-    // the same from the list: each part of a stack's block (its head, its
-    // rows, its way in) the corners of its own box
-    function flatMorph(button) {
-      const parts = [...button.querySelectorAll("[data-flat-part]")];
-      const quad = (el) => {
-        const b = el.getBoundingClientRect();
-        return [[b.left, b.top], [b.right, b.top], [b.right, b.bottom], [b.left, b.bottom]];
-      };
+    // The same from the list: a stack's block opens out of its stage rows
+    // (the block's head and foot stay where they are; the sheet's title and
+    // way in come up in the column on their own). The rows are flat on the
+    // screen, so there is no rise and no coming to the front: a row is
+    // hidden the moment its container, wearing a copy of it, takes its
+    // place.
+    function flatSource(button) {
+      const rows = [...button.querySelectorAll("[data-flat-part]")].slice(1, -1);
+      const look = getComputedStyle(button);
+      const ground = (look.backgroundColor.match(/[\d.]+/g) ?? [255, 255, 255]).slice(0, 3).map(Number);
+      let rects = [];
       return {
-        quads() {
-          const qs = parts.map(quad);
-          return { head: qs[0], items: qs.slice(1, -1), cta: qs[qs.length - 1], tone: null };
+        count: rows.length,
+        origin: 0,
+        solid: true,
+        basis: [1, 0, 0, 1],
+        begin() {
+          rects = rows.map((row) => row.getBoundingClientRect());
         },
-        hide(on) {
-          button.style.visibility = on ? "hidden" : "";
+        box(i) {
+          return { w: rects[i].width, h: rects[i].height, r: 0, ground };
+        },
+        at(i) {
+          return [rects[i].left, rects[i].top];
+        },
+        face(i) {
+          const top = rows[i].cloneNode(true);
+          top.removeAttribute("data-flat-part");
+          Object.assign(top.style, { width: `${rects[i].width}px`, height: `${rects[i].height}px`, boxSizing: "border-box", color: look.color });
+          for (const name of ["--tone-ink", "--line"]) top.style.setProperty(name, look.getPropertyValue(name));
+          const mark = rows[i].querySelector(".sd-flat__mark")?.getBoundingClientRect();
+          return { top, mark: mark ? { x: mark.left - rects[i].left, y: mark.top - rects[i].top, size: mark.width } : null };
+        },
+        veil: () => 0,
+        hold(i, _rise, _dx, _dy, covered) {
+          rows[i].style.visibility = covered ? "hidden" : "";
+        },
+        commit() {},
+        end(opened) {
+          rows.forEach((row) => (row.style.visibility = opened ? "hidden" : ""));
         },
       };
     }
@@ -814,15 +970,27 @@ export function initStackSpace(container) {
       px = py = -1;
       setHover(null);
     };
-    const onClick = (e) => {
+    // A click opens what was drawn under the pointer when it was pressed:
+    // the row can still be gliding (Lenis) between the press and the
+    // release, and the card then under the pointer is not the one aimed at.
+    // A press that moved (a drag on a touch screen) is tested where it ends.
+    let down = null;
+    const onDown = (e) => {
       if (chosen) return;
       const [x, y] = local(e);
-      const c = hit(x, y);
-      if (c?.group) choose(c.group);
+      down = { at: pick(x, y), x, y };
+    };
+    const onClick = (e) => {
+      const pressed = down;
+      down = null;
+      if (chosen) return;
+      const [x, y] = local(e);
+      const at = pressed && Math.hypot(x - pressed.x, y - pressed.y) < 8 ? pressed.at : pick(x, y);
+      if (at?.c.group) choose(at.c.group, null, at);
     };
     const onFlatGo = (e) => {
       const button = e.currentTarget;
-      choose(groups[Number(button.dataset.flatGo)], flatMorph(button));
+      choose(groups[Number(button.dataset.flatGo)], flatSource(button));
     };
     const onViewSet = (e) => setView(e.currentTarget.dataset.viewSet);
 
@@ -845,7 +1013,7 @@ export function initStackSpace(container) {
       info.classList.toggle("is--shown", Boolean(g));
       if (!g) return;
       infoName.textContent = g.name;
-      infoText.textContent = g.summary || g.workflow || "";
+      infoText.textContent = g.short || g.summary || "";
       // from one stack to the next: its words come in where the last were
       if (was && !reduced) infoBody.animate([{ opacity: 0, transform: "translateY(0.25rem)" }, { opacity: 1, transform: "none" }], { duration: 280, easing: "cubic-bezier(0.2, 0.9, 0.24, 1)" });
     }
@@ -885,7 +1053,7 @@ export function initStackSpace(container) {
       for (const g of groups) {
         const to = g === lead ? 1 : 0;
         if (g.read !== to) {
-          g.read += (to - g.read) * (reduced ? 1 : ease(RATE_READ, dt));
+          g.read += (to - g.read) * (reduced ? 1 : ease(g === chosen ? RATE_READ * 3 : RATE_READ, dt));
           if (Math.abs(to - g.read) < 0.004) g.read = to;
           else moving = true;
         }
@@ -894,6 +1062,8 @@ export function initStackSpace(container) {
       // per card: its lift, up under the pointer, and its stack's others a
       // little up with it, the farther ones a touch behind
       for (const c of cards) {
+        // a chosen stack's cards are the flight's (rowSource().hold())
+        if (chosen && c.group === chosen) continue;
         const kin = hover && c !== hover && hover.group && c.group === hover.group;
         const to = c === hover ? LIFT : kin ? LIFT_KIN : 0;
         const away = kin ? Math.abs(wrap(c.slot - hover.slot)) : 0;
@@ -902,13 +1072,15 @@ export function initStackSpace(container) {
         c.lift = Math.abs(to - nv) < 0.0005 ? to : nv;
         if (c.lift !== to) moving = true;
       }
-      draw();
+      // (a flight draws the row itself, once it has placed its cards:
+      // rowSource().commit())
+      if (!flying) draw();
       // the card now read, said once the row has settled on it
       if (!moving && !chosen) {
         const c = cardAt(Math.round(pos));
         if (c && c !== lastSaid) {
           lastSaid = c;
-          say(c.kind === "locked" ? `A locked tool in ${c.group.name}` : `${c.name}${c.group ? `, in ${c.group.name}` : ""}`);
+          say(c.kind === "locked" ? `${c.stage}, a locked stage in ${c.group.name}` : `${c.name}, ${c.category}${c.group ? `, in ${c.group.name}` : ""}`);
         }
       }
       if (!moving) stop();
@@ -947,9 +1119,62 @@ export function initStackSpace(container) {
     stage.addEventListener("keydown", onKey);
     stage.addEventListener("pointermove", onMove);
     stage.addEventListener("pointerleave", onLeave);
+    stage.addEventListener("pointerdown", onDown);
     stage.addEventListener("click", onClick);
     flatGoes.forEach((b) => b.addEventListener("click", onFlatGo));
     viewButtons.forEach((b) => b.addEventListener("click", onViewSet));
+
+    // For tests in development only (never in a build): what is drawn at a
+    // point, found from a redraw of the row in flat colours, one to a stack,
+    // in draw()'s own order and shapes (independent of pick()); and the
+    // cards' state, to catch any left out of the row or lifted.
+    if (import.meta.env.DEV) {
+      const buf = document.createElement("canvas");
+      root.__sd = {
+        drawn(x, y) {
+          buf.width = Math.max(1, Math.round(view.w));
+          buf.height = Math.max(1, Math.round(view.h));
+          const b = buf.getContext("2d", { willReadFrequently: true });
+          const places = [];
+          for (const c of cards) if (!c.away) places.push(...placesOf(c));
+          places.sort((p, q) => q.s - p.s);
+          for (const p of places) {
+            const [tl, tr, , bl] = shown(p.c, p.s);
+            b.setTransform((tr[0] - tl[0]) / view.cw, (tr[1] - tl[1]) / view.cw, (bl[0] - tl[0]) / view.ch, (bl[1] - tl[1]) / view.ch, tl[0], tl[1]);
+            b.fillStyle = `rgb(${(p.c.group?.index ?? -1) + 1}, 0, 0)`;
+            b.fill(view.cardPath);
+          }
+          const [r, , , a] = b.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+          return { stack: r ? groups[r - 1].name : null, edge: a > 0 && a < 255 };
+        },
+        // a stack's k-th card as drawn now: its four corners on the page
+        // (at the place nearest the middle), and whether it is out of the row
+        // (near: a point on the page, for the place nearest it rather than
+        // the one nearest the middle)
+        card(name, k, near) {
+          const c = cards.filter((x) => x.group?.name === name)[k];
+          const r = stage.getBoundingClientRect();
+          const far = (p) => {
+            if (!near) return Math.abs(p.s);
+            const [x, y] = shown(c, p.s)[0];
+            return Math.hypot(x + r.left - near[0], y + r.top - near[1]);
+          };
+          const p = c && placesOf(c).sort((a, b) => far(a) - far(b))[0];
+          if (!p) return null;
+          return { away: Boolean(c.away), q: shown(c, p.s).map(([x, y]) => [x + r.left, y + r.top]) };
+        },
+        state() {
+          return {
+            chosen: chosen?.name ?? null,
+            away: cards.filter((c) => c.away).length,
+            flying,
+            carried: cards.filter((c) => c.dx || c.dy).length,
+            lifted: cards.filter((c) => c.lift > 0.001 && !(hover && (c === hover || c.group === hover.group))).length,
+            pos,
+          };
+        },
+      };
+    }
 
     registerPageCleanup(() => {
       alive = false;
@@ -963,6 +1188,7 @@ export function initStackSpace(container) {
       stage.removeEventListener("keydown", onKey);
       stage.removeEventListener("pointermove", onMove);
       stage.removeEventListener("pointerleave", onLeave);
+      stage.removeEventListener("pointerdown", onDown);
       stage.removeEventListener("click", onClick);
       flatGoes.forEach((b) => b.removeEventListener("click", onFlatGo));
       viewButtons.forEach((b) => b.removeEventListener("click", onViewSet));

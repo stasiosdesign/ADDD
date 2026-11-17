@@ -1,0 +1,223 @@
+/* TEMPORARY (2026-11-16): the Backend and integrations page at /backend (see
+   platforms.ts). Its own styles, scoped to .arch and the diagram's .dg
+   classes, in the site's colours and its one typeface (Parabolica; no
+   second face, at the user's word).
+
+   Layout (second pass, after a portfolio the user pointed to): a column on
+   the left held on screen with a tab for every section, all of them shown,
+   the one being read in a soft pill with a red dot; the sections on the
+   right, each a title, a line, a diagram on a pale panel and a note or two.
+
+   A diagram is a plane scaled to the column as one piece: every size on it
+   is in its units (--u, the panel's width over the plane's), so it keeps
+   its proportions at any width. */
+
+/* the scroll is Lenis's (backend.astro), as on the site */
+
+.arch {
+  --ink: #0a0a0a;
+  --quiet: rgba(10, 10, 10, 0.56);
+  --faint: rgba(10, 10, 10, 0.08);
+  --side: #f3f3f1;
+  --page: #ffffff;
+  --panel: #f6f6f4;
+  --red: #c40000;
+  --side-w: 17rem;
+  margin: 0;
+  display: grid;
+  grid-template-columns: var(--side-w) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--ink);
+  font-family: "parabolica", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+.arch *, .arch *::before, .arch *::after { box-sizing: border-box; }
+:where(.arch) :where(h1, h2, p, ul, ol) { margin: 0; padding: 0; list-style: none; }
+
+/* ---------- the tabs ---------- */
+.arch__side {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 2.5rem 1.75rem;
+  background: var(--side);
+}
+.arch__brand { display: inline-flex; align-items: center; gap: 0.625rem; color: var(--ink); text-decoration: none; font-size: 1.125rem; letter-spacing: -0.01em; }
+.arch__brand img { width: 1.75rem; height: 1.75rem; }
+.arch__tabs { margin-top: 28vh; }
+.arch__tabs ol { display: flex; flex-direction: column; gap: 0.25rem; }
+.arch__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 1rem 0.5rem 0.875rem;
+  border-radius: 999px;
+  color: var(--quiet);
+  font-size: 0.9375rem;
+  line-height: 1.2;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.arch__dot { width: 0.375rem; height: 0.375rem; flex: none; border-radius: 50%; background: rgba(10, 10, 10, 0.28); transition: background-color 0.3s ease, transform 0.3s ease; }
+.arch__tab:hover { color: var(--ink); }
+.arch__tab.is--active { background: rgba(10, 10, 10, 0.06); color: var(--ink); }
+.arch__tab.is--active .arch__dot { background: var(--red); transform: scale(1.15); }
+.arch__tab:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+/* A group opens onto its sections, numbered, under its tab (third pass,
+   at the user's word): open while one of its sections is being read, its
+   list drawn down from nothing (a grid row from 0fr to 1fr), the others
+   closed. */
+.arch__groups { display: flex; flex-direction: column; gap: 0.375rem; }
+.arch__subs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.5s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.arch__group.is--open .arch__subs { grid-template-rows: 1fr; }
+.arch__subs > ol {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-left: 1.375rem;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.arch__group.is--open .arch__subs > ol { padding-top: 0.25rem; padding-bottom: 0.5rem; opacity: 1; transition-delay: 0.08s; }
+.arch__sub {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  padding: 0.375rem 0.875rem 0.375rem 0.75rem;
+  border-radius: 999px;
+  color: var(--quiet);
+  font-size: 0.875rem;
+  line-height: 1.25;
+  text-decoration: none;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.arch__sub-n { min-width: 0.75em; font-size: 0.75rem; font-variant-numeric: tabular-nums; color: rgba(10, 10, 10, 0.4); }
+.arch__sub:hover { color: var(--ink); }
+.arch__sub.is--active { color: var(--ink); background: rgba(10, 10, 10, 0.045); }
+.arch__sub:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* the line over a section's title: its group and its number in it */
+.arch__crumb { display: flex; gap: 0.5rem; font-size: 0.9375rem; color: var(--quiet); }
+
+/* ---------- the sections ---------- */
+.arch__main { padding: 0 clamp(2rem, 6vw, 6rem) 30vh; min-width: 0; }
+.arch__section { max-width: 68rem; padding: 7rem 0 2rem; scroll-margin-top: 0; }
+.arch__section.is--intro { min-height: 78vh; display: flex; flex-direction: column; justify-content: center; padding-top: 4rem; }
+.arch__head { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+.arch__title { font-weight: 400; font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.04; letter-spacing: -0.035em; max-width: 18em; }
+.is--intro .arch__title { font-size: clamp(2.75rem, 5.2vw, 4.75rem); max-width: 12em; }
+.arch__lede { max-width: 34em; font-size: 1.1875rem; line-height: 1.45; color: var(--quiet); }
+
+.arch__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+  padding: 0.3125rem 0.75rem 0.3125rem 0.625rem;
+  border-radius: 999px;
+  background: var(--panel);
+  font-size: 0.8125rem;
+  line-height: 1.1;
+  color: var(--ink);
+}
+.arch__status::before { content: ""; width: 0.375rem; height: 0.375rem; border-radius: 50%; background: rgba(10, 10, 10, 0.4); }
+.arch__status.is--confirmed::before { background: #1f8f4e; }
+.arch__status.is--proposed::before { background: var(--red); }
+
+.arch__key { display: flex; flex-wrap: wrap; gap: 1rem 2.25rem; margin-top: 3rem; font-size: 0.9375rem; color: var(--quiet); }
+.arch__key li { display: flex; align-items: center; gap: 0.75rem; }
+.arch__key-line { width: 2.25rem; border-top: 1.5px solid rgba(10, 10, 10, 0.45); }
+.arch__key-line.is--dashed { border-top-style: dashed; }
+
+/* a screenshot, framed as the panels are */
+.arch__shot { margin: 2.75rem 0 0; overflow: hidden; border-radius: 1.25rem; background: var(--panel); box-shadow: 0 0 0 1px var(--faint); }
+.arch__shot img { display: block; width: 100%; height: auto; }
+.arch__shot + .arch__panel { margin-top: 1.25rem; }
+.arch__panel { margin-top: 2.75rem; padding: clamp(1.5rem, 3.5vw, 3rem); border-radius: 1.25rem; background: var(--panel); }
+.arch__notes { display: flex; flex-direction: column; gap: 0.625rem; margin-top: 1.5rem; max-width: 46em; font-size: 0.9375rem; line-height: 1.5; color: var(--quiet); }
+.arch__notes li { position: relative; padding-left: 1.25rem; }
+.arch__notes li::before { content: ""; position: absolute; left: 0.125rem; top: 0.6em; width: 0.3125rem; height: 0.3125rem; border-radius: 50%; background: rgba(10, 10, 10, 0.3); }
+
+/* coming in once, gently (only with the script running) */
+.has--js .arch__section > * { opacity: 0; translate: 0 14px; transition: opacity 0.7s ease, translate 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.has--js .arch__section.is--in > * { opacity: 1; translate: none; }
+.has--js .arch__section.is--in > :nth-child(2) { transition-delay: 0.08s; }
+.has--js .arch__section.is--in > :nth-child(3) { transition-delay: 0.16s; }
+@media (prefers-reduced-motion: reduce) {
+  .has--js .arch__section > * { opacity: 1; translate: none; transition: none; }
+}
+
+/* ---------- a diagram (Diagram.astro), in its plane's units ---------- */
+.dg { position: relative; width: 100%; container-type: inline-size; }
+.dg__plane { position: absolute; inset: 0; --u: calc(100cqw / var(--w)); font-size: calc(14 * var(--u)); }
+.dg__lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; color: rgba(10, 10, 10, 0.38); }
+.dg__edge { fill: none; stroke: currentColor; stroke-width: 1.25; vector-effect: non-scaling-stroke; }
+.dg__edge.is--dashed { stroke-dasharray: 5 5; }
+
+.dg__node { position: absolute; display: flex; }
+.dg__body { display: flex; flex-direction: column; gap: calc(4 * var(--u)); min-width: 0; }
+.dg__name { font-size: calc(17 * var(--u)); line-height: 1.18; letter-spacing: -0.01em; }
+.dg__text { font-size: calc(13.5 * var(--u)); line-height: 1.3; color: var(--quiet); }
+
+/* a card: its mark beside its name */
+.dg__node.is--card {
+  align-items: center;
+  gap: calc(14 * var(--u));
+  padding: 0 calc(18 * var(--u));
+  border-radius: calc(12 * var(--u));
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--faint), 0 calc(2 * var(--u)) calc(6 * var(--u)) rgba(10, 10, 10, 0.04);
+}
+.dg__logo { display: flex; flex: none; width: calc(34 * var(--u)); height: calc(34 * var(--u)); }
+.dg__logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.dg__logo.is--fallback::before { content: attr(data-initial); display: grid; place-items: center; width: 100%; height: 100%; border-radius: calc(8 * var(--u)); background: var(--ink); color: #fff; font-size: calc(16 * var(--u)); }
+
+/* a step: its number in a small round, its words at its foot */
+.dg__node.is--step {
+  flex-direction: column;
+  justify-content: space-between;
+  padding: calc(12 * var(--u)) calc(14 * var(--u));
+  border-radius: calc(12 * var(--u));
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--faint);
+}
+.dg__n { display: grid; place-items: center; width: calc(22 * var(--u)); height: calc(22 * var(--u)); border-radius: 50%; background: var(--panel); font-size: calc(12 * var(--u)); color: var(--ink); }
+.dg__node.is--step .dg__name { font-size: calc(14.5 * var(--u)); }
+
+.dg__node.is--muted { background: transparent; box-shadow: none; outline: 1px dashed rgba(10, 10, 10, 0.2); outline-offset: -1px; }
+.dg__node.is--muted .dg__name { color: var(--quiet); }
+.dg__node.is--muted .dg__logo { opacity: 0.6; }
+
+/* a frame round others, its title on its top edge */
+.dg__node.is--frame { border: 1px dashed rgba(10, 10, 10, 0.2); border-radius: calc(16 * var(--u)); }
+.dg__node.is--frame .dg__body { position: absolute; top: 0; left: calc(20 * var(--u)); translate: 0 -50%; padding: 0 calc(8 * var(--u)); background: var(--panel); }
+.dg__node.is--frame .dg__name { font-size: calc(13 * var(--u)); color: var(--quiet); }
+
+/* a column's heading */
+.dg__node.is--label { align-items: flex-end; }
+.dg__node.is--label .dg__name { font-size: calc(13 * var(--u)); color: var(--quiet); }
+
+/* an outcome */
+.dg__node.is--pill { align-items: center; justify-content: center; border-radius: 999px; background: var(--ink); }
+.dg__node.is--pill .dg__name { font-size: calc(14 * var(--u)); color: #fff; }
+
+.dg__edge-label {
+  position: absolute;
+  translate: -50% calc(-100% - 7 * var(--u));
+  font-size: calc(12.5 * var(--u));
+  white-space: nowrap;
+  color: var(--quiet);
+}
+.dg__edge-label.is--down { translate: calc(12 * var(--u)) -50%; }
+
+/* ---------- narrow screens: the sections alone ---------- */
+@media (max-width: 860px) {
+  .arch { grid-template-columns: minmax(0, 1fr); }
+  .arch__side { display: none; }
+  .arch__main { padding: 0 1.25rem 20vh; }
+  .arch__section { padding-top: 4.5rem; }
+}

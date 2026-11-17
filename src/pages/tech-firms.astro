@@ -7,7 +7,7 @@ import ServiceTabs from "../components/ServiceTabs.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
 import FolderDocument from "../components/FolderDocument.astro";
 import type { Folder } from "../components/DeckFolder.astro";
-import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
+import StageTimeline, { type Stage, type StageItem } from "../components/StageTimeline.astro";
 import { pageDocument, reader } from "../sanity/content";
 import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 
@@ -27,11 +27,13 @@ import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 // page's blue, with measurement and independence under it on the ink. The
 // three pinned objective cards that followed Why ADDD are gone (they said
 // again what Ways to Work says). Styles: pages.css, "AEC Tech Partners".
-const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
+const { t, list, lines, items } = reader(await pageDocument(Astro.locals.sanity, "techFirmsPage"), D);
 
 type Offer = { _key: string; title?: string; audience?: string; subtitle?: string; price?: string; priceSuffix?: string; note?: string; includesLabel?: string; includes?: string[]; conditions?: string; button?: string };
 
-const whyTiles = list<{ _key: string; number?: string; title?: string; text?: string }>("why.tiles");
+// each card with its photograph (why.tiles.N.image in Sanity since
+// 2026-11-16, else the one it was built with)
+const whyTiles = items("why.tiles").map((tile) => ({ number: tile.t("number"), title: tile.t("title"), text: tile.t("text"), photo: tile.img("image", 1200) }));
 const formatSteps = list<{ _key: string; label?: string; title?: string; text?: string }>("example.steps");
 const processTiles = list<{ _key: string; number?: string; title?: string; text?: string }>("process.tiles");
 const offers = list<Offer>("options.cards");
@@ -43,21 +45,26 @@ const statements = lines("services.statements");
 // site's own files (as the homepage's problem cards take theirs): a
 // practice's team round a model (insight from practice work), a talk on
 // real projects (content about real work), and an audience (distribution)
-const WHY_PHOTOS = [
-  { src: "/assets/images/team-model-review.webp", width: 450, height: 268 },
-  { src: "/assets/images/allister-keynote-stage-crop.webp", width: 600, height: 400 },
-  { src: "/assets/images/conference-keynote-crop.webp", width: 640, height: 478 },
-];
+
 
 // The process on the Workshop's timeline (StageTimeline.astro): each step
 // a phase of its own across the top, named by the Studio's phases, its box
 // in its own phase, opening to its line
+// what each step holds, in its own words (its text; not in the Studio
+// yet, as the site is detached), for the staircase (2026-11-16), and its
+// phase (the Studio's phases) beside its title
+// (process.stageItems in Sanity since 2026-11-16)
+const PROCESS_ITEMS: StageItem[][] = items("process.stageItems").map((stage) =>
+  stage.list<{ _key: string; label?: string; by?: StageItem["by"] }>("items").map((item) => ({ label: item.label ?? "", by: item.by || "addd" })),
+);
 const processStages: Stage[] = processTiles.map((step, i) => ({
   title: step.title,
+  when: lines("process.phases")[i],
   text: step.text,
+  items: PROCESS_ITEMS[i],
   start: i,
   span: 1,
-  fields: { title: `process.tiles.${i}.title`, text: `process.tiles.${i}.text` },
+  fields: { title: `process.tiles.${i}.title`, when: `process.phases.${i}`, text: `process.tiles.${i}.text` },
 }));
 const processScale = processTiles.map((_, i) => ({ label: lines("process.phases")[i] ?? "", field: `process.phases.${i}` }));
 
@@ -72,32 +79,37 @@ const partnerships = [
   ...offers.map((o, i) => ({ ...o, field: `options.cards.${i}` })),
   ...placements.map((o, i) => ({ ...o, field: `more.cards.${i}` })),
 ];
-const documents = list<{ _key: string; kicker?: string; lede?: string; body?: string[]; points?: string[] }>("documents.items");
-const FOLDER_PARTS = [
-  { covers: ["12 months", "Category exclusive"], kind: "Sponsorship" },
-  { covers: ["Real project", "8–10 min video"], kind: "Content" },
-  { covers: ["Quarterly", "Anonymised"], kind: "Intelligence" },
-  { covers: ["ADDDitive", "One issue"], kind: "Placement" },
-  { covers: ["Your event", "LinkedIn carousel"], kind: "Coverage" },
-];
+// (since 2026-11-16 each folder's format, sheet and pill are its paper's
+// in Sanity, documents.items.N.folderMeta, folderCovers and folderKind,
+// and the label's word and the way on the Partnership options section's)
+const papers = items("documents.items");
+const documents = papers.map((paper) => ({ kicker: paper.t("kicker"), lede: paper.t("lede"), body: paper.lines("body"), points: paper.lines("points") }));
 const pad = (n: number) => String(n).padStart(2, "0");
+const folderLabel = t("options.folderLabel");
 const folders: Folder[] = partnerships.map((offer, i) => ({
   n: i + 1,
-  label: `Partnership N°${pad(i + 1)}`,
-  meta: [offer.price, offer.priceSuffix].filter(Boolean).join(" "),
+  label: `${folderLabel} N°${pad(i + 1)}`,
+  labelWord: folderLabel,
+  labelField: "options.folderLabel",
+  meta: papers[i]?.t("folderMeta"),
+  metaField: `documents.items.${i}.folderMeta`,
   title: offer.title,
   text: offer.subtitle,
   titleField: `${offer.field}.title`,
   textField: `${offer.field}.subtitle`,
-  ...FOLDER_PARTS[i],
-  go: "Open folder",
+  covers: papers[i]?.lines("folderCovers") ?? [],
+  coversField: `documents.items.${i}.folderCovers`,
+  kind: papers[i]?.t("folderKind"),
+  kindField: `documents.items.${i}.folderKind`,
+  go: t("options.folderGo"),
+  goField: "options.folderGo",
   action: `Open ${offer.title || "the folder"}`,
   opens: `partner-folder-${i + 1}`,
 }));
 ---
 <BaseLayout
-  title="AEC Tech Partners — ADDD"
-  description="Partnerships for technology companies: channel sponsorship, featured workflow episodes and practice intelligence that help architects understand where your technology fits."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="AEC Tech Partners"
   doc={{ id: "techFirmsPage" }}
 >
@@ -155,7 +167,7 @@ const folders: Folder[] = partnerships.map((offer, i) => ({
         <ProblemCard title={item.title} text={item.text} titleField={`why.tiles.${i}.title`} textField={`why.tiles.${i}.text`}>
           <span class="tf-why__num" data-page-field={`why.tiles.${i}.number`}>{item.number}</span>
           <div class="problem-card__frame">
-            <img class="problem-card__image" src={WHY_PHOTOS[i % WHY_PHOTOS.length].src} width={WHY_PHOTOS[i % WHY_PHOTOS.length].width} height={WHY_PHOTOS[i % WHY_PHOTOS.length].height} alt="" loading="lazy" decoding="async" draggable="false">
+            <img class="problem-card__image" src={item.photo.src} width={item.photo.width} height={item.photo.height} alt="" loading="lazy" decoding="async" draggable="false" data-page-field={`why.tiles.${i}.image`} data-page-width="1200">
           </div>
         </ProblemCard>
         ))}
@@ -216,27 +228,32 @@ const folders: Folder[] = partnerships.map((offer, i) => ({
     heading={t("options.heading")}
     headingField="options.heading"
     aside={t("options.tagline")}
+    asideField="options.tagline"
     folders={folders}
   />
   {partnerships.map((offer, i) => (
   <FolderDocument
     id={`partner-folder-${i + 1}`}
     n={i + 1}
-    series="ADDD :: AEC Tech Partners"
+    series={t("options.series")}
+    seriesField="options.series"
+    summaryLabel={t("options.summaryLabel")}
+    summaryLabelField="options.summaryLabel"
     title={offer.title}
     titleField={`${offer.field}.title`}
     kicker={documents[i]?.kicker}
     lede={documents[i]?.lede}
     body={documents[i]?.body}
     points={documents[i]?.points?.length ? documents[i]?.points : offer.includes}
-    pointsLabel={offer.includesLabel || "You receive"}
+    pointsLabel={offer.includesLabel || t("options.pointsLabel")}
+    pointsLabelField={offer.includesLabel ? `${offer.field}.includesLabel` : "options.pointsLabel"}
     field={`documents.items.${i}`}
     facts={[
-      { label: "Best suited to", value: offer.audience, field: `${offer.field}.audience` },
-      { label: "Price", value: [offer.price, offer.priceSuffix].filter(Boolean).join(" "), field: `${offer.field}.price` },
-      { label: "Terms", value: [offer.note, offer.conditions].filter(Boolean).join(". "), field: `${offer.field}.conditions` },
+      { label: t("options.audienceLabel"), labelField: "options.audienceLabel", value: offer.audience, field: `${offer.field}.audience` },
+      { label: t("options.pricingLabel"), labelField: "options.pricingLabel", value: t("options.pricingValue"), field: "options.pricingValue" },
+      { label: t("options.termsLabel"), labelField: "options.termsLabel", value: [offer.note, offer.conditions].filter(Boolean).join(". "), field: `${offer.field}.conditions` },
     ]}
-    cta={{ href: enquire(offer.title), label: offer.button || "Discuss a partnership", field: `${offer.field}.button` }}
+    cta={{ href: enquire(offer.title), label: offer.button || t("options.ctaLabel"), field: offer.button ? `${offer.field}.button` : "options.ctaLabel" }}
   />
   ))}
 
@@ -257,7 +274,8 @@ const folders: Folder[] = partnerships.map((offer, i) => ({
       </div>
 
       <div class="tf-process__run">
-        <StageTimeline id="partner-stages" stages={processStages} scale={processScale} dark />
+        <StageTimeline id="partner-stages" stages={processStages} scale={processScale} dark itemsField="process.stageItems" keyField="process"
+          keyLabels={{ addd: t("process.keyAddd"), you: t("process.keyYou"), optional: t("process.keyOptional") }} />
       </div>
 
       <div class="tf-terms">

@@ -106,6 +106,11 @@ export default defineConfig({
       // The Vercel deploy hook for `main`: /api/publish calls it after every
       // live publish, so the static production site is rebuilt. Secret.
       VERCEL_DEPLOY_HOOK_URL: envField.string({ context: "server", access: "secret", optional: true }),
+      // the newsletter from beehiiv (src/newsletter/beehiiv.ts): the API
+      // (paid plans), or the publication's RSS feed (every plan)
+      BEEHIIV_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      BEEHIIV_PUBLICATION_ID: envField.string({ context: "server", access: "secret", optional: true }),
+      BEEHIIV_RSS_URL: envField.string({ context: "server", access: "secret", optional: true }),
     },
   },
 

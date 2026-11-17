@@ -4,4 +4,4 @@
 // stream of the practice's subjects, its question and its four services,
 // repeated along every row in the label face.
 export const FIELD_TEXT =
-  "Technology strategy for architecture practices·Workflows·BIM·Software·Data·AI·Infrastructure·Better software decisions·Workflow Workshop·Before Revit·Technology Blueprint·Ongoing Advisory·Independent research";
+  "Technology strategy for architecture practices·Workflows·BIM·Software·Data·AI·Infrastructure·Better software decisions·Workflow Workshop·Early Stage Design·Technology Blueprint·Ongoing Advisory·Independent research";

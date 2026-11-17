@@ -20,7 +20,7 @@
   turned to the ink. Styles: styles.css (".logos.is--light"). On the
   Technology Blueprint, after its opening's statement.
 */
-import { pageDocument, reader, type Doc } from "../sanity/content";
+import { collection, pageDocument, reader, type Doc } from "../sanity/content";
 import { homePage } from "../sanity/defaults/home";
 import { CLIENTS } from "../sanity/defaults/clients";
 import { hasImage, imageAttrs } from "../sanity/image";
@@ -30,7 +30,7 @@ import { CLIENT_LOGOS_QUERY } from "../sanity/queries";
 const { sanity } = Astro.locals;
 const [home, clients] = await Promise.all([
   pageDocument(sanity, "homePage"),
-  sanity.fetch<{ _id: string; name: string; logo?: unknown }[]>(CLIENT_LOGOS_QUERY),
+  collection<{ _id: string; name: string; logo?: unknown }>(sanity, CLIENT_LOGOS_QUERY),
 ]);
 const { t } = reader(home, homePage as Doc);
 
@@ -49,7 +49,7 @@ const srcOf = (src: string) => (src.startsWith("/") || src.startsWith("http") ? 
 <section class="logos is--light" data-page-doc="homePage" data-page-type="homePage">
   <span class="logos__dots dot-grid band-field" aria-hidden="true"></span>
   <div class="logos__field">
-    <h2 class="h4 logos__title" data-page-field="logos.title">{t("logos.title")}</h2>
+    <h2 class="h4 logos__title" data-split="heading" data-page-field="logos.title">{t("logos.title")}</h2>
     <div class="logo-wall-wrap">
       <ul class="logo-wall" role="list" data-logo-wall-cycle-init data-logo-wall-shuffle="false" data-logo-wall-list data-dot-snap=".logos__dots" data-dot-lift=".logos__dots">
         {logos.map((logo) => (

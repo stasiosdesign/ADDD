@@ -64,4 +64,10 @@ export const config: VercelConfig = {
     // (BaseLayout.astro's robots meta; src/middleware.ts on staging).
     ...(preview ? [{ source: '/(.*)', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }] : []),
   ],
+  // The newsletter (2026-11-16): the production site rebuilt once a day
+  // (api/beehiiv.js), besides beehiiv's webhook, so a missed one (or a
+  // plan read through RSS, without webhooks) still reaches the site within
+  // a day. Vercel runs crons on production only; the Hobby plan allows one
+  // a day, at some point in its hour.
+  crons: [{ path: '/api/beehiiv', schedule: '0 6 * * *' }],
 };

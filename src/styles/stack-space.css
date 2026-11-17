@@ -43,6 +43,14 @@
   scrollbar-width: none;
 }
 .sd__scroll::-webkit-scrollbar { display: none; }
+/* Stopped while a stack is open (stack-space.js), the row's scroller and
+   the list keep where they are. Lenis's own sheet clips a stopped
+   scroller (.lenis.lenis-stopped { overflow: clip }), which sets it back
+   to its top: the row jumped to its first stack under the stack flying
+   out of it, by as far as it had been scrolled (2026-11-16, the cause of
+   "it animates from another stack"). Hidden keeps the place. */
+.sd__scroll.lenis.lenis-stopped,
+.sd-flat.lenis.lenis-stopped { overflow: hidden; }
 .sd__scroll-room { width: 1px; }
 /* the list shown: the row faded out, and asleep (stack-space.js) */
 .sd[data-view="flat"] .sd__stage { opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0s 0.3s; }
@@ -63,7 +71,7 @@
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: min(4.75rem, 11svh);
+  font-size: min(4.25rem, 10svh);
   line-height: 0.95;
   letter-spacing: calc(var(--primary-tracking) - 0.04em);
 }
@@ -78,21 +86,28 @@
   color: color-mix(in srgb, var(--sd-ink) 72%, transparent);
   text-wrap: balance;
 }
-/* the switch: two small keys in one tray, the one showing filled in the ink */
+/* the switch: two square keys in one tray, the one showing filled in the
+   ink (2026-11-16: square, in the site's own small corners, as its buttons
+   are; it was a pill) */
 .sd__views {
   display: inline-flex;
   gap: 0.125rem;
   margin-top: 1.625rem;
   padding: 0.1875rem;
-  border-radius: 999px;
-  background: rgba(10, 10, 10, 0.07);
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: var(--radius);
+  background: rgba(10, 10, 10, 0.05);
   pointer-events: auto;
 }
 .sd__view {
-  min-width: 3.5rem;
-  padding: 0.5rem 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3.25rem;
+  height: 2rem;
+  padding: 0 0.75rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
@@ -108,6 +123,9 @@
 }
 .sd__view[aria-pressed="true"] { background: var(--sd-ink); color: var(--c-white); }
 .sd__view:focus-visible { outline: 1px solid var(--sd-ink); outline-offset: 2px; }
+@media (hover: hover) {
+  .sd__view[aria-pressed="false"]:hover { background: rgba(10, 10, 10, 0.06); }
+}
 
 /* the Free Stack: the bottom-right corner, the grid's margin in from the
    side and the foot */
@@ -128,7 +146,7 @@
   position: absolute;
   right: 0;
   bottom: calc(100% + 1.75rem);
-  width: 18.5rem;
+  width: 16.5rem;
   padding-top: 0.875rem;
   border-top: 1px solid rgba(10, 10, 10, 0.16);
   pointer-events: none;
@@ -144,11 +162,16 @@
 .sd__info-name {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   line-height: 1.2;
+  text-wrap: balance;
   letter-spacing: calc(var(--primary-tracking) - 0.02em);
 }
 .sd__info-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
   margin: 0.375rem 0 0;
   font-size: 0.875rem;
   line-height: 1.45;
@@ -179,7 +202,9 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  padding: calc(var(--nav-h) + min(5rem, 9svh)) var(--grid-margin) 7rem calc(var(--grid-margin) + 3rem + min(25rem, 28vw));
+  /* its left edge clear of the title: "Free Tech Stacks" is about seven
+     of its own ems wide (2026-11-16: it ran into the first column) */
+  padding: calc(var(--nav-h) + min(5rem, 9svh)) var(--grid-margin) 7rem calc(var(--grid-margin) + 3rem + 7 * min(4.25rem, 10svh) + 2rem);
   opacity: 0;
   translate: 0 0.75rem;
   transition: opacity 0.35s ease, translate 0.5s var(--sd-ease);
@@ -271,7 +296,8 @@
 .sd-flat__mark.is--lock svg { width: 0.9375rem; height: 0.9375rem; }
 .sd-flat__tool-name { grid-area: name; font-size: 0.9375rem; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sd-flat__role { grid-area: role; margin-top: 0.1875rem; color: color-mix(in srgb, var(--tone-ink) 52%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.sd-flat__tool.is--locked { grid-template-areas: "mark name"; }
+.sd-flat__tool.is--locked { background: color-mix(in srgb, var(--tone-ink) 4%, transparent); }
+.sd-flat__tool.is--locked .sd-flat__role { color: color-mix(in srgb, var(--tone-ink) 62%, transparent); }
 .sd-flat__bar {
   grid-area: name;
   display: block;
@@ -312,6 +338,10 @@
    The containers are the cards' own: light surfaces parted by tone and a
    soft shadow, no outlines, the cards' small corner. The close button
    stands outside the column, beside its right edge, level with its top.
+
+   While a stack opens or closes (stack-sheet.js, "The flight") the
+   containers themselves stay as they are at rest, out of sight: what
+   flies is a stand-in for each, over them (.sd-sheet__flight).
    ------------------------------------------------------------ */
 .sd-sheet {
   --sheet-top: max(5.5rem, 12svh);
@@ -332,6 +362,9 @@
   color: var(--c-text);
 }
 .sd-sheet::backdrop { background: transparent; }
+/* the sheet drawn once, unseen, after the page has come (stack-sheet.js,
+   warm()): there, but all but invisible, and nothing in it can be touched */
+.sd-sheet.is--warming { opacity: 0.02; pointer-events: none; }
 .sd-sheet__scrim {
   position: fixed;
   inset: 0;
@@ -339,16 +372,14 @@
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-/* the column's place: the window's height (it scrolls up to the window's
-   top, under nothing), its first container a little under the nav */
+/* the column's place: the whole window (2026-11-16: it was the column's
+   own width, which cut off a card flying in from the screen's edge), the
+   column in its middle, its first container a little under the nav */
 .sd-sheet__frame {
+  /* (2026-11-16, at the user's word: a little longer, 40rem before) */
+  --sheet-w: min(44rem, 100vw - 2 * var(--grid-margin));
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  width: min(40rem, 100% - 2 * var(--grid-margin));
-  margin: 0 auto;
+  inset: 0;
   pointer-events: none;
 }
 .sd-sheet__scroll {
@@ -362,16 +393,23 @@
   pointer-events: auto;
 }
 .sd-sheet__scroll::-webkit-scrollbar { display: none; }
+/* the column is held where it is while the sheet closes */
+.sd-sheet.is--leaving .sd-sheet__scroll { overflow: hidden; }
 .sd-sheet__column {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  width: var(--sheet-w);
+  margin: 0 auto;
   padding: var(--sheet-top) 0 3rem;
+  /* the flying containers' order among themselves (stack-sheet.js) */
+  isolation: isolate;
 }
 .sd-sheet__close {
   position: absolute;
+  z-index: 1;
   top: var(--sheet-top);
-  left: calc(100% + 0.75rem);
+  left: calc(50% + var(--sheet-w) / 2 + 0.75rem);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,12 +431,64 @@
 }
 .sd-sheet__close:focus-visible { outline: 1px solid var(--c-white); outline-offset: 2px; }
 
+/* --k: how much of its shadow is under it (stack-sheet.js: none while its
+   stand-in is on its way, all of it by the time it is there) */
 .sd-sheet__card {
+  --k: 1;
+  position: relative;
   padding: 1.5rem 1.75rem;
   border-radius: var(--sheet-radius);
   background: var(--sheet-card);
-  box-shadow: var(--sheet-shadow);
 }
+.sd-sheet__card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow: 0 1px 2px rgb(20 20 16 / calc(0.06 * var(--k))), 0 0.75rem 2rem -0.75rem rgb(20 20 16 / calc(0.22 * var(--k)));
+  pointer-events: none;
+}
+.sd-sheet__card.is--locked::before,
+.sd-sheet__card.is--note::before { box-shadow: 0 1px 2px rgb(20 20 16 / calc(0.05 * var(--k))); }
+/* a container whose stand-in is in the air: only its shadow is there
+   (whatever its kind: over the kinds' own grounds, further down) */
+.sd-sheet__column > .sd-sheet__card.is--away { background: transparent; }
+.sd-sheet__card.is--away > * { visibility: hidden; }
+
+/* The flight (stack-sheet.js): over the column, the whole window, a
+   stand-in for each container, moved from its top-left corner. A stage's
+   is a surface, the card's shape turning into the container's (its size,
+   corner and colour set each frame), and in it a copy of the container's
+   words, kept at their own width and cut off by the surface's edge, under
+   what the surface wears as a card: the card's own top (its mark, its
+   name, its role: a picture from the row, or a copy of the list's row),
+   the band at its foot with its hairline and its number, the hairline
+   round it, and, while its stack is not yet the one read, the row's veil.
+   No stand-in has a shadow: the shadows are the containers' own. */
+.sd-sheet__flight { position: fixed; inset: 0; overflow: hidden; pointer-events: none; isolation: isolate; }
+/* the stages' stand-ins together, over the others */
+.sd-sheet__deck { position: absolute; inset: 0; isolation: isolate; }
+.sd-sheet__fly { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; }
+.sd-sheet__fly .sd-sheet__card::before { content: none; }
+.sd-sheet__fly-surface { position: relative; overflow: hidden; }
+.sd-sheet__flight .sd-sheet__fly-surface > .sd-sheet__card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  background: transparent;
+  will-change: opacity;
+}
+.sd-sheet__face { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform, opacity; }
+.sd-sheet__band { position: absolute; left: 0; right: 0; bottom: 0; }
+.sd-sheet__band i { position: absolute; top: -1px; height: 1px; }
+.sd-sheet__band canvas { position: absolute; right: 0; top: 0; }
+.sd-sheet__edge,
+.sd-sheet__veil { position: absolute; inset: 0; border-radius: inherit; }
+.sd-sheet__edge { z-index: 2; }
+.sd-sheet__veil { z-index: 3; }
 /* the title: the stack's name large, what it is and what it is for */
 /* (fourth pass, 2026-11-04: in the stack's own colour, as its cards are) */
 .sd-sheet__card.is--head {
@@ -419,12 +509,15 @@
 }
 .sd-sheet__badge { color: var(--c-red); }
 .sd-sheet__title {
+  max-width: 30rem;
   margin: 0;
   font-family: var(--font-display);
   font-weight: var(--fw-heading-bold);
-  font-size: 2.75rem;
-  line-height: 1;
+  font-size: 2.25rem;
+  line-height: 1.05;
   letter-spacing: calc(var(--primary-tracking) - 0.03em);
+  text-wrap: balance;
+  hyphens: manual;
 }
 .sd-sheet__workflow {
   margin: 1rem 0 0;
@@ -435,16 +528,20 @@
   color: color-mix(in srgb, currentColor 58%, transparent);
 }
 .sd-sheet__summary {
-  max-width: 30rem;
-  margin: 0.5rem 0 0;
+  max-width: 31rem;
+  margin: 1rem 0 0;
   font-family: var(--font-display);
-  font-size: 1.25rem;
-  line-height: 1.3;
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: color-mix(in srgb, currentColor 78%, transparent);
+  text-wrap: pretty;
   letter-spacing: calc(var(--primary-tracking) - 0.01em);
 }
-/* a tool: its mark, its name and its role in the workflow, its number in
-   the stack; what it does under them */
-.sd-sheet__tool-head { display: flex; align-items: center; gap: 0.875rem; }
+/* A stage's container (2026-11-16, simpler): its mark, then its stage over
+   its tool's name, its number at the right; what the tool does and its
+   alternatives under them in the same column as the name, so the words of
+   every container start on one line down the column. */
+.sd-sheet__tool-head { display: flex; align-items: center; gap: 1rem; }
 .sd-sheet__mark {
   flex: none;
   display: grid;
@@ -452,22 +549,25 @@
   width: 2.5rem;
   height: 2.5rem;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: var(--radius);
   background: rgba(10, 10, 10, 0.06);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 500;
+  letter-spacing: 0.02em;
   color: rgba(10, 10, 10, 0.6);
 }
-.sd-sheet__mark img { width: 100%; height: 100%; object-fit: contain; }
+.sd-sheet__mark.is--logo { background: #ffffff; box-shadow: inset 0 0 0 1px rgba(10, 10, 10, 0.08); }
+.sd-sheet__mark img { width: 68%; height: 68%; object-fit: contain; }
 .sd-sheet__names { flex: 1; min-width: 0; }
 .sd-sheet__name { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; line-height: 1.15; }
 .sd-sheet__role {
-  margin: 0.25rem 0 0;
+  margin: 0 0 0.25rem;
   font-family: var(--font-mono);
   font-size: 0.625rem;
   letter-spacing: var(--label-tracking);
   text-transform: uppercase;
+  line-height: 1.3;
   color: rgba(10, 10, 10, 0.5);
 }
 .sd-sheet__n {
@@ -478,25 +578,75 @@
   letter-spacing: var(--label-tracking);
   color: rgba(10, 10, 10, 0.4);
 }
+/* under the name, in its column (the mark's width and the gap in) */
+.sd-sheet__desc,
+.sd-sheet__alt { max-width: 30rem; margin-left: 3.5rem; }
 .sd-sheet__desc {
-  max-width: 32rem;
-  margin: 1rem 0 0;
-  font-size: var(--t-rg);
-  line-height: 1.45;
+  margin-top: 0.875rem;
+  margin-bottom: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
   color: rgba(10, 10, 10, 0.72);
 }
-/* a tool held back: the lock where its mark would be, its words veiled
-   (bars, softened: nothing of it is on the page), the container a step
-   back from the named tools' */
-.sd-sheet__card.is--locked { background: #efefec; box-shadow: 0 1px 2px rgba(20, 20, 16, 0.05); }
-.sd-sheet__mark.is--lock { background: rgba(10, 10, 10, 0.05); color: rgba(10, 10, 10, 0.5); }
+/* its alternatives: one quiet line */
+.sd-sheet__alt {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  color: rgba(10, 10, 10, 0.48);
+}
+/* A locked stage: a step darker than the open ones (the container, its
+   mark, its words), the lock where its mark would be, its stage, and
+   "Locked" with the way in beside it as a link, underlined, the line
+   running off and back in under the pointer. */
+.sd-sheet__card.is--locked { background: #e6e6e2; }
+.sd-sheet__card.is--locked .sd-sheet__role { color: rgba(10, 10, 10, 0.58); }
+.sd-sheet__mark.is--lock { background: rgba(10, 10, 10, 0.08); color: rgba(10, 10, 10, 0.55); }
 .sd-sheet__mark.is--lock svg { width: 1.125rem; height: 1.125rem; }
-.sd-sheet__veil { flex: 1; display: flex; flex-direction: column; gap: 0.4rem; filter: blur(1.5px); }
-.sd-sheet__veil.is--text { margin-top: 1.1rem; }
-.sd-sheet__bar { display: block; width: 62%; height: 0.55rem; border-radius: 2px; background: rgba(10, 10, 10, 0.1); }
-.sd-sheet__veil.is--text .sd-sheet__bar { width: 92%; height: 0.45rem; background: rgba(10, 10, 10, 0.07); }
-.sd-sheet__bar.is--short { width: 34%; }
-.sd-sheet__veil.is--text .sd-sheet__bar.is--short { width: 48%; }
+.sd-sheet__locked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.35;
+}
+.sd-sheet__locked-word { font-family: var(--font-display); font-size: 1.125rem; color: rgba(10, 10, 10, 0.5); }
+.sd-sheet__locked-link {
+  position: relative;
+  color: var(--c-text);
+  text-decoration: none;
+  /* the underline: a line of its own, so it can run off and back */
+  background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat;
+  padding-bottom: 0.125rem;
+}
+@media (hover: hover) {
+  .sd-sheet__locked-link:hover { animation: sd-underline 0.6s cubic-bezier(0.65, 0, 0.35, 1); }
+}
+.sd-sheet__locked-link:focus-visible { outline: 1px solid var(--c-text); outline-offset: 0.2em; }
+@keyframes sd-underline {
+  0% { background-size: 100% 1px; background-position: 100% 100%; }
+  45% { background-size: 0% 1px; background-position: 100% 100%; }
+  46% { background-size: 0% 1px; background-position: 0 100%; }
+  100% { background-size: 100% 1px; background-position: 0 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sd-sheet__locked-link:hover { animation: none; text-decoration: underline; text-decoration-thickness: 2px; }
+}
+.sd-sheet__note-label {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1.9;
+  color: rgba(10, 10, 10, 0.45);
+}
+/* the stack's note, where it has one: quieter than a stage */
+.sd-sheet__card.is--note { background: #efefec; }
+.sd-sheet__note-label { margin: 0 0 0.5rem; }
+.sd-sheet__note { max-width: 32rem; margin: 0; font-size: 0.9375rem; line-height: 1.5; color: rgba(10, 10, 10, 0.72); }
 /* the way in: the app, where the whole stack is */
 .sd-sheet__card.is--cta { padding: 1.75rem; background: #fdfdfc; }
 .sd-sheet__cta-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.5rem; line-height: 1.15; }
@@ -504,27 +654,28 @@
 
 /* a tablet: the list under the title, the full width */
 @media screen and (max-width: 991px) {
-  .sd-flat { padding-left: var(--grid-margin); padding-top: calc(var(--nav-h) + min(5rem, 9svh) + 9rem); }
+  /* under the title, its line and the switch (2026-11-16: it ran under them) */
+  .sd-flat { padding-left: var(--grid-margin); padding-top: calc(var(--nav-h) + min(5rem, 9svh) + 14rem); }
 }
 /* a phone: the title smaller; the Free Stack along the foot; the sheet's
    close button over the column's corner */
 @media screen and (max-width: 767px) {
   .sd__head { left: var(--grid-margin); top: calc(var(--nav-h) + 1.5rem); }
-  .sd__title { font-size: 2.75rem; }
+  .sd__title { font-size: 2.5rem; }
   .sd__lede { max-width: 19rem; margin-top: 0.75rem; font-size: var(--t-sm); }
   .sd__views { margin-top: 1rem; }
-  .sd-flat { padding-top: calc(var(--nav-h) + 9rem); padding-bottom: 6rem; }
+  .sd-flat { padding-top: calc(var(--nav-h) + 12rem); padding-bottom: 6rem; }
   .sd__cta { left: var(--grid-margin); right: var(--grid-margin); }
   .sd__cta .action-button { width: 100%; }
   .sd__info { display: none; }
   .sd-sheet { --sheet-top: calc(var(--nav-h) + 1.5rem); }
-  .sd-sheet__frame { width: calc(100% - 2 * var(--grid-margin)); }
-  .sd-sheet__close { left: auto; right: 0.5rem; top: calc(var(--sheet-top) + 0.5rem); z-index: 1; }
+  .sd-sheet__close { left: auto; right: calc(var(--grid-margin) + 0.5rem); top: calc(var(--sheet-top) + 0.5rem); }
   .sd-sheet__card { padding: 1.25rem; }
+  .sd-sheet__desc, .sd-sheet__alt { margin-left: 0; }
   .sd-sheet__card.is--head { padding: 1.5rem 1.25rem; }
   .sd-sheet__card.is--head .sd-sheet__kicker { padding-right: 2.75rem; }
-  .sd-sheet__title { font-size: 2rem; }
-  .sd-sheet__summary { font-size: 1.0625rem; }
+  .sd-sheet__title { font-size: 1.75rem; }
+  .sd-sheet__summary { font-size: 1rem; }
   .sd-sheet__cta-title { font-size: 1.25rem; }
   .sd-sheet__card.is--cta .action-button { width: 100%; }
 }

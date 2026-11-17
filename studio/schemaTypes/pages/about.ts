@@ -1,6 +1,6 @@
 import {defineType} from 'sanity'
 import {UserIcon} from '@sanity/icons/User'
-import {buttonField, headingField, imageField, itemsField, leadField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
+import {buttonField, headingField, hrefField, imageField, itemsField, leadField, pageSection, sectionHead, taglineField, textField, seoSection} from '../shared/fields'
 
 /* The About page, one section per part of the page, in the order the page
    shows them (src/pages/about.astro; the page's own words in
@@ -12,17 +12,22 @@ export const aboutPage = defineType({
   type: 'document',
   icon: UserIcon,
   fields: [
+    seoSection(),
     pageSection('hero', 'Opening', 'The opening: the headline on the left, the paragraph and its two buttons on the right.', [
       headingField('The headline.'),
       leadField('The paragraph beside the headline.'),
-      buttonField('Links to the Contact page.', 'primaryButton', 'First button label'),
-      buttonField('Links to the Technology Blueprint page.', 'secondaryButton', 'Second button label'),
+      buttonField('Where it leads: First button link.', 'primaryButton', 'First button label'),
+      hrefField('Where the first button leads.', 'primaryHref', 'First button link'),
+      buttonField('Where it leads: Second button link.', 'secondaryButton', 'Second button label'),
+      hrefField('Where the second button leads.', 'secondaryHref', 'Second button link'),
     ]),
     pageSection('foundation', 'Foundation', 'The tagline, the statement under it and the two buttons beneath.', [
       taglineField(),
       leadField('The statement.', 'statement', 'Statement', 4),
-      buttonField('Links to the Workflow Workshop page.', 'primaryButton', 'First button label'),
-      buttonField('Links to the Reports page.', 'secondaryButton', 'Second button label'),
+      buttonField('Where it leads: First button link.', 'primaryButton', 'First button label'),
+      hrefField('Where the first button leads.', 'primaryHref', 'First button link'),
+      buttonField('Where it leads: Second button link.', 'secondaryButton', 'Second button label'),
+      hrefField('Where the second button leads.', 'secondaryHref', 'Second button link'),
     ]),
     pageSection('perspective', 'Perspective', 'The heading row and the three cards under it. Where each card’s link leads stays in the code.', [
       ...sectionHead('The standfirst on the left.'),
@@ -34,7 +39,8 @@ export const aboutPage = defineType({
       imageField('The first of the two pictures.', 'image1', 'Picture 1'),
       imageField('The second of the two pictures.', 'image2', 'Picture 2'),
       textField('The paragraph.'),
-      buttonField('Links to the Reports page.'),
+      buttonField('Where it leads: Button link.'),
+      hrefField('Where the button leads.', 'buttonHref', 'Button link'),
     ]),
   ],
   preview: {prepare: () => ({title: 'About page'})},

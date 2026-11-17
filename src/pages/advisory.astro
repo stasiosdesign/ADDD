@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import BookCallDialog from "../components/BookCallDialog.astro";
 import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
@@ -31,7 +32,7 @@ import { advisoryPage as D } from "../sanity/defaults/advisory";
 // the quote the site's testimonials (which open on it); the questions on
 // the light ground the other pages' are on. Styles: pages.css, "Ongoing
 // Advisory".
-const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "advisoryPage"), D);
+const { t, list, lines, items } = reader(await pageDocument(Astro.locals.sanity, "advisoryPage"), D);
 
 const structureTiles = list<{ _key: string; title?: string; text?: string }>("structure.tiles");
 const impactTiles = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string }>("impact.tiles");
@@ -57,39 +58,32 @@ const THEME_PHOTOS = [
   { src: "/assets/images/allister-gesture-close-landscape.webp", position: "50% 40%" },
   { src: "/assets/images/allister-podium-full-landscape.webp", position: "40% 35%" },
 ];
-const themePhoto = (i: number) => THEME_PHOTOS[i % THEME_PHOTOS.length];
-// How it Works (2026-11-05, after the user's reference): four panels in a
-// bento, each with a small drawing of its own, the ADDD mark where they meet
+// (since 2026-11-16 the photographs are the Themes section's, themes.photos
+// in Sanity, taking turns down the list; a photograph set there is framed
+// by its hotspot, the page's own by the place set here)
+const PHOTOS = items("themes.photos").map((p, i) => {
+  const picture = p.img("image", 1600);
+  const spot = (p.block.image as { hotspot?: { x?: number; y?: number } } | undefined)?.hotspot;
+  const position = spot?.x != null && spot?.y != null ? `${Math.round(spot.x * 100)}% ${Math.round(spot.y * 100)}%` : THEME_PHOTOS[i % THEME_PHOTOS.length].position;
+  return { src: picture.src, position };
+});
+const themePhoto = (i: number) => PHOTOS[i % Math.max(1, PHOTOS.length)] ?? THEME_PHOTOS[0];
+// the bento's small drawings: their words (structure.* in Sanity)
+const chips = items("structure.chips").map((c) => [c.t("name"), Boolean(c.block.on)] as [string, boolean]);
+const chipRows: [string, boolean][][] = [chips.slice(0, Math.ceil(chips.length / 2)), chips.slice(Math.ceil(chips.length / 2))];
+// How it Works (2026-11-05, after the user's reference; tidied 2026-11-16):
+// four panels two by two, each its words at the top and a small drawing of
+// its own along its foot
 const BENTO = ["sessions", "guidance", "tools", "membership"] as const;
 // the first panel's chips: themes that come round, those in session dark
-const CHIP_ROWS: [string, boolean][][] = [
-  [["Strategy", false], ["AI", false], ["Workflows", false], ["BIM", true], ["Licensing", false], ["Security", false], ["Costs", false]],
-  [["Hardware", false], ["Software", false], ["Automation", true], ["Integration", false], ["Leadership", false], ["Productivity", false], ["Infrastructure", false]],
-];
-// the dial: ticks on an arc about the panel's bottom-left corner (the mark),
-// in the svg's own units, its foot the panel's foot; every fourth longer
-const DIAL = (() => {
-  const O = [-14, 274];
-  const R = 270;
-  const ticks: [number, number, number, number, boolean][] = [];
-  for (let k = 0, a = 3; a <= 56; a += 2.2, k++) {
-    const r = (a * Math.PI) / 180;
-    const major = k % 4 === 0;
-    const r2 = R + (major ? 18 : 11);
-    ticks.push([+(O[0] + R * Math.cos(r)).toFixed(1), +(O[1] - R * Math.sin(r)).toFixed(1), +(O[0] + r2 * Math.cos(r)).toFixed(1), +(O[1] - r2 * Math.sin(r)).toFixed(1), major]);
-  }
-  const n = (26 * Math.PI) / 180;
-  const tip: [number, number] = [+(O[0] + 150 * Math.cos(n)).toFixed(1), +(O[1] - 150 * Math.sin(n)).toFixed(1)];
-  return { O, ticks, tip };
-})();
 
 // a booking or enquiry button: the free call's calendar (BookCallDialog.astro,
 // "book-call"), as Book a Call opens it (2026-11-05)
 const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
-  title="Ongoing Advisory — ADDD"
-  description="Ongoing Advisory is strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="Ongoing Advisory"
   doc={{ id: "advisoryPage" }}
 >
@@ -116,9 +110,9 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
     statementField="statement.statement"
     marks={false}
     words={{
-      frame: "Monthly session",
-      platform: "Digital priorities",
-      tags: ["AI", "BIM", "Software", "Workflows"],
+      frame: t("hero.figureFrame"),
+      platform: t("hero.figurePlatform"),
+      tags: lines("hero.figureTags"),
     }}
   >
     <Fragment slot="actions">
@@ -149,7 +143,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
           <!-- a month's themes coming round: two rows of chips, the ones
                in session dark, running out past the panel's sides -->
           <div class="adv-chips" aria-hidden="true">
-            {CHIP_ROWS.map((row) => (
+            {chipRows.map((row) => (
             <div class="adv-chips__row">
               {row.map(([name, on]) => <span class:list={["adv-chip", { "is--on": on }]}>{name}</span>)}
             </div>
@@ -159,26 +153,27 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
           )}
 
           {BENTO[i] === "guidance" && (<Fragment>
-          <!-- a dial turning about the ADDD mark at the panel's corner, its
-               needle out to the channel that stays open between sessions -->
-          <svg class="adv-dial" viewBox="0 0 400 260" preserveAspectRatio="xMinYMax meet" aria-hidden="true">
-            {DIAL.ticks.map(([x1, y1, x2, y2, major]) => <line class:list={["adv-dial__tick", { "is--major": major }]} x1={x1} y1={y1} x2={x2} y2={y2} />)}
-            <line class="adv-dial__needle" x1={DIAL.O[0]} y1={DIAL.O[1]} x2={DIAL.tip[0]} y2={DIAL.tip[1]} />
-            <circle class="adv-dial__dot" cx={DIAL.tip[0]} cy={DIAL.tip[1]} r="4.5" />
-            <text class="adv-dial__label" x={DIAL.tip[0] + 12} y={DIAL.tip[1] - 24}>Between sessions</text>
-            <text class="adv-dial__value" x={DIAL.tip[0] + 12} y={DIAL.tip[1] + 6}>Shared channel</text>
-          </svg>
+          <!-- from one session to the next along a dotted line, the
+               questions answered in the shared channel between them -->
+          <div class="adv-between" aria-hidden="true">
+            <div class="adv-between__row">
+              <span class="adv-between__end" data-page-field="structure.sessionLabel">{t("structure.sessionLabel")}</span>
+              <span class="adv-between__line"><i></i><i></i><i></i></span>
+              <span class="adv-between__end" data-page-field="structure.sessionLabel">{t("structure.sessionLabel")}</span>
+            </div>
+            <span class="adv-between__label" data-page-field="structure.channelLabel">{t("structure.channelLabel")}</span>
+          </div>
           </Fragment>
           )}
 
           {BENTO[i] === "tools" && (<Fragment>
           <!-- from a question to a decision, down one dotted line -->
           <div class="adv-path" aria-hidden="true">
-            <span class="adv-path__end is--start"><span class="adv-path__dot"></span>Question</span>
+            <span class="adv-path__end is--start"><span class="adv-path__dot"></span>{t("structure.pathStart")}</span>
             <span class="adv-path__line"></span>
-            <span class="adv-path__mid">Framework</span>
+            <span class="adv-path__mid" data-page-field="structure.pathMiddle">{t("structure.pathMiddle")}</span>
             <span class="adv-path__line"></span>
-            <span class="adv-path__end"><span class="adv-path__dot is--ink"></span>Decision</span>
+            <span class="adv-path__end"><span class="adv-path__dot is--ink"></span>{t("structure.pathEnd")}</span>
           </div>
           </Fragment>
           )}
@@ -188,20 +183,14 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
                the membership dark, and the one large -->
           <div class="adv-members" aria-hidden="true">
             <ul class="adv-members__bars">
-              <li class="is--on"><span>One membership</span><span class="adv-members__tick"></span></li>
-              <li><span>Directors</span><span>Included</span></li>
-              <li><span>Operations leaders</span><span>Included</span></li>
-              <li><span>BIM and digital leads</span><span>Included</span></li>
+              <li class="is--on"><span data-page-field="structure.membersTitle">{t("structure.membersTitle")}</span><span class="adv-members__tick"></span></li>
+              {lines("structure.members").map((member, k) => <li><span data-page-field={`structure.members.${k}`}>{member}</span><span data-page-field="structure.membersIncluded">{t("structure.membersIncluded")}</span></li>)}
             </ul>
-            <p class="adv-members__big"><span class="adv-members__small">For the</span>1<span class="adv-members__small">whole practice</span></p>
           </div>
           </Fragment>
           )}
         </article>
         ))}
-        <!-- the ADDD mark where the four panels meet, in place of the
-             reference's round mark -->
-        <span class="adv-bento__mark" aria-hidden="true"><img src="/assets/logo.svg" alt="" width="96" height="96"></span>
       </div>
     </div>
   </section>
@@ -295,7 +284,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
            its roles -->
       <table class="adv-compare" role="table">
         <thead role="rowgroup">
-          <tr role="row"><th role="columnheader"><span class="visually-hidden">What is compared</span></th><th class="is--ours" role="columnheader" scope="col">Ongoing Advisory</th><th role="columnheader" scope="col">Other</th></tr>
+          <tr role="row"><th role="columnheader"><span class="visually-hidden" data-page-field="difference.rowsLabel">{t("difference.rowsLabel")}</span></th><th class="is--ours" role="columnheader" scope="col" data-page-field="difference.oursLabel">{t("difference.oursLabel")}</th><th role="columnheader" scope="col" data-page-field="difference.othersLabel">{t("difference.othersLabel")}</th></tr>
         </thead>
         <tbody role="rowgroup" data-page-list="difference.rows">
           {rows.map((row) => (
@@ -338,7 +327,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
             label: t(`${f}.includesLabel`),
             includes: lines(`${f}.includes`),
             note: t(`${f}.note`),
-            button: n === 0 ? { label: t(`${f}.button`), attrs: BOOK } : { href: "/technology-blueprint", label: t(`${f}.button`) },
+            button: n === 0 ? { label: t(`${f}.button`), attrs: BOOK } : { href: t(`${f}.href`) || "/technology-blueprint", label: t(`${f}.button`) },
           };
         })}
       />
@@ -354,7 +343,9 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
       <!-- the site's FAQ panel (FaqPanel.astro), each
        question with its icon, and Book a Free Call as its last item -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["user","question","settings","monitor","map"]} call />
+        icons={["user","question","settings","monitor","map"]} />
+      {/* the free call's calendar, which the FAQ's Book a Free Call used to bring (removed 2026-11-16); the page's own booking buttons open it */}
+      <BookCallDialog id="book-call" />
   </FaqSection>
 
   <ClosingCta />

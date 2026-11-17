@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {RocketIcon} from '@sanity/icons/Rocket'
-import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, taglineField, textField} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, seoSection, stageItemsField, taglineField, textField, timelineKeyFields} from '../shared/fields'
 
 /* The AEC Tech Partners page, one section per part of the page, in the
    order the page shows them (src/pages/tech-firms.astro; the page's own
@@ -16,6 +16,9 @@ const partnerDocument = defineArrayMember({
   name: 'partnerDocument',
   title: 'Document',
   fields: [
+    defineField({name: 'folderMeta', title: 'Folder: beside the number', type: 'string', description: 'On the folder’s front, at the top right, e.g. “Price on enquiry”.'}),
+    defineField({name: 'folderKind', title: 'Folder: kind', type: 'string', description: 'The pill at the folder’s foot, e.g. “Story”.'}),
+    linesField('folderCovers', 'Folder: on the sheet', 'The lines on the sheet standing up inside the folder, one per line.'),
     defineField({name: 'kicker', title: 'Line over the title', type: 'string'}),
     defineField({name: 'lede', title: 'In short', type: 'text', rows: 3, description: 'The summary under the title, between two rules.'}),
     linesField('body', 'Paragraphs', 'The body, one paragraph each. A line starting with “## ” is set as a heading.'),
@@ -30,6 +33,7 @@ export const techFirmsPage = defineType({
   type: 'document',
   icon: RocketIcon,
   fields: [
+    seoSection(),
     pageSection('hero', 'Opening', 'The opening on the ink: the tagline, the headline, the standfirst and its two buttons, over the plates, which are held while the page scrolls the words away and brings the statement up. The plates stay in the code.', [
       taglineField(),
       headingField(),
@@ -62,7 +66,17 @@ export const techFirmsPage = defineType({
       {...leadField('No longer shown.'), hidden: true},
       taglineField('The small word held on the right of the folders.'),
       headingField(),
-      itemsField('cards', 'Partnerships', 'priceCard', 'The first three folders: main channel sponsorship, featured workflow episode, practice intelligence. On the folder: the title, the line under it (Line under the title) and the price; in its paper: who it suits, the price, the note and conditions as its terms, what you receive, and the button.'),
+      itemsField('cards', 'Partnerships', 'priceCard', 'The first three folders: founder story, featured workflow episode, practice intelligence. On the folder: the title, the line under it (Line under the title) and the price; in its paper: who it suits, the price, the note and conditions as its terms, what you receive, and the button.'),
+      headingField('The word before each folder’s number, e.g. “Partnership” (Partnership N°01).', 'folderLabel', 'Folder label'),
+      headingField('The way on at each folder’s foot.', 'folderGo', 'Folder link words'),
+      headingField('At the top of every paper, e.g. “ADDD :: AEC Tech Partners”.', 'series', 'Papers: series'),
+      headingField('Over each paper’s summary.', 'summaryLabel', 'Papers: summary label'),
+      headingField('Over who a partnership suits.', 'audienceLabel', 'Papers: audience label'),
+      headingField('Over the price.', 'pricingLabel', 'Papers: pricing label'),
+      headingField('The price, the same for every partnership.', 'pricingValue', 'Papers: price'),
+      headingField('Over the terms.', 'termsLabel', 'Papers: terms label'),
+      headingField('Over the list of what you receive, unless a card has its own List label.', 'pointsLabel', 'Papers: list label'),
+      buttonField('The paper’s button, unless a card has its own. It opens the enquiry form, carrying the partnership’s title.', 'ctaLabel', 'Papers: button'),
     ]),
     pageSection('more', 'Smaller placements', 'The last two folders, after the three partnerships: newsletter placement, event coverage.', [
       {...headingField('No longer shown.'), hidden: true},
@@ -80,6 +94,8 @@ export const techFirmsPage = defineType({
       textField('How practice intelligence is measured.', 'intelligenceMeasurement', 'Intelligence measurement', 3),
       headingField('The heading over the independence statement.', 'independenceTitle', 'Independence heading'),
       linesField('independence', 'Independence statement', 'One line per commitment.'),
+      stageItemsField('For each step, in the same order: the points listed in its box on the timeline, each marked by who does it.'),
+      ...timelineKeyFields(),
     ]),
     pageSection('closingCta', 'Closing call to action', 'The block that ends this page, for technology companies: this page has its own, apart from the one the other pages share.', [
       // the label on the left, no longer shown (2026-11-04); kept so the

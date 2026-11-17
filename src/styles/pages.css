@@ -391,9 +391,7 @@
   color: var(--c-white);
 }
 .roadmap.is--dark .tagline { color: rgba(255, 255, 255, 0.55); }
-/* on white: its ground (and so the openings round its logo and controls)
-   white, its buttons the off-white a step off it */
-.roadmap.is--dark + .testimonials { --slider-ground: var(--c-white); --slider-block: var(--c-light-bg); }
+/* (the testimonials after it: white, as everywhere: styles.css) */
 
 /* A filtered item. Opacity only — the card's own hover lift owns its
    transform, and a fade is the site's register anyway. Out of flow when
@@ -415,9 +413,16 @@
   display: grid;
   /* the containing block for whatever is filtered out of it */
   position: relative;
-  grid-template-columns: repeat(3, 1fr);
-  /* the reference's narrow gap: the cards read as one wall */
-  gap: 0.625rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* a gutter of the grid apart (2026-11-16; was the reference's narrower
+     gap), so the three cards across stand exactly on Grid Columns 1–4, 5–8
+     and 9–12 */
+  gap: var(--grid-gutter);
+  /* the cards of a row share their six rows (subgrid, 2026-11-16: styles.css,
+     the research cards), so titles of one line and of two, and descriptions
+     short and long, leave every rule, label, date and picture level across */
+  --card-span: span 6;
+  --card-rows: subgrid;
   margin-top: 3rem;
   align-items: stretch;
 }
@@ -433,6 +438,194 @@
 /* long-form article */
 .prose { max-width: 45rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; }
 .prose p { font-size: var(--t-md); line-height: 1.65; }
+/* A newsletter issue from beehiiv (NewsletterIssue.astro): its content as
+   written there, cleaned of beehiiv's own styles (src/newsletter/beehiiv.ts),
+   in the site's type. beehiiv nests its blocks in wrappers, so the rhythm is
+   each element's own margin rather than the column's gap. */
+.prose.is--newsletter { display: block; overflow-wrap: break-word; }
+.prose.is--newsletter > * + *,
+.prose.is--newsletter :is(div, section, article) > * + * { margin-top: 1.25rem; }
+.prose.is--newsletter :is(p, li) { font-size: var(--t-md); line-height: 1.65; }
+.prose.is--newsletter :is(h1, h2, h3, h4, h5, h6) {
+  margin: 2.5rem 0 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  line-height: 1.15;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+}
+.prose.is--newsletter :is(h1, h2) { font-size: var(--t-h4, 1.75rem); }
+.prose.is--newsletter :is(h3, h4, h5, h6) { font-size: 1.25rem; }
+.prose.is--newsletter :is(h1, h2, h3, h4, h5, h6) + * { margin-top: 1rem; }
+.prose.is--newsletter a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.2em; }
+.prose.is--newsletter a:hover { color: var(--c-red); }
+.prose.is--newsletter :is(ul, ol) { padding-left: 1.25rem; }
+/* (the site's base styles take list markers off everywhere) */
+.prose.is--newsletter ul { list-style: disc; }
+.prose.is--newsletter ol { list-style: decimal; }
+.prose.is--newsletter li + li { margin-top: 0.5rem; }
+.prose.is--newsletter li::marker { color: color-mix(in srgb, var(--c-text) 50%, transparent); }
+.prose.is--newsletter img { display: block; width: auto; max-width: 100%; height: auto; margin-inline: auto; border-radius: var(--radius); }
+.prose.is--newsletter figure { margin-inline: 0; }
+.prose.is--newsletter figcaption { margin-top: 0.625rem; font-size: var(--t-sm); text-align: center; color: color-mix(in srgb, var(--c-text) 60%, transparent); }
+.prose.is--newsletter blockquote { margin-inline: 0; padding-left: 1.25rem; border-left: 2px solid var(--c-red); font-family: var(--font-display); font-size: 1.375rem; line-height: 1.4; }
+.prose.is--newsletter hr { border: 0; border-top: 1px solid var(--c-border); margin-block: 2.5rem; }
+.prose.is--newsletter table { width: 100%; border-collapse: collapse; font-size: var(--t-sm); display: block; overflow-x: auto; }
+.prose.is--newsletter :is(th, td) { padding: 0.625rem 0.75rem; border-bottom: 1px solid var(--c-border); text-align: left; vertical-align: top; }
+.prose.is--newsletter :is(pre, code) { font-family: var(--font-mono); font-size: 0.875em; }
+.prose.is--newsletter pre { padding: 1rem; overflow-x: auto; background: var(--c-light-bg); border-radius: var(--radius); }
+/* an image not brought over yet (the archive: src/data/archive.ts): a quiet
+   placeholder in its place, naming it */
+.prose.is--newsletter aside {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 7rem;
+  margin-block: 0.75rem;
+  padding: 1.5rem;
+  border: 1px dashed color-mix(in srgb, var(--c-text) 22%, transparent);
+  border-radius: var(--radius);
+  background: var(--c-light-bg);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  text-align: center;
+  color: color-mix(in srgb, var(--c-text) 50%, transparent);
+}
+/* ============================================================
+   A post's page (NewsletterIssue.astro, 2026-11-16, after the user's
+   reference): the title and its date, the picture across the window,
+   then rows (a rule, the heading on the left, the words on the right)
+   beside the author's card, held on screen.
+   ============================================================ */
+.post {
+  /* a ground a shade under the page's (which is --c-light-bg) for the
+     chips, the card and the picture's empty place */
+  --post-ground: color-mix(in srgb, var(--c-text) 5%, var(--c-light-bg));
+}
+/* On the 12-Column Grid (column-grid.css), from 992px: the page's margins
+   are the grid's, and it keeps to Grid Columns 2–11, a column open on
+   each side, as every page hero's text starts on Grid Column 2.
+     - the hero: the title on Grid Columns 2–8, the chips at the foot of
+       Grid Columns 9–11, ending on its end;
+     - the rows on Grid Columns 2–9, each heading on 2–4 and its words on
+       5–9 (a subgrid of the rows, so every heading and every line of
+       words starts on the same column the page down);
+     - the author's card on Grid Columns 10–11.
+   Below 992px it is one column inside the grid's margins. */
+.post-hero {
+  padding: calc(var(--nav-h) + 7rem) var(--grid-margin) 4.5rem;
+  display: flex;
+  gap: 3rem;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.post-hero__title { min-width: 0; display: flex; flex-direction: column; gap: 1.5rem; }
+.post-hero__title .h2 { text-wrap: balance; }
+.post-hero__lede { max-width: 40rem; font-size: var(--t-md); line-height: 1.5; color: color-mix(in srgb, var(--c-text) 62%, transparent); }
+.post-hero__meta { flex: none; display: flex; flex-wrap: wrap; gap: 0.375rem; justify-content: flex-end; }
+.post-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.3125rem 0.5rem;
+  background: var(--post-ground);
+  border-radius: var(--radius-sm);
+  font-size: var(--t-xs);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.post-chip svg { width: 0.875rem; height: 0.875rem; fill: none; stroke: currentColor; stroke-width: 1; opacity: 0.7; }
+
+/* the picture, the window's width; an empty ground the same shape until the
+   post has one (the archive's pictures are still to come) */
+.post-cover { margin: 0; aspect-ratio: 16 / 7; max-height: 82vh; width: 100%; overflow: hidden; background: var(--post-ground); }
+.post-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.post-cover.is--empty { aspect-ratio: 16 / 5; }
+
+.post-body {
+  padding: 6rem var(--grid-margin) var(--sec-lg);
+  display: grid;
+  gap: 3rem;
+  align-items: start;
+}
+.post-body__rows { min-width: 0; }
+.post-section {
+  display: grid;
+  gap: 1.25rem;
+  padding: 2.25rem 0 5rem;
+  border-top: 1px solid var(--c-border);
+}
+@media (min-width: 992px) {
+  .post-hero,
+  .post-body {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: var(--grid-gutter);
+  }
+  /* (2026-11-16, at the user's word: the left gutter was a column wider
+     than the right) the page held to Grid Columns 2–11, a column open each
+     side: the title on 2–8, the chips ending on 11; the rows on 2–9 (the
+     heading on 2–4, the words on 5–9) and the author's card on 10–11 */
+  .post-hero__title { grid-column: 2 / 9; }
+  .post-hero__meta { grid-column: 9 / 12; justify-self: end; }
+  .post-body__rows { grid-column: 2 / 10; display: grid; grid-template-columns: subgrid; }
+  .post-body__side { grid-column: 10 / 12; }
+  .post-section { grid-column: 1 / -1; grid-template-columns: subgrid; column-gap: var(--grid-gutter); row-gap: 0; }
+  .post-section > :first-child { grid-column: 1 / 4; padding-right: 1.5rem; }
+  .post-section > .prose { grid-column: 4 / -1; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+  .post-section { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); column-gap: var(--grid-gutter); }
+}
+.post-section:last-child { padding-bottom: 0; }
+.post-section__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--fw-body);
+  font-size: calc(var(--t-h4) * 0.92);
+  line-height: 1.08;
+  letter-spacing: calc(var(--primary-tracking) - 0.02em);
+  text-wrap: balance;
+}
+.post-section .prose { max-width: none; margin: 0; }
+/* the first thing under a rule sits on the heading's line */
+.post-section .prose > :first-child { margin-top: 0; }
+
+/* the author's card, held on screen beside the rows */
+.post-body__side { position: sticky; top: calc(var(--nav-h) + 1.5rem); display: flex; flex-direction: column; gap: 0.75rem; }
+.post-author { display: flex; flex-direction: column; gap: 1rem; padding: 0.625rem 0.625rem 0.75rem; background: var(--post-ground); }
+.post-author__photo { display: block; width: 100%; aspect-ratio: 8 / 9; height: auto; object-fit: cover; filter: grayscale(1); }
+.post-author__text { padding-inline: 0.375rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.post-author__name { font-family: var(--font-display); font-size: 1.375rem; line-height: 1.15; letter-spacing: calc(var(--primary-tracking) - 0.02em); }
+.post-author__line { font-size: var(--t-sm); color: color-mix(in srgb, var(--c-text) 55%, transparent); }
+.post-author .action-button { align-self: stretch; }
+.post-author__tags { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+.post-author__tags .post-chip { text-transform: capitalize; }
+/* a placeholder that links somewhere (a post's picture, linking to it): a
+   block like the others, with no underline under its name */
+.prose.is--newsletter a:has(> aside) { display: block; text-decoration: none; }
+.prose.is--newsletter a:has(> aside):hover aside { border-color: color-mix(in srgb, var(--c-text) 40%, transparent); }
+
+.post-related { border-top: 1px solid var(--c-border); }
+
+@media (max-width: 991px) {
+  .post-hero { flex-direction: column; align-items: flex-start; gap: 1.75rem; padding-top: calc(var(--nav-h) + 4rem); padding-bottom: 3rem; }
+  .post-hero__title { flex: none; }
+  .post-hero__meta { justify-content: flex-start; }
+  .post-cover { aspect-ratio: 4 / 3; }
+  .post-cover.is--empty { aspect-ratio: 16 / 7; }
+  .post-body { grid-template-columns: minmax(0, 1fr); padding-top: 3.5rem; }
+  .post-body__side { position: static; order: -1; flex-direction: row; flex-wrap: wrap; align-items: flex-start; }
+  .post-author { flex-direction: row; align-items: center; flex-wrap: wrap; gap: 0.75rem 1rem; width: 100%; }
+  .post-author__photo { width: 4.5rem; aspect-ratio: 1; }
+  .post-author__text { flex: 1 1 10rem; padding: 0; }
+  .post-author .action-button { align-self: center; }
+}
+@media (max-width: 767px) {
+  .post-section { grid-template-columns: minmax(0, 1fr); gap: 1.25rem; padding: 1.75rem 0 3.5rem; }
+  .post-section.is--untitled > span { display: none; }
+}
 
 /* forms */
 .form { display: flex; flex-direction: column; gap: 1.5rem; }
@@ -700,8 +893,11 @@
   /* one row as tall as the form: the pass's column stretched to it */
   align-items: stretch;
 }
-.contact__pass { grid-column: 1 / 7; position: relative; }
-.contact__form { grid-column: 7 / 12; align-self: center; }
+/* (2026-11-16) the pass on Grid Columns 1–5, the two rows beside it on
+   6–12, so the lanyard stands further left and the rows have the room of
+   the reference's two columns */
+.contact__pass { grid-column: 1 / 6; position: relative; }
+.contact__form { grid-column: 6 / -1; align-self: center; }
 
 /* The lanyard (contact.astro; lanyard.js), after the studio pass of the
    references of 2026-11-04, drawn as one clean object in one black: the
@@ -731,12 +927,22 @@
   --ink: #111111;
   min-height: 24rem;
 }
+/* Beside the form, the lanyard its own height, from the screen's (within
+   34 to 40rem), not the form's: 2026-11-16, once the contact row went the
+   form was shorter and the pass with it, too small to read, its button
+   on two lines. The card's type is measured from the card, so it grows
+   with it. */
+@media screen and (min-width: 992px) {
+  .lanyard,
+  .lanyard__rig { height: clamp(34rem, calc(100svh - var(--nav-h) - 9rem), 40rem); }
+  .contact__pass { align-self: center; }
+}
 .lanyard__card,
 .lanyard__hook,
 .lanyard__strap {
   position: absolute;
-  /* a little left of the column's middle */
-  left: 46%;
+  /* a little left of the column's middle (2026-11-16: further left) */
+  left: 42%;
   translate: -50% 0;
 }
 /* the strap: one black, a faint print of the mark down it */
@@ -816,88 +1022,49 @@
   color: #141414;
 }
 .lanyard__face p { margin: 0; }
-.lanyard__top,
-.lanyard__foot {
+.lanyard__top {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   font-family: var(--font-mono);
+  font-size: 3cqw;
   letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: #4a4a48;
 }
-.lanyard__top { font-size: 2.6cqw; text-transform: uppercase; }
-/* The lockup (2026-11-04, second pass), centred on the card: the ADDD
-   mark, a full circle, and Allister's face behind it on its left as a
-   crescent, the same size, the card's white between the two (the
-   portrait's mask), his face set in the part that shows, looking towards
-   the mark. --lock-d is the two circles' diameter, --lock-off how far the
-   mark's middle stands right of the portrait's, --lock-gap the white. */
+/* The portrait (2026-11-16, in place of the lockup of the ADDD mark and
+   his face as a crescent): Allister's photograph in one full circle,
+   centred on the card, printed and raised a hair off it as the mark was.
+   It takes the lockup's room (its circle and the space over it), so his
+   name and role stay where they were. --lock-d is the circle's diameter. */
 .lanyard__lockup {
-  --lock-d: 28cqw;
-  --lock-off: 17cqw;
-  --lock-gap: 1.3cqw;
+  --lock-d: 32cqw;
   position: relative;
   align-self: center;
-  width: calc(var(--lock-d) + var(--lock-off));
-  height: var(--lock-d);
-  margin-top: 15cqw;
-}
-.lanyard__portrait {
-  --lock-cut: radial-gradient(circle at calc(50% + var(--lock-off)) 50%, transparent calc(var(--lock-d) / 2 + var(--lock-gap)), #000 calc(var(--lock-d) / 2 + var(--lock-gap) + 0.5px));
-  position: absolute;
-  left: 0;
-  top: 0;
   width: var(--lock-d);
   height: var(--lock-d);
-  overflow: hidden;
-  border-radius: 50%;
-  background: #e4e4e1;
-  -webkit-mask-image: var(--lock-cut);
-  mask-image: var(--lock-cut);
-}
-/* the photograph larger than its circle and moved so his face (about 45%
-   across it and 40% down) sits in the crescent's middle */
-.lanyard__portrait img {
-  position: absolute;
-  left: -23.5%;
-  top: -15%;
-  width: 130%;
-  max-width: none;
-  height: auto;
-}
-/* the ADDD mark printed straight on the card and raised a hair off it (a
-   soft shadow under it, and over its disc a faint light at the top and a
-   faint shade at the foot, with a fine lit rim, so it reads as embossed
-   rather than modelled), its disc (logo.svg: 80.4% of its box, its middle
-   at 51%, 50.3%) the lockup's diameter, its middle --lock-off right of the
-   portrait's */
-.lanyard__logo {
-  position: absolute;
-  left: calc(var(--lock-off) + var(--lock-d) / 2 - 0.51 * var(--lock-d) / 0.804);
-  top: calc(var(--lock-d) / 2 - 0.503 * var(--lock-d) / 0.804);
-  width: calc(var(--lock-d) / 0.804);
-  aspect-ratio: 1;
+  margin-top: 11cqw;
   filter:
     drop-shadow(0 0.18cqw 0.12cqw rgba(0, 0, 0, 0.16))
     drop-shadow(0 0.9cqw 1.1cqw rgba(0, 0, 0, 0.1));
 }
-.lanyard__logo img { display: block; width: 100%; height: 100%; }
-/* over the disc alone (logo.svg: its circle at 51, 50.3, r 40.2 of 100) */
-.lanyard__logo::after {
-  content: "";
+.lanyard__portrait {
   position: absolute;
-  left: 10.8%;
-  top: 10.1%;
-  width: 80.4%;
-  height: 80.4%;
+  inset: 0;
+  overflow: hidden;
   border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 12%, rgba(255, 255, 255, 0.14), transparent 55%),
-    linear-gradient(to bottom, transparent 60%, rgba(0, 0, 0, 0.07));
-  box-shadow:
-    inset 0 0.3cqw 0.2cqw rgba(255, 255, 255, 0.22),
-    inset 0 -0.35cqw 0.4cqw rgba(0, 0, 0, 0.12);
-  pointer-events: none;
+  background: #e4e4e1;
+}
+/* the photograph about the circle's width (2026-11-16: it was 130% of
+   it, which cut close round his face), his face (about 45% across it and
+   40% down) a little above the circle's middle, his whole head in it */
+.lanyard__portrait img {
+  position: absolute;
+  left: -1%;
+  top: -3%;
+  width: 104%;
+  max-width: none;
+  height: auto;
 }
 /* his name and role under the lockup (his face is in the lockup now) */
 .lanyard__person { margin-top: 13cqw; }
@@ -919,67 +1086,236 @@
 .lanyard__book { margin-top: auto; padding-top: 6cqw; }
 .lanyard__book .action-button.is--frame {
   --action-button-height: 2.75rem;
+  white-space: nowrap;
   display: flex;
   width: 100%;
 }
-/* the foot: under a hairline, his email and his telephone, links in the
-   label face */
+/* The foot (2026-11-16, more prominent, at the user's word: his details
+   are only here now): under a hairline, his email and his telephone, a
+   row each, a small mono label on the left and the link on the right in
+   the card's ink, the size of his role. */
 .lanyard__foot {
-  margin-top: 5cqw !important;
-  padding-top: 3.4cqw;
+  display: flex;
+  flex-direction: column;
+  gap: 2.4cqw;
+  margin: 5cqw 0 0;
+  padding-top: 3.6cqw;
   border-top: 1px solid rgba(0, 0, 0, 0.12);
-  font-size: 3.1cqw;
 }
-.lanyard__foot a {
-  color: inherit;
-  text-decoration: none;
+.lanyard__detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+.lanyard__detail dt {
+  font-family: var(--font-mono);
+  font-size: 3cqw;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a6a68;
+}
+.lanyard__detail dd { margin: 0; }
+.lanyard__detail a {
+  font-size: 4.1cqw;
+  line-height: 1.2;
+  color: #141414;
+  text-decoration: underline;
+  text-decoration-color: rgba(20, 20, 20, 0.25);
   text-underline-offset: 0.25em;
-  transition: color 0.2s ease;
+  transition: text-decoration-color 0.2s ease;
 }
-.lanyard__foot a:hover { color: #141414; text-decoration: underline; }
-.lanyard__foot a:focus-visible { outline: 1px solid #141414; outline-offset: 0.3em; color: #141414; }
+.lanyard__detail a:hover { text-decoration-color: currentColor; }
+.lanyard__detail a:focus-visible { outline: 1px solid #141414; outline-offset: 0.3em; }
 
-/* The form, on white: labels in the body face, the boxes a breath off
-   white with a hairline edge, focus a firmer edge, never the browser's
-   bright ring. */
-.contact-form { gap: 1.25rem; }
-.contact-form .field { gap: 0.45rem; }
-.contact-form .field > label {
+.cf-select__n {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: rgba(10, 10, 10, 0.5);
+}
+
+/* The enquiry form (enquiry-form.js): fields drawn as a line under the
+   words, as the reference's, the label over each in the body face, the
+   line firming to the ink on focus (a second pixel drawn under it, so
+   nothing moves), red where a field needs attention with a line saying
+   why under it. */
+.contact-form { display: flex; flex-direction: column; gap: 1.875rem; }
+.contact-form__row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.875rem var(--grid-gutter); }
+.cf-field { position: relative; display: flex; flex-direction: column; gap: 0.375rem; min-width: 0; }
+.cf-field__label {
   font-family: var(--font-body);
   font-size: var(--t-sm);
-  font-weight: var(--fw-body);
-  letter-spacing: normal;
-  text-transform: none;
-  color: color-mix(in srgb, var(--c-text) 70%, transparent);
+  font-weight: 500;
+  color: rgba(10, 10, 10, 0.86);
 }
-.page--contact .contact-form .field input:not([type="radio"]):not([type="checkbox"]),
-.page--contact .contact-form .field select,
-.page--contact .contact-form .field textarea {
-  padding: 0.8rem 0.9rem;
-  border: 1px solid rgba(10, 10, 10, 0.1);
-  border-radius: 3px;
-  background: #f7f7f5;
+.cf-field__input {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0.625rem 0 0.75rem;
+  border: 0;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.16);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: var(--t-rg);
+  line-height: 1.4;
   color: var(--c-text);
-  transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+  appearance: none;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
 }
-.page--contact .contact-form .field :is(input, select, textarea):not([type="radio"]):not([type="checkbox"]):hover { border-color: rgba(10, 10, 10, 0.2); }
-.page--contact .contact-form .field :is(input, select, textarea):not([type="radio"]):not([type="checkbox"]):is(:focus, :focus-visible) {
+.cf-field__input::placeholder { color: rgba(10, 10, 10, 0.38); opacity: 1; }
+@media (hover: hover) {
+  .cf-field__input:hover { border-bottom-color: rgba(10, 10, 10, 0.34); }
+}
+.cf-field__input:focus,
+.cf-field__input:focus-visible {
   outline: none;
-  border-color: rgba(10, 10, 10, 0.45);
-  background: var(--c-white);
-  box-shadow: 0 0 0 3px rgba(10, 10, 10, 0.04);
+  border-bottom-color: var(--c-text);
+  box-shadow: 0 1px 0 var(--c-text);
 }
-.contact-form .field textarea { min-height: 9rem; }
-.contact-form .field textarea::placeholder { color: color-mix(in srgb, var(--c-text) 40%, transparent); }
-.contact-form .checkbox { color: color-mix(in srgb, var(--c-text) 70%, transparent); }
-.contact-form .checkbox input { accent-color: var(--c-red); }
+.cf-field__textarea { min-height: 7.5rem; resize: vertical; }
+.cf-field.is--invalid .cf-field__input { border-bottom-color: var(--c-red); }
+.cf-field.is--invalid .cf-field__input:focus { box-shadow: 0 1px 0 var(--c-red); }
+.cf-field__error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0 0;
+  font-size: var(--t-xs, 0.75rem);
+  line-height: 1.3;
+  color: var(--c-red);
+}
+.cf-field__error[hidden] { display: none; }
+.cf-field__error::before,
+.contact-form__status:not(:empty)::before {
+  content: "";
+  flex: none;
+  width: 0.375rem;
+  height: 0.375rem;
+  background: currentColor;
+}
+
+/* The topic: the site's own select over the real one (enquiry-form.js).
+   The button is a field like the others, its chevron turning as the list
+   opens; the list is a white panel just under it, hairline-edged in the
+   site's small corner, a soft shadow, that fades and drops a few pixels
+   in (and back out). Each option its number in the mono, its name, and a
+   small red square once chosen; the option reached (pointer or keys) is
+   on a faint ground. */
+.cf-select__native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+}
+.cf-select { position: relative; }
+.cf-select__button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+  cursor: pointer;
+}
+.cf-select__value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cf-select__value.is--placeholder { color: rgba(10, 10, 10, 0.38); }
+.cf-select__chevron {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: square;
+  color: rgba(10, 10, 10, 0.6);
+  transition: rotate 0.3s var(--ease-out, cubic-bezier(0.2, 0.9, 0.24, 1)), color 0.2s ease;
+}
+.cf-select[data-open] .cf-select__chevron { rotate: 180deg; color: var(--c-text); }
+.cf-select__list {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  max-height: min(19rem, 50svh);
+  margin: 0;
+  padding: 0.375rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  border-radius: var(--radius);
+  background: var(--c-white);
+  box-shadow: 0 1px 2px rgba(20, 20, 16, 0.06), 0 1.25rem 2.5rem -1.25rem rgba(20, 20, 16, 0.28);
+  outline: none;
+  opacity: 0;
+  translate: 0 -0.375rem;
+  transition: opacity 0.16s ease, translate 0.22s cubic-bezier(0.2, 0.9, 0.24, 1);
+}
+.cf-select[data-open] .cf-select__list { opacity: 1; translate: 0 0; transition: opacity 0.2s ease, translate 0.32s cubic-bezier(0.2, 0.9, 0.24, 1); }
+.cf-select__option {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 0.6875rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: var(--t-rg);
+  line-height: 1.3;
+  color: rgba(10, 10, 10, 0.78);
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.cf-select__option.is--active { background: rgba(10, 10, 10, 0.05); color: var(--c-text); }
+.cf-select__option[aria-selected="true"] { color: var(--c-text); }
+.cf-select__mark {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--c-red);
+  scale: 0;
+  transition: scale 0.25s cubic-bezier(0.2, 0.9, 0.24, 1);
+}
+.cf-select__option[aria-selected="true"] .cf-select__mark { scale: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .cf-select__list, .cf-select[data-open] .cf-select__list, .cf-select__chevron, .cf-select__mark { transition: none; }
+}
+
+/* the send button, and what the form says beside it */
+.contact-form__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 1.5rem; margin-top: 0.25rem; }
+.contact-form__status {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  max-width: 26rem;
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.4;
+  color: rgba(10, 10, 10, 0.72);
+}
+.contact-form__status::before { translate: 0 -0.1em; }
+.contact-form__status[data-tone="error"] { color: var(--c-red); }
+.contact-form__status[data-tone="done"]::before { background: var(--c-text); }
+.contact-form[aria-busy="true"] [type="submit"] { opacity: 0.6; pointer-events: none; }
 
 @media screen and (max-width: 991px) {
   .contact { min-height: 0; padding-top: calc(var(--nav-h) + 2.5rem); }
   .contact__grid { row-gap: 3.5rem; }
   .contact__pass, .contact__form { grid-column: 1 / -1; }
-  /* stacked, the pass its own height: the composition 34rem tall */
+  /* stacked, the pass its own height: the composition 34rem tall, and
+     in the middle (the shift left is for beside the form) */
   .lanyard__rig { height: 34rem; }
+  .lanyard__card, .lanyard__hook, .lanyard__strap { left: 50%; }
+}
+
+@media screen and (max-width: 767px) {
+  .contact-form__row { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ============================================================

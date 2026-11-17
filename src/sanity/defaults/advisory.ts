@@ -7,12 +7,21 @@ import { keyed } from './types';
    has its theme's name under it. The quote is not shown since 2026-11-04
    (the site's testimonials, which open on it, stand in its place). */
 export const advisoryPage = {
+  seo: {
+    title: 'Ongoing Advisory — ADDD',
+    description: 'Ongoing Advisory is strategic guidance for architecture practices, after or alongside the main strategic work: a regular place to make sense of AI, BIM, software, workflows and digital priorities.',
+  },
   hero: {
     tagline: 'Ongoing Advisory',
     heading: 'Ongoing strategic guidance for architecture practices',
     lede: 'After or alongside the main strategic work, Ongoing Advisory gives practice leaders a regular place to make sense of AI, BIM, software, workflows and digital priorities—before isolated decisions create more complexity.',
     primaryButton: 'Enquire',
     secondaryButton: 'Membership Pricing',
+    // the drawing's words: the session on the frame going round the loop,
+    // the practice's priorities on the middle, and the parts round it
+    figureFrame: 'Monthly session',
+    figurePlatform: 'Digital priorities',
+    figureTags: ['AI', 'BIM', 'Software', 'Workflows'],
   },
   statement: {
     statement: 'Architecture practices live in a cycle of technology decisions, but the people making them are pulled in too many directions to think clearly',
@@ -28,6 +37,22 @@ export const advisoryPage = {
       { title: 'Practical tools and frameworks', text: 'Access useful frameworks, comparisons and resources shaped by ADDD’s experience working directly with architecture practices.' },
       { title: 'One practice-wide membership', text: 'Bring directors, operations leaders and BIM or digital leads together under one membership, with guidance relevant to the whole practice.' },
     ]),
+    // the four panels' small drawings, in their words: the sessions'
+    // themes as chips (two rows, the highlighted ones lit), the channel
+    // between two sessions, the path from a question to a decision, and
+    // who the membership includes
+    chips: keyed('chip', [
+      { name: 'Strategy', on: false }, { name: 'AI', on: false }, { name: 'Workflows', on: false }, { name: 'BIM', on: true }, { name: 'Licensing', on: false }, { name: 'Security', on: false }, { name: 'Costs', on: false },
+      { name: 'Hardware', on: false }, { name: 'Software', on: false }, { name: 'Automation', on: true }, { name: 'Integration', on: false }, { name: 'Leadership', on: false }, { name: 'Productivity', on: false }, { name: 'Infrastructure', on: false },
+    ]),
+    sessionLabel: 'Session',
+    channelLabel: 'Shared channel',
+    pathStart: 'Question',
+    pathMiddle: 'Framework',
+    pathEnd: 'Decision',
+    membersTitle: 'One membership',
+    members: ['Directors', 'Operations leaders', 'BIM and digital leads'],
+    membersIncluded: 'Included',
   },
   themes: {
     lede: 'Each month rotates based on what matters to your practice',
@@ -35,6 +60,18 @@ export const advisoryPage = {
     // the themes, one large list in this order (2026-11-05); the four
     // squares' names before it (title1–4) are no longer shown
     items: ['AI', 'BIM', 'Technology', 'Workflows', 'Software', 'Hardware', 'Infrastructure', 'Automation', 'Integration', 'Licensing', 'Costs', 'Strategy', 'Security', 'Productivity', 'Leadership'],
+    // the photographs beside the list, taking turns down it (the first
+    // with the first theme, the second with the second… then round again)
+    photos: keyed('photo', [
+      { image: { path: '/assets/images/allister-presenting-landscape.webp', alt: '' } },
+      { image: { path: '/assets/images/team-model-review.webp', alt: '' } },
+      { image: { path: '/assets/images/allister-gesture-warm-landscape.webp', alt: '' } },
+      { image: { path: '/assets/images/allister-keynote-stage-landscape.webp', alt: '' } },
+      { image: { path: '/assets/images/allister-podium-landscape.webp', alt: '' } },
+      { image: { path: '/assets/images/conference-keynote-landscape.webp', alt: '' } },
+      { image: { path: '/assets/images/allister-gesture-close-landscape.webp', alt: '' } },
+      { image: { path: '/assets/images/allister-podium-full-landscape.webp', alt: '' } },
+    ]),
   },
   impact: {
     lede: 'Monthly sessions compound. Better decisions now mean better foundations later.',
@@ -58,6 +95,10 @@ export const advisoryPage = {
       { label: 'Builds your own decision-making framework', ours: 'Yes', others: 'No' },
       { label: 'Speaks architecture, not just technology', ours: 'Yes', others: 'No' },
     ]),
+    // the table's head: the two sides, and (for screen readers) the first column
+    oursLabel: 'Ongoing Advisory',
+    othersLabel: 'Other',
+    rowsLabel: 'What is compared',
   },
   pricing: {
     lede: 'One practice membership, month to month',
@@ -95,6 +136,7 @@ export const advisoryPage = {
           'Prioritised recommendations and roadmap',
         ],
         button: 'Explore the Technology Blueprint',
+        href: '/technology-blueprint',
       },
     ]),
   },

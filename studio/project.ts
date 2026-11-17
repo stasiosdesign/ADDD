@@ -1,6 +1,4 @@
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
-import {EnvelopeIcon} from '@sanity/icons/Envelope'
-import {StackIcon} from '@sanity/icons/Stack'
 import {defineLocations} from 'sanity/presentation'
 import {vercelProtectionBypassTool} from '@sanity/vercel-protection-bypass'
 import type {CmsProjectConfig} from '@stasiosdesign/sanity-cms'
@@ -91,16 +89,19 @@ export const project: CmsProjectConfig = {
     {type: 'beforeRevitPage', title: 'Before Revit', description: 'The early-stage design workflow research: its opening, challenge, scope, method, output, why ADDD, pricing and questions.'},
     {type: 'blueprintPage', title: 'Technology Blueprint', description: 'The practice-wide strategy: its opening, benefits, delivery, enquiry and questions.'},
     {type: 'advisoryPage', title: 'Ongoing Advisory', description: 'The membership: its opening, structure, impact, comparison, pricing and questions.'},
-    {type: 'stackDiagnosticPage', title: 'Stack Diagnostic', description: 'Free Tech Stacks: its opening, fit, method and where it leads.'},
+    {type: 'stackDiagnosticPage', title: 'Tech Stacks', description: 'Free Tech Stacks: its opening, the tech stacks themselves, fit, method and where it leads.'},
     {type: 'licensingAuditPage', title: 'Software & Licensing Audit', description: 'The audit: its opening, fit, method and where it leads.'},
     {type: 'reportsPage', title: 'Reports', description: 'The heading over the reports, which are a collection.'},
-    {type: 'newsletterPage', title: 'Newsletter', description: 'The heading over the issues, which are a collection.'},
+    {type: 'newsletterPage', title: 'Newsletter', description: 'The heading over the issues. The issues themselves come from beehiiv: written and sent there, they appear on the site by themselves, so there is nothing to add here.'},
     {type: 'techFirmsPage', title: 'AEC Tech Partners', description: 'The partnership page: its opening, the opportunities and its own call to action.'},
     {type: 'aboutPage', title: 'About', description: 'The opening, foundation statement, what Allister sees and the validation.'},
     {type: 'contactPage', title: 'Contact', description: 'The enquiry page’s words and contact details; the form stays in the code.'},
   ],
 
-  // The CMS collections, in the sidebar's order
+  // The CMS collections: Reports alone (2026-11-16, at the user's word).
+  // The tech stacks are part of the Tech Stacks page (its Tech stacks
+  // section, in the Page editor), and the newsletter's issues come from
+  // beehiiv (src/newsletter/beehiiv.ts), never written here.
   collections: [
     {
       type: 'report',
@@ -112,47 +113,21 @@ export const project: CmsProjectConfig = {
       description: 'Reports and guides: a card on the Reports page and in the sliders, and each report’s own page.',
       listedOn: 'reportsPage',
     },
-    {
-      type: 'newsletterIssue',
-      title: 'Newsletter',
-      singular: 'issue',
-      nameField: 'title',
-      orderField: 'publishedAt',
-      icon: EnvelopeIcon,
-      description: 'ADDDitive issues: a card on the Newsletter page and in the sliders, and each issue’s own page.',
-      listedOn: 'newsletterPage',
-    },
-    {
-      // A stack holds only what its preview on the page shows: its full
-      // list of tools lives in the ADDD app, behind its sign-up
-      // (schemaTypes/documents/tech-stack.ts)
-      type: 'techStack',
-      title: 'Tech stacks',
-      singular: 'stack',
-      nameField: 'title',
-      orderField: 'sortOrder',
-      icon: StackIcon,
-      description: 'Curated stacks: a deck on the Free Tech Stacks page, each opening to a preview that leads into the ADDD app.',
-      listedOn: 'stackDiagnosticPage',
-    },
   ],
 
   // The page each kind of CMS item shows on (a client shows in the home
-  // page's logo strip, a stack on the Free Tech Stacks page)
+  // page's logo strip)
   documentRoute(doc) {
     const slug = doc.slug?.current
     if (doc._type === 'report') return slug ? `/reports/${slug}` : null
-    if (doc._type === 'newsletterIssue') return slug ? `/newsletter/${slug}` : null
     if (doc._type === 'client') return '/'
-    if (doc._type === 'techStack') return '/stack-diagnostic'
     return null
   },
 
   visualEditor: {
-    // A report's and an issue's own pages open the item beside the preview
+    // A report's own page opens the report beside the preview
     mainDocuments: [
       {route: '/reports/:slug', filter: `_type == "report" && slug.current == $slug`},
-      {route: '/newsletter/:slug', filter: `_type == "newsletterIssue" && slug.current == $slug`},
     ],
     locations: {
       report: defineLocations({
@@ -164,17 +139,7 @@ export const project: CmsProjectConfig = {
           ],
         }),
       }),
-      newsletterIssue: defineLocations({
-        select: {title: 'title', slug: 'slug.current'},
-        resolve: (doc) => ({
-          locations: [
-            {title: doc?.title || 'Untitled', href: `/newsletter/${doc?.slug}`},
-            {title: 'Newsletter', href: '/newsletter'},
-          ],
-        }),
-      }),
       client: defineLocations({locations: [{title: 'Home (logo strip)', href: '/'}]}),
-      techStack: defineLocations({locations: [{title: 'Free Tech Stacks', href: '/stack-diagnostic'}]}),
     },
   },
 

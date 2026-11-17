@@ -6,6 +6,10 @@ import { keyed } from './types';
    (studio/schemaTypes/pages/blueprint.ts). The filter buttons, the enquiry
    form's inputs and where every button and link leads stay in the page. */
 export const blueprintPage = {
+  seo: {
+    title: 'Technology Blueprint — ADDD',
+    description: 'The Technology Blueprint is a full practice-wide technology strategy for architecture practices, covering the technology ecosystem, workflows, software, infrastructure, data, security, AI and priorities.',
+  },
   hero: {
     tagline: 'Technology Blueprint',
     heading: 'Six weeks to a working strategy',
@@ -29,6 +33,8 @@ export const blueprintPage = {
     lede: 'A technology blueprint examines your practice as one connected system. We don’t isolate workflows from software, or software costs from infrastructure—everything connects.',
     tagline: 'Examine',
     heading: 'What we look at',
+    // the name at the foot of each tab's panel, after the heading
+    panelLabel: 'Technology Blueprint',
     cardTagline: 'Workflows',
     cardHeading: 'How work moves through your practice',
     cardText: 'We trace real project delivery from brief through to completion, finding where tools connect and where teams improvise around gaps. This reveals which workflows are intentional and which are fragile.',
@@ -48,6 +54,7 @@ export const blueprintPage = {
     tagline: 'Delivery',
     heading: 'From current reality to a clear roadmap',
     button: 'Explore',
+    buttonHref: '/contact',
     linkLabel: 'Learn',
     steps: keyed('step', [
       { label: 'Week 1', title: 'Mobilisation', text: 'We align on scope, timeline and who participates from your practice.' },
@@ -63,6 +70,17 @@ export const blueprintPage = {
       { more: 'The findings, the cost picture and the priorities are drawn together into prioritised recommendations and a sequenced two to three-year roadmap.' },
       { more: 'The written blueprint holds the findings, a cost picture, prioritised recommendations and the roadmap. The blueprint is strategy, not delivery: ongoing guidance continues through Ongoing Advisory.' },
     ]),
+    // what each stage holds on the roadmap, each point marked by who does
+    // it (by: you, optional; ADDD when not given), in the steps' order
+    stageItems: keyed('stage', [
+      { items: keyed('point', [{ label: 'Scope', by: 'addd' }, { label: 'Timeline', by: 'addd' }, { label: 'Who takes part', by: 'you' }]) },
+      { items: keyed('point', [{ label: 'Workflow interviews', by: 'addd' }, { label: 'Tool and cost inventory', by: 'addd' }, { label: 'Gap analysis', by: 'addd' }]) },
+      { items: keyed('point', [{ label: 'Recommendations', by: 'addd' }, { label: 'Cost analysis', by: 'addd' }, { label: 'Priorities', by: 'addd' }]) },
+      { items: keyed('point', [{ label: 'The blueprint', by: 'addd' }, { label: 'Leadership presentation', by: 'you' }, { label: 'Implementation', by: 'you' }]) },
+    ]),
+    keyAddd: 'ADDD',
+    keyYou: 'Your team',
+    keyOptional: 'Optional',
   },
   quote: {
     quote: 'ADAM Architecture had three separate software systems doing the same job. The blueprint showed us how to consolidate without losing capability, and we recovered nearly half a day per project.',
@@ -76,6 +94,12 @@ export const blueprintPage = {
     email: 'hello@addd.studio',
     phone: '+44 (0) 207 183 3675',
     address: 'London, United Kingdom',
+    // the form's words
+    nameLabel: 'Name',
+    emailLabel: 'Email',
+    messageLabel: 'Message',
+    messagePlaceholder: 'Tell us about your practice',
+    consent: 'I agree to the privacy policy',
     button: 'Send',
   },
   faq: {

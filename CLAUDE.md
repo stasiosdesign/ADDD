@@ -134,7 +134,24 @@ the package as an option that is off by default, switched on in
   with `reader()` (`src/sanity/content.ts`) and falls back, field by field,
   to the page's own words in `src/sanity/defaults/<page>.ts`. Keep those
   defaults exactly as the page's text. `npm run seed` in `studio/` writes
-  them to `staging` (never over a document that exists).
+  them to `staging`, filling only the fields a document leaves empty (never
+  over one it has; `-- --dry` says what it would write). A new field: add it
+  to the schema and the defaults, bind its element, then run the seed.
+- **Every field is in the Studio (since 16 Nov 2026, at the user's word):**
+  the site was detached for part of that day (`DETACHED` in
+  `src/sanity/content.ts`, the staging dataset emptied; backup:
+  `source-assets/sanity-backups/staging-2026-11-16.tar.gz`), then relinked
+  with every word, picture and link of every page in its document: the
+  navigation, the newsletter signup, the footer and the free call's booking
+  (the Home page document, `studio/schemaTypes/pages/site-wide.ts`, read
+  once per request by `siteDocument()`), the tech stacks with their stages
+  (`stackDiagnosticPage.stacks.items`, `src/sanity/tech-stacks.ts`), each
+  page's title and search summary (`seo`), the folders, timelines, forms
+  and their messages. What stays in the code: layout and design, the
+  drawings and animations, icons, and generated text (numbers, the year).
+  The newsletter's issues come from beehiiv, not Sanity. The defaults were
+  written back into the staging dataset with `npm run seed`; production
+  was left as it was (Publish Site writes it).
 - The words live in the Studio: a page shows its document's text, and a
   default only where the field is empty. So a copy change made in the code
   (a default) does not show on the site until the Studio's field says it

@@ -1,17 +1,18 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import BookCallDialog from "../components/BookCallDialog.astro";
 import FaqSection from "../components/FaqSection.astro";
 import ActionButton from "../components/ActionButton.astro";
 import BlueprintHero from "../components/BlueprintHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ApproachStack from "../components/ApproachStack.astro";
-import StageTimeline, { type Stage } from "../components/StageTimeline.astro";
+import StageTimeline, { type Stage, type StageItem } from "../components/StageTimeline.astro";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import LayersDiagram from "../components/LayersDiagram.astro";
 import PracticesWall from "../components/PracticesWall.astro";
-import { pageDocument, reader } from "../sanity/content";
+import { pageDocument, reader, telOf } from "../sanity/content";
 import { blueprintPage as D } from "../sanity/defaults/blueprint";
 import NavLinkLabel from "../components/NavLinkLabel.astro";
 
@@ -22,28 +23,30 @@ import NavLinkLabel from "../components/NavLinkLabel.astro";
 // and where every button and link leads stay here. Each element names the
 // field it shows (data-page-field) so the Studio's Visual editor can
 // outline it and write drafts into it.
-const { t, list } = reader(await pageDocument(Astro.locals.sanity, "blueprintPage"), D);
+const { t, list, items } = reader(await pageDocument(Astro.locals.sanity, "blueprintPage"), D);
+// the enquiry’s email and number as links
+const enquiryEmail = t("enquiry.email");
+const enquiryTel = telOf(t("enquiry.phone"));
 
 const benefits = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string; image?: unknown }>("benefits.tiles");
 const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("delivery.steps");
 // The roadmap: the eight weeks across the top, and each stage's weeks
-// (start, from 0, and how many, after its label) and photograph, the
-// page's own; its more from delivery.details, in the steps' order
+// (start, from 0, and how many, after its label); its more from
+// delivery.details, in the steps' order
 const WEEKS = Array.from({ length: 8 }, (_, i) => `Week ${i + 1}`);
 const SPANS = [{ start: 0, span: 1 }, { start: 1, span: 3 }, { start: 4, span: 3 }, { start: 7, span: 1 }];
-const ROADMAP_PHOTOS = [
-  "/assets/images/allister-gesture-warm-crop.webp",
-  "/assets/images/team-model-review.webp",
-  "/assets/images/allister-podium-portrait-crop.webp",
-  "/assets/images/allister-keynote-stage-crop.webp",
-];
 const details = list<{ _key: string; more?: string }>("delivery.details");
+// what each stage holds, for the staircase (2026-11-16): delivery.stageItems
+// in Sanity, each point marked by who does it
+const ROADMAP_ITEMS: StageItem[][] = items("delivery.stageItems").map((stage) =>
+  stage.list<{ _key: string; label?: string; by?: StageItem["by"] }>("items").map((item) => ({ label: item.label ?? "", by: item.by || "addd" })),
+);
 const roadmap: Stage[] = steps.map((step, i) => ({
   when: step.label,
   title: step.title,
   text: step.text,
   more: details[i]?.more,
-  image: ROADMAP_PHOTOS[i] ? { src: ROADMAP_PHOTOS[i], alt: "" } : undefined,
+  items: ROADMAP_ITEMS[i],
   ...SPANS[i],
   fields: {
     when: `delivery.steps.${i}.label`,
@@ -73,8 +76,8 @@ const iconOf = (label = "") => ICONS[label.toLowerCase().split(/[^a-z]+/).find(B
 const pad = (n: number) => String(n).padStart(2, "0");
 ---
 <BaseLayout
-  title="Technology Blueprint — ADDD"
-  description="The Technology Blueprint is a full practice-wide technology strategy for architecture practices, covering the technology ecosystem, workflows, software, infrastructure, data, security, AI and priorities."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="Technology Blueprint"
   doc={{ id: "blueprintPage" }}
 >
@@ -178,7 +181,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
             <p class="examine__p" data-page-field={`examine.tabs.${i}.text`}>{tab.text}</p>
             <div class="examine__foot">
               <p class="examine__big" aria-hidden="true">{pad(i + 1)}<span>/{pad(tabs.length)}</span></p>
-              <p class="examine__small"><span>* {t("examine.heading")}</span><span>Technology Blueprint</span></p>
+              <p class="examine__small"><span>* {t("examine.heading")}</span><span data-page-field="examine.panelLabel">{t("examine.panelLabel")}</span></p>
             </div>
           </div>
           ))}
@@ -198,10 +201,11 @@ const pad = (n: number) => String(n).padStart(2, "0");
           <p class="tagline" data-page-field="delivery.tagline">{t("delivery.tagline")}</p>
           <h2 class="h2" data-split="heading" data-page-field="delivery.heading">{t("delivery.heading")}</h2>
         </div>
-        <ActionButton href="/contact" variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
+        <ActionButton href={t("delivery.buttonHref")} variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
       </div>
       <div class="roadmap__run">
-        <StageTimeline id="blueprint-stages" stages={roadmap} scale={WEEKS} dark />
+        <StageTimeline id="blueprint-stages" stages={roadmap} scale={WEEKS} dark itemsField="delivery.stageItems" keyField="delivery"
+          keyLabels={{ addd: t("delivery.keyAddd"), you: t("delivery.keyYou"), optional: t("delivery.keyOptional") }} />
       </div>
     </div>
   </section>
@@ -218,17 +222,17 @@ const pad = (n: number) => String(n).padStart(2, "0");
           <h2 class="h2" data-split="heading" data-page-field="enquiry.heading">{t("enquiry.heading")}</h2>
           <p class="text-md" data-page-field="enquiry.lede">{t("enquiry.lede")}</p>
           <ul class="contact-list">
-            <li><a class="nav-link" href="mailto:hello@addd.studio"><NavLinkLabel data-page-field="enquiry.email">{t("enquiry.email")}</NavLinkLabel></a></li>
-            <li><a class="nav-link" href="tel:+442071833675"><NavLinkLabel data-page-field="enquiry.phone">{t("enquiry.phone")}</NavLinkLabel></a></li>
+            <li><a class="nav-link" href={`mailto:${enquiryEmail}`}><NavLinkLabel data-page-field="enquiry.email">{t("enquiry.email")}</NavLinkLabel></a></li>
+            <li><a class="nav-link" href={`tel:${enquiryTel}`}><NavLinkLabel data-page-field="enquiry.phone">{t("enquiry.phone")}</NavLinkLabel></a></li>
             <li data-page-field="enquiry.address">{t("enquiry.address")}</li>
           </ul>
         </div>
         <div class="pg-hero__col">
           <form class="form" style="width:100%" onsubmit="return false">
-            <div class="field"><label for="bp-name">Name</label><input id="bp-name" type="text" autocomplete="name"></div>
-            <div class="field"><label for="bp-email">Email</label><input id="bp-email" type="email" autocomplete="email"></div>
-            <div class="field"><label for="bp-msg">Message</label><textarea id="bp-msg" placeholder="Tell us about your practice"></textarea></div>
-            <label class="checkbox"><input type="checkbox"> I agree to the privacy policy</label>
+            <div class="field"><label for="bp-name" data-page-field="enquiry.nameLabel">{t("enquiry.nameLabel")}</label><input id="bp-name" type="text" autocomplete="name"></div>
+            <div class="field"><label for="bp-email" data-page-field="enquiry.emailLabel">{t("enquiry.emailLabel")}</label><input id="bp-email" type="email" autocomplete="email"></div>
+            <div class="field"><label for="bp-msg" data-page-field="enquiry.messageLabel">{t("enquiry.messageLabel")}</label><textarea id="bp-msg" placeholder={t("enquiry.messagePlaceholder")}></textarea></div>
+            <label class="checkbox"><input type="checkbox"> <span data-page-field="enquiry.consent">{t("enquiry.consent")}</span></label>
             <ActionButton type="submit" style="align-self:flex-start"><span data-page-field="enquiry.button">{t("enquiry.button")}</span></ActionButton>
           </form>
         </div>
@@ -240,7 +244,9 @@ const pad = (n: number) => String(n).padStart(2, "0");
       <!-- the site's FAQ panel (FaqPanel.astro), each
        question with its icon, and Book a Free Call as its last item -->
       <FaqPanel id="faq" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["user","clock","folder","settings","compass"]} call />
+        icons={["user","clock","folder","settings","compass"]} />
+      {/* the free call's calendar, which the FAQ's Book a Free Call used to bring (removed 2026-11-16); the page's own booking buttons open it */}
+      <BookCallDialog id="book-call" />
   </FaqSection>
 
   <ClosingCta />

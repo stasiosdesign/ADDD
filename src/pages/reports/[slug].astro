@@ -6,181 +6,330 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import ActionButton from "../../components/ActionButton.astro";
 import ClosingCta from "../../components/ClosingCta.astro";
 import InsightSlider from "../../components/InsightSlider.astro";
+import PricingPlan from "../../components/PricingPlan.astro";
+import PlanNext from "../../components/PlanNext.astro";
+import { cachedDocument, collection, collectionItem, isExternal, linkTarget, reader } from "../../sanity/content";
+import { reportsPage as REPORTS } from "../../sanity/defaults/reports";
 import { contentClient } from "../../sanity/content-client";
-import { hasImage, urlFor } from "../../sanity/image";
+import { hasImage, imageAttrs, type SanityImage } from "../../sanity/image";
 import { cardOf, type Card, type Insight } from "../../sanity/insights";
 import { REPORT_QUERY, REPORTS_QUERY } from "../../sanity/queries";
-import NavLinkLabel from "../../components/NavLinkLabel.astro";
 
 /* One page per report in Sanity (studio/schemaTypes/documents/insights.ts),
-   at /reports/<slug>.html, set as report-template.astro is. Production
-   builds every published report as a file; staging and development render
-   each on request, so a draft shows in draft mode. The page sits one folder
-   deep, so every link and asset path it writes is root-relative. */
+   at /reports/<slug>: a report, a guide, a cheat sheet, a spreadsheet,
+   free or paid. Production builds every published report as a file;
+   staging and development render each on request, so a draft shows in
+   draft mode. The page sits one folder deep, so every link and asset path
+   it writes is root-relative.
+
+   The second design (2026-11-17, when ADDD's six products came over from
+   their Carrd and beehiiv pages): the product on the left of the opening,
+   its cover standing on the right as a printed copy; what is inside as
+   numbered rows; its pages, if it has any to show; who it is for, on the
+   ink; then the card that gets it, the service pages' price card
+   (PricingPlan.astro): a free one holds its sign-up form (beehiiv or
+   HubSpot, the form that sends the download: product-forms.js), a paid one
+   the button to buy it; and, where the report has one, a partner's panel
+   under the card. The words every report's page shares are the Reports
+   page's (its Report pages section). */
 export const getStaticPaths =
   __DEPLOYMENT__ === "production" || __DEPLOYMENT__ === "review"
     ? ((async () => {
-        const items = await contentClient.fetch<Insight[]>(REPORTS_QUERY);
+        const items = await collection<Insight>(contentClient, REPORTS_QUERY);
         return items.map((item) => ({ params: { slug: item.slug } }));
       }) satisfies GetStaticPaths)
     : undefined;
 
+/** How a visitor gets the report: buy it, or sign up for it */
+type Access = {
+  method?: "buy" | "beehiiv" | "hubspot" | "link" | null;
+  href?: string | null;
+  buttonLabel?: string | null;
+  beehiivForm?: string | null;
+  beehiivHeight?: number | null;
+  hubspotRegion?: string | null;
+  hubspotPortal?: string | null;
+  hubspotForm?: string | null;
+  note?: string | null;
+};
+type Partner = { kicker?: string | null; title?: string | null; text?: string | null; buttonLabel?: string | null; href?: string | null };
+
 /** The report document, whole (REPORT_QUERY) */
 type Report = Insight & {
   standfirst?: string | null;
+  format?: string | null;
+  facts?: string[] | null;
+  price?: string | null;
+  wasPrice?: string | null;
   coversLede?: string | null;
   contents?: string[] | null;
   highlightTitle?: string | null;
   highlightText?: string | null;
+  gallery?: SanityImage[] | null;
+  audience?: string[] | null;
+  audienceLede?: string | null;
+  includes?: string[] | null;
+  access?: Access | null;
+  partner?: Partner | null;
   body?: TypedObject[] | null;
 };
 
 const { slug = "" } = Astro.params as { slug?: string };
 const { sanity } = Astro.locals;
-const item = await sanity.fetch<Report | null>(REPORT_QUERY, { slug });
+const item = await collectionItem<Report>(sanity, REPORT_QUERY, { slug });
 if (!item) return new Response("Not found", { status: 404 });
+const report: Report = item;
 
-// A card's address and picture, one folder up from here
-const fromHere = (card: Card): Card => ({ ...card, href: `/${card.href}`, image: card.image.startsWith("http") ? card.image : `/${card.image}` });
+// the words every report's page shares: the Reports page document's Report
+// pages section (reportPage.* in Sanity), each element naming that document
+// for the Visual editor
+const { t: reportsWords } = reader(await cachedDocument(Astro.locals, "reportsPage"), REPORTS);
+const rp = (name: string) => reportsWords(`reportPage.${name}`);
+const RP = { "data-page-doc": "reportsPage", "data-page-type": "reportsPage" };
 
-// The template's own words, kept where the report leaves a field empty
-const COVERS_LEDE = "A breakdown of the platforms, tools, and approaches shaping BIM practice today. This report examines what works, what doesn’t, and where your practice fits in.";
-const CONTENTS = ["BIM platforms", "Generative tools", "Interoperability", "Workflow fit", "Selection"];
-const HIGHLIGHT = {
-  title: "Leading BIM 2.0 platforms and their capabilities",
-  text: "A detailed look at the tools reshaping how architecture practices work with data and design.",
+const text = (value?: string | null) => value?.trim() ?? "";
+const lines = (list?: (string | null)[] | null) => (list ?? []).map(text).filter(Boolean);
+const pad = (n: number) => String(n).padStart(2, "0");
+// "Title — detail": the detail under the title, as the price cards set theirs
+const parts = (line: string) => {
+  const [first, ...rest] = line.split(/\s+[—–]\s+/);
+  return [first, rest.join(" — ")];
 };
-const RELATED: Card[] = [
-  { href: "/report-template", image: "/assets/images/allister-keynote-stage.jpg", category: "Technology", title: "Building a software strategy", meta: ["7 min read"] },
-  { href: "/report-template", image: "/assets/images/allister-podium-portrait.jpg", category: "Workflows", title: "Redesigning processes effectively", meta: ["9 min read"] },
-  { href: "/report-template", image: "/assets/images/allister-podium-full.jpg", category: "AI and BIM", title: "Understanding AI’s real impact", meta: ["November 2024"] },
-  { href: "/report-template", image: "/assets/images/allister-gesture-warm.jpg", category: "Strategy", title: "Software selection frameworks", meta: ["October 2024"] },
-  { href: "/report-template", image: "/assets/images/allister-gesture-close.jpg", category: "Implementation", title: "Process mapping essentials", meta: ["September 2024"] },
-  { href: "/report-template", image: "/assets/images/conference-keynote.jpg", category: "Technology", title: "Evaluating emerging tools", meta: ["August 2024"] },
-];
 
-const coversLede = item.coversLede?.trim() || COVERS_LEDE;
-const contents = item.contents?.filter((line) => line?.trim()).length ? item.contents!.filter((line) => line?.trim()) : CONTENTS;
-const highlightTitle = item.highlightTitle?.trim() || HIGHLIGHT.title;
-const highlightText = item.highlightText?.trim() || HIGHLIGHT.text;
-const body = Array.isArray(item.body) && item.body.length > 0 ? item.body : null;
-const coverStyle = hasImage(item.cover) ? `background-image:url(${urlFor(item.cover).width(1200).url()})` : undefined;
+const free = !text(report.price);
+const format = text(report.format) || rp("formatDefault");
+const price = free ? rp("freeLabel") : text(report.price);
+const wasPrice = text(report.wasPrice);
+const facts = lines(report.facts);
+const contents = lines(report.contents);
+const audience = lines(report.audience);
+const includes = lines(report.includes);
+const coversLede = text(report.coversLede);
+const highlightTitle = text(report.highlightTitle);
+const highlightText = text(report.highlightText);
+const body = Array.isArray(report.body) && report.body.length > 0 ? report.body : null;
+const cover = hasImage(report.cover) ? imageAttrs(report.cover, 1200) : null;
+const gallery = (report.gallery ?? []).filter(hasImage).map((image) => ({ ...imageAttrs(image, 900), alt: image.alt ?? "" }));
 
-// The other reports, newest first, or the template's deck while there are none
-const others = (await sanity.fetch<Insight[]>(REPORTS_QUERY)).filter((other) => other._id !== item._id);
-const related = others.length ? others.slice(0, 6).map((other) => fromHere(cardOf(other))) : RELATED;
+// how it is got: a paid report is bought (its link), a free one signed up
+// for (its form); a link of its own otherwise
+const access: Access = report.access ?? {};
+const method = access.method ?? (free ? "beehiiv" : "buy");
+const getHref = text(access.href);
+const beehiivSrc = (() => {
+  const form = text(access.beehiivForm);
+  if (!form) return "";
+  return form.startsWith("http") ? form : `https://subscribe-forms.beehiiv.com/${form}`;
+})();
+const hasForm = (method === "beehiiv" && !!beehiivSrc) || (method === "hubspot" && !!text(access.hubspotPortal) && !!text(access.hubspotForm));
+const getLabel = text(access.buttonLabel) || (free ? rp("freeButton") : rp("buyButton"));
+// the opening's button: straight to the purchase or the link, or down to the form
+const heroAction = hasForm || !getHref ? { href: "#get", arrow: "down" as const } : { href: getHref, arrow: "right" as const, ...linkTarget(getHref) };
+const partner = report.partner && text(report.partner.title) ? report.partner : null;
+
+// the other reports, newest first, for the slider at the foot
+const others = (await collection<Insight>(sanity, REPORTS_QUERY)).filter((other) => other._id !== report._id);
+const rooted = (path: string) => (path.startsWith("/") || path.startsWith("http") ? path : `/${path}`);
+const related: Card[] = others.slice(0, 6).map((other) => {
+  const card = cardOf(other, undefined, rp("freeLabel"));
+  return { ...card, href: rooted(card.href), image: rooted(card.image) };
+});
 ---
 <BaseLayout
   title={`${item.title} — ADDD`}
   description={item.summary ?? item.standfirst ?? ""}
   pageName={item.title}
   doc={{ id: item._id, type: "report" }}
-  held
+  share={cover ? { image: cover.src } : undefined}
 >
-<main class="page--grid">
+<main class="page--grid page--report">
 
-  <section class="pg-hero">
+  <!-- The opening: the product, what it is and its price, its title,
+       standfirst and a few facts, and the way to get it; its cover on the
+       right, standing as a printed copy -->
+  <section class="section rp-hero">
     <div class="container">
-      <div class="pg-hero__grid">
-        <div class="pg-hero__col">
-          <div class="cover" style={coverStyle}></div>
-        </div>
-        <div class="pg-hero__col">
-          <p class="tagline">Report</p>
-          <h1 class="h2" data-split="heading" data-page-field="title">{item.title}</h1>
-          <p class="text-md" data-page-field="standfirst">{item.standfirst}</p>
-          <form class="newsletter-form" onsubmit="return false">
-            <input type="email" placeholder="Work email" aria-label="Work email">
-            <button class="newsletter-form__submit" type="submit">Download</button>
-          </form>
-          <p class="text-sm">We respect your inbox. Unsubscribe at any time.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section section--light">
-    <div class="container">
-      <div class="section-title">
-        <p class="text-md" data-page-field="coversLede">{coversLede}</p>
-        <div class="section-title__body">
-          <p class="tagline">Inside</p>
-          <h2 class="h2" data-split="heading">What this report covers</h2>
-        </div>
-      </div>
-
-      <div class="pg-hero__grid" style="margin-top:5rem">
-        <div class="pg-hero__col" style="flex:0 0 20rem">
-          <ul class="steps" style="margin-top:0;width:100%" data-page-field="contents">
-            {contents.map((line) => (
-            <li class="steps__item" style="padding:1.25rem 0"><span class="text-md">{line}</span></li>
-            ))}
+      <div class="rp-hero__grid">
+        <div class="rp-hero__words">
+          <p class="tagline rp-hero__kind">
+            <span data-page-field="format">{format}</span>
+            <span class="rp-hero__price">
+              <span data-page-field={free ? undefined : "price"}>{price}</span>
+              {wasPrice && !free && <s class="rp-hero__was" data-page-field="wasPrice">{wasPrice}</s>}
+            </span>
+          </p>
+          <h1 class="h2 rp-hero__title" data-split="heading" data-page-field="title">{item.title}</h1>
+          {text(report.standfirst) && <p class="text-md rp-hero__lede" data-page-field="standfirst">{report.standfirst}</p>}
+          {facts.length > 0 && (
+          <ul class="rp-facts" role="list" data-page-field="facts">
+            {facts.map((fact) => <li class="rp-facts__item">{fact}</li>)}
           </ul>
-        </div>
-        <div class="pg-hero__col">
-          <div class="tile tile--lg" style="background:var(--c-paper);width:100%">
-            <div class="card__icon"><img src="/assets/icons/visibility.svg" alt=""></div>
-            <h3 class="h3" data-page-field="highlightTitle">{highlightTitle}</h3>
-            <p data-page-field="highlightText">{highlightText}</p>
-            <div class="actions">
-              <ActionButton href="#download" variant="secondary">Read</ActionButton>
-              <a class="btn btn--link nav-link" href="/reports"><NavLinkLabel>Explore</NavLinkLabel> <img class="icon" src="/assets/icons/chevron_right.svg" alt=""></a>
-            </div>
+          )}
+          <div class="actions actions--pair rp-hero__actions">
+            <ActionButton {...heroAction}><span data-page-field="access.buttonLabel">{getLabel}</span></ActionButton>
+            {contents.length > 0 && <ActionButton href="#inside" variant="secondary" arrow="down"><span {...RP} data-page-field="reportPage.insideLink">{rp("insideLink")}</span></ActionButton>}
           </div>
         </div>
+        <figure class="rp-hero__cover">
+          {cover ? (
+          <img class="rp-hero__cover-img" src={cover.src} width={cover.width} height={cover.height} alt={report.cover?.alt || item.title} decoding="async" data-page-field="cover" data-page-width="1200">
+          ) : (
+          <div class="ph rp-hero__cover-ph" data-page-field="cover"></div>
+          )}
+        </figure>
       </div>
     </div>
   </section>
 
-  {body && (
-  <section class="section">
+
+  <!-- What is inside: the heading row, then the subjects as numbered rows,
+       a line written "Title — detail" with its detail under its title -->
+  {contents.length > 0 && (
+  <section class="section rp-inside" id="inside">
     <div class="container">
-      <div class="prose" data-page-field="body"><PortableText value={body} /></div>
+      <div class="section-title">
+        {coversLede ? <p class="text-md" data-page-field="coversLede">{coversLede}</p> : <p class="text-md"></p>}
+        <div class="section-title__body">
+          <p class="tagline" {...RP} data-page-field="reportPage.coversTagline">{rp("coversTagline")}</p>
+          <h2 class="h2" data-split="heading" {...RP} data-page-field="reportPage.coversHeading">{rp("coversHeading")}</h2>
+        </div>
+      </div>
+      <ol class="rp-list" role="list" data-page-field="contents">
+        {contents.map((line, i) => {
+          const [first, second] = parts(line);
+          return (
+        <li class="rp-list__item">
+          <span class="rp-list__n" aria-hidden="true">{pad(i + 1)}</span>
+          <span class="rp-list__words">
+            <span class="rp-list__title">{first}</span>
+            {second && <span class="rp-list__text">{second}</span>}
+          </span>
+        </li>
+          );
+        })}
+      </ol>
+      {highlightTitle && (
+      <aside class="rp-highlight">
+        <span class="rp-highlight__mark" aria-hidden="true"></span>
+        <p class="rp-highlight__title" data-page-field="highlightTitle">{highlightTitle}</p>
+        {highlightText && <p class="rp-highlight__text" data-page-field="highlightText">{highlightText}</p>}
+      </aside>
+      )}
     </div>
   </section>
   )}
 
-  <section class="section">
+
+  <!-- its pages: a row of them, each a sheet, scrolled sideways where they
+       don't all fit -->
+  {gallery.length > 0 && (
+  <section class="section rp-gallery" aria-label="Pages from inside">
+    <div class="container">
+      <ul class="rp-gallery__row" role="list" data-page-field="gallery" data-lenis-prevent>
+        {gallery.map((page) => (
+        <li class="rp-gallery__page"><img src={page.src} width={page.width} height={page.height} alt={page.alt} loading="lazy" decoding="async"></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  )}
+
+  {body && (
+  <section class="section rp-body">
+    <div class="container">
+      <div class="prose rp-body__prose" data-page-field="body"><PortableText value={body} /></div>
+    </div>
+  </section>
+  )}
+
+
+  <!-- who it is for, on the ink: the heading on the left, the readers on
+       the site's dotted rule on the right -->
+  {audience.length > 0 && (
+  <section class="section section--dark rp-audience">
+    <div class="container">
+      <div class="rp-audience__head">
+        <p class="tagline" {...RP} data-page-field="reportPage.audienceTagline">{rp("audienceTagline")}</p>
+        <h2 class="h3" {...RP} data-page-field="reportPage.audienceHeading">{rp("audienceHeading")}</h2>
+        {text(report.audienceLede) && <p class="text-md rp-audience__lede" data-page-field="audienceLede">{report.audienceLede}</p>}
+      </div>
+      <ul class="tf-rules rp-audience__list" role="list" data-page-field="audience">
+        {audience.map((line) => (
+        <li><span class="tf-mark" aria-hidden="true"></span><span>{line}</span></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+  )}
+
+  <!-- Getting it: the service pages' price card, its price (or Free), what
+       it includes, and its sign-up form or the button to buy it; a
+       partner's panel under it, where the report has one -->
+  <section class="section plan-section rp-get" id="get">
+    <div class="container">
+      <PricingPlan
+        tagline={rp("getTagline")}
+        heading={rp("getHeading")}
+        lede={item.summary ?? ""}
+        plans={[{
+          id: "report-get",
+          field: "",
+          bind: { title: "format", price: free ? false : "price", badge: free ? false : "wasPrice", includes: "includes", note: "access.note", button: "access.buttonLabel" },
+          title: format,
+          badge: wasPrice && !free ? `${rp("wasLabel")} ${wasPrice}` : "",
+          price,
+          label: includes.length ? rp("includesLabel") : "",
+          includes,
+          note: text(access.note),
+          button: { href: getHref || "/contact", label: getLabel, attrs: isExternal(getHref) ? { target: "_blank", rel: "noopener" } : {} },
+        }]}
+      >
+        {hasForm && (
+        <Fragment slot="action">
+          {method === "beehiiv" ? (
+          <div class="rp-form is--beehiiv" data-product-form="beehiiv">
+            <iframe class="rp-form__frame beehiiv-embed" src={beehiivSrc} title={`${rp("formTitle")}: ${item.title}`} loading="lazy" frameborder="0" scrolling="no" style={`height:${access.beehiivHeight || 240}px`} data-test-id="beehiiv-embed"></iframe>
+          </div>
+          ) : (
+          <div class="rp-form is--hubspot" data-product-form="hubspot" data-region={text(access.hubspotRegion) || "na1"} data-portal={text(access.hubspotPortal)} data-form={text(access.hubspotForm)} aria-label={`${rp("formTitle")}: ${item.title}`}></div>
+          )}
+        </Fragment>
+        )}
+        {partner && (
+        <PlanNext slot="next" links={[{
+          kicker: text(partner.kicker),
+          kickerField: "partner.kicker",
+          title: text(partner.title),
+          titleField: "partner.title",
+          text: text(partner.text),
+          textField: "partner.text",
+          button: text(partner.buttonLabel) || rp("partnerButton"),
+          buttonField: "partner.buttonLabel",
+          href: text(partner.href) || "/contact",
+        }]} />
+        )}
+      </PricingPlan>
+    </div>
+  </section>
+
+  {related.length > 0 && (
+  <section class="section rp-related">
     <div class="container">
       <div class="research__controls" style="margin-top:0">
         <div class="stack stack--16">
-          <p class="tagline">Resources</p>
-          <h2 class="h2" data-split="heading">Related reports</h2>
-          <p>Explore more insight-led content to guide your practice forward</p>
+          <p class="tagline" {...RP} data-page-field="reportPage.relatedTagline">{rp("relatedTagline")}</p>
+          <h2 class="h2" data-split="heading" {...RP} data-page-field="reportPage.relatedHeading">{rp("relatedHeading")}</h2>
+          <p {...RP} data-page-field="reportPage.relatedText">{rp("relatedText")}</p>
         </div>
-        <ActionButton href="/reports" variant="secondary">View all</ActionButton>
+        <ActionButton href="/reports" variant="secondary"><span {...RP} data-page-field="reportPage.relatedButton">{rp("relatedButton")}</span></ActionButton>
       </div>
 
       <InsightSlider items={related} />
     </div>
   </section>
+  )}
 
-  <section class="section" id="download">
-    <div class="container">
-      <div class="card">
-        <div class="card__body card__body--lg">
-          <div class="card__text">
-            <h2 class="h3">Get the BIM 2.0 report</h2>
-            <p>Download your copy and explore what&rsquo;s reshaping architecture practice today</p>
-          </div>
-          <form class="newsletter-signup" onsubmit="return false">
-            <div class="newsletter-form">
-              <input type="email" name="email" placeholder="Work email" aria-label="Work email" required>
-              <button class="newsletter-form__submit" type="submit">Download report</button>
-            </div>
-            <fieldset class="newsletter-audience">
-              <legend class="newsletter-audience__legend">Which describes you?</legend>
-              <label><input type="radio" name="audience" value="practice" required> I run or work in a practice</label>
-              <label><input type="radio" name="audience" value="vendor"> I sell to practices</label>
-            </fieldset>
-          </form>
-          <p class="text-sm">We respect your inbox. Unsubscribe at any time.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <ClosingCta primary={{ href: "/stack-diagnostic" }} secondary={{ href: "/contact" }} />
+  <ClosingCta />
 
 </main>
 </BaseLayout>

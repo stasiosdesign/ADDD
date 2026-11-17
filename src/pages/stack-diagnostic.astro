@@ -1,15 +1,15 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
-import { pageDocument, reader } from "../sanity/content";
-import { TECH_STACKS_QUERY } from "../sanity/queries";
+import { cachedDocument, reader } from "../sanity/content";
 import { stackDiagnosticPage as D } from "../sanity/defaults/stack-diagnostic";
-import { APP_SIGN_UP, CATEGORIES, PLATFORMS, SAMPLE_STACKS, STACK_TONE, TOOLS, stackOf, type StackDocument } from "../data/stack-ecosystem";
+import { techStacks } from "../sanity/tech-stacks";
+import { APP_SIGN_UP, STACK_TONE } from "../data/stack-ecosystem";
 
 // Free Tech Stacks, as one screen (2026-11-04, fourth pass, after the
 // user's brief and a reference of CD cases standing in a row): one
 // continuous row of cards in 3D, every card a piece of software and every
-// card in a curated stack, the row running across the screen from off its
+// card a stage of a curated stack, the row running across the screen from off its
 // bottom-left to off its top-right and going round as it is scrolled
 // through. A stack's cards stand together at the row's own spacing, every
 // card in the one colour (sixth pass: the stack being read, at the row's
@@ -29,46 +29,36 @@ import { APP_SIGN_UP, CATEGORIES, PLATFORMS, SAMPLE_STACKS, STACK_TONE, TOOLS, s
 // locked ones in rows, each block opening the same sheet out of its own
 // rows. Both views are drawn from the one data below.
 //
-// The stacks are the Studio's (studio/schemaTypes/documents/tech-stack.ts).
-// Until any are published, samples (src/data/stack-ecosystem.ts) stand in
-// on staging and in development; production then shows the inventory's
-// software alone as a plain row, never a sample, and no list.
+// The stacks (2026-11-16) are the ten example workflows of "ADDDStack
+// Example Workflows" (src/data/tech-stacks.ts, generated from the full
+// document kept in source-assets/tech-stacks/), on every deployment. Each
+// stage is a card, in the workflow's order: an open stage names its tool,
+// a locked one only its stage (its tool is in the ADDD app, behind the
+// sign-up the Free Stack and the sheet lead to).
 //
 // Drawn on one canvas by src/scripts/stack-space.js; the sheet is
 // src/scripts/stack-sheet.js (styles: stack-space.css). The page does not
 // scroll and has no footer. The words come from the Stack Diagnostic page
 // document in Sanity (studio/schemaTypes/pages/stack-diagnostic.ts),
 // falling back to src/sanity/defaults/stack-diagnostic.ts.
-const { sanity } = Astro.locals;
-const [doc, stackDocs] = await Promise.all([
-  pageDocument(sanity, "stackDiagnosticPage"),
-  sanity.fetch<StackDocument[]>(TECH_STACKS_QUERY),
-]);
+//
+// Since 2026-11-16 the stacks are the page document's own (its Tech stacks
+// section: each stack a block, its stages blocks inside it, added and
+// reordered in the Studio; src/sanity/tech-stacks.ts), and so are the words
+// round them: the views' switch, the list's blocks and the sheet's
+// (sheet.*, passed to stack-sheet.js with the data). Where a stack's way in
+// leads: its own place in the app, or the Free Stack's sign-up.
+const [doc, stacks] = await Promise.all([cachedDocument(Astro.locals, "stackDiagnosticPage"), techStacks(Astro.locals)]);
 const { t } = reader(doc, D);
-
-const published = (stackDocs ?? []).map(stackOf).filter((s) => s.name);
-const stacks = published.length ? published : __DEPLOYMENT__ === "production" ? [] : SAMPLE_STACKS;
-
-// a tool as the row, the list and the sheet show it: its name, its role in
-// a workflow (its home category, or a platform's role), the line on what
-// it does, its mark where the site has the product's own
-const categoryName = Object.fromEntries(CATEGORIES.map((c) => [c.id, c.name]));
-const toolByName = new Map(TOOLS.map((tool) => [tool.name.toLowerCase(), tool]));
-const platformByName = new Map(PLATFORMS.map((p) => [p.name.toLowerCase(), p]));
-const shown = (name: string) => {
-  const platform = platformByName.get(name.toLowerCase());
-  if (platform) return { name: platform.name, category: platform.role, note: platform.note, logo: platform.logo };
-  const tool = toolByName.get(name.toLowerCase());
-  const home = tool?.categories[0];
-  return { name: tool?.name ?? name, category: home ? categoryName[home] : "", note: tool && home ? tool.notes[home] ?? "" : "", logo: tool?.logo ?? null };
-};
+const signUp = t("hero.buttonHref") || APP_SIGN_UP;
+const SHEET_WORDS = ["kicker", "lockedCount", "allOpen", "locked", "lockedLink", "alternatives", "noteLabel", "unlockTitle", "unlockText", "openTitle", "openText"] as const;
 const data = {
-  stacks: stacks.map((s) => ({ ...s, tone: STACK_TONE, preview: s.preview.map(shown) })),
-  // the inventory's software, for the plain row production shows while no
-  // stack is published (with stacks, every card is a stack's)
-  tools: stacks.length ? [] : TOOLS.map((tool) => shown(tool.name)),
-  signUp: APP_SIGN_UP,
+  stacks: stacks.map((s) => ({ ...s, tone: STACK_TONE, url: s.url || signUp })),
+  signUp,
+  words: Object.fromEntries(SHEET_WORDS.map((w) => [w, t(`sheet.${w}`)])),
 };
+// "{n} stages · {locked} locked" and the like, filled in
+const fill = (template: string, values: Record<string, string | number>) => template.replace(/[{]([a-zA-Z]+)[}]/g, (all, key) => (key in values ? String(values[key]) : all));
 const initials = (name: string) => {
   const words = name.split(/[\s.]+/).filter(Boolean);
   if (words.length > 1 && !/^tech$/i.test(words[1])) return (words[0][0] + words[1][0]).toUpperCase();
@@ -82,9 +72,9 @@ const pad = (n: number) => String(n).padStart(2, "0");
 const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9C3.75 8.17125 4.42125 7.5 5.25 7.5H12.75C13.5788 7.5 14.25 8.17125 14.25 9V14.25C14.25 15.0787 13.5788 15.75 12.75 15.75Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path><path d="M6 7.5V5.25C6 3.59325 7.34325 2.25 9 2.25C10.6567 2.25 12 3.59325 12 5.25V7.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>`;
 ---
 <BaseLayout
-  title="Stack Diagnostic — ADDD"
-  description="A short, focused assessment of the technology your practice actually runs—what each tool is for, who depends on it, and where two tools do the same job."
-  pageName="Stack Diagnostic"
+  title={t("seo.title")}
+  description={t("seo.description")}
+  pageName="Tech Stacks"
   doc={{ id: "stackDiagnosticPage" }}
   footer={false}
 >
@@ -105,26 +95,25 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
     <ul class="sd-flat__grid" role="list">
       {data.stacks.map((s, i) => (
       <li class="sd-flat__item">
-        <button type="button" class="sd-flat__stack" data-flat-go={i} aria-haspopup="dialog" style={`--tone:${s.tone.ground};--tone-ink:${s.tone.ink}`} aria-label={`${s.name}: ${s.toolCount} tools. Open the stack.`}>
+        <button type="button" class="sd-flat__stack" data-flat-go={i} aria-haspopup="dialog" style={`--tone:${s.tone.ground};--tone-ink:${s.tone.ink}`} aria-label={`${s.name}: ${s.stages.length} stages, ${s.stages.filter((st) => st.locked).length} locked. Open the stack.`}>
           <span class="sd-flat__head" data-flat-part>
-            <span class="sd-flat__count">{pad(s.toolCount)} tools</span>
+            <span class="sd-flat__count">{fill(t("sheet.listCount"), { n: pad(s.stages.length), locked: s.stages.filter((st) => st.locked).length })}</span>
             <span class="sd-flat__name">{s.name}</span>
-            {s.workflow && <span class="sd-flat__workflow">{s.workflow}</span>}
           </span>
-          {s.preview.map((tool) => (
-          <span class="sd-flat__tool" data-flat-part>
-            <span class="sd-flat__mark">{tool.logo ? <img src={tool.logo} alt="" width="24" height="24" loading="lazy" decoding="async" /> : initials(tool.name)}</span>
-            <span class="sd-flat__tool-name">{tool.name}</span>
-            {tool.category && <span class="sd-flat__role">{tool.category}</span>}
-          </span>
-          ))}
-          {Array.from({ length: Math.max(0, s.toolCount - s.preview.length) }, () => (
+          {s.stages.map((st) => !("tool" in st) ? (
           <span class="sd-flat__tool is--locked" data-flat-part>
             <span class="sd-flat__mark is--lock"><svg viewBox="0 0 18 18" fill="none" aria-hidden="true" set:html={LOCK}></svg></span>
-            <span class="sd-flat__bar"></span>
+            <span class="sd-flat__bar" aria-hidden="true"></span>
+            <span class="sd-flat__role">{st.stage}</span>
+          </span>
+          ) : (
+          <span class="sd-flat__tool" data-flat-part>
+            <span class="sd-flat__mark">{st.logo ? <img src={st.logo} alt="" width="24" height="24" loading="lazy" decoding="async" /> : initials(st.tool)}</span>
+            <span class="sd-flat__tool-name">{st.tool}</span>
+            <span class="sd-flat__role">{st.stage}</span>
           </span>
           ))}
-          <span class="sd-flat__open" data-flat-part>Open the stack<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/></svg></span>
+          <span class="sd-flat__open" data-flat-part><span data-page-field="sheet.listOpen">{t("sheet.listOpen")}</span><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/></svg></span>
         </button>
       </li>
       ))}
@@ -137,8 +126,8 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
     <p class="sd__lede" data-page-field="hero.lede">{t("hero.lede")}</p>
     {data.stacks.length > 0 && (
     <div class="sd__views" role="group" aria-label="How to show the stacks">
-      <button type="button" class="sd__view" data-view-set="3d" aria-pressed="true">3D</button>
-      <button type="button" class="sd__view" data-view-set="flat" aria-pressed="false">List</button>
+      <button type="button" class="sd__view" data-view-set="3d" aria-pressed="true" data-page-field="sheet.view3d">{t("sheet.view3d")}</button>
+      <button type="button" class="sd__view" data-view-set="flat" aria-pressed="false" data-page-field="sheet.viewList">{t("sheet.viewList")}</button>
     </div>
     )}
   </header>
@@ -156,7 +145,7 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
       </div>
     </div>
     )}
-    <ActionButton href={APP_SIGN_UP} target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+    <ActionButton href={signUp} target="_blank" rel="noopener"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
   </div>
 
   <!-- a stack's sheet (stack-sheet.js): its containers are written into the
@@ -171,7 +160,7 @@ const LOCK = `<path d="M12.75 15.75H5.25C4.42125 15.75 3.75 15.0787 3.75 14.25V9
         <div class="sd-sheet__column" data-sheet-column></div>
       </div>
     </div>
-    <template data-sheet-cta><ActionButton href={APP_SIGN_UP} target="_blank" rel="noopener">Unlock the full stack</ActionButton></template>
+    <template data-sheet-cta><ActionButton href={signUp} target="_blank" rel="noopener">{t("sheet.button")}</ActionButton></template>
     <template data-sheet-lock><svg viewBox="0 0 18 18" fill="none" aria-hidden="true" set:html={LOCK}></svg></template>
   </dialog>
 

@@ -1,0 +1,227 @@
+/* ============================================================
+   A report's page (reports/[slug].astro; 2026-11-17)
+   ADDD's reports, guides, cheat sheets and spreadsheets, each on a page
+   of the site's own rather than a page builder's: the opening with the
+   cover standing as a printed copy, what is inside as numbered rows on
+   the dotted rule, its pages in a row, who it is for on the ink, and the
+   service pages' price card (plan.css) holding the way to get it.
+   Every measure is one of the site's (styles.css): its type steps, its
+   off-white and ink, its one red, its dotted rule, the mono labels.
+   ============================================================ */
+
+.page--report {
+  --rp-ink-soft: color-mix(in srgb, var(--c-text) 58%, transparent);
+  --rp-ink-quiet: color-mix(in srgb, var(--c-text) 42%, transparent);
+  --rp-shadow: 0 1px 2px rgba(10, 10, 10, 0.06), 0 24px 48px -24px rgba(10, 10, 10, 0.32);
+}
+
+/* ------------------------------------------------------------
+   The opening: the words on the left (Grid Columns 2–6), the cover on
+   the right (8–11), standing on the page's off-white
+   ------------------------------------------------------------ */
+.rp-hero {
+  padding-top: calc(var(--nav-h) + var(--sec-md));
+  background: var(--c-light-bg);
+}
+.rp-hero__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 3rem;
+  align-items: center;
+}
+.rp-hero__words { display: flex; flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+/* what it is and its price, in the mono labels, the price after a rule */
+.rp-hero__kind {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  color: var(--label-ink);
+}
+.rp-hero__price { display: inline-flex; align-items: baseline; gap: 0.5rem; padding-left: 0.875rem; border-left: 1px solid var(--c-border); color: var(--c-red); }
+.rp-hero__was { color: var(--rp-ink-quiet); text-decoration-thickness: 1px; }
+.rp-hero__title { margin: 0; max-width: 14em; }
+.rp-hero__lede { margin: 0; max-width: 34em; color: var(--rp-ink-soft); }
+.rp-hero__actions { margin-top: 0.5rem; }
+
+/* a few facts as small tags */
+.rp-facts { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.rp-facts__item {
+  padding: 0.4375rem 0.75rem;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius);
+  background: var(--c-paper);
+  font-family: var(--font-mono);
+  font-size: var(--t-xs);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+/* the cover: a printed copy, upright, with its shadow on the page */
+.rp-hero__cover { margin: 0; justify-self: center; width: min(100%, 26rem); }
+.rp-hero__cover-img,
+.rp-hero__cover-ph {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--rp-shadow);
+  background: var(--c-paper);
+}
+.rp-hero__cover-ph { aspect-ratio: 3 / 4; }
+
+@media screen and (min-width: 992px) {
+  .page--grid .container > .rp-hero__grid {
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    column-gap: normal;
+  }
+  .page--grid .rp-hero__words { grid-column: 2 / 7; }
+  .page--grid .rp-hero__cover { grid-column: 8 / 12; justify-self: stretch; width: auto; max-width: 30rem; }
+}
+
+/* ------------------------------------------------------------
+   What is inside: numbered rows on the dotted rule, the number in the
+   mono label, the detail under its title
+   ------------------------------------------------------------ */
+.rp-list {
+  margin: 4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.rp-list__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1.5rem 0;
+}
+.rp-list__item::after,
+.rp-list__item:first-child::before {
+  content: "";
+  position: absolute;
+  left: calc(-1 * var(--dotted-rule-bleed));
+  right: calc(-1 * var(--dotted-rule-bleed));
+  bottom: 0;
+  height: 2px;
+  background: var(--dotted-rule);
+}
+.rp-list__item:first-child::before { top: 0; bottom: auto; }
+.rp-list__n {
+  font-family: var(--font-mono);
+  font-size: var(--t-sm);
+  letter-spacing: var(--label-tracking);
+  color: var(--c-red);
+  line-height: 1.6;
+}
+.rp-list__words { display: flex; flex-direction: column; gap: 0.375rem; }
+.rp-list__title { font-size: var(--t-md); line-height: 1.4; }
+.rp-list__text { color: var(--rp-ink-soft); line-height: 1.5; }
+
+/* a line set apart under the rows, beside a red mark */
+.rp-highlight {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.5rem 1rem;
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: var(--radius);
+  background: var(--c-paper);
+  box-shadow: 0 1px 2px rgba(10, 10, 10, 0.04), 0 8px 24px -12px rgba(10, 10, 10, 0.12);
+}
+.rp-highlight__mark { grid-row: 1 / span 2; width: 0.5rem; height: 0.5rem; margin-top: 0.55em; background: var(--c-red); }
+.rp-highlight__title { margin: 0; font-size: var(--t-md); line-height: 1.4; }
+.rp-highlight__text { margin: 0; color: var(--rp-ink-soft); }
+
+@media screen and (min-width: 992px) {
+  .page--grid .rp-inside .rp-list,
+  .page--grid .rp-inside .rp-highlight { grid-column: 7 / 12; }
+}
+
+/* ------------------------------------------------------------
+   Its pages: a row of sheets, scrolled sideways where they don't all fit
+   ------------------------------------------------------------ */
+.rp-gallery { padding-top: 0; }
+.rp-gallery__row {
+  display: flex;
+  gap: var(--grid-gutter, 1.5rem);
+  margin: 0;
+  padding: 0 0 1.5rem;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+}
+.rp-gallery__page { flex: 0 0 min(72%, 20rem); scroll-snap-align: start; }
+.rp-gallery__page img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius);
+  box-shadow: var(--rp-shadow);
+  background: var(--c-paper);
+}
+@media screen and (min-width: 992px) {
+  .page--grid .rp-gallery .rp-gallery__row { grid-column: 2 / 12; }
+}
+
+/* the report's own text, at a reading measure; its lists as the site's,
+   each point beside a small red square */
+.rp-body { padding-top: 0; }
+.rp-body__prose :is(h2, h3) { margin: 0 0 1.25rem; font-size: var(--t-h4); line-height: 1.15; font-weight: var(--fw-heading-medium); }
+.rp-body__prose h3 { font-size: var(--t-md); line-height: 1.4; }
+.rp-body__prose p { margin: 0 0 1.25rem; font-size: var(--t-md); line-height: 1.5; }
+.rp-body__prose :is(ul, ol) { margin: 0 0 1.5rem; padding: 0; list-style: none; }
+.rp-body__prose li {
+  position: relative;
+  padding: 0.875rem 0 0.875rem 1.5rem;
+  font-size: var(--t-md);
+  line-height: 1.45;
+}
+.rp-body__prose li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(0.875rem + 0.5em);
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--c-red);
+}
+.rp-body__prose li + li { border-top: 1px solid var(--c-border); }
+.rp-body__prose a { color: inherit; text-decoration: underline; text-underline-offset: 0.2em; }
+@media screen and (min-width: 992px) {
+  .page--grid .rp-body .rp-body__prose { grid-column: 4 / 10; }
+}
+
+/* ------------------------------------------------------------
+   Who it is for, on the ink: the heading on the left (2–5), the readers
+   on the dotted rule on the right (7–11), each marked in the red
+   ------------------------------------------------------------ */
+.rp-audience__head { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 3rem; }
+.rp-audience__head .h3 { margin: 0; }
+.rp-audience__lede { margin: 0; color: color-mix(in srgb, var(--c-white) 70%, transparent); }
+.rp-audience .tf-mark { background: var(--c-red); }
+@media screen and (min-width: 992px) {
+  .page--grid .rp-audience .rp-audience__head { grid-column: 2 / 6; margin-bottom: 0; }
+  .page--grid .rp-audience .rp-audience__list { grid-column: 7 / 12; }
+}
+
+/* ------------------------------------------------------------
+   Getting it: the price card's sign-up form, in place of its button
+   ------------------------------------------------------------ */
+.plan-card__action.is--form { display: block; }
+.rp-form { width: 100%; min-height: 4rem; }
+.rp-form__frame {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  border: 0;
+  margin: 0;
+  background: transparent;
+}
+/* HubSpot's form frame takes the card's width */
+.rp-form .hs-form-frame { width: 100%; }

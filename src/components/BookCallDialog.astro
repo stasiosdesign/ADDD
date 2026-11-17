@@ -6,23 +6,32 @@
   Book a Free Call (BookCall.astro) and their floating Book a Call, and
   the button on the Contact page's pass. One per page. A preview until a
   real calendar is connected: nothing is sent anywhere.
+
+  Its words and times come from the Home page document's Booking section
+  in Sanity (2026-11-16), shared by every page that offers the call,
+  falling back to src/sanity/defaults/home.ts; which weekdays can be
+  picked stays here.
 */
 import BookingDialog from "./BookingDialog.astro";
+import { reader, siteDocument } from "../sanity/content";
+import { homePage as HOME } from "../sanity/defaults/home";
 
 interface Props {
   /** the dialog's id: one per page */
   id?: string;
 }
 const { id = "book-call" } = Astro.props;
+const { t, items } = reader(await siteDocument(Astro.locals), HOME);
 ---
 <BookingDialog
   id={id}
-  label="Free call · with Allister"
-  title="Book a free call"
-  note="Pick a day and a time for a short call with Allister about your practice. This calendar is a preview: online booking opens soon."
-  slots={[
-    { name: "Morning", time: "10:00–12:00" },
-    { name: "Afternoon", time: "14:00–16:00" },
-  ]}
+  label={t("booking.label")}
+  title={t("booking.title")}
+  note={t("booking.note")}
+  slots={items("booking.slots").map((slot) => ({ name: slot.t("name"), time: slot.t("time") }))}
   days={[1, 2, 3, 4, 5]}
+  summary={t("booking.summary")}
+  button={t("booking.button")}
+  done={t("booking.done")}
+  field="booking"
 />

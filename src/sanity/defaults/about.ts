@@ -5,11 +5,17 @@ import { keyed } from './types';
    two picture slots in Validation ship empty: the page draws plain
    placeholders until pictures are set in the Studio. */
 export const aboutPage = {
+  seo: {
+    title: 'About — ADDD',
+    description: 'I’m Allister Lewis, an architect and technology strategist. I founded ADDD to help architecture leaders understand what is really holding their practice back—across technology, workflows, information, costs and decision-making.',
+  },
   hero: {
     heading: 'A clearer view of how your practice really works.',
     lede: 'I’m Allister Lewis, an architect and technology strategist. I founded ADDD to help architecture leaders understand what is really holding their practice back—across technology, workflows, information, costs and decision-making.',
     primaryButton: 'Discover',
     secondaryButton: 'Blueprint',
+    primaryHref: '/contact',
+    secondaryHref: '/technology-blueprint',
   },
   foundation: {
     tagline: 'Foundation',
@@ -17,6 +23,8 @@ export const aboutPage = {
       'Architecture practices rarely choose poorly. They choose reactively, without a coherent framework, and then live with the consequences compounding across years. The real problem is structural, not technical.',
     primaryButton: 'Services',
     secondaryButton: 'Resources',
+    primaryHref: '/workshops-audits',
+    secondaryHref: '/reports',
   },
   perspective: {
     lede: 'An external eye finds what internal teams have learned to live with.',
@@ -47,5 +55,6 @@ export const aboutPage = {
     image2: { path: '', alt: '' },
     text: 'ADAM Architecture reduced licensing costs by half, uncovered eighteen hidden workflow steps and aligned leadership around a shared digital roadmap. The approach works because it treats technology as a system, not a series of isolated tools. Allister’s work spans 1,800+ researched AEC software solutions, direct experience with AJ100 practices and ongoing industry research through reports, speaking and the ADDDitive newsletter.',
     button: 'Case study',
+    buttonHref: '/reports',
   },
 };

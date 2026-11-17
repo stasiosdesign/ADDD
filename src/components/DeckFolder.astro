@@ -17,7 +17,12 @@ export interface Folder {
   n: number;
   /** the label row's left (e.g. "Service N°01") and right */
   label: string;
+  /** the label's word alone ("Service"), and the field it comes from:
+      bound, the word gets an element of its own, the number after it */
+  labelWord?: string;
+  labelField?: string;
   meta?: string;
+  metaField?: string;
   title?: string;
   text?: string;
   /** the Studio fields the title and line come from, for the Visual editor */
@@ -25,9 +30,12 @@ export interface Folder {
   textField?: string;
   /** the words on the sheet inside, through the notch */
   covers?: string[];
+  coversField?: string;
   /** the pill at the foot, and the way on beside it */
   kind?: string;
+  kindField?: string;
   go: string;
+  goField?: string;
   /** the control's name for screen readers */
   action: string;
   href?: string;
@@ -35,23 +43,23 @@ export interface Folder {
 }
 type Props = Folder & { index?: number };
 
-const { n, label, meta, title, text, titleField, textField, covers = [], kind, go, action, href, opens, index = n - 1 } = Astro.props;
+const { n, label, labelWord, labelField, meta, metaField, title, text, titleField, textField, covers = [], coversField, kind, kindField, go, goField, action, href, opens, index = n - 1 } = Astro.props;
 const pad = (v: number) => String(v).padStart(2, "0");
 ---
 <article class="service-deck__card deck-folder" style={`--i:${index}`}>
   <span class="deck-folder__sheet" aria-hidden="true">
-    <ul class="deck-folder__page" role="list">{covers.map((item) => <li>{item}</li>)}</ul>
+    <ul class="deck-folder__page" role="list">{covers.map((item, i) => <li data-page-field={coversField ? `${coversField}.${i}` : undefined}>{item}</li>)}</ul>
   </span>
   <div class="deck-folder__front">
-    <p class="deck-folder__label"><span>{label}</span>{meta && <span>{meta}</span>}</p>
+    <p class="deck-folder__label"><span>{labelField && labelWord ? <><span data-page-field={labelField}>{labelWord}</span>{label.slice(labelWord.length)}</> : label}</span>{meta && <span data-page-field={metaField}>{meta}</span>}</p>
     <div class="deck-folder__body">
       <h3 class="deck-folder__h" data-page-field={titleField}>{title}</h3>
       <p class="deck-folder__p" data-page-field={textField}>{text}</p>
     </div>
     <span class="deck-folder__n" aria-hidden="true">{pad(n)}</span>
     <div class="deck-folder__foot" aria-hidden="true">
-      {kind && <span class="deck-folder__kind">{kind}</span>}
-      <span class="deck-folder__go">{go}{opens
+      {kind && <span class="deck-folder__kind" data-page-field={kindField}>{kind}</span>}
+      <span class="deck-folder__go">{goField ? <span data-page-field={goField}>{go}</span> : go}{opens
         ? <svg viewBox="0 0 12 12"><path d="M6 2v8M2 6h8" /></svg>
         : <svg viewBox="0 0 12 12"><path d="M2.5 9.5L9.5 2.5M4 2.5h5.5V8" /></svg>}</span>
     </div>

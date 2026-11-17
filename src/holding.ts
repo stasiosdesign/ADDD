@@ -12,5 +12,11 @@
   Reports and Newsletter index pages and every other page are live.
   (Until then every page but the homepage was held on the deployed site,
   and none on the development server.)
+
+  The reports' own pages (reports/[slug]) are no longer held since
+  2026-11-17, when ADDD's six products became reports in Sanity, each on a
+  page of the site's own design: a card on the Reports page now opens its
+  product. The About page, the newsletter's issues and the two template
+  pages stay held.
 */
 export const HOLD = true;

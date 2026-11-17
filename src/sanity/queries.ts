@@ -14,12 +14,14 @@ const VISIBLE = `count(*[_id == "publish-log." + ^._id && state == "unpublished"
 const CLIENT = `_id, name, logo`;
 
 /* A page document, whole, with its references followed: the logo strip's
-   clients and each testimonial's logo (null on pages that have neither).
+   clients, each testimonial's logo and the practices in a dark hero's row
+   (hero.practices: Before Revit) (null on pages that have none).
    Pictures come as their image objects (asset reference, crop, hotspot):
    src/sanity/image.ts reads the asset's size from the reference itself. */
 export const PAGE_QUERY = `*[_id == $id][0]{
   ...,
   logos{ ..., clients[]->{ ${CLIENT} } },
+  hero{ ..., practices[]->{ ${CLIENT} } },
   testimonials{ ..., items[]{ ..., client->{ ${CLIENT} } } }
 }`;
 
@@ -32,7 +34,7 @@ export const CLIENT_LOGOS_QUERY = `select(
 )`;
 
 /** An insight card: what the card shows, and the page it links to */
-const CARD = `_id, _type, title, "slug": slug.current, category, summary, cover, readTime, author, publishedAt`;
+const CARD = `_id, _type, title, "slug": slug.current, category, summary, cover, readTime, author, publishedAt, format, price`;
 
 export const REPORTS_QUERY = `*[_type == "report" && defined(slug.current) && ${VISIBLE}] | order(publishedAt desc, _createdAt desc) { ${CARD} }`;
 export const ISSUES_QUERY = `*[_type == "newsletterIssue" && defined(slug.current) && ${VISIBLE}] | order(publishedAt desc, _createdAt desc) { ${CARD} }`;

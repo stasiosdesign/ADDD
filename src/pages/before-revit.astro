@@ -4,6 +4,7 @@ import ActionButton from "../components/ActionButton.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import FaqPanel from "../components/FaqPanel.astro";
+import BookCallDialog from "../components/BookCallDialog.astro";
 import FaqSection from "../components/FaqSection.astro";
 import LayersDiagram from "../components/LayersDiagram.astro";
 import ProblemCard from "../components/ProblemCard.astro";
@@ -11,6 +12,8 @@ import BookCallFloat from "../components/BookCallFloat.astro";
 import PricingPlan from "../components/PricingPlan.astro";
 import PlanNext from "../components/PlanNext.astro";
 import { pageDocument, reader } from "../sanity/content";
+import { hasImage, imageAttrs } from "../sanity/image";
+import { CLIENTS } from "../sanity/defaults/clients";
 import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 
 // Every section's words come from the Before Revit page document in Sanity
@@ -30,7 +33,17 @@ import { beforeRevitPage as D } from "../sanity/defaults/before-revit";
 // Ongoing Advisory's gains); why ADDD in the homepage's credentials; the
 // investment in the service pages' price card; the questions in the site's
 // FAQ panel. Page styles: pages.css, "Before Revit".
-const { t, list, lines } = reader(await pageDocument(Astro.locals.sanity, "beforeRevitPage"), D);
+const { t, list, lines, img } = reader(await pageDocument(Astro.locals.sanity, "beforeRevitPage"), D);
+// the practices in the opening's row: the clients chosen in the Studio
+// (hero.practices, followed by the page query), or the four it was built
+// with (their references in the defaults, read from CLIENTS)
+type Practice = { _key?: string; _ref?: string; _id?: string; name?: string; logo?: unknown };
+const practices = list<Practice & { _key: string }>("hero.practices").map((p) => {
+  if (hasImage(p.logo)) return { name: p.name ?? "", ...imageAttrs(p.logo, 600) };
+  const own = CLIENTS.find((c) => c._id === (p._ref ?? p._id));
+  return own ? { name: own.name, src: `/${own.logo.path}`, width: undefined, height: undefined } : null;
+}).filter((p): p is NonNullable<typeof p> => Boolean(p?.src));
+const whyPhoto = img("why.image", 1600);
 
 type Item = { _key: string; title?: string; text?: string };
 const problems = list<Item>("problem.tiles");
@@ -70,9 +83,9 @@ const iconOf = (i: number) => AREA_ICONS[i] ?? AREA_ICONS[0];
 const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup": "dialog", "aria-controls": "book-call" };
 ---
 <BaseLayout
-  title="Before Revit — ADDD"
-  description="Before Revit is ADDD's early-stage design workflow research for architecture practices: an independent recommendation for the tools and workflow that connect concept design to Revit or Archicad."
-  pageName="Before Revit"
+  title={t("seo.title")}
+  description={t("seo.description")}
+  pageName="Early Stage Design"
   doc={{ id: "beforeRevitPage" }}
 >
 <main class="page--grid page--before-revit">
@@ -83,7 +96,9 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
        while the words scroll away and the statement comes up, its frame
        then landing on the platform. "Discuss your workflow" opens the free
        call's calendar; "How it works" glides down to the method. -->
-  <BeforeRevitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}>
+  <BeforeRevitHero label={t("hero.tagline")} heading={t("hero.heading")} lede={t("hero.lede")} statement={t("hero.statement")}
+    words={{ frame: t("hero.figureFrame"), note: lines("hero.figureNote"), platform: t("hero.figurePlatform"), tags: lines("hero.figureTags") }}
+    trustLabel={t("hero.trustLabel")} trustLabelField="hero.trustLabel" practices={practices} practicesField="hero.practices">
     <Fragment slot="actions">
       <ActionButton {...BOOK}><span data-page-field="hero.primaryButton">{t("hero.primaryButton")}</span></ActionButton>
       <ActionButton href="#how-it-works" variant="secondary" arrow="down"><span data-page-field="hero.secondaryButton">{t("hero.secondaryButton")}</span></ActionButton>
@@ -148,7 +163,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
             </div>
             <div class="examine__foot">
               <p class="examine__big" aria-hidden="true">{pad(i + 1)}<span>/{pad(areas.length)}</span></p>
-              <p class="examine__small"><span>* {area.title}</span><span>Before Revit</span></p>
+              <p class="examine__small"><span>* {area.title}</span><span data-page-field="scope.panelLabel">{t("scope.panelLabel")}</span></p>
             </div>
           </div>
           ))}
@@ -227,7 +242,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
       </div>
       <div class="creds__grid">
         <div class="creds__media">
-          <img class="br-why__photo" src="/assets/images/allister-presenting-landscape.webp" width="960" height="640" alt="Allister Lewis presenting" loading="lazy" decoding="async" draggable="false">
+          <img class="br-why__photo" src={whyPhoto.src} width={whyPhoto.width ?? 960} height={whyPhoto.height ?? 640} alt={whyPhoto.alt} loading="lazy" decoding="async" draggable="false" data-page-field="why.image" data-page-width="1600">
         </div>
         <div class="creds__text">
           <p class="text-md" data-page-field="why.lede">{t("why.lede")}</p>
@@ -286,7 +301,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
             title: t("pricing.cards.1.title"),
             text: t("pricing.cards.1.subtitle"),
             button: t("pricing.cards.1.button"),
-            href: "/workshops-audits",
+            href: t("pricing.cards.1.href") || "/workshops-audits",
             kickerField: "pricing.cards.1.badge",
             titleField: "pricing.cards.1.title",
             textField: "pricing.cards.1.subtitle",
@@ -297,7 +312,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
             title: t("pricing.blueprintTitle"),
             text: t("pricing.blueprintText"),
             button: t("pricing.blueprintButton"),
-            href: "/technology-blueprint",
+            href: t("pricing.blueprintHref") || "/technology-blueprint",
             kickerField: "pricing.blueprintQuestion",
             titleField: "pricing.blueprintTitle",
             textField: "pricing.blueprintText",
@@ -314,7 +329,9 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
        every booking button here opens) -->
   <FaqSection>
       <FaqPanel id="faq" tagline={t("faq.tagline")} taglineField="faq.tagline" heading={t("faq.heading")} headingField="faq.heading" items={faq} field="faq.questions"
-        icons={["question", "compass", "settings", "file"]} call />
+        icons={["question", "compass", "settings", "file"]} />
+      {/* the free call's calendar, which the FAQ's Book a Free Call used to bring (removed 2026-11-16); the page's own booking buttons open it */}
+      <BookCallDialog id="book-call" />
   </FaqSection>
 
   <!-- the site's closing call to action, with one button of this page's

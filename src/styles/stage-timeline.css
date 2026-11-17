@@ -1,415 +1,139 @@
 /* ============================================================
-   Stage timeline (StageTimeline.astro, stage-timeline.js)
-   ------------------------------------------------------------
-   A plan's chart, after the "Process and Pricing" chart of a reference
-   of 2026-11-04, in the site's own type, hairlines and restrained
-   corners. The one layout of every timeline on the site (the Workflow
-   Workshop's Workshop Process and the Technology Blueprint's roadmap,
-   both on the ink), so a change here reaches both.
-
-   Second pass (2026-11-04), cleaner and easier to follow:
-
-     - the scale across the top, each unit's name over its column in the
-       label face; the columns parted by hairlines from the top of the
-       chart to its foot
-     - a row per stage between hairlines, the stage's box over its units,
-       inset a step from the lines, a faint ground and a hairline edge,
-       its corners barely rounded. In the box, read down: its number (a
-       small block in the label face), its name or when it runs, its
-       title, a fine plus. No strip down the rows' start any more.
-     - the progression: from each box's end a line down the column's edge
-       to the next box's row and on into its start, an arrowhead where it
-       meets it, so the run reads as one path, stage to stage
-     - opened (pointed at, or pressed), the box's edge firms, a red rule
-       down its start, the plus turns to a cross, and its card comes in
-       under it (over it for the lower rows), over the rows: the
-       photograph, the line, and the more it tells under a hairline. The
-       columns it takes are lit down the chart, a red rule over them on
-       the scale and their names brightened: where it stands in the run,
-       and for how long. The room any card needs under the chart is kept
-       (--tl-room, stage-timeline.js), so opening one never moves the page.
-
-   Sizes are the design's px / 16 at the 1440 ideal (README, "Sizing"),
-   so the chart keeps its shape as a laptop's screen shrinks it. Below
-   992px the stages stand one under another, each with its card open.
+   Stage timeline (StageTimeline.astro), 2026-11-16 after the user's
+   reference: a staircase of stages. A row per stage under a dashed rule,
+   its number at the left; its box over the units of the run it takes, a
+   solid rule along its top with a square at its start, its title in
+   capitals, its items each with a small square; the box's ground a soft
+   shade fading down. On an ink section (is--dark) the same in white.
    ============================================================ */
 .stage-timeline {
-  /* the scale's height, a row's height, how far a box stands in from the
-     lines, a card's least width, the photograph */
-  --tl-scale: 2.75rem;
-  --tl-row: 7rem;
-  --tl-inset: 0.5rem;
-  --tl-card-w: 20rem;
-  --tl-photo: 3.5rem;
-  --tl-ease: cubic-bezier(0.32, 0.72, 0, 1);
-  /* light (on the off-white or white) */
-  --tl-line: rgba(10, 10, 10, 0.1);
-  --tl-link: rgba(10, 10, 10, 0.42);
-  --tl-num-bg: var(--c-text);
-  --tl-num-ink: var(--c-white);
-  --tl-box: var(--c-white);
-  --tl-box-edge: rgba(10, 10, 10, 0.12);
-  --tl-box-hover: rgba(10, 10, 10, 0.3);
-  --tl-box-open: var(--c-text);
-  --tl-band: rgba(10, 10, 10, 0.03);
-  --tl-card: var(--c-white);
-  --tl-card-ink: var(--c-text);
-  --tl-card-edge: rgba(10, 10, 10, 0.12);
-  position: relative;
-  color: var(--c-text);
+  --tl-ink: var(--c-text);
+  --tl-soft: color-mix(in srgb, var(--tl-ink) 58%, transparent);
+  --tl-dash: color-mix(in srgb, var(--tl-ink) 28%, transparent);
+  --tl-shade: color-mix(in srgb, var(--tl-ink) 6%, transparent);
+  --tl-you: color-mix(in srgb, var(--tl-ink) 32%, transparent);
+  --tl-num: 4rem;
+  --tl-sq: 0.5625rem;
+  color: var(--tl-ink);
 }
-/* On the ink: the lines in white, the boxes a faint lift off the ink, the
-   cards on the off-white */
 .stage-timeline.is--dark {
-  --tl-line: rgba(255, 255, 255, 0.11);
-  --tl-link: rgba(255, 255, 255, 0.5);
-  --tl-num-bg: var(--c-white);
-  --tl-num-ink: var(--c-text);
-  --tl-box: rgba(255, 255, 255, 0.05);
-  --tl-box-edge: rgba(255, 255, 255, 0.12);
-  --tl-box-hover: rgba(255, 255, 255, 0.34);
-  --tl-box-open: rgba(255, 255, 255, 0.85);
-  --tl-band: rgba(255, 255, 255, 0.035);
-  --tl-card: var(--c-light-bg);
-  --tl-card-ink: var(--c-text);
-  --tl-card-edge: transparent;
-  color: var(--c-white);
+  --tl-ink: var(--c-white);
+  --tl-dash: rgba(255, 255, 255, 0.24);
+  --tl-shade: rgba(255, 255, 255, 0.06);
+  --tl-you: rgba(255, 255, 255, 0.4);
 }
+.stage-timeline__rows { margin: 0; padding: 0; list-style: none; }
 
-.stage-timeline__chart {
-  position: relative;
-  isolation: isolate;
+/* a row: its number, then the run's units; a dashed rule over it */
+.stage-timeline__row {
   display: grid;
-  grid-template-columns: repeat(var(--tl-count, 4), minmax(0, 1fr));
-  padding-bottom: var(--tl-room, 0px);
-}
-
-/* the columns' hairlines, down from the top to the last row's foot */
-.stage-timeline__columns {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: var(--tl-room, 0px);
-  left: 0;
-  right: 0;
-  border-right: 1px solid var(--tl-line);
-  background-image: linear-gradient(to right, var(--tl-line) 1px, transparent 1px);
-  background-size: calc(100% / var(--tl-count, 4)) 100%;
-  pointer-events: none;
-}
-/* the open stage's columns, lit down the chart, a red rule over them at
-   the scale's top: where it stands in the run, and for how long */
-.stage-timeline__band {
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: var(--tl-room, 0px);
-  left: calc(100% * var(--tl-at, 0) / var(--tl-count, 4));
-  width: calc(100% * var(--tl-span, 1) / var(--tl-count, 4));
-  background: var(--tl-band);
-  opacity: 0;
-  transition: opacity 0.3s ease, left 0.5s var(--tl-ease), width 0.5s var(--tl-ease);
-  pointer-events: none;
-}
-.stage-timeline__band::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--c-red);
-}
-.stage-timeline.is--marking .stage-timeline__band { opacity: 1; }
-
-/* the scale */
-.stage-timeline__scale {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
-  align-items: center;
-  height: var(--tl-scale);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.stage-timeline__unit {
-  min-width: 0;
-  padding: 0 0.875rem;
-  font-family: var(--font-mono);
-  font-size: var(--t-xs);
-  font-weight: var(--fw-label);
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-  line-height: 1.2;
-  color: color-mix(in srgb, currentColor 55%, transparent);
-  transition: color 0.3s ease;
-}
-.stage-timeline__unit.is--lit { color: currentColor; }
-
-/* the rows */
-.stage-timeline__stages {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-.stage-timeline__stage {
-  position: relative;
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
-  height: var(--tl-row);
-  border-top: 1px solid var(--tl-line);
-}
-.stage-timeline__stage:last-child { border-bottom: 1px solid var(--tl-line); }
-/* the open stage over the rows round it, its card over their boxes */
-.stage-timeline__stage.is--open { z-index: 3; }
-
-/* the box: its number and name (or when), its title, a plus */
-.stage-timeline__block {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  min-width: 0;
-  margin: calc(var(--tl-inset) + 0.125rem) var(--tl-inset);
-  padding: 0.75rem 2.25rem 0.75rem 0.875rem;
-  border: 1px solid var(--tl-box-edge);
-  border-radius: 0.1875rem;
-  background: var(--tl-box);
-  transition: border-color 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
-}
-@media (hover: hover) {
-  .stage-timeline__block:hover { border-color: var(--tl-box-hover); }
-}
-/* open: its edge firm, a red rule down its start */
-.is--open > .stage-timeline__block {
-  border-color: var(--tl-box-open);
-  box-shadow: inset 2px 0 0 var(--c-red);
-}
-.stage-timeline__meta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  font-weight: var(--fw-label);
-  letter-spacing: var(--label-tracking);
-  text-transform: uppercase;
-  line-height: 1;
-  white-space: nowrap;
+  grid-template-columns: var(--tl-num) repeat(var(--tl-count), minmax(0, 1fr));
+  align-items: start;
+  background: linear-gradient(to right, var(--tl-dash) 4px, transparent 4px) 0 0 / 8px 1px repeat-x;
 }
 .stage-timeline__num {
-  flex: none;
-  padding: 0.25rem 0.3125rem 0.1875rem;
-  border-radius: 1px;
-  background: var(--tl-num-bg);
-  color: var(--tl-num-ink);
+  grid-column: 1;
+  grid-row: 1;
+  padding-top: 1.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: var(--label-tracking);
+  color: var(--tl-soft);
 }
-.stage-timeline__lane,
-.stage-timeline__when {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: color-mix(in srgb, currentColor 62%, transparent);
+
+/* the box: a solid rule along its top, a square at its start */
+.stage-timeline__box {
+  grid-row: 1;
+  position: relative;
+  min-width: 0;
+  padding: 1.25rem 1rem 1.5rem;
+  border-top: 2px solid var(--tl-ink);
+  margin-top: -1px;
+  background: linear-gradient(to bottom, var(--tl-shade), transparent);
+}
+.stage-timeline__box::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--tl-sq) / -2);
+  top: calc(var(--tl-sq) / -2 - 1px);
+  width: var(--tl-sq);
+  height: var(--tl-sq);
+  background: var(--tl-ink);
 }
 .stage-timeline__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
   margin: 0;
-  font-family: var(--font-display);
-  font-weight: var(--fw-heading-bold);
-  font-size: 1.125rem;
-  line-height: 1.15;
-  letter-spacing: calc(var(--primary-tracking) - 0.02em);
-}
-/* the title's button is the box's: stretched over all of it */
-.stage-timeline__toggle {
-  all: unset;
-  cursor: pointer;
-  text-wrap: balance;
-}
-.stage-timeline__toggle::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  z-index: 1;
-  border-radius: 0.1875rem;
-}
-.stage-timeline__toggle:focus-visible::after { outline: 1px solid currentColor; outline-offset: 3px; }
-/* a fine plus, turned to a cross when open */
-.stage-timeline__icon {
-  position: absolute;
-  top: 0.8125rem;
-  right: 0.8125rem;
-  width: 0.625rem;
-  height: 0.625rem;
-  transition: rotate 0.45s var(--tl-ease);
-}
-.stage-timeline__icon::before,
-.stage-timeline__icon::after {
-  content: "";
-  position: absolute;
-  background: currentColor;
-}
-.stage-timeline__icon::before { left: 0; right: 0; top: calc(50% - 0.5px); height: 1px; }
-.stage-timeline__icon::after { top: 0; bottom: 0; left: calc(50% - 0.5px); width: 1px; }
-.is--open .stage-timeline__icon { rotate: 45deg; }
-
-/* The progression: from the box before's end (its row's middle) along to
-   the column's edge, down it to this row's middle, and on into this
-   box's start, an arrowhead where it meets it. Stages run one after
-   another, each starting where the one before ends (both timelines). */
-.stage-timeline__stage:not(.is--first) .stage-timeline__block::before {
-  content: "";
-  position: absolute;
-  left: calc(-2 * var(--tl-inset) - 1px);
-  top: calc(50% - var(--tl-row));
-  width: calc(var(--tl-inset) + 0.5px);
-  height: var(--tl-row);
-  border-top: 1px solid var(--tl-link);
-  border-right: 1px solid var(--tl-link);
-  pointer-events: none;
-}
-.stage-timeline__stage:not(.is--first) .stage-timeline__block::after {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--tl-inset) - 1px);
-  top: calc(50% - 4px);
-  width: var(--tl-inset);
-  height: 8px;
-  background: var(--tl-link);
-  /* the line on in, then its head */
-  clip-path: polygon(0 calc(50% - 0.5px), calc(100% - 5px) calc(50% - 0.5px), calc(100% - 5px) 0, 100% 50%, calc(100% - 5px) 100%, calc(100% - 5px) calc(50% + 0.5px), 0 calc(50% + 0.5px));
-  pointer-events: none;
-}
-
-/* the card, under its box (over it, is--up): from the box's start (or,
-   past the middle of the run, its end), at least --tl-card-w wide */
-.stage-timeline__card {
-  position: absolute;
-  z-index: 2;
-  top: calc(100% + 0.5rem);
-  left: -1px;
-  box-sizing: border-box;
-  width: max(100% + 2px, var(--tl-card-w));
-  display: grid;
-  grid-template-columns: var(--tl-photo) minmax(0, 1fr);
-  grid-template-areas:
-    "photo text"
-    "more more";
-  column-gap: 0.875rem;
-  padding: 1rem;
-  border: 1px solid var(--tl-card-edge);
-  border-radius: 0.25rem;
-  background: var(--tl-card);
-  color: var(--tl-card-ink);
-  box-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.14), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.06);
-  cursor: auto;
-  opacity: 0;
-  visibility: hidden;
-  translate: 0 -0.25rem;
-  transition: opacity 0.2s ease, translate 0.3s var(--tl-ease), visibility 0s linear 0.3s;
-}
-/* a card with no photograph (the AEC Tech Partners' process): its words
-   the card's whole width, with no empty column kept for one */
-.stage-timeline__card.is--plain {
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    "text"
-    "more";
-}
-.stage-timeline__card.is--end { left: auto; right: -1px; }
-.stage-timeline__card.is--up { top: auto; bottom: calc(100% + 0.5rem); translate: 0 0.25rem; }
-.is--open .stage-timeline__card {
-  opacity: 1;
-  visibility: visible;
-  translate: none;
-  transition: opacity 0.25s ease, translate 0.4s var(--tl-ease), visibility 0s;
-}
-.stage-timeline__photo {
-  grid-area: photo;
-  display: block;
-  width: var(--tl-photo);
-  height: var(--tl-photo);
-  object-fit: cover;
-  border-radius: 1px;
-  filter: grayscale(1);
-}
-.stage-timeline__text {
-  grid-area: text;
-  align-self: center;
-  margin: 0;
-  font-size: var(--t-sm);
-  line-height: 1.5;
-  text-wrap: pretty;
-}
-.stage-timeline__more {
-  grid-area: more;
-  margin-top: 0.875rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid rgba(10, 10, 10, 0.1);
-}
-.stage-timeline__more p {
-  margin: 0;
-  font-size: var(--t-sm);
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--tl-card-ink) 74%, transparent);
-  text-wrap: pretty;
-}
-.stage-timeline__more .stage-timeline__more-label {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-mono);
-  font-size: 0.625rem;
-  letter-spacing: var(--label-tracking);
+  font-family: var(--font-body, inherit);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
-  line-height: 1;
-  color: color-mix(in srgb, var(--tl-card-ink) 56%, transparent);
+}
+.stage-timeline__when {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: var(--label-tracking);
+  color: var(--tl-soft);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .stage-timeline__block,
-  .stage-timeline__icon,
-  .stage-timeline__card,
-  .is--open .stage-timeline__card,
-  .stage-timeline__band,
-  .stage-timeline__unit { transition: none; }
+/* its items, each with a square: ink (ADDD), grey (your team), hollow
+   (optional) */
+.stage-timeline__items,
+.stage-timeline__key {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
+.stage-timeline__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+.stage-timeline__items li,
+.stage-timeline__key li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.stage-timeline__items li::before,
+.stage-timeline__key li::before {
+  content: "";
+  flex: none;
+  width: 0.6875rem;
+  height: 0.6875rem;
+  translate: 0 0.08em;
+  background: var(--tl-ink);
+}
+.stage-timeline__items li.is--you::before,
+.stage-timeline__key li.is--you::before { background: var(--tl-you); }
+.stage-timeline__items li.is--optional::before,
+.stage-timeline__key li.is--optional::before { background: transparent; box-shadow: inset 0 0 0 1.5px var(--tl-ink); }
 
-/* Below 992px: the stages one under another, each card open under its
-   box's title, without the scale, the lines and the lit columns */
+/* the key, under the chart, after the last row's dashed rule */
+.stage-timeline__key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  margin-top: 2.5rem;
+  padding-top: 1.25rem;
+  background: linear-gradient(to right, var(--tl-dash) 4px, transparent 4px) 0 0 / 8px 1px repeat-x;
+}
+.stage-timeline__key li { font-family: var(--font-mono); font-size: 0.6875rem; letter-spacing: var(--label-tracking); color: var(--tl-soft); }
+
+/* Below 992px: every box takes the row's width */
 @media screen and (max-width: 991px) {
-  .stage-timeline__chart { display: block; padding-bottom: 0; }
-  .stage-timeline__scale,
-  .stage-timeline__columns,
-  .stage-timeline__band,
-  .stage-timeline__icon { display: none; }
-  .stage-timeline__stages { display: flex; flex-direction: column; gap: 1rem; }
-  .stage-timeline__stage { display: block; height: auto; border: 0; }
-  .stage-timeline__stage:last-child { border: 0; }
-  .stage-timeline__block { margin: 0; padding: 1.125rem; }
-  .stage-timeline__stage:not(.is--first) .stage-timeline__block::before,
-  .stage-timeline__stage:not(.is--first) .stage-timeline__block::after { display: none; }
-  .stage-timeline__toggle { cursor: default; }
-  .stage-timeline__card,
-  .stage-timeline__card.is--end,
-  .stage-timeline__card.is--up {
-    position: static;
-    width: auto;
-    margin-top: 0.375rem;
-    padding: 0;
-    border: 0;
-    background: none;
-    color: inherit;
-    box-shadow: none;
-    opacity: 1;
-    visibility: visible;
-    translate: none;
-  }
-  .stage-timeline__more { border-top-color: var(--tl-line); }
-  .stage-timeline__more p,
-  .stage-timeline__more .stage-timeline__more-label { color: color-mix(in srgb, currentColor 70%, transparent); }
+  .stage-timeline { --tl-num: 3rem; }
+  .stage-timeline__box { grid-column: 2 / -1 !important; }
 }

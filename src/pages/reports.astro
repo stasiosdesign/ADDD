@@ -2,31 +2,31 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import InsightCard from "../components/InsightCard.astro";
-import { pageDocument, reader } from "../sanity/content";
+import { collection, pageDocument, reader } from "../sanity/content";
 import { cardOf, indexMeta, type Insight } from "../sanity/insights";
 import { REPORTS_QUERY } from "../sanity/queries";
-import { reportsPage as D, REPORT_CARD_DEFAULTS, REPORT_FILTER_DEFAULTS } from "../sanity/defaults/reports";
+import { reportsPage as D } from "../sanity/defaults/reports";
 
 // The heading row's words come from the Reports page document in Sanity
 // (studio/schemaTypes/pages/reports.ts), each falling back to the page's
 // own (src/sanity/defaults/reports.ts): see src/sanity/content.ts. The
 // cards are the reports, newest first, and the filter buttons their
-// categories in order of first appearance; while there are no reports the
-// page keeps the cards and filters it was built with.
+// categories in order of first appearance. While there are no reports the
+// page is empty but for a line saying so (2026-11-16, at the user's word:
+// the template's sample cards and the ADDDitive's archive, shown here for a
+// day, are gone; the archive is on the Newsletter page).
 const { sanity } = Astro.locals;
-const [doc, items] = await Promise.all([pageDocument(sanity, "reportsPage"), sanity.fetch<Insight[]>(REPORTS_QUERY)]);
+const [doc, items] = await Promise.all([pageDocument(sanity, "reportsPage"), collection<Insight>(sanity, REPORTS_QUERY)]);
 const { t } = reader(doc, D);
 
-const articles = items?.length ? items.map((item) => cardOf(item, indexMeta)) : REPORT_CARD_DEFAULTS;
+const articles = (items ?? []).map((item) => cardOf(item, (one) => indexMeta(one, t("reportPage.freeLabel"))));
 // One button per category, shown as written, matched in lowercase (the
 // card's chip is its filter token: InsightCard.astro)
-const filters = items?.length
-  ? [...new Map(items.filter((item) => item.category).map((item) => [item.category!.toLowerCase(), item.category!])).entries()].map(([target, label]) => ({ target, label }))
-  : REPORT_FILTER_DEFAULTS;
+const filters = [...new Map((items ?? []).filter((item) => item.category).map((item) => [item.category!.toLowerCase(), item.category!])).entries()].map(([target, label]) => ({ target, label }));
 ---
 <BaseLayout
-  title="Reports — ADDD"
-  description="Independent ADDD research into how technology actually gets used to make architecture: AI, BIM, software and workflows in architecture practices."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="Reports"
   doc={{ id: "reportsPage" }}
 >
@@ -46,19 +46,25 @@ const filters = items?.length
            cards they act on have to sit inside the same [data-filter-group].
            Several categories can be held at once, and a card shows if it
            matches any of them. -->
+      {!articles.length ? (
+      <div class="insight-archive">
+        <p class="text-md" data-page-field="archive.empty">{t("archive.empty")}</p>
+      </div>
+      ) : (
       <div class="insight-archive" data-filter-group data-filter-target-match="multi" data-filter-name-match="multi">
         <div class="filters">
-          <button type="button" data-filter-target="all">View all</button>
+          <button type="button" data-filter-target="all" data-page-field="archive.allLabel">{t("archive.allLabel")}</button>
           {filters.map((filter, i) => (
           <Fragment>{i > 0 && "\n          "}<button type="button" data-filter-target={filter.target}>{filter.label}</button></Fragment>
           ))}
-          <button type="button" class="filters__reset" data-filter-target="reset">Clear filters</button>
+          <button type="button" class="filters__reset" data-filter-target="reset" data-page-field="archive.resetLabel">{t("archive.resetLabel")}</button>
         </div>
 
         <div class="insight-grid">
           {articles.map((article) => <InsightCard {...article} filter />)}
         </div>
       </div>
+      )}
     </div>
   </section>
 

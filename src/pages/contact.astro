@@ -2,7 +2,8 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ActionButton from "../components/ActionButton.astro";
 import BookCallDialog from "../components/BookCallDialog.astro";
-import { pageDocument, reader } from "../sanity/content";
+import { pageDocument, reader, siteDocument, SITE_SCOPE, telOf } from "../sanity/content";
+import { homePage as HOME } from "../sanity/defaults/home";
 import { contactPage as D } from "../sanity/defaults/contact";
 
 // The words on the page come from the Contact page document in Sanity
@@ -18,18 +19,35 @@ import { contactPage as D } from "../sanity/defaults/contact";
 // references of 2026-11-04: a black holder, the printed card in it with
 // the ADDD mark large and slightly raised, his photograph beside his name
 // and role, the Book a Free Call button, and his email and telephone as
-// links), turning slightly towards the pointer and holding still under it
-// (lanyard.js); on the right, the enquiry form. Stacked below 992px, the
-// pass first. The button opens the free call's calendar
+// links), tipping gently under the pointer (lanyard.js); on the right the
+// enquiry form alone (name, email, what it is about, message), with no
+// heading over it (2026-11-16, at the user's word: the "Contact" row with
+// Allister's email and telephone, and the two headings, were removed; his
+// details are on the pass, in larger type). The page's h1 is kept for
+// screen readers and search, out of sight. The enquiry's topic is a select of its own design
+// (enquiry-select.js) over a real select, which is what the form sends;
+// the form checks itself and answers in place (enquiry-form.js). Stacked
+// below 992px, the pass first. The button opens the free call's calendar
 // (BookCallDialog.astro), set outside the pass so the lanyard's movement
 // never carries it.
-const { t } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
+const { t, lines, img } = reader(await pageDocument(Astro.locals.sanity, "contactPage"), D);
+// what an enquiry can be about (form.topics in Sanity since 2026-11-16)
+const TOPICS = lines("form.topics");
+// the pass's portrait, its links, and the free call's button words (the
+// Home page's Booking section)
+const portrait = img("pass.portrait", 800);
+const email = t("hero.email");
+const tel = telOf(t("hero.phone"));
+const site = reader(await siteDocument(Astro.locals), HOME);
+// the form's messages, for enquiry-form.js
+const MESSAGES = ["oneError", "manyErrors", "notConnected", "sending", "sent", "failed"] as const;
+const messages = JSON.stringify(Object.fromEntries(MESSAGES.map((m) => [m, t(`form.${m}`)])));
 // the year printed on the pass
 const year = new Date().getFullYear();
 ---
 <BaseLayout
-  title="Contact — ADDD"
-  description="Send your enquiry to ADDD. Tell us what you need."
+  title={t("seo.title")}
+  description={t("seo.description")}
   pageName="Contact"
   doc={{ id: "contactPage" }}
 >
@@ -64,24 +82,28 @@ const year = new Date().getFullYear();
               <div class="lanyard__card" data-lanyard-card>
                 <span class="lanyard__tab" aria-hidden="true"><span class="lanyard__slot"></span></span>
                 <div class="lanyard__face">
-                  <p class="lanyard__top"><span>ADDD Pass</span><span>{year}</span></p>
-                  <!-- the lockup: the ADDD mark whole, and Allister's face
-                       behind it as a crescent, looking towards it -->
+                  <p class="lanyard__top"><span data-page-field="pass.label">{t("pass.label")}</span><span>{year}</span></p>
+                  <!-- Allister's portrait, in place of the ADDD mark (2026-11-16) -->
                   <span class="lanyard__lockup">
-                    <span class="lanyard__portrait"><img src="/assets/images/allister-headshot-bw-crop.webp" width="560" height="700" alt="" decoding="async" draggable="false"></span>
-                    <span class="lanyard__logo"><img src="/assets/logo.svg" width="100" height="100" alt="ADDD"></span>
+                    <span class="lanyard__portrait"><img src={portrait.src} width="560" height="700" alt="" decoding="async" draggable="false" data-page-field="pass.portrait" data-page-width="800"></span>
                   </span>
                   <div class="lanyard__person">
-                    <p class="lanyard__name">Allister Lewis</p>
-                    <p class="lanyard__role">Architect &amp; technology strategist</p>
+                    <p class="lanyard__name" data-page-field="pass.name">{t("pass.name")}</p>
+                    <p class="lanyard__role" data-page-field="pass.role">{t("pass.role")}</p>
                   </div>
                   <div class="lanyard__book">
-                    <ActionButton type="button" data-booking-open="book-call" aria-haspopup="dialog" aria-controls="book-call">Book a Free Call</ActionButton>
+                    <ActionButton type="button" data-booking-open="book-call" aria-haspopup="dialog" aria-controls="book-call" {...SITE_SCOPE}><span data-page-field="booking.faqLabel">{site.t("booking.faqLabel")}</span></ActionButton>
                   </div>
-                  <p class="lanyard__foot">
-                    <a href="mailto:allister@addd.io" data-page-field="hero.email">{t("hero.email")}</a>
-                    <a href="tel:+442071833675" data-page-field="hero.phone">{t("hero.phone")}</a>
-                  </p>
+                  <dl class="lanyard__foot">
+                    <div class="lanyard__detail">
+                      <dt data-page-field="pass.emailLabel">{t("pass.emailLabel")}</dt>
+                      <dd><a href={`mailto:${email}`} data-page-field="hero.email">{email}</a></dd>
+                    </div>
+                    <div class="lanyard__detail">
+                      <dt data-page-field="pass.phoneLabel">{t("pass.phoneLabel")}</dt>
+                      <dd><a href={`tel:${tel}`} data-page-field="hero.phone">{t("hero.phone")}</a></dd>
+                    </div>
+                  </dl>
                 </div>
               </div>
             </div>
@@ -89,37 +111,65 @@ const year = new Date().getFullYear();
         </div>
 
         <div class="contact__form">
-          <h1 class="visually-hidden" data-page-field="hero.heading">{t("hero.heading")}</h1>
-          <form class="form contact-form" onsubmit="return false" data-enquiry-offer>
-            <div class="form__row">
-              <div class="field"><label for="fn">First name</label><input id="fn" name="first-name" type="text" autocomplete="given-name"></div>
-              <div class="field"><label for="ln">Last name</label><input id="ln" name="last-name" type="text" autocomplete="family-name"></div>
-            </div>
-            <div class="field"><label for="em">Email address</label><input id="em" name="email" type="email" autocomplete="email"></div>
+          <h1 class="visually-hidden" data-page-field="hero.contactHeading">{t("hero.contactHeading")}</h1>
+          <!-- The enquiry. Its fields carry the names a form
+               handler will read (name, email, topic, message); while the
+               form has no handler (no action), it says so in place rather
+               than pretend to send (enquiry-form.js) -->
+          <section class="contact-enquiry" aria-label="Contact form">
+            <form class="contact-form" method="post" novalidate data-enquiry-form data-enquiry-offer data-messages={messages} data-offer-topic={t("form.partnerTopic")} data-offer-general={t("form.partnerMessage")} data-offer-named={t("form.offerMessage")}>
+              <div class="contact-form__row">
+                <div class="cf-field">
+                  <label class="cf-field__label" for="cf-name" data-page-field="form.nameLabel">{t("form.nameLabel")}</label>
+                  <input class="cf-field__input" id="cf-name" name="name" type="text" autocomplete="name" placeholder={t("form.namePlaceholder")} required aria-describedby="cf-name-error">
+                  <p class="cf-field__error" id="cf-name-error" data-error-for="cf-name" hidden data-page-field="form.nameError">{t("form.nameError")}</p>
+                </div>
+                <div class="cf-field">
+                  <label class="cf-field__label" for="cf-email" data-page-field="form.emailLabel">{t("form.emailLabel")}</label>
+                  <input class="cf-field__input" id="cf-email" name="email" type="email" autocomplete="email" inputmode="email" placeholder={t("form.emailPlaceholder")} required aria-describedby="cf-email-error">
+                  <p class="cf-field__error" id="cf-email-error" data-error-for="cf-email" hidden data-page-field="form.emailError">{t("form.emailError")}</p>
+                </div>
+              </div>
 
-            <div class="field">
-              <label for="topic">What&rsquo;s your enquiry about?</label>
-              <select id="topic" name="topic">
-                <option>Select an option</option>
-                <option>Workflow Workshop</option>
-                <option>Before Revit</option>
-                <option>Technology Blueprint</option>
-                <option>Ongoing Advisory</option>
-                <option>AEC Tech Partners</option>
-                <option>Reports and research</option>
-                <option>Something else</option>
-              </select>
-            </div>
+              <div class="cf-field">
+                <span class="cf-field__label" id="topic-label" data-page-field="form.topicLabel">{t("form.topicLabel")}</span>
+                <!-- the select the form sends (and the AEC Tech Partners
+                     links set: ?offer=), out of sight; the one shown is
+                     enquiry-select.js's, which keeps it in step -->
+                <select class="cf-select__native" id="topic" name="topic" required tabindex="-1" aria-hidden="true">
+                  <option value="">{t("form.topicPlaceholder")}</option>
+                  {TOPICS.map((topic) => <option value={topic}>{topic}</option>)}
+                </select>
+                <div class="cf-select" data-enquiry-select>
+                  <button class="cf-field__input cf-select__button" type="button" id="topic-button" role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-controls="topic-list" aria-labelledby="topic-label topic-button" aria-describedby="topic-error">
+                    <span class="cf-select__value is--placeholder" data-select-value>{t("form.topicPlaceholder")}</span>
+                    <svg class="cf-select__chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6.25 8 10.25 12 6.25" /></svg>
+                  </button>
+                  <ul class="cf-select__list" id="topic-list" role="listbox" aria-labelledby="topic-label" tabindex="-1" hidden>
+                    {TOPICS.map((topic, i) => (
+                    <li class="cf-select__option" id={`topic-option-${i + 1}`} role="option" aria-selected="false" data-value={topic}>
+                      <span class="cf-select__n" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                      <span class="cf-select__text">{topic}</span>
+                      <span class="cf-select__mark" aria-hidden="true"></span>
+                    </li>
+                    ))}
+                  </ul>
+                </div>
+                <p class="cf-field__error" id="topic-error" data-error-for="topic" hidden data-page-field="form.topicError">{t("form.topicError")}</p>
+              </div>
 
-            <div class="field">
-              <label for="msg">Message</label>
-              <textarea id="msg" name="message" placeholder="Tell us more about your enquiry"></textarea>
-            </div>
+              <div class="cf-field">
+                <label class="cf-field__label" for="msg" data-page-field="form.messageLabel">{t("form.messageLabel")}</label>
+                <textarea class="cf-field__input cf-field__textarea" id="msg" name="message" placeholder={t("form.messagePlaceholder")} rows="4" required aria-describedby="msg-error"></textarea>
+                <p class="cf-field__error" id="msg-error" data-error-for="msg" hidden data-page-field="form.messageError">{t("form.messageError")}</p>
+              </div>
 
-            <label class="checkbox"><input type="checkbox" name="consent"> I agree to be contacted about my enquiry</label>
-
-            <ActionButton type="submit" style="align-self:flex-start"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
-          </form>
+              <div class="contact-form__foot">
+                <ActionButton type="submit"><span data-page-field="hero.button">{t("hero.button")}</span></ActionButton>
+                <p class="contact-form__status" data-form-status role="status" aria-live="polite"></p>
+              </div>
+            </form>
+          </section>
         </div>
 
       </div>

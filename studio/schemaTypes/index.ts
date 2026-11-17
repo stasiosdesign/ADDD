@@ -1,7 +1,7 @@
 import {client} from './documents/client'
-import {newsletterIssue, report} from './documents/insights'
-import {techStack} from './documents/tech-stack'
-import {compareRow, faqItem, priceCard, quote, step, tile} from './objects/blocks'
+import {report} from './documents/insights'
+import {techStackItem, techStackStage} from './documents/tech-stack'
+import {compareRow, faqItem, folderCard, link, priceCard, quote, routeCard, step, tile} from './objects/blocks'
 import {aboutPage} from './pages/about'
 import {advisoryPage} from './pages/advisory'
 import {beforeRevitPage} from './pages/before-revit'
@@ -25,7 +25,7 @@ export const PAGES: PageEntry[] = [
   {type: 'beforeRevitPage', title: 'Before Revit', route: '/before-revit'},
   {type: 'blueprintPage', title: 'Technology Blueprint', route: '/technology-blueprint'},
   {type: 'advisoryPage', title: 'Ongoing Advisory', route: '/advisory'},
-  {type: 'stackDiagnosticPage', title: 'Stack Diagnostic', route: '/stack-diagnostic'},
+  {type: 'stackDiagnosticPage', title: 'Tech Stacks', route: '/stack-diagnostic'},
   {type: 'licensingAuditPage', title: 'Software & Licensing Audit', route: '/software-licensing-audit'},
   {type: 'reportsPage', title: 'Reports', route: '/reports'},
   {type: 'newsletterPage', title: 'Newsletter', route: '/newsletter'},
@@ -47,8 +47,8 @@ export const schemaTypes = [
   aboutPage,
   contactPage,
   report,
-  newsletterIssue,
-  techStack,
+  techStackItem,
+  techStackStage,
   client,
   tile,
   step,
@@ -56,4 +56,7 @@ export const schemaTypes = [
   quote,
   priceCard,
   compareRow,
+  link,
+  routeCard,
+  folderCard,
 ]

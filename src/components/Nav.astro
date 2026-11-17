@@ -26,6 +26,8 @@ import ServiceCard from "./ServiceCard.astro";
 import StackThumb from "./StackThumb.astro";
 import { lineGridRatio, type LineGridShape } from "./line-grid";
 import { LETTER_COUNT, formPath } from "../scripts/logo-morph.js";
+import { linkTarget, reader, siteDocument, SITE_SCOPE } from "../sanity/content";
+import { homePage as HOME } from "../sanity/defaults/home";
 
 // The forms as the morph draws them at rest, so the mark is the logo before
 // any script has run, and the morph starts from exactly what is on screen.
@@ -46,19 +48,43 @@ const logoForms = Array.from({ length: LETTER_COUNT }, (_, i) => formPath(i));
 // crosses). The cards' height follows the first card set on a grid (nav.css,
 // --sc-grid-ratio: the drawing's height over its width, line-grid.ts), so
 // the card is the grid's own shape and shows it whole
+//
+// Every word, link and picture of the bar and its dropdowns comes from the
+// Home page document's Navigation section in Sanity (2026-11-16), falling
+// back to src/sanity/defaults/home.ts; the cards' patterns and the first
+// card's line grid stay here, by position.
+const { t, items, img } = reader(await siteDocument(Astro.locals), HOME);
 const gridOf = (list: { grid?: LineGridShape }[]) => list.find((s) => s.grid)?.grid;
-const services: { href: string; name: string; cycle?: { stem: string; words: string[] }; text: string[]; grid?: LineGridShape }[] = [
-  { href: "/workshops-audits", name: "Workshop", cycle: { stem: "Work", words: ["shop", "flow"] }, text: ["A half-day live-project diagnostic,", "followed by a written report."], grid: { cols: 6, rows: 4, sub: 4, bleed: 1 } },
-  { href: "/before-revit", name: "Before Revit", text: ["A review of early-stage design,", "before Revit or Archicad."] },
-  { href: "/technology-blueprint", name: "Tech - Blueprint", text: ["An eight-week practice-wide strategy", "and a sequenced roadmap."] },
-  { href: "/advisory", name: "ADDD Advisory", text: ["Monthly advice on AI, BIM, software", "and other digital priorities."] },
-];
+const FIRST_GRID: LineGridShape = { cols: 6, rows: 4, sub: 4, bleed: 1 };
+const services: { key: string; href: string; name: string; cycle?: { stem: string; words: string[] }; text: string[]; grid?: LineGridShape }[] = items("nav.services").map((s, i) => {
+  const words = s.lines("words");
+  const stem = s.t("stem");
+  return {
+    key: s.key,
+    href: s.t("href") || "/contact",
+    name: s.t("name"),
+    cycle: stem && words.length > 1 ? { stem, words } : undefined,
+    text: s.lines("lines"),
+    grid: i === 0 ? FIRST_GRID : undefined,
+  };
+});
+const navLinks = items("nav.links").map((l) => ({ key: l.key, label: l.t("label"), href: l.t("href") || "/" }));
+const partnersHref = t("nav.partners.href");
+const signInHref = t("nav.signIn.href");
+const contactHref = t("nav.contact.href");
+const tile = (name: string) => ({ name: t(`nav.${name}.name`), text: t(`nav.${name}.text`), href: t(`nav.${name}.href`) });
+const stacksTile = tile("stacksTile");
+const databaseTile = tile("databaseTile");
+const reportsTile = tile("reportsTile");
+const newsletterTile = tile("newsletterTile");
+const reportCover = img("nav.reportTile.image", 960);
+const reportHref = t("nav.reportTile.href");
 const firstGrid = gridOf(services);
 const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
 ---
 <!-- is--floating from the first paint: the floating bar always (an
      experiment: NAV_ALWAYS_FLOATS in nav.js, where to undo it) -->
-<nav data-menu-open="false" data-menu-wrap class="mega-nav is--floating">
+<nav data-menu-open="false" data-menu-wrap class="mega-nav is--floating" {...SITE_SCOPE}>
   <div class="mega-nav__bar">
     <div class="mega-nav__container">
       <div class="mega-nav__bar-start">
@@ -77,41 +103,40 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
           </svg>
         </a>
         <div data-nav-list id="mega-nav-menu" class="mega-nav__bar-inner">
-          <a data-nav-list-item href="/tech-firms" class="mega-nav__feature nav-link">
-            <NavLinkLabel class="mega-nav__bar-link-label">AEC Tech Partners</NavLinkLabel>
+          <a data-nav-list-item href={partnersHref} {...linkTarget(partnersHref)} class="mega-nav__feature nav-link">
+            <NavLinkLabel class="mega-nav__bar-link-label" data-page-field="nav.partners.label">{t("nav.partners.label")}</NavLinkLabel>
           </a>
           <ul class="mega-nav__bar-list">
             <li data-nav-list-item>
               <button type="button" data-dropdown-toggle="services" aria-expanded="false" aria-controls="mega-nav-services" class="mega-nav__bar-link is--dropdown nav-link">
-                <NavLinkLabel class="mega-nav__bar-link-label">Services</NavLinkLabel>
+                <NavLinkLabel class="mega-nav__bar-link-label" data-page-field="nav.servicesLabel">{t("nav.servicesLabel")}</NavLinkLabel>
                 <ArrowIcon aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown" />
               </button>
             </li>
             <li data-nav-list-item>
               <button type="button" data-dropdown-toggle="resources" aria-expanded="false" aria-controls="mega-nav-resources" class="mega-nav__bar-link is--dropdown nav-link">
-                <NavLinkLabel class="mega-nav__bar-link-label">Resources</NavLinkLabel>
+                <NavLinkLabel class="mega-nav__bar-link-label" data-page-field="nav.resourcesLabel">{t("nav.resourcesLabel")}</NavLinkLabel>
                 <ArrowIcon aria-hidden="true" class="mega-nav__bar-link-icon is--dropdown" />
               </button>
             </li>
+            {navLinks.map((link, i) => (
             <li data-nav-list-item>
-              <a href="https://aectechjobs.com/" target="_blank" rel="noopener" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">AEC Jobs</NavLinkLabel></a>
+              <a href={link.href} {...linkTarget(link.href)} class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label" data-page-field={`nav.links.${i}.label`}>{link.label}</NavLinkLabel></a>
             </li>
-            <li data-nav-list-item>
-              <a href="/about" class="mega-nav__bar-link nav-link"><NavLinkLabel class="mega-nav__bar-link-label">About</NavLinkLabel></a>
-            </li>
+            ))}
           </ul>
           <ul data-nav-list-item class="mega-nav__bar-list is--actions">
             <li class="mega-nav__bar-action is--grouped">
-              <a href="https://app.addd.io/login" target="_blank" rel="noopener" class="mega-nav__bar-cta nav-link"><NavLinkLabel class="mega-nav__bar-link-label">Sign in</NavLinkLabel></a>
+              <a href={signInHref} {...linkTarget(signInHref)} class="mega-nav__bar-cta nav-link"><NavLinkLabel class="mega-nav__bar-link-label" data-page-field="nav.signIn.label">{t("nav.signIn.label")}</NavLinkLabel></a>
             </li>
             <li class="mega-nav__bar-action">
-              <a href="/contact" class="contact-button nav-link"><NavLinkLabel class="contact-button__text">Contact</NavLinkLabel></a>
+              <a href={contactHref} {...linkTarget(contactHref)} class="contact-button nav-link"><NavLinkLabel class="contact-button__text" data-page-field="nav.contact.label">{t("nav.contact.label")}</NavLinkLabel></a>
             </li>
           </ul>
         </div>
         <div class="mega-nav__bar-end">
           <!-- Below 992px the bar carries Contact itself, beside the menu. -->
-          <a href="/contact" class="mega-nav__bar-end-cta">Contact</a>
+          <a href={contactHref} {...linkTarget(contactHref)} class="mega-nav__bar-end-cta" data-page-field="nav.contact.label">{t("nav.contact.label")}</a>
           <!-- The menu's mark: four of the logo's triangles round a square,
                each pointing on to the next — right, down, left, up — and
                turned to point at the middle while the menu is open
@@ -143,7 +168,7 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
       <div data-nav-content="services" id="mega-nav-services" role="region" aria-label="Services" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner is--services" style={gridRatio ? `--sc-grid-ratio:${gridRatio}` : undefined}>
           {services.map((s, i) => (
-            <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} cycle={s.cycle} text={s.text} grid={s.grid} />
+            <ServiceCard data-menu-fade href={s.href} index={i} title={s.name} cycle={s.cycle} text={s.text} grid={s.grid} field={`nav.services.${i}`} />
           ))}
         </div>
       </div>
@@ -151,13 +176,14 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
       <div data-nav-content="resources" id="mega-nav-resources" role="region" aria-label="Resources" class="mega-nav__dropdown-panel">
         <div class="mega-nav__dropdown-inner is--resources">
 
-          <!-- Four boxes of their own (2026-11-04; nav.css, "Resources
-               tiles" and "Resources blocks"): on the left, one over the
-               other and the same width, Free Tech Stacks and the Software
-               Database; then Reports and the Newsletter, each a block in the
-               Services cards' language (a header of its mark in a compact
-               square and its name beside it, its lead link, and a feature
-               on the field's tone). -->
+          <!-- Five tiles of their own (2026-11-16; nav.css, "Resources
+               tiles"), in the language of the first two: each a box with
+               its name in the top left and its line under it, a narrow
+               seam of the dimmed page between them. On the left Free Tech
+               Stacks over the Software Database; in the middle the latest
+               report (its cover filling its right side) over Reports &
+               Guides; on the right the newsletter, the two rows tall, its
+               signup at its foot. -->
 
           <!-- Free Tech Stacks: its name in the top left, and behind it the
                Free Tech Stacks page's own row of cards in miniature
@@ -165,53 +191,45 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
                on past the box and clipped by it); the pointer over the box
                only lifts its middle card a little. The whole box is the
                link. -->
-          <a data-menu-fade href="/stack-diagnostic" class="resource-tile is--stacks">
-            <span class="resource-tile__name">Free Tech Stacks</span>
-            <span class="resource-tile__desc">See how software fits together across architecture workflows.</span>
+          <a data-menu-fade href={stacksTile.href} {...linkTarget(stacksTile.href)} class="resource-tile is--stacks">
+            <span class="resource-tile__name" data-page-field="nav.stacksTile.name">{stacksTile.name}</span>
+            <span class="resource-tile__desc" data-page-field="nav.stacksTile.text">{stacksTile.text}</span>
             <StackThumb />
           </a>
           <!-- the Software Database, the landscape under the stacks: kept
                plain for now -->
-          <a data-menu-fade href="https://app.addd.io/" target="_blank" rel="noopener" class="resource-tile is--database">
-            <span class="resource-tile__name">Software Database &#8599;</span>
-            <span class="resource-tile__desc">ADDD&rsquo;s research into 1,700+ AEC software solutions.</span>
+          <a data-menu-fade href={databaseTile.href} {...linkTarget(databaseTile.href)} class="resource-tile is--database">
+            <span class="resource-tile__name" data-page-field="nav.databaseTile.name">{databaseTile.name}</span>
+            <span class="resource-tile__desc" data-page-field="nav.databaseTile.text">{databaseTile.text}</span>
           </a>
 
-          <!-- Reports — the index link, then the latest report as the feature.
-               The report is the first on reports.html; keep the two in step. -->
-          <div data-menu-fade class="resource-block">
-            <span class="resource-block__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 18L5 13.5L16.5 2H17.5L20 4.5V5.5L8.5 17L4 18Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M14.5 3.5L18.5 7.5" stroke="currentColor" stroke-miterlimit="10"></path><path d="M3.5 21.5H20.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-            <span class="resource-block__title">Reports</span>
-            <a href="/reports" class="resource-block__row resource-block__lead">
-              <span class="resource-block__name">Reports &amp; Guides</span>
-              <span class="resource-block__desc">Deeper research into technology, AI, workflows and practice.</span>
-            </a>
-            <a href="/report-template" class="resource-block__row resource-block__field resource-block__report">
-              <span class="resource-block__report-text">
-                <span class="resource-block__label">Latest report</span>
-                <span class="resource-block__name">The state of AI in architecture</span>
-                <span class="resource-block__cta">Read the report <ArrowIcon aria-hidden="true" class="resource-block__cta-mark" /></span>
-              </span>
-              <span class="resource-block__cover" aria-hidden="true">
-                <img src="/assets/images/allister-podium-full.jpg" alt="" loading="lazy">
-              </span>
-            </a>
-          </div>
+          <!-- The latest report, a feature as Free Tech Stacks is: its
+               title, its label and the call to read it in the top left, its cover
+               filling the tile's right side. The report is the first on
+               /reports; keep the two in step. -->
+          <a data-menu-fade href={reportHref} {...linkTarget(reportHref)} class="resource-tile is--report">
+            <span class="resource-tile__name" data-page-field="nav.reportTile.name">{t("nav.reportTile.name")}</span>
+            <span class="resource-tile__label" data-page-field="nav.reportTile.label">{t("nav.reportTile.label")}</span>
+            <span class="resource-tile__cta"><span data-page-field="nav.reportTile.cta">{t("nav.reportTile.cta")}</span> <ArrowIcon aria-hidden="true" class="resource-tile__cta-mark" /></span>
+            <span class="resource-tile__cover" aria-hidden="true"><img src={reportCover.src} alt="" width="960" height="720" decoding="async" data-page-field="nav.reportTile.image" data-page-width="960"></span>
+          </a>
+          <!-- Reports & Guides, plain under it, as the Software Database is -->
+          <a data-menu-fade href={reportsTile.href} {...linkTarget(reportsTile.href)} class="resource-tile is--reports">
+            <span class="resource-tile__name" data-page-field="nav.reportsTile.name">{reportsTile.name}</span>
+            <span class="resource-tile__desc" data-page-field="nav.reportsTile.text">{reportsTile.text}</span>
+          </a>
 
-          <!-- ADDDitive — the newsletter's page, then the signup as the
-               feature: the shared signup (styles.css) on the field's tone,
-               which frames it, so it needs no outline of its own. -->
-          <div data-menu-fade class="resource-block">
-            <span class="resource-block__mark" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 5.5H21.5V18.5H2.5V5.5Z" stroke="currentColor" stroke-miterlimit="10"></path><path d="M2.5 5.5L12 12.5L21.5 5.5" stroke="currentColor" stroke-miterlimit="10"></path></svg></span>
-            <span class="resource-block__title">Newsletter</span>
-            <a href="/newsletter" class="resource-block__row resource-block__lead">
-              <span class="resource-block__name">ADDDitive Newsletter</span>
-              <span class="resource-block__desc">How technology actually gets used to make architecture.</span>
+          <!-- ADDDitive: the newsletter's page by its name, and the signup
+               (the shared one, styles.css) at the tile's foot -->
+          <div data-menu-fade class="resource-tile is--newsletter">
+            <a href={newsletterTile.href} {...linkTarget(newsletterTile.href)} class="resource-tile__link">
+              <span class="resource-tile__name" data-page-field="nav.newsletterTile.name">{newsletterTile.name}</span>
+              <span class="resource-tile__desc" data-page-field="nav.newsletterTile.text">{newsletterTile.text}</span>
             </a>
-            <form class="newsletter-signup resource-block__row resource-block__field resource-block__signup" onsubmit="return false">
+            <form class="newsletter-signup resource-tile__signup" onsubmit="return false">
               <div class="newsletter-form is--plain">
-                <input type="email" name="email" placeholder="Your email" aria-label="Your email" required>
-                <button class="newsletter-form__submit" type="submit">Subscribe</button>
+                <input type="email" name="email" placeholder={t("signup.placeholder")} aria-label={t("signup.placeholder")} required>
+                <button class="newsletter-form__submit" type="submit" data-page-field="signup.button">{t("signup.button")}</button>
               </div>
             </form>
           </div>

@@ -1,52 +1,122 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
+import {LockIcon} from '@sanity/icons/Lock'
 import {StackIcon} from '@sanity/icons/Stack'
+import {BlockItem} from '@stasiosdesign/sanity-cms'
 
-/* A tech stack (2026-11-04): a set of tools Allister has chosen to work
-   together for one architectural workflow, shown on the Free Tech Stacks
-   page (src/pages/stack-diagnostic.astro) as a deck of cards on its own
-   tray, and opened there as a preview.
+/* A tech stack of the Free Tech Stacks page (src/pages/stack-diagnostic.astro,
+   drawn by stack-space.js as a run of cards in the row, and opened by
+   stack-sheet.js as a sheet): a curated workflow, its name and lines, and
+   its stages in order, each a card. An open stage names its tool, what the
+   tool does there, its alternatives and its logo; a locked stage shows only
+   its name, its tool being in the ADDD app, behind its sign-up.
 
-   Only what the preview shows lives here: the stack's name, its workflow,
-   what it helps a practice do, how many tools it holds, and the two or so
-   tools shown before a visitor signs up. The full list is the ADDD app's,
-   behind its sign-up: this dataset can be read publicly, so the whole
-   stack is never written here. The preview's button goes to the stack in
-   the app (appUrl), or to the app's sign-up. */
+   Part of the Tech Stacks page (its Tech stacks section, edited in the Page
+   editor, in the page's order) since 2026-11-16; rebuilt that day, when
+   every field of the site was connected to Sanity, in the shape the page
+   draws (src/data/tech-stacks.ts: the ten example workflows were its
+   first content).
 
-// The tools a preview can name: the ADDD Stack Ecosystem's, as the site
-// lists them (src/data/stack-ecosystem.ts). Keep the two in step.
-const TOOL_NAMES = [
-  'laiout', 'Ideatura', 'DTOAEC', 'RunDiffusion', 'xFigura', 'MyarchitectAI', 'Prome', 'There', 'ARKI', 'Cogram',
-  'DesignAir', 'Sofidus.tech', 'Layer', 'Plannerly', 'Satori', 'Synergy', 'AAL Innovation Academy', 'Markedup', 'zipBoard', 'Spaciv',
-]
+   The dataset can be read publicly, so a locked stage's tool is never
+   written here: the form hides a locked stage's tool fields, and refuses
+   to publish one that still holds them. */
 
-export const techStack = defineType({
-  name: 'techStack',
-  title: 'Tech stack',
-  type: 'document',
-  icon: StackIcon,
+/** One stage of a stack: a card in the row and a container in its sheet */
+export const techStackStage = defineType({
+  name: 'techStackStage',
+  title: 'Stage',
+  type: 'object',
+  components: {item: BlockItem},
   fields: [
-    defineField({name: 'title', title: 'Name', type: 'string', description: 'The stack’s name, e.g. “Visualisation stack”.', validation: (rule) => rule.required()}),
-    defineField({name: 'workflow', title: 'Workflow', type: 'string', description: 'The architectural workflow or task it is for, e.g. “Architectural visualisation”. Shown on the stack’s tray.', validation: (rule) => rule.required()}),
-    defineField({name: 'summary', title: 'What it does', type: 'text', rows: 3, description: 'What the stack helps a practice do, in a sentence or two. Shown in the preview.'}),
+    defineField({name: 'stage', title: 'Stage', type: 'string', description: 'What happens at this stage of the workflow, e.g. “Concept imagery”. Shown on its card, open or locked.', validation: (rule) => rule.required()}),
     defineField({
-      name: 'toolCount',
-      title: 'Number of tools',
-      type: 'number',
-      description: 'How many tools the full stack holds. The list itself lives in the ADDD app, behind its sign-up.',
-      validation: (rule) => rule.required().integer().min(2).max(20),
+      name: 'locked',
+      title: 'Locked',
+      type: 'boolean',
+      description: 'On: the card shows the stage alone, with a lock, and the way into the ADDD app. Its tool stays in the app and is never written here.',
+      initialValue: false,
     }),
     defineField({
-      name: 'previewTools',
-      title: 'Tools in the preview',
+      name: 'tool',
+      title: 'Tool',
+      type: 'string',
+      description: 'The software at this stage, e.g. “Rhino”.',
+      hidden: ({parent}) => !!parent?.locked,
+      validation: (rule) =>
+        rule.custom((value, context) => {
+          const parent = context.parent as {locked?: boolean} | undefined
+          if (parent?.locked) return value ? 'A locked stage keeps its tool in the ADDD app: clear it here (switch Locked off to see it).' : true
+          return value ? true : 'An open stage names its tool.'
+        }),
+    }),
+    defineField({
+      name: 'does',
+      title: 'What it does here',
+      type: 'text',
+      rows: 3,
+      description: 'A sentence or two, shown under the tool in the stack’s sheet.',
+      hidden: ({parent}) => !!parent?.locked,
+      validation: (rule) =>
+        rule.custom((value, context) => ((context.parent as {locked?: boolean} | undefined)?.locked && value ? 'A locked stage keeps this in the ADDD app: clear it here.' : true)),
+    }),
+    defineField({
+      name: 'alternatives',
+      title: 'Alternatives',
       type: 'array',
-      description: 'The tools a visitor sees before signing up, in order: two is enough. The rest stay hidden.',
-      of: [defineArrayMember({type: 'string', options: {list: TOOL_NAMES}})],
-      validation: (rule) => rule.max(3).unique(),
+      description: 'Other tools that could do the same job, one per line. Shown in one line under what it does.',
+      of: [defineArrayMember({type: 'string'})],
+      hidden: ({parent}) => !!parent?.locked,
+      validation: (rule) =>
+        rule.custom((value, context) => ((context.parent as {locked?: boolean} | undefined)?.locked && Array.isArray(value) && value.length ? 'A locked stage keeps its alternatives in the ADDD app: clear them here.' : true)),
     }),
-    defineField({name: 'appUrl', title: 'Full stack in the app', type: 'url', description: 'Where this stack is in the ADDD app. Without it, the preview’s button goes to the app’s sign-up.'}),
-    defineField({name: 'sortOrder', title: 'Order', type: 'number', description: 'Position on the page, 1 first.', validation: (rule) => rule.integer().min(1)}),
+    defineField({
+      name: 'logo',
+      title: 'Logo',
+      type: 'image',
+      description: 'The tool’s logo, square, on its card and in the sheet. Without one, the card shows the tool’s initials.',
+      options: {hotspot: true},
+      fields: [defineField({name: 'alt', title: 'Alternative text', type: 'string', hidden: true})],
+      hidden: ({parent}) => !!parent?.locked,
+      validation: (rule) =>
+        rule.custom((value, context) => ((context.parent as {locked?: boolean} | undefined)?.locked && value ? 'A locked stage keeps its logo in the ADDD app: remove it here.' : true)),
+    }),
   ],
-  orderings: [{title: 'Order', name: 'sortOrderAsc', by: [{field: 'sortOrder', direction: 'asc'}]}],
-  preview: {select: {title: 'title', subtitle: 'workflow'}},
+  preview: {
+    select: {stage: 'stage', tool: 'tool', locked: 'locked', media: 'logo'},
+    prepare: ({stage, tool, locked, media}) => ({
+      title: stage || 'Stage',
+      subtitle: locked ? 'Locked' : tool,
+      media: locked ? LockIcon : media,
+    }),
+  },
+})
+
+export const techStackItem = defineType({
+  name: 'techStackItem',
+  title: 'Tech stack',
+  type: 'object',
+  icon: StackIcon,
+  components: {item: BlockItem},
+  fields: [
+    defineField({name: 'name', title: 'Name', type: 'string', description: 'The workflow’s name, e.g. “Residential Design”: beside its cards in the row, on its block in the list and at the top of its sheet.', validation: (rule) => rule.required()}),
+    defineField({name: 'short', title: 'Short line', type: 'string', description: 'One short line, shown beside the row while the stack is under the pointer.'}),
+    defineField({name: 'summary', title: 'What it is for', type: 'text', rows: 3, description: 'Who the workflow suits and what it does, at the top of its sheet.'}),
+    defineField({name: 'note', title: 'Note', type: 'text', rows: 3, description: 'A note under the stages in the sheet, where there is one. Leave empty for none.'}),
+    defineField({
+      name: 'stages',
+      title: 'Stages',
+      type: 'array',
+      description: 'The workflow’s stages, in order: each a card in the row. Drag to reorder; switch a stage to Locked to keep its tool in the ADDD app.',
+      of: [defineArrayMember({type: 'techStackStage'})],
+      validation: (rule) => rule.min(1),
+    }),
+    defineField({name: 'url', title: 'Its place in the ADDD app', type: 'url', description: 'Where the sheet’s button and the locked stages lead for this stack. Without it, the Free Stack’s sign-up (the page’s Opening).'}),
+  ],
+  preview: {
+    select: {title: 'name', subtitle: 'short', stages: 'stages'},
+    prepare: ({title, subtitle, stages}) => {
+      const list = (stages ?? []) as {locked?: boolean}[]
+      const locked = list.filter((s) => s.locked).length
+      return {title: title || 'Tech stack', subtitle: `${list.length} stages, ${locked} locked${subtitle ? ` · ${subtitle}` : ''}`}
+    },
+  },
 })
