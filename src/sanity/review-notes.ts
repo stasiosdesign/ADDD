@@ -13,53 +13,17 @@
    horizontal (left, right inside; before, after outside), moved by
    `offset` in pixels. */
 
-const DRIVE = 'https://drive.google.com/drive/folders/1qUs6T9DWWB_4FciRVqQKiCYcruC9Cihn?usp=drive_link';
-
 /** The notes' author, the designer */
 export const designer = { id: 'stas', name: 'Stas', role: 'admin' };
 
 type Note = { id: string; page: string; target: string; at: string; offset?: [number, number]; text: string };
 
-const NOTES: Note[] = [
-  {
-    // the three cards under "What actually costs you time"
-    id: 'note:home:cost-images',
-    page: '/',
-    target: '#cost .problem-grid',
-    at: 'above-right',
-    offset: [0, -16],
-    text: `Could you please provide an image for each of these three blocks? You can upload them to the Homepage folder here: ${DRIVE}`,
-  },
-  {
-    // "Close to the practices making technology decisions"
-    id: 'note:tech-firms:why-image',
-    page: '/tech-firms',
-    // inside the cards' top-right corner: above them is the heading
-    target: '#why .tf-why__cards',
-    at: 'top-right',
-    offset: [-16, 16],
-    text: `Could you please provide an image for this section? You can upload it to the AEC Tech Partners folder here: ${DRIVE}`,
-  },
-  {
-    // the Free Tech Stacks page's heading, over the row of stacks
-    id: 'note:stack-diagnostic:stacks',
-    page: '/stack-diagnostic',
-    target: '.sd__head',
-    at: 'below-left',
-    offset: [0, 24],
-    text: 'Could you please add me to Softr (softr.io)? Alternatively, just send me the three tech stacks you’d like to feature so I can add them to the website.',
-  },
-  {
-    // the Technology Blueprint's opening, under its buttons (the text's own
-    // box fills the held hero)
-    id: 'note:technology-blueprint:hero',
-    page: '/technology-blueprint',
-    target: '.bp-hero__actions',
-    at: 'below-left',
-    offset: [0, 32],
-    text: 'Do you have any specific Technology Blueprint case studies, metrics or deliverables we could showcase on this page? It would be great to include some real examples.',
-  },
-];
+// None for now (2026-11-17, at the user's word): a new Site Review round
+// starts with no comments. The four notes asked before (the home page's
+// cost images, AEC Tech Partners' image, the free tech stacks, Technology
+// Blueprint case studies) are kept, resolved, with the 9 November round.
+// Add a note here to have it seeded again.
+const NOTES: Note[] = [];
 
 const CREATED = '2026-11-05T16:00:00.000Z';
 

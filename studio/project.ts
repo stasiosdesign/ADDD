@@ -53,13 +53,17 @@ export const project: CmsProjectConfig = {
   // The Page editor always shows staging, the latest version.
   review: {
     versions: [
-      // the latest round first (2026-11-17, at the user's word)
+      // the latest round first (2026-11-17, at the user's word). It replaces
+      // the round cut earlier that day (review/final-design-2026-11-17,
+      // id final-design-2026-11-17), which GitHub's "Freeze review rounds"
+      // rule keeps but nothing points to any more: this round took its
+      // address, and its comments were removed, so this one starts fresh.
       {
-        id: 'final-design-2026-11-17',
+        id: 'final-design-2026-11-17-v2',
         title: 'Final Design, 17 November',
         date: '2026-11-17',
         url: 'https://addd-final-design-2026-11-17.vercel.app',
-        branch: 'review/final-design-2026-11-17',
+        branch: 'review/final-design-2026-11-17-v2',
       },
       {
         // renamed from "Final Design V1" (2026-11-17); its id never changes
