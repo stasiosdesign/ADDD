@@ -53,9 +53,18 @@ export const project: CmsProjectConfig = {
   // The Page editor always shows staging, the latest version.
   review: {
     versions: [
+      // the latest round first (2026-11-17, at the user's word)
       {
+        id: 'final-design-2026-11-17',
+        title: 'Final Design, 17 November',
+        date: '2026-11-17',
+        url: 'https://addd-final-design-2026-11-17.vercel.app',
+        branch: 'review/final-design-2026-11-17',
+      },
+      {
+        // renamed from "Final Design V1" (2026-11-17); its id never changes
         id: 'final-design',
-        title: 'Final Design V1',
+        title: 'Final Design, 9 November',
         date: '2026-11-09',
         url: 'https://addd-final-design-v1.vercel.app',
         branch: 'review/final-design-v1',
