@@ -123,7 +123,7 @@ export interface Section {
   notes?: string[];
 }
 
-/* The timeline to launch: one, shown twice (1.2 and 5.1), so they always agree */
+/* The timeline to launch (1.2) */
 const LAUNCH_TIMELINE: Timeline = {
   days: [
     { day: "Tue", date: "17", today: true },
@@ -165,7 +165,7 @@ export const SECTIONS: Section[] = [
       { n: "2", title: "Editing the site", text: "The page editor and collections", href: "#editing" },
       { n: "3", title: "Adding a report", text: "From Sanity to an inbox", href: "#report" },
       { n: "4", title: "Adding a newsletter", text: "Written in beehiiv, shown on the site", href: "#newsletter" },
-      { n: "5", title: "Final tasks", text: "What Allister prepares before launch", href: "#tasks" },
+      { n: "5", title: "Final tasks", text: "What to prepare before launch", href: "#tasks" },
       { n: "6", title: "Questions", text: "What we still need to know", href: "#questions" },
     ],
   },
@@ -448,9 +448,8 @@ export const SECTIONS: Section[] = [
   /* Final tasks (2026-11-17, at the user's word): who does what next */
   {
     id: "tasks",
-    tab: "Allister’s tasks",
-    title: "Allister’s tasks",
-    timeline: LAUNCH_TIMELINE,
+    tab: "Tasks",
+    title: "Tasks",
     tasks: [
       {
         title: "Final copy in Sanity",
