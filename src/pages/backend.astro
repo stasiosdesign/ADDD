@@ -119,6 +119,7 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
                   <div class="arch__task-body">
                     <p>{task.text}</p>
                     {task.items && <ul>{task.items.map((item) => <li>{item}</li>)}</ul>}
+                    {task.image && <Image class="arch__task-img" src={task.image.src} alt={task.image.alt} widths={[640, task.image.src.width]} sizes="32rem" loading="lazy" />}
                   </div>
                 </details>
               </li>

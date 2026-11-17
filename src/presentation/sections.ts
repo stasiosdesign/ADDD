@@ -18,6 +18,7 @@ import type { ImageMetadata } from "astro";
 import type { PlatformKey } from "./platforms";
 import pageEditor from "./page-editor.png";
 import newsletterBeehiiv from "./newsletter-beehiiv.png";
+import productsMenu from "./products-menu.png";
 
 /* A side-by-side (2026-11-17, at the user's word): a draft in beehiiv on
    the left (a screenshot), the same issue on the website on the right
@@ -115,7 +116,7 @@ export interface Section {
   /** questions for the call, numbered, each with a line of detail */
   questions?: { q: string; detail?: string }[];
   /** tasks as numbered drop-downs: a title, a line and points */
-  tasks?: { title: string; text: string; items?: string[] }[];
+  tasks?: { title: string; text: string; items?: string[]; image?: { src: ImageMetadata; alt: string } }[];
   compare?: Compare;
   diagram?: Diagram;
   /** under the diagram, side by side: a heading and its bullet points each (2026-11-17) */
@@ -452,27 +453,26 @@ export const SECTIONS: Section[] = [
     title: "Tasks",
     tasks: [
       {
-        title: "Final copy in Sanity",
-        text: "Every page’s words, as they should read at launch, written in the page editor.",
-        items: ["Headings, introductions and body text", "Buttons and what they say", "Pictures where a page needs a new one"],
+        title: "Copywriting check",
+        text: "Feel free to make any changes to the wording in the Sanity page editor.",
       },
       {
         title: "Operational details",
-        text: "The facts behind each service, so the pages promise what ADDD delivers.",
-        items: ["Timelines: each stage and how long it takes", "Deliverables: what the client receives", "Pricing", "Who takes part from the client’s side", "What the client prepares beforehand"],
+        text: "Key business information in a few places (in the Sanity page editor):",
+        items: ["Workshop: what’s included, and the process timeline", "Technology Blueprint: the timeline", "AEC Tech Partners: the service offerings and timeline"],
       },
       {
         title: "FAQs",
-        text: "The questions clients really ask, with ADDD’s answers, on each page that has them.",
+        text: "Feel free to add or change the FAQs on the key pages: Home, Workshop, Early Stage Design, Technology Blueprint and Advisory. Again, all in Sanity.",
       },
       {
-        title: "Reports, each with its beehiiv automation",
-        text: "Each report added in Sanity, its automation built in beehiiv first, then chosen from the report’s drop-down.",
+        title: "Reports and automations",
+        text: "I’ve added the reports from the current site, below, and I’m still refining their pages. Feel free to add any others that aren’t on the site yet. For each one, scroll down to “How to get it” and let me know which beehiiv automation it should use.",
+        image: { src: productsMenu, alt: "The current site’s Products menu: the six reports now on the new site." },
       },
       {
-        title: "A booking calendar",
-        text: "A free booking page connected to your own calendar, so calls never clash. Send Stas its link.",
-        items: ["Calendly (calendly.com) or Cal.com (cal.com): both free", "Connect it to Google Calendar, or whichever calendar you use"],
+        title: "Booking calendar",
+        text: "A free booking page from Calendly or Cal.com, connected to your calendar so calls never clash. Just send me the link.",
       },
     ],
   },
