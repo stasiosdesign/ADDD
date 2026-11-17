@@ -1,6 +1,6 @@
 import {defineField, defineType} from 'sanity'
 import {BlockElementIcon} from '@sanity/icons/BlockElement'
-import {buttonField, headingField, hrefField, itemsField, leadField, pageSection, quoteSection, sectionHead, seoSection, stageItemsField, taglineField, textField, stageDetailsField, timelineKeyFields} from '../shared/fields'
+import {buttonField, headingField, hrefField, itemsField, leadField, pageSection, quoteSection, sectionHead, seoSection, stageItemsField, taglineField, textField, stageDetailsField, timelineField, timelineKeyFields} from '../shared/fields'
 
 /* The Technology Blueprint page, one section per part of the page, in the
    order the page shows them (src/pages/technology-blueprint.astro; the
@@ -42,7 +42,7 @@ export const blueprintPage = defineType({
       {...headingField('No longer shown.', 'cardHeading', 'Card heading'), hidden: true},
       {...textField('No longer shown.', 'cardText', 'Card text'), hidden: true},
     ]),
-    pageSection('delivery', 'Delivery', 'The tagline, heading and button, and the four stages of the eight weeks on a timeline, each opening to tell more.', [
+    pageSection('delivery', 'Delivery', 'The tagline, heading and button, and the timeline of the eight weeks.', [
       taglineField(),
       headingField(),
       buttonField('Where it leads: Button link.'),
@@ -50,9 +50,12 @@ export const blueprintPage = defineType({
       // the “Learn” link beside the button, no longer shown (2026-11-04);
       // kept so the code on main can still read it, hidden from the form
       {...linkField('No longer shown.'), hidden: true},
-      itemsField('steps', 'Stages', 'step', 'The stages, in order: the weeks (Label), the title and the text. The photographs stay in the site’s code.'),
-      stageDetailsField(),
-      stageItemsField(),
+      timelineField(),
+      // the timeline is one field since 2026-11-17 (timelineField); the old
+      // lists are kept so the code on main can still read them, hidden
+      {...itemsField('steps', 'Stages', 'step', 'No longer shown.'), hidden: true},
+      {...stageDetailsField('No longer shown.'), hidden: true},
+      {...stageItemsField('No longer shown.'), hidden: true},
       ...timelineKeyFields(),
     ]),
     // the page now shows the Home page's testimonials (2026-11-04); kept

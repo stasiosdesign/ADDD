@@ -52,13 +52,21 @@ export const imageField = (description?: string, name = 'image', title = 'Pictur
     ],
   })
 
+/**
+ * How every list in the Studio is used, at the end of its description
+ * (2026-11-17): the page editor selects a list as one block and opens it
+ * here, so the panel says how to change it.
+ */
+const HOW_LISTS_WORK = 'Click an entry to change it, drag it by its handle to reorder, and use “Add item” for a new one.'
+const withHow = (description?: string) => [description, HOW_LISTS_WORK].filter(Boolean).join(' ')
+
 /** A list of blocks of one object type (a tile, a step, a question...), each edited in place. */
 export const itemsField = (name: string, title: string, of: string, description?: string) =>
   defineField({
     name,
     title,
     type: 'array',
-    description,
+    description: withHow(description),
     of: [defineArrayMember({type: of})],
   })
 
@@ -107,7 +115,7 @@ export const linksField = (name: string, title: string, description?: string) =>
     name,
     title,
     type: 'array',
-    description,
+    description: withHow(description),
     of: [defineArrayMember({type: 'link'})],
   })
 
@@ -171,6 +179,100 @@ export const stageItemsField = (description = 'For each stage, in the same order
     ],
   })
 
+/**
+ * A timeline (StageTimeline.astro, 2026-11-17, at the user's word): all of
+ * it in one field, so the Visual editor selects it as one block and the
+ * panel shows the whole of it. Each stage a row: its title, how long it
+ * takes (its box drawn to that length: three weeks three times one), when
+ * it starts (after the one before, unless set), the words beside its
+ * title, and its points, each marked by who does it.
+ */
+export const timelineField = (description = 'Each stage is one row. Open a stage to change its title, length and points; drag it to reorder; “Add item” adds a stage. Lengths are drawn to scale: a stage of 3 weeks is three times as long as one of 1.') =>
+  defineField({
+    name: 'timeline',
+    title: 'Timeline',
+    type: 'object',
+    description,
+    options: {collapsible: false},
+    fields: [
+      defineField({
+        name: 'unit',
+        title: 'Lengths counted in',
+        type: 'string',
+        description: 'What a stage’s length means. “Steps”: every stage the same size unless you say otherwise.',
+        options: {list: [{title: 'Days', value: 'day'}, {title: 'Weeks', value: 'week'}, {title: 'Steps', value: 'step'}], layout: 'radio', direction: 'horizontal'},
+        initialValue: 'week',
+      }),
+      defineField({
+        name: 'stages',
+        title: 'Stages',
+        type: 'array',
+        of: [
+          defineArrayMember({
+            type: 'object',
+            name: 'timelinePhase',
+            title: 'Stage',
+            fields: [
+              defineField({name: 'title', title: 'Title', type: 'string', validation: (rule) => rule.required()}),
+              defineField({
+                name: 'length',
+                title: 'Length',
+                type: 'number',
+                description: 'How many days, weeks or steps it takes. Its box is drawn to this length.',
+                initialValue: 1,
+                validation: (rule) => rule.required().min(0.5).max(52),
+              }),
+              defineField({
+                name: 'start',
+                title: 'Starts at',
+                type: 'number',
+                description: 'Leave empty: it starts when the stage before it ends. Set a day or week number (1 is the first) to start it elsewhere, e.g. to overlap the one before.',
+                validation: (rule) => rule.min(1).max(52),
+              }),
+              defineField({
+                name: 'when',
+                title: 'Timing words',
+                type: 'string',
+                description: 'Beside the title. Leave empty to show the days or weeks it runs, e.g. “Weeks 2–4”. Write your own for anything else, e.g. “Before the session”.',
+              }),
+              defineField({
+                name: 'items',
+                title: 'Points',
+                type: 'array',
+                description: 'The bullet points in its box, each marked by who does it.',
+                of: [
+                  defineArrayMember({
+                    type: 'object',
+                    name: 'timelinePhasePoint',
+                    title: 'Point',
+                    fields: [
+                      defineField({name: 'label', title: 'Point', type: 'string'}),
+                      defineField({
+                        name: 'by',
+                        title: 'Who',
+                        type: 'string',
+                        options: {list: [{title: 'ADDD', value: 'addd'}, {title: 'Your team', value: 'you'}, {title: 'Optional', value: 'optional'}], layout: 'radio', direction: 'horizontal'},
+                        initialValue: 'addd',
+                      }),
+                    ],
+                    preview: {select: {title: 'label', subtitle: 'by'}},
+                  }),
+                ],
+              }),
+            ],
+            preview: {
+              select: {title: 'title', length: 'length', when: 'when', items: 'items'},
+              prepare: ({title, length, when, items}) => ({
+                title: title || 'Stage',
+                subtitle: [when || (length ? `Length ${length}` : ''), ((items ?? []) as {label?: string}[]).map((i) => i.label).filter(Boolean).join(' · ')].filter(Boolean).join(' — '),
+              }),
+            },
+          }),
+        ],
+      }),
+    ],
+  })
+
 /** The timeline's key under it: the words for who does what */
 export const timelineKeyFields = () => [
   defineField({name: 'keyAddd', title: 'Key: ADDD', type: 'string', description: 'Under the timeline: what a plain point stands for.'}),
@@ -184,7 +286,7 @@ export const linesField = (name: string, title: string, description?: string) =>
     name,
     title,
     type: 'array',
-    description,
+    description: withHow(description),
     of: [defineArrayMember({type: 'string'})],
   })
 

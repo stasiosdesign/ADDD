@@ -134,13 +134,64 @@
 .arch__key-line.is--dashed { border-top-style: dashed; }
 
 /* a screenshot, framed as the panels are */
-.arch__shot { margin: 2.75rem 0 0; overflow: hidden; border-radius: 1.25rem; background: var(--panel); box-shadow: 0 0 0 1px var(--faint); }
+.arch__shot { margin: 2.75rem 0 0; overflow: hidden; border-radius: 0.75rem; background: var(--panel); box-shadow: 0 0 0 1px var(--faint); }
 .arch__shot img { display: block; width: 100%; height: auto; }
 .arch__shot + .arch__panel { margin-top: 1.25rem; }
-.arch__panel { margin-top: 2.75rem; padding: clamp(1.5rem, 3.5vw, 3rem); border-radius: 1.25rem; background: var(--panel); }
+.arch__panel { margin-top: 2.75rem; padding: clamp(1.5rem, 3.5vw, 3rem); border-radius: 0.75rem; background: var(--panel); }
 .arch__notes { display: flex; flex-direction: column; gap: 0.625rem; margin-top: 1.5rem; max-width: 46em; font-size: 0.9375rem; line-height: 1.5; color: var(--quiet); }
 .arch__notes li { position: relative; padding-left: 1.25rem; }
 .arch__notes li::before { content: ""; position: absolute; left: 0.125rem; top: 0.6em; width: 0.3125rem; height: 0.3125rem; border-radius: 50%; background: rgba(10, 10, 10, 0.3); }
+
+/* ---------- a timeline (2026-11-17, third pass): each day a block of its
+   own down the chart, so a bar plainly starts and ends on a day; the
+   weekend hatched out (Allister's bar runs under it, ours over it); a bar
+   per phase, a line along its top with a square at its start, its title
+   and its points as small square bullets; launch in green ---------- */
+.tl {
+  --green: #1f8f4e;
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(0, 1fr));
+  grid-template-rows: auto repeat(var(--phases), minmax(3.75rem, auto)) 0.5rem;
+  column-gap: 3px;
+  font-size: 0.75rem;
+}
+.tl__cell { grid-row: 1 / -1; z-index: 0; border-radius: 6px; background: rgba(255, 255, 255, 0.7); }
+.tl__cell.is--weekend { z-index: 1; background: #efefec repeating-linear-gradient(-45deg, rgba(10, 10, 10, 0.07) 0 1px, transparent 1px 6px); }
+.tl__cell.is--today { box-shadow: inset 0 2px 0 var(--red); }
+.tl__day { grid-row: 1; position: relative; z-index: 2; display: flex; flex-direction: column; gap: 0.125rem; padding: 0.625rem 0.5rem 0.875rem; color: var(--quiet); }
+.tl__day-name { font-size: 0.6875rem; }
+.tl__date { font-size: 1.0625rem; line-height: 1.1; letter-spacing: -0.02em; color: var(--ink); }
+.tl__day.is--today .tl__day-name { color: var(--red); }
+.tl__day.is--weekend, .tl__day.is--weekend .tl__date { color: rgba(10, 10, 10, 0.35); }
+.tl__phase {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  margin: 0.25rem 0;
+  padding: 0.5rem 0.5rem 0.625rem;
+  border-top: 1.5px solid var(--ink);
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(rgba(10, 10, 10, 0.07), rgba(10, 10, 10, 0.02));
+  overflow-wrap: break-word;
+}
+.tl__phase::before { content: ""; position: absolute; top: -3.5px; left: -1px; width: 5px; height: 5px; background: var(--ink); }
+.tl__phase.is--allister { z-index: 0; white-space: normal; }
+.tl__phase.is--allister > * { max-width: calc(var(--before-weekend, 1) * 100% - 0.5rem); }
+.tl__phase.is--launch { border-top-color: var(--green); background: linear-gradient(rgba(31, 143, 78, 0.14), rgba(31, 143, 78, 0.03)); }
+.tl__phase.is--launch::before { background: var(--green); }
+.tl__phase.is--launch .tl__title { color: var(--green); }
+.tl__title { display: flex; align-items: center; gap: 0.4375rem; font-size: 0.8125rem; line-height: 1.2; color: var(--ink); }
+.tl__face { flex: none; width: 1.375rem; height: 1.375rem; border-radius: 50%; object-fit: cover; object-position: 50% 30%; box-shadow: 0 0 0 2px #fff; }
+.tl__items { display: flex; flex-direction: column; gap: 0.1875rem; margin-top: 0.4375rem; }
+.tl__items li { display: flex; align-items: baseline; gap: 0.4375rem; line-height: 1.3; color: var(--quiet); }
+.tl__items li::before { content: ""; position: relative; top: -0.0625rem; width: 0.375rem; height: 0.375rem; flex: none; background: var(--ink); }
+.tl__phase.is--launch .tl__items li::before { background: var(--green); }
+
+/* headings with their bullet points, side by side under a diagram (2026-11-17) */
+.arch__lists { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 1.5rem 2rem; margin-top: 2rem; }
+.arch__list-title { font-size: 1rem; line-height: 1.35; color: var(--ink); }
+.arch__list .arch__notes { margin-top: 0.75rem; gap: 0.375rem; }
+.arch__lists + .arch__notes { margin-top: 2.25rem; }
 
 /* coming in once, gently (only with the script running) */
 .has--js .arch__section > * { opacity: 0; translate: 0 14px; transition: opacity 0.7s ease, translate 0.8s cubic-bezier(0.2, 0.7, 0.2, 1); }
@@ -220,4 +271,175 @@
   .arch__side { display: none; }
   .arch__main { padding: 0 1.25rem 20vh; }
   .arch__section { padding-top: 4.5rem; }
+  /* the timeline keeps its width and scrolls sideways in its panel */
+  .arch__panel:has(> .tl) { overflow-x: auto; }
+  .tl { min-width: 58rem; }
 }
+
+/* ---------- a side-by-side (2026-11-17): a beehiiv draft and the same
+   issue on the website, their parts numbered alike, then what each
+   becomes ---------- */
+.cmp__sides { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; gap: 1.25rem; }
+.cmp__side { margin: 0; min-width: 0; }
+.cmp__label { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.875rem; font-size: 0.875rem; color: var(--quiet); }
+.cmp__label img { width: 1.125rem; height: 1.125rem; border-radius: 0.25rem; }
+.cmp__arrow { align-self: center; width: 1.5rem; color: rgba(10, 10, 10, 0.4); }
+.cmp__arrow svg { display: block; width: 100%; }
+/* the numbers: small ink rounds */
+.cmp__n {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+/* the screenshot, its numbers down its left edge */
+.cmp__shot { position: relative; padding-left: 2rem; }
+.cmp__shot img { display: block; width: 100%; height: auto; border-radius: 0.5rem; background: #fff; box-shadow: 0 0 0 1px var(--faint); }
+.cmp__shot > .cmp__n { position: absolute; left: 0; translate: 0 -10%; }
+/* the website, drawn */
+.cmp__site { overflow: hidden; border-radius: 0.5rem; background: #f3f3f1; box-shadow: 0 0 0 1px var(--faint); }
+.cmp__nav { display: flex; align-items: center; gap: 0.5rem; margin: 0.5rem; padding: 0.375rem 0.5rem; border-radius: 0.25rem; background: var(--ink); }
+.cmp__nav img { width: 0.875rem; filter: brightness(10); }
+.cmp__nav span { flex: 1; }
+.cmp__nav i { padding: 0.1875rem 0.5rem; border-radius: 0.1875rem; background: var(--red); color: #fff; font-size: 0.5625rem; font-style: normal; }
+.cmp__body { display: flex; flex-direction: column; gap: 0.75rem; padding: 1.25rem 1.25rem 1.5rem 0.75rem; }
+.cmp__row { display: flex; align-items: flex-start; gap: 0.625rem; }
+.cmp__h1 { font-size: 1.75rem; line-height: 1; letter-spacing: -0.035em; }
+.cmp__lede { font-size: 0.875rem; line-height: 1.35; color: var(--quiet); }
+.cmp__meta { display: flex; gap: 0.375rem; padding-left: 2rem; }
+.cmp__meta span { padding: 0.1875rem 0.4375rem; border-radius: 0.1875rem; background: rgba(10, 10, 10, 0.06); font-size: 0.5625rem; color: var(--quiet); }
+/* the banner, cut from the screenshot: its band at 188–385 of 852 px */
+.cmp__img { flex: 1; aspect-ratio: 790 / 197; border-radius: 0.25rem; background-size: 104% auto; background-position: 50% 28.7%; }
+.cmp__cols { display: grid; grid-template-columns: auto minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 0.625rem; padding-top: 0.75rem; border-top: 1px solid var(--faint); }
+.cmp__h2 { font-size: 0.9375rem; line-height: 1.15; letter-spacing: -0.015em; }
+.cmp__h2 em { font-style: normal; }
+.cmp__text { display: flex; flex-direction: column; gap: 0.375rem; font-size: 0.625rem; line-height: 1.45; color: var(--quiet); }
+.cmp__text .cmp__n.is--inline { margin-bottom: 0.125rem; }
+.cmp__text i { display: block; height: 0.3125rem; border-radius: 1px; background: rgba(10, 10, 10, 0.08); }
+.cmp__text i.is--short { width: 60%; }
+/* what each part becomes */
+.cmp__map { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; margin-top: 2rem; padding-top: 0.5rem; border-top: 1px solid var(--faint); font-size: 0.9375rem; }
+.cmp__map li { display: grid; grid-template-columns: 1.375rem minmax(0, 14rem) 1.5rem minmax(0, 1fr); align-items: center; gap: 0.75rem; padding: 0.625rem 0; border-bottom: 1px solid var(--faint); }
+.cmp__map li:last-child { border-bottom: 0; }
+.cmp__from { color: var(--ink); }
+.cmp__to { color: rgba(10, 10, 10, 0.35); }
+.cmp__map li > span:last-child { color: var(--quiet); }
+.cmp__link { display: inline-block; margin-top: 1.5rem; font-size: 0.875rem; color: var(--ink); text-decoration: none; border-bottom: 1px solid rgba(10, 10, 10, 0.25); }
+.cmp__link:hover { border-color: var(--ink); }
+@media (max-width: 860px) {
+  .cmp__sides { grid-template-columns: minmax(0, 1fr); }
+  .cmp__arrow { rotate: 90deg; justify-self: center; }
+}
+
+/* ---------- parts and numbers (2026-11-17): the call in five numbered
+   parts, sections numbered within them (3.1, 3.2), each part opening with
+   a rule, its number large and its name ---------- */
+.arch__tab-n { min-width: 0.875rem; font-size: 0.8125rem; font-variant-numeric: tabular-nums; color: rgba(10, 10, 10, 0.35); transition: color 0.3s ease; }
+.arch__tab.is--active .arch__tab-n { color: var(--red); }
+.arch__sub-n { min-width: 1.75em; }
+
+.arch__part {
+  display: flex;
+  align-items: baseline;
+  gap: 1.25rem;
+  max-width: 68rem;
+  margin-top: 9rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--ink);
+}
+.arch__part-n { font-size: clamp(3rem, 6vw, 5rem); line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--red); }
+.arch__part-title { font-size: clamp(1.5rem, 2.4vw, 2rem); letter-spacing: -0.025em; }
+.arch__section.is--first:not(.is--intro) { padding-top: 3.5rem; }
+
+.arch__crumb { align-items: baseline; }
+.arch__crumb-n { font-variant-numeric: tabular-nums; color: var(--red); }
+
+/* the agenda: what the call covers, each line a link to its part */
+.arch__agenda { margin-top: 3.5rem; max-width: 46rem; }
+.arch__agenda-label { font-size: 0.875rem; color: var(--quiet); }
+.arch__agenda ol { margin-top: 0.75rem; border-top: 1px solid var(--faint); }
+.arch__agenda li { border-bottom: 1px solid var(--faint); }
+.arch__agenda a {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.875rem 0;
+  color: var(--ink);
+  text-decoration: none;
+  transition: padding-left 0.3s ease;
+}
+.arch__agenda a:hover { padding-left: 0.5rem; }
+.arch__agenda-n { font-size: 0.875rem; font-variant-numeric: tabular-nums; color: var(--red); }
+.arch__agenda-title { font-size: 1.125rem; letter-spacing: -0.01em; }
+.arch__agenda-text { font-size: 0.9375rem; color: var(--quiet); }
+@media (max-width: 860px) {
+  .arch__part { margin-top: 5rem; }
+  .arch__agenda a { grid-template-columns: 2.5rem minmax(0, 1fr); }
+  .arch__agenda-text { grid-column: 2; }
+}
+
+/* ---------- a timeline made bigger (2026-11-17): the menu folds to a strip
+   of its parts' numbers (still links), the page takes the width ---------- */
+.arch { transition: grid-template-columns 0.45s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.arch.is--wide { grid-template-columns: 4.25rem minmax(0, 1fr); }
+.arch__rail-open { display: none; }
+.arch.is--wide .arch__side { align-items: center; padding: 1.5rem 0.5rem; }
+.arch.is--wide .arch__rail-open {
+  all: unset;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 1.25rem;
+  border-radius: 50%;
+  background: rgba(10, 10, 10, 0.06);
+  color: var(--ink);
+  cursor: pointer;
+}
+.arch.is--wide .arch__rail-open svg { width: 1rem; }
+.arch.is--wide .arch__brand span,
+.arch.is--wide .arch__tab-label,
+.arch.is--wide .arch__subs { display: none; }
+.arch.is--wide .arch__tab { padding: 0.5rem 0.75rem; }
+.arch.is--wide .arch__tab-n { font-size: 0.9375rem; }
+.arch.is--wide .arch__section,
+.arch.is--wide .arch__part { max-width: none; }
+.arch.is--wide .arch__main { padding-inline: clamp(1.5rem, 3vw, 3rem); }
+
+/* the timeline's panel: click it to make it bigger */
+.tl-panel { position: relative; cursor: zoom-in; }
+.arch.is--wide .tl-panel { cursor: default; }
+.tl__expand {
+  all: unset;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  padding: 0.3125rem 0.75rem;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.tl__expand .is--shrink,
+.arch.is--wide .tl__expand .is--grow { display: none; }
+.arch.is--wide .tl__expand .is--shrink { display: inline; }
+.tl-panel .tl { margin-top: 1.5rem; }
+
+/* ---------- questions for the call (2026-11-17) ---------- */
+.arch__questions { max-width: 52rem; margin-top: 2.5rem; border-top: 1px solid var(--faint); }
+.arch__questions li { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid var(--faint); }
+.arch__q-n { font-size: 0.875rem; font-variant-numeric: tabular-nums; color: var(--red); padding-top: 0.125rem; }
+.arch__q { display: flex; flex-direction: column; gap: 0.375rem; }
+.arch__q-text { font-size: 1.125rem; line-height: 1.35; letter-spacing: -0.01em; }
+.arch__q-detail { font-size: 0.9375rem; line-height: 1.5; color: var(--quiet); }

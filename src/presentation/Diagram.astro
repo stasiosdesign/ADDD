@@ -21,36 +21,73 @@ const GAP = 10;
 const arrow = `${id}-arrow`;
 const byId = new Map(nodes.map((n) => [n.id, n]));
 
-// where a line from a box's centre towards (dx, dy) leaves the box
-function exit(n: DiagramNode, x: number, y: number, dx: number, dy: number) {
-  const t = Math.min(dx ? n.w / 2 / Math.abs(dx) : Infinity, dy ? n.h / 2 / Math.abs(dy) : Infinity);
-  return { x: x + dx * t, y: y + dy * t };
+/* Every line runs straight across or straight down, never at a slant (at
+   the user's word, 2026-11-17): straight where the two boxes share a
+   column or a row, else one right-angle turn. Of the two ways to turn
+   (across first, then down into the box; or down first, then across into
+   it), the first that crosses no other box. A line's label sits on its
+   longest stretch: above it when that runs across, beside it when down. */
+type Pt = { x: number; y: number };
+const left = (n: DiagramNode) => n.x - n.w / 2;
+const right = (n: DiagramNode) => n.x + n.w / 2;
+const top = (n: DiagramNode) => n.y - n.h / 2;
+const bottom = (n: DiagramNode) => n.y + n.h / 2;
+
+// does the straight stretch p–q cross box n (a little room round it)?
+function crosses(p: Pt, q: Pt, n: DiagramNode) {
+  const pad = 4;
+  const x1 = Math.min(p.x, q.x), x2 = Math.max(p.x, q.x), y1 = Math.min(p.y, q.y), y2 = Math.max(p.y, q.y);
+  return x2 > left(n) - pad && x1 < right(n) + pad && y2 > top(n) - pad && y1 < bottom(n) + pad;
+}
+
+function route(a: DiagramNode, b: DiagramNode): Pt[] {
+  // sharing a column (a good part of the narrower box's width, so a line
+  // never drops down a box's very edge): straight down (or up), in the
+  // middle of what they share
+  const colL = Math.max(left(a), left(b)), colR = Math.min(right(a), right(b));
+  if (colR - colL > Math.min(a.w, b.w) * 0.4) {
+    const x = a.x >= colL && a.x <= colR ? a.x : b.x >= colL && b.x <= colR ? b.x : (colL + colR) / 2;
+    const down = b.y > a.y;
+    return [{ x, y: down ? bottom(a) + GAP : top(a) - GAP }, { x, y: down ? top(b) - GAP : bottom(b) + GAP }];
+  }
+  // sharing a row: straight across
+  const rowT = Math.max(top(a), top(b)), rowB = Math.min(bottom(a), bottom(b));
+  if (rowB - rowT > Math.min(a.h, b.h) * 0.4) {
+    const y = a.y >= rowT && a.y <= rowB ? a.y : b.y >= rowT && b.y <= rowB ? b.y : (rowT + rowB) / 2;
+    const fwd = b.x > a.x;
+    return [{ x: fwd ? right(a) + GAP : left(a) - GAP, y }, { x: fwd ? left(b) - GAP : right(b) + GAP, y }];
+  }
+  const toRight = b.x > a.x, below = b.y > a.y;
+  // across first, from a's side, then down (or up) into b
+  const across: Pt[] = [
+    { x: toRight ? right(a) + GAP : left(a) - GAP, y: a.y },
+    { x: b.x, y: a.y },
+    { x: b.x, y: below ? top(b) - GAP : bottom(b) + GAP },
+  ];
+  // down (or up) first, from a's top or foot, then across into b
+  const downFirst: Pt[] = [
+    { x: a.x, y: below ? bottom(a) + GAP : top(a) - GAP },
+    { x: a.x, y: b.y },
+    { x: toRight ? left(b) - GAP : right(b) + GAP, y: b.y },
+  ];
+  const others = nodes.filter((n) => n !== a && n !== b && n.kind !== "frame" && n.kind !== "label");
+  const clear = (pts: Pt[]) => !others.some((n) => pts.slice(1).some((q, k) => crosses(pts[k], q, n)));
+  return clear(across) || !clear(downFirst) ? across : downFirst;
 }
 
 const lines = edges.flatMap((e) => {
   const a = byId.get(e.from);
   const b = byId.get(e.to);
   if (!a || !b) return [];
-  let bx = b.x, by = b.y;
-  if (e.straight) {
-    // down when the far box spans the first one's column, across when it
-    // spans its row, else whichever way is longer
-    const under = Math.abs(b.x - a.x) <= b.w / 2;
-    const beside = Math.abs(b.y - a.y) <= b.h / 2;
-    if (under || (!beside && Math.abs(b.y - a.y) >= Math.abs(b.x - a.x))) bx = a.x;
-    else by = a.y;
-  }
-  const dx = bx - a.x, dy = by - a.y;
-  const len = Math.hypot(dx, dy) || 1;
-  const ux = dx / len, uy = dy / len;
-  const p = exit(a, a.x, a.y, dx, dy);
-  const q = exit(b, bx, by, -dx, -dy);
-  // the gap at each end, less where the boxes stand close
-  const g = Math.min(GAP, Math.hypot(q.x - p.x, q.y - p.y) * 0.2);
-  const x1 = p.x + ux * g, y1 = p.y + uy * g;
-  const x2 = q.x - ux * g, y2 = q.y - uy * g;
-  // a label above a line across, beside a line down
-  return [{ ...e, x1, y1, x2, y2, mx: (x1 + x2) / 2, my: (y1 + y2) / 2, down: Math.abs(dy) > Math.abs(dx) }];
+  const pts = route(a, b);
+  // the label's stretch: the longest
+  let k = 0, best = -1;
+  pts.slice(1).forEach((q, i) => {
+    const len = Math.abs(q.x - pts[i].x) + Math.abs(q.y - pts[i].y);
+    if (len > best) { best = len; k = i; }
+  });
+  const p = pts[k], q = pts[k + 1];
+  return [{ ...e, points: pts.map((pt) => `${pt.x},${pt.y}`).join(" "), mx: (p.x + q.x) / 2, my: (p.y + q.y) / 2, down: p.x === q.x }];
 });
 
 const pct = (v: number, of: number) => `${+((v / of) * 100).toFixed(4)}%`;
@@ -65,7 +102,7 @@ const place = (n: DiagramNode) => `left:${pct(n.x - n.w / 2, W)};top:${pct(n.y -
         </marker>
       </defs>
       {lines.map((l) => (
-        <line x1={l.x1} y1={l.y1} x2={l.x2} y2={l.y2} class:list={["dg__edge", { "is--dashed": l.dashed }]} marker-end={l.plain ? undefined : `url(#${arrow})`} />
+        <polyline points={l.points} class:list={["dg__edge", { "is--dashed": l.dashed }]} stroke-linejoin="round" marker-end={l.plain ? undefined : `url(#${arrow})`} marker-start={l.both ? `url(#${arrow})` : undefined} />
       ))}
     </svg>
 

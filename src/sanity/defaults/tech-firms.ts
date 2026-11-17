@@ -294,6 +294,18 @@ export const techFirmsPage = {
       { items: keyed('point', [{ label: 'Content', by: 'addd' }, { label: 'Distribution', by: 'addd' }, { label: 'Intelligence briefing', by: 'optional' }]) },
       { items: keyed('point', [{ label: 'Reporting against the measures', by: 'addd' }]) },
     ]),
+    // the timeline, all of it in one field (2026-11-17): each stage its title,
+    // its length in the unit (drawn to scale), its timing words (empty: the
+    // weeks it runs) and its points; the lists above stay for the code on main
+    timeline: {
+      unit: 'step',
+      stages: keyed('stage', [
+        { title: 'Discuss and assess fit', length: 1, when: 'First call', items: keyed('point', [{ label: 'Your objective', by: 'you' }, { label: 'Audience fit', by: 'addd' }]) },
+        { title: 'Agree the format', length: 1, when: 'Agreement', items: keyed('point', [{ label: 'Partnership', by: 'addd' }, { label: 'Deliverables', by: 'addd' }, { label: 'Measures', by: 'addd' }]) },
+        { title: 'Produce and deliver', length: 1, when: 'Production', items: keyed('point', [{ label: 'Content', by: 'addd' }, { label: 'Distribution', by: 'addd' }, { label: 'Intelligence briefing', by: 'optional' }]) },
+        { title: 'Report', length: 1, when: 'Reporting', items: keyed('point', [{ label: 'Reporting against the measures', by: 'addd' }]) },
+      ]),
+    },
     keyAddd: 'ADDD',
     keyYou: 'Your team',
     keyOptional: 'Optional',

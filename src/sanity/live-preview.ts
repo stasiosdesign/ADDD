@@ -32,6 +32,7 @@ import { sanityClient } from './client';
 import { valueAt, type Block, type Doc } from './content';
 import { hasImage, urlFor } from './image';
 import { PAGE_QUERY } from './queries';
+import { layoutTimeline, type TimelineValue } from './timeline';
 
 type Path = NonNullable<Parameters<typeof createDataAttribute>[0]['path']>;
 type Ref = { id: string; type: string };
@@ -110,11 +111,113 @@ const setBackground = (el: Element, value: unknown) => {
   if (el.style.backgroundImage !== url) el.style.backgroundImage = url;
 };
 
+/* What the editor can select (2026-11-17, at the user's word): anything
+   that repeats is one block. A list (tabs, cards, questions, steps), the
+   fields of a list's entries shown anywhere in a section, and a timeline
+   are outlined as a whole, at the element that holds all of them, and a
+   click opens that list in the Studio's panel, where adding, ordering and
+   changing its entries is explained. Their words are still drawn live, but
+   not outlined one by one. A single field (a heading, a line, a picture)
+   stays selectable on its own. An element can name its block itself
+   (data-page-block="examine.tabs"): everything inside it is that block. */
+type Claims = { direct: [Element, Path][]; groups: Map<string, { path: string; members: Element[] }> };
+
+// the path of the list a field belongs to ("examine.tabs.2.title" → "examine.tabs"), or null
+const listOf = (path: string): string | null => {
+  const parts = path.split('.');
+  const at = parts.findIndex((part) => /^\d+$/.test(part));
+  return at > 0 ? parts.slice(0, at).join('.') : null;
+};
+
+const inBlock = (el: Element) => !!el.parentElement?.closest('[data-page-block]') || (el as HTMLElement).dataset?.pageBlock !== undefined;
+
+function claim(claims: Claims, el: Element, path: string, asList = false) {
+  if (inBlock(el)) return;
+  const list = asList ? path : listOf(path);
+  if (!list) {
+    claims.direct.push([el, toPath(path) as Path]);
+    return;
+  }
+  // one block per list in each section (a list shown in two places is two blocks)
+  const section = el.closest('section, [data-page-doc]');
+  const id = `${list}|${section ? [...document.querySelectorAll('section, [data-page-doc]')].indexOf(section) : -1}`;
+  const group = claims.groups.get(id) ?? { path: list, members: [] };
+  group.members.push(el);
+  claims.groups.set(id, group);
+}
+
+// the nearest element holding every one of them
+function holderOf(members: Element[]): Element {
+  let holder: Element | null = members[0];
+  while (holder && !members.every((m) => holder!.contains(m))) holder = holder.parentElement;
+  return holder ?? members[0];
+}
+
+function applyClaims(claims: Claims, scope: Element[], ref: Ref) {
+  // last time's outlines go, so an element that is now part of a block loses its own
+  scope.forEach((root) => {
+    if (root instanceof HTMLElement && root.dataset.pageDoc === ref.id) delete root.dataset.sanity;
+    root.querySelectorAll<HTMLElement>('[data-sanity]').forEach((el) => {
+      if (el.closest('[data-page-doc]') === root || el.closest<HTMLElement>('[data-page-doc]')?.dataset.pageDoc === ref.id) delete el.dataset.sanity;
+    });
+  });
+  claims.direct.forEach(([el, path]) => mark(el, path, ref));
+  claims.groups.forEach(({ path, members }) => {
+    const holder = holderOf(members);
+    if (!inBlock(holder)) mark(holder, toPath(path) as Path, ref);
+  });
+  document.querySelectorAll<HTMLElement>('[data-page-block]').forEach((el) => {
+    if (scopeOf(el, ref.id) && el.dataset.pageBlock) mark(el, toPath(el.dataset.pageBlock) as Path, ref);
+  });
+}
+
+// A timeline (StageTimeline.astro): redrawn from the draft, every stage at its
+// length, so changing one in the Studio resizes its box at once
+function renderTimeline(root: HTMLElement, value: TimelineValue) {
+  const { units, stages } = layoutTimeline(value);
+  const rows = [...root.querySelectorAll<HTMLElement>('[data-tl-row]')];
+  const template = rows[0];
+  if (!template || stages.length === 0) return;
+  const holder = template.parentElement!;
+  while (rows.length < stages.length) {
+    const copy = template.cloneNode(true) as HTMLElement;
+    holder.append(copy);
+    rows.push(copy);
+  }
+  rows.slice(stages.length).forEach((row) => row.remove());
+  root.style.setProperty('--tl-count', String(units));
+  stages.forEach((stage, i) => {
+    const row = rows[i];
+    const num = row.querySelector('[data-tl-num]');
+    if (num) num.textContent = `${String(i + 1).padStart(2, '0')} /`;
+    const box = row.querySelector<HTMLElement>('[data-tl-box]');
+    if (box) box.style.gridColumn = `${stage.start + 2} / span ${stage.span}`;
+    const title = row.querySelector('[data-tl-title]');
+    if (title) title.textContent = stage.title;
+    const when = row.querySelector<HTMLElement>('[data-tl-when]');
+    if (when) {
+      when.textContent = stage.when;
+      when.hidden = !stage.when;
+    }
+    const items = row.querySelector('[data-tl-items]');
+    if (items) {
+      items.replaceChildren(
+        ...stage.items.map((item) => {
+          const li = document.createElement('li');
+          li.className = `is--${item.by}`;
+          li.textContent = item.label;
+          return li;
+        }),
+      );
+    }
+  });
+}
+
 // A list of a page's repeatable blocks (a FAQ's questions, a grid of cards):
 // redrawn from the draft in its order, so adding, removing and moving a block
-// shows at once (a new one copies the first's markup), and each block marked
-// by its key, so a click on one opens that very block in the Studio's panel.
-function renderList(list: HTMLElement, path: string, blocks: Block[], ref: Ref) {
+// shows at once (a new one copies the first's markup). The list is selected
+// as one block (above), its entries' words drawn into them here.
+function renderList(list: HTMLElement, blocks: Block[]) {
   const current = [...list.querySelectorAll<HTMLElement>(':scope > [data-page-item]')];
   const template = current[0];
   if (!template) return;
@@ -127,12 +230,11 @@ function renderList(list: HTMLElement, path: string, blocks: Block[], ref: Ref) 
       el = template.cloneNode(true) as HTMLElement;
       el.dataset.pageItem = block._key;
     }
-    const blockPath = [...toPath(path), { _key: block._key }];
-    mark(el, blockPath as Path, ref);
+    delete el.dataset.sanity;
     el.querySelectorAll<HTMLElement>('[data-page-item-field]').forEach((field) => {
       const name = field.dataset.pageItemField ?? '';
       const value = block[name];
-      mark(field, [...blockPath, ...toPath(name)] as Path, ref);
+      delete field.dataset.sanity;
       if (field instanceof HTMLImageElement) setImage(field, value);
       else if (field.dataset.pageItemBg !== undefined) setBackground(field, value);
       else setText(field, value);
@@ -147,25 +249,32 @@ function renderList(list: HTMLElement, path: string, blocks: Block[], ref: Ref) 
 const scopeOf = (el: Element, id: string) => el.closest<HTMLElement>('[data-page-doc]')?.dataset.pageDoc === id;
 
 function renderDoc(ref: Ref, doc: Doc) {
-  // Lists first: their blocks' fields are marked as they are drawn
+  const claims: Claims = { direct: [], groups: new Map() };
+  document.querySelectorAll<HTMLElement>('[data-page-timeline]').forEach((root) => {
+    if (!scopeOf(root, ref.id) || !root.dataset.pageTimeline) return;
+    const value = valueAt(doc, root.dataset.pageTimeline);
+    if (value && typeof value === 'object') renderTimeline(root, value as TimelineValue);
+  });
   document.querySelectorAll<HTMLElement>('[data-page-list]').forEach((list) => {
     if (!scopeOf(list, ref.id) || !list.dataset.pageList) return;
     const blocks = valueAt(doc, list.dataset.pageList);
-    if (Array.isArray(blocks) && blocks.length > 0) renderList(list, list.dataset.pageList, blocks as Block[], ref);
+    if (Array.isArray(blocks) && blocks.length > 0) renderList(list, blocks as Block[]);
+    claim(claims, list, list.dataset.pageList, true);
   });
   document.querySelectorAll<HTMLElement>('[data-page-field]').forEach((el) => {
     if (!scopeOf(el, ref.id) || !el.dataset.pageField || el.closest('[data-page-list]')) return;
     const path = el.dataset.pageField;
-    mark(el, toPath(path) as Path, ref);
+    claim(claims, el, path);
     const value = valueAt(doc, path);
     if (el instanceof HTMLImageElement) setImage(el, value);
     else setText(el, value);
   });
   document.querySelectorAll<HTMLElement>('[data-page-bg]').forEach((el) => {
     if (!scopeOf(el, ref.id) || !el.dataset.pageBg || el.closest('[data-page-list]')) return;
-    mark(el, toPath(el.dataset.pageBg) as Path, ref);
+    claim(claims, el, el.dataset.pageBg);
     setBackground(el, valueAt(doc, el.dataset.pageBg));
   });
+  applyClaims(claims, [...document.querySelectorAll(`[data-page-doc="${CSS.escape(ref.id)}"]`)], ref);
 }
 
 // The Studio's address bar follows the page: every page Barba brings in is

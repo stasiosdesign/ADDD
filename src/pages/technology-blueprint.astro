@@ -8,7 +8,8 @@ import BlueprintHero from "../components/BlueprintHero.astro";
 import ClosingCta from "../components/ClosingCta.astro";
 import Testimonials from "../components/Testimonials.astro";
 import ApproachStack from "../components/ApproachStack.astro";
-import StageTimeline, { type Stage, type StageItem } from "../components/StageTimeline.astro";
+import StageTimeline from "../components/StageTimeline.astro";
+import { layoutTimeline, type TimelineValue } from "../sanity/timeline";
 import BookCallFloat from "../components/BookCallFloat.astro";
 import LayersDiagram from "../components/LayersDiagram.astro";
 import PracticesWall from "../components/PracticesWall.astro";
@@ -29,32 +30,9 @@ const enquiryEmail = t("enquiry.email");
 const enquiryTel = telOf(t("enquiry.phone"));
 
 const benefits = list<{ _key: string; number?: string; tagline?: string; title?: string; text?: string; image?: unknown }>("benefits.tiles");
-const steps = list<{ _key: string; label?: string; title?: string; text?: string }>("delivery.steps");
-// The roadmap: the eight weeks across the top, and each stage's weeks
-// (start, from 0, and how many, after its label); its more from
-// delivery.details, in the steps' order
-const WEEKS = Array.from({ length: 8 }, (_, i) => `Week ${i + 1}`);
-const SPANS = [{ start: 0, span: 1 }, { start: 1, span: 3 }, { start: 4, span: 3 }, { start: 7, span: 1 }];
-const details = list<{ _key: string; more?: string }>("delivery.details");
-// what each stage holds, for the staircase (2026-11-16): delivery.stageItems
-// in Sanity, each point marked by who does it
-const ROADMAP_ITEMS: StageItem[][] = items("delivery.stageItems").map((stage) =>
-  stage.list<{ _key: string; label?: string; by?: StageItem["by"] }>("items").map((item) => ({ label: item.label ?? "", by: item.by || "addd" })),
-);
-const roadmap: Stage[] = steps.map((step, i) => ({
-  when: step.label,
-  title: step.title,
-  text: step.text,
-  more: details[i]?.more,
-  items: ROADMAP_ITEMS[i],
-  ...SPANS[i],
-  fields: {
-    when: `delivery.steps.${i}.label`,
-    title: `delivery.steps.${i}.title`,
-    text: `delivery.steps.${i}.text`,
-    more: `delivery.details.${i}.more`,
-  },
-}));
+// the timeline: one field in the Studio (delivery.timeline, 2026-11-17), each
+// stage drawn to its length (src/sanity/timeline.ts)
+const timeline = layoutTimeline({ unit: t("delivery.timeline.unit"), stages: list("delivery.timeline.stages") as TimelineValue["stages"] });
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 const tabs = list<{ _key: string; label?: string; title?: string; text?: string }>("examine.tabs");
 
@@ -204,7 +182,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
         <ActionButton href={t("delivery.buttonHref")} variant="secondary"><span data-page-field="delivery.button">{t("delivery.button")}</span></ActionButton>
       </div>
       <div class="roadmap__run">
-        <StageTimeline id="blueprint-stages" stages={roadmap} scale={WEEKS} dark itemsField="delivery.stageItems" keyField="delivery"
+        <StageTimeline id="blueprint-stages" timeline={timeline} field="delivery.timeline" dark keyField="delivery"
           keyLabels={{ addd: t("delivery.keyAddd"), you: t("delivery.keyYou"), optional: t("delivery.keyOptional") }} />
       </div>
     </div>

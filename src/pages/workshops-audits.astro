@@ -11,7 +11,8 @@ import ProblemCard from "../components/ProblemCard.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
 import BeforeRevitHero from "../components/BeforeRevitHero.astro";
 import FolderDocument from "../components/FolderDocument.astro";
-import StageTimeline, { type Stage, type StageItem } from "../components/StageTimeline.astro";
+import StageTimeline from "../components/StageTimeline.astro";
+import { layoutTimeline, type TimelineValue } from "../sanity/timeline";
 import PricingPlan from "../components/PricingPlan.astro";
 import PlanNext from "../components/PlanNext.astro";
 import type { Folder } from "../components/DeckFolder.astro";
@@ -31,34 +32,9 @@ const { t, list, lines, items } = reader(await pageDocument(Astro.locals.sanity,
 type Tile = { _key: string; tagline?: string; title?: string; text?: string; image?: unknown };
 type Step = { _key: string; label?: string; title?: string; text?: string };
 const symptoms = list<Tile>("symptoms.tiles");
-const journey = list<Step>("journey.steps");
-// Workshop Process: each step with its timing and its more (journey.details,
-// in the steps' order)
-const details = list<{ _key: string; meta?: string; more?: string }>("journey.details");
-// On the chart (StageTimeline.astro, the staircase of 2026-11-16): each
-// step a row, its box in its own phase, its name (Prepare, Attend…) and its
-// timing at its top, and under them what it holds, in the step's own words
-// (its text and more; not in the Studio yet, as the site is detached)
-// (journey.stageItems in Sanity since 2026-11-16, each point marked by who
-// does it)
-const EXPECT_ITEMS: StageItem[][] = items("journey.stageItems").map((stage) =>
-  stage.list<{ _key: string; label?: string; by?: StageItem["by"] }>("items").map((item) => ({ label: item.label ?? "", by: item.by || "addd" })),
-);
-const expectStages: Stage[] = journey.map((step, i) => ({
-  lane: step.label,
-  title: step.label,
-  when: details[i]?.meta,
-  text: step.text,
-  more: details[i]?.more,
-  items: EXPECT_ITEMS[i],
-  start: i,
-  span: 1,
-  fields: {
-    title: `journey.steps.${i}.label`,
-    when: `journey.details.${i}.meta`,
-  },
-}));
-const expectScale = journey.map((_, i) => ({ label: details[i]?.meta, field: `journey.details.${i}.meta` }));
+// the timeline: one field in the Studio (journey.timeline, 2026-11-17), each
+// stage drawn to its length (src/sanity/timeline.ts)
+const timeline = layoutTimeline({ unit: t("journey.timeline.unit"), stages: list("journey.timeline.stages") as TimelineValue["stages"] });
 const stages = list<Tile>("pricing.tiles");
 const faq = list<{ _key: string; question?: string; answer?: string }>("faq.questions");
 
@@ -135,7 +111,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
       frame: t("hero.figureFrame"),
       note: lines("hero.figureNote"),
       platform: t("hero.tagline") || "Workflow Workshop",
-      tags: journey.slice(0, 3).map((step) => step.label ?? "").filter(Boolean),
+      tags: timeline.stages.slice(0, 3).map((stage) => stage.title).filter(Boolean),
     }}
   >
     <Fragment slot="actions">
@@ -216,7 +192,7 @@ const BOOK = { type: "button", "data-booking-open": "book-call", "aria-haspopup"
         <p class="ws-expect__lede" data-page-field="journey.lede">{t("journey.lede")}</p>
       </div>
       <div class="ws-expect__run">
-        <StageTimeline id="workshop-stages" stages={expectStages} scale={expectScale} dark itemsField="journey.stageItems" keyField="journey"
+        <StageTimeline id="workshop-stages" timeline={timeline} field="journey.timeline" dark keyField="journey"
           keyLabels={{ addd: t("journey.keyAddd"), you: t("journey.keyYou"), optional: t("journey.keyOptional") }} />
       </div>
     </div>

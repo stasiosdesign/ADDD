@@ -1,4 +1,5 @@
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
+import {EnvelopeIcon} from '@sanity/icons/Envelope'
 import {defineLocations} from 'sanity/presentation'
 import {vercelProtectionBypassTool} from '@sanity/vercel-protection-bypass'
 import type {CmsProjectConfig} from '@stasiosdesign/sanity-cms'
@@ -115,6 +116,42 @@ export const project: CmsProjectConfig = {
       icon: DocumentTextIcon,
       description: 'Reports and guides: a card on the Reports page and in the sliders, and each report’s own page.',
       listedOn: 'reportsPage',
+    },
+  ],
+
+  // The newsletter, listed with the collections so it can be found, but
+  // made in beehiiv alone (2026-11-17, at the user's word): its page says
+  // so, with beehiiv's logo; nothing is made here (externalCollections,
+  // CMS 1.16)
+  externalCollections: [
+    {
+      id: 'newsletter',
+      title: 'Newsletter',
+      description: 'The ADDDitive’s issues, written and sent in beehiiv.',
+      icon: EnvelopeIcon,
+      service: 'beehiiv',
+      logo: 'https://www.google.com/s2/favicons?domain=beehiiv.com&sz=128',
+      message: 'The newsletter CMS is handled by beehiiv. Write and send each issue in beehiiv as usual: every issue published to the web appears on the website’s Newsletter page by itself, with a page of its own. Here they are shown, view only.',
+      link: {label: 'Open beehiiv', href: 'https://app.beehiiv.com'},
+      // Its issues, view only: for now the archive the site shows
+      // (src/data/archive-posts.json, 71 issues as published on beehiiv),
+      // loaded when the collection is opened; once the site reads beehiiv
+      // (src/newsletter/beehiiv.ts), from there
+      items: () =>
+        import('../src/data/archive-posts.json').then(({default: posts}) =>
+          posts
+            .filter((post) => !post.hidden)
+            .map((post) => ({
+              id: post.id,
+              title: post.title,
+              subtitle: post.subtitle || undefined,
+              date: post.date,
+              readTime: post.readTime || undefined,
+              author: post.author || undefined,
+              status: 'Published',
+              html: post.html,
+            })),
+        ),
     },
   ],
 

@@ -17,6 +17,19 @@
 import type { ImageMetadata } from "astro";
 import type { PlatformKey } from "./platforms";
 import pageEditor from "./page-editor.png";
+import newsletterBeehiiv from "./newsletter-beehiiv.png";
+
+/* A side-by-side (2026-11-17, at the user's word): a draft in beehiiv on
+   the left (a screenshot), the same issue on the website on the right
+   (drawn, backend.astro), their parts numbered alike; under them, each
+   part and what it becomes. "at": where the part sits down the screenshot,
+   in per cent of its height. */
+export interface Compare {
+  image: ImageMetadata;
+  alt: string;
+  parts: { n: number; beehiiv: string; site: string; at: number }[];
+  link?: { label: string; href: string };
+}
 
 export interface DiagramNode {
   id: string;
@@ -45,6 +58,8 @@ export interface DiagramEdge {
   dashed?: boolean;
   /** no arrowhead */
   plain?: boolean;
+  /** an arrowhead at both ends: something goes each way */
+  both?: boolean;
   /** straight down (or across) from the first node's centre */
   straight?: boolean;
 }
@@ -66,61 +81,165 @@ export interface Group {
 }
 
 export const GROUPS: Group[] = [
-  { id: "overview-group", tab: "Overview", sections: ["overview", "platforms"] },
-  { id: "editing-group", tab: "Editing the site", sections: ["editing", "page-editor", "collections"] },
-  { id: "report-group", tab: "Report", sections: ["report", "publishing", "automations"] },
+  { id: "overview-group", tab: "Overview", sections: ["overview", "timeline", "three", "platforms"] },
+  { id: "editing-group", tab: "Editing the Site", sections: ["editing", "page-editor", "collections"] },
+  { id: "report-group", tab: "Adding a Report", sections: ["report", "publishing", "automations"] },
+  { id: "newsletter-group", tab: "Adding a Newsletter", sections: ["newsletter", "newsletter-steps"] },
+  { id: "tasks-group", tab: "Final Tasks", sections: ["tasks"] },
+  { id: "questions-group", tab: "Questions", sections: ["questions"] },
 ];
+
+/* A timeline (2026-11-17, second pass after a plan the user pointed to): the
+   working days across the top, then a row per phase, stepping down: each
+   phase a block from its first day to its last (indexes into days, both
+   included), a line along its top, its title and its points as bullets.
+   Allister's phases carry his photo. */
+export interface Timeline {
+  /** a weekend day is shown, blocked out: Allister's work stops under it, ours carries on over it */
+  days: { day: string; date: string; today?: boolean; weekend?: boolean }[];
+  phases: { title: string; from: number; to: number; who: "us" | "allister" | "launch"; items: string[] }[];
+}
 
 export interface Section {
   id: string;
   /** its tab on the left */
   tab: string;
   title: string;
-  lede: string;
+  /** a line under the title, only where it says something the title and diagram do not */
+  lede?: string;
   /** a picture under the line (a screenshot), before the diagram */
   image?: { src: ImageMetadata; alt: string };
+  timeline?: Timeline;
+  /** the call's agenda (the introduction): each part or section, its number and a few words */
+  agenda?: { n: string; title: string; text: string; href: string }[];
+  /** questions for the call, numbered, each with a line of detail */
+  questions?: { q: string; detail?: string }[];
+  compare?: Compare;
   diagram?: Diagram;
+  /** under the diagram, side by side: a heading and its bullet points each (2026-11-17) */
+  lists?: { platform?: PlatformKey; title: string; items: string[] }[];
   notes?: string[];
 }
+
+/* The timeline to launch: one, shown twice (1.2 and 5.1), so they always agree */
+const LAUNCH_TIMELINE: Timeline = {
+  days: [
+    { day: "Tue", date: "17", today: true },
+    { day: "Wed", date: "18" },
+    { day: "Thu", date: "19" },
+    { day: "Fri", date: "20" },
+    { day: "Sat", date: "21", weekend: true },
+    { day: "Sun", date: "22", weekend: true },
+    { day: "Mon", date: "23" },
+    { day: "Tue", date: "24" },
+    { day: "Wed", date: "25" },
+    { day: "Thu", date: "26" },
+    { day: "Fri", date: "27" },
+  ],
+  phases: [
+    { title: "Backend walkthrough", from: 0, to: 0, who: "us", items: [] },
+    {
+      title: "Allister: content in Sanity",
+      from: 0,
+      to: 7,
+      who: "allister",
+      items: ["Final copywriting", "Operational information: timelines, deliverables", "FAQs", "Reports, each with its beehiiv automation named"],
+    },
+    { title: "Automations connected", from: 1, to: 3, who: "us", items: ["Each report linked to its automation"] },
+    { title: "Visual fixes and final refinements", from: 1, to: 8, who: "us", items: ["Anything new content upsets", "Fixes and changes", "Testing"] },
+    { title: "Technical and SEO setup", from: 2, to: 8, who: "us", items: ["Technical foundations", "Foundational SEO"] },
+    { title: "Launch", from: 10, to: 10, who: "launch", items: ["Domain live", "Desktop", "Mobile"] },
+  ],
+};
 
 export const SECTIONS: Section[] = [
   {
     id: "overview",
     tab: "Introduction",
     title: "Backend and integrations",
-    lede: "How the software behind the ADDD website fits together, and what each part is responsible for.",
+    agenda: [
+      { n: "1.2", title: "Timeline to launch", text: "From today to launch on Friday 27", href: "#timeline" },
+      { n: "1.3", title: "Platforms", text: "Sanity, beehiiv and Softr", href: "#three" },
+      { n: "2", title: "Editing the site", text: "The page editor and collections", href: "#editing" },
+      { n: "3", title: "Adding a report", text: "From Sanity to an inbox", href: "#report" },
+      { n: "4", title: "Adding a newsletter", text: "Written in beehiiv, shown on the site", href: "#newsletter" },
+      { n: "5", title: "Final tasks", text: "Who does what next", href: "#tasks" },
+      { n: "6", title: "Questions", text: "What we still need to know", href: "#questions" },
+    ],
+  },
+
+  /* From today to launch (2026-11-17, at the user's word): Tuesday 17 to
+     Friday 27 November, the weekend shown but blocked out. */
+  {
+    id: "timeline",
+    tab: "Timeline",
+    title: "Timeline to launch",
+    timeline: LAUNCH_TIMELINE,
+  },
+
+  /* The three platforms Allister uses himself (2026-11-17, at the user's
+     word): everything else connects to one of them. */
+  {
+    id: "three",
+    tab: "Platforms",
+    title: "Platforms",
+    // the three on top; the website, which they all reach, under them
+    diagram: {
+      w: 1000,
+      h: 340,
+      nodes: [
+        { id: "sanity", platform: "sanity", text: "The website’s content", x: 160, y: 60, w: 280, h: 110 },
+        { id: "beehiiv", platform: "beehiiv", text: "The newsletter and emails", x: 500, y: 60, w: 280, h: 110 },
+        { id: "softr", platform: "softr", text: "The ADDD app", x: 840, y: 60, w: 280, h: 110 },
+        { id: "website", platform: "website", text: "Connects the three", x: 500, y: 275, w: 280, h: 100, muted: true },
+      ],
+      edges: [
+        { from: "sanity", to: "website", label: "Content" },
+        { from: "website", to: "beehiiv", label: "Sign-ups", straight: true },
+        { from: "website", to: "softr", label: "Sign-in" },
+      ],
+    },
+    lists: [
+      { platform: "sanity", title: "Sanity is used for the website’s content", items: ["Reports", "Images", "Text", "Links"] },
+      { platform: "beehiiv", title: "beehiiv is used for", items: ["The ADDDitive newsletter", "Email automations"] },
+      { platform: "softr", title: "Softr is the ADDD app, used for", items: ["The Software Database", "Access to the tech stacks"] },
+    ],
+    notes: [
+      "Everything else (hosting, the backend, Google Drive) runs behind these three.",
+    ],
   },
 
   {
     id: "platforms",
-    tab: "The platforms",
-    title: "Five parts, one job each",
-    lede: "Sanity holds the content, the website shows it, the backend passes sign-ups on, and beehiiv sends the emails.",
+    tab: "How they connect",
+    title: "How they connect",
+    // what moves between them (2026-11-17, at the user's word): the
+    // website in the middle, each platform where it meets it; hosting is
+    // infrastructure, under it all, not a part of its own
     diagram: {
       w: 1000,
-      h: 360,
+      h: 330,
       nodes: [
-        { id: "sanity", platform: "sanity", x: 105, y: 80, w: 205, h: 120 },
-        { id: "website", platform: "website", x: 368, y: 80, w: 205, h: 120 },
-        { id: "backend", platform: "backend", title: "Backend", text: "Sends sign-ups to beehiiv", x: 632, y: 80, w: 205, h: 120 },
-        { id: "beehiiv", platform: "beehiiv", x: 895, y: 80, w: 205, h: 120 },
-        { id: "drive", platform: "drive", x: 895, y: 290, w: 205, h: 120, muted: true },
+        { id: "sanity", platform: "sanity", text: "Pages and reports", x: 130, y: 70, w: 230, h: 100 },
+        { id: "website", platform: "website", text: "Shows it all", x: 500, y: 70, w: 230, h: 100 },
+        { id: "beehiiv", platform: "beehiiv", text: "Newsletter and emails", x: 870, y: 70, w: 230, h: 100 },
+        { id: "softr", platform: "softr", text: "Database and tech stacks", x: 500, y: 265, w: 230, h: 100 },
+        { id: "inbox", title: "Readers’ inboxes", text: "Reports and the ADDDitive", x: 870, y: 265, w: 230, h: 100, muted: true },
       ],
       edges: [
         { from: "sanity", to: "website", label: "Content" },
-        { from: "website", to: "backend", label: "Sign-ups" },
-        { from: "backend", to: "beehiiv", label: "API" },
-        { from: "beehiiv", to: "drive", label: "Download links", dashed: true },
+        { from: "website", to: "beehiiv", label: "Sign-ups · issues", both: true },
+        { from: "website", to: "softr", label: "Sign-in" },
+        { from: "beehiiv", to: "inbox", label: "Emails" },
       ],
     },
-    notes: ["Google Drive keeps hosting downloads where that suits."],
+    notes: ["Hosting runs underneath it all: infrastructure, nothing to manage."],
   },
 
   {
     id: "editing",
     tab: "Two ways to edit",
-    title: "Editing the site",
-    lede: "Everything on the site is edited in Sanity, ADDD's content studio, in one of two ways: the page editor, for what is already on a page, and CMS collections, for new things that get a page of their own.",
+    title: "Two ways to edit",
     diagram: {
       w: 1000,
       h: 230,
@@ -138,9 +257,8 @@ export const SECTIONS: Section[] = [
 
   {
     id: "page-editor",
-    tab: "The page editor",
-    title: "The page editor",
-    lede: "For the words and pictures already on the site. Open a page, select the part to change, change it and publish.",
+    tab: "Page editor",
+    title: "Page editor",
     image: { src: pageEditor, alt: "The page editor in Sanity: the selected section's fields on the left, the page itself on the right with the part being edited outlined." },
     diagram: {
       w: 1000,
@@ -157,18 +275,17 @@ export const SECTIONS: Section[] = [
         { from: "e3", to: "e4" },
       ],
     },
-    notes: [
-      "The page is shown as it looks on the site, with its fields beside it: select a heading, a line or a picture on the page and its field opens, ready to change.",
-      "Almost every element built on the site can be edited this way. It changes what is already there; it does not add new pages.",
-      "Nothing changes on the live site until you publish.",
+    lists: [
+      { title: "What it is: editing what’s already on the site", items: ["Headings, text and pictures", "Buttons and links", "Timelines, e.g. the Technology Blueprint’s", "FAQs and pricing"] },
+      { title: "What it isn’t", items: ["New reports or pages: CMS collections (2.3)", "Newsletters: written in beehiiv (4)", "The ADDD app: Softr"] },
     ],
+    notes: ["Click anything on the page to edit it. Nothing goes live until you publish."],
   },
 
   {
     id: "collections",
     tab: "CMS collections",
     title: "CMS collections",
-    lede: "For new content that gets a page of its own. A collection is a template: each entry added to it becomes its own page on the site.",
     diagram: {
       w: 1000,
       h: 300,
@@ -185,64 +302,57 @@ export const SECTIONS: Section[] = [
       ],
     },
     notes: [
-      "On this site, the one collection to use is Reports: to add a report, add an entry to it.",
-      "The difference: the page editor changes content that is already there; a collection adds new content, each entry with its own page.",
-      "Reports are covered in full in the Report section.",
+      "Reports: each entry becomes its own page.",
+      "Newsletter: view only, written in beehiiv (part 4).",
+    ],
+  },
+
+  /* How a report works (2026-11-17, third pass, at the user's word): a
+     report is a page of its own with a sign-up; one sign-up gives instant
+     access and starts the report's beehiiv automation, which emails the
+     product and adds the reader to the newsletter. */
+  {
+    id: "report",
+    tab: "How it works",
+    title: "How a report works",
+    diagram: {
+      w: 1000,
+      h: 430,
+      nodes: [
+        { id: "page", platform: "website", title: "Report page", text: "Its own content and a sign-up", x: 165, y: 60, w: 280, h: 110 },
+        { id: "signup", platform: "website", title: "Sign up", text: "The visitor enters their email", x: 500, y: 60, w: 280, h: 110 },
+        { id: "auto", platform: "beehiiv", title: "beehiiv automation", text: "Chosen for this report", x: 835, y: 60, w: 280, h: 110 },
+        { id: "instant", platform: "website", title: "Instant access", text: "Taken straight to the product", x: 500, y: 290, w: 280, h: 100 },
+        { id: "frame", kind: "frame", title: "What the automation does", x: 835, y: 305, w: 300, h: 230 },
+        { id: "emailed", platform: "beehiiv", title: "Emailed the product", x: 835, y: 255, w: 260, h: 80 },
+        { id: "news", platform: "beehiiv", title: "Joins the newsletter", text: "The ADDDitive", x: 835, y: 355, w: 260, h: 80 },
+      ],
+      edges: [
+        { from: "page", to: "signup" },
+        { from: "signup", to: "auto", label: "Starts" },
+        { from: "signup", to: "instant", label: "At once" },
+        { from: "auto", to: "frame", label: "Then" },
+      ],
+    },
+    notes: [
+      "One sign-up: instant access, the product by email, and the newsletter.",
+      "The emails come from the report’s beehiiv automation.",
     ],
   },
 
   {
-    id: "report",
-    tab: "How it works",
-    title: "From a report page to an inbox",
-    lede: "A visitor signs up on the report's page, and beehiiv sends them the report and what follows it.",
-    diagram: {
-      w: 1000,
-      h: 480,
-      nodes: [
-        { id: "page", platform: "website", title: "Report page", text: "With its sign-up form", x: 105, y: 65, w: 205, h: 110 },
-        { id: "backend", platform: "backend", title: "Backend", text: "Sends the sign-up on", x: 368, y: 65, w: 205, h: 110 },
-        { id: "beehiiv", platform: "beehiiv", text: "Adds the subscriber", x: 632, y: 65, w: 205, h: 110 },
-        { id: "auto", platform: "beehiiv", title: "Automation", text: "The report's own emails", x: 895, y: 65, w: 205, h: 110 },
-        { id: "frame", kind: "frame", title: "Inside a report's automation: AI in the Built Environment", x: 500, y: 305, w: 990, h: 150 },
-        { id: "s1", kind: "step", n: 1, title: "Subscriber added", x: 90, y: 310, w: 140, h: 72 },
-        { id: "s2", kind: "step", n: 2, title: "Send the report", x: 254, y: 310, w: 140, h: 72 },
-        { id: "s3", kind: "step", n: 3, title: "Status: Active", x: 418, y: 310, w: 140, h: 72 },
-        { id: "s4", kind: "step", n: 4, title: "Wait one day", x: 582, y: 310, w: 140, h: 72 },
-        { id: "s5", kind: "step", n: 5, title: "Follow-up email", x: 746, y: 310, w: 140, h: 72 },
-        { id: "s6", kind: "step", n: 6, title: "And so on", x: 910, y: 310, w: 140, h: 72, muted: true },
-        { id: "news", kind: "pill", title: "Then receives the ADDD newsletter", x: 418, y: 448, w: 300, h: 40 },
-      ],
-      edges: [
-        { from: "page", to: "backend" },
-        { from: "backend", to: "beehiiv" },
-        { from: "beehiiv", to: "auto" },
-        { from: "auto", to: "frame", plain: true, dashed: true, straight: true },
-        { from: "s1", to: "s2" },
-        { from: "s2", to: "s3" },
-        { from: "s3", to: "s4" },
-        { from: "s4", to: "s5" },
-        { from: "s5", to: "s6" },
-        { from: "s3", to: "news", dashed: true },
-      ],
-    },
-    notes: ["The report's email carries its download link."],
-  },
-
-  {
     id: "publishing",
-    tab: "Setting one up",
+    tab: "Steps",
     title: "Adding a report",
-    lede: "No page building. Each report page is made from its entry in Sanity.",
     diagram: {
       w: 1000,
       h: 130,
       nodes: [
-        { id: "p1", kind: "step", n: 1, title: "Create it in Sanity", x: 92, y: 65, w: 168, h: 110 },
-        { id: "p2", kind: "step", n: 2, title: "Add title, text and images", x: 296, y: 65, w: 168, h: 110 },
-        { id: "p3", kind: "step", n: 3, title: "Choose its automation", x: 500, y: 65, w: 168, h: 110 },
-        { id: "p4", kind: "step", n: 4, title: "Publish", x: 704, y: 65, w: 168, h: 110 },
-        { id: "p5", kind: "step", n: 5, title: "Visitors get its emails", x: 908, y: 65, w: 168, h: 110 },
+        { id: "p1", kind: "step", n: 1, title: "Create the report in Sanity", x: 92, y: 65, w: 168, h: 110 },
+        { id: "p2", kind: "step", n: 2, title: "Add its title, text and images", x: 296, y: 65, w: 168, h: 110 },
+        { id: "p3", kind: "step", n: 3, title: "Choose how it’s accessed", x: 500, y: 65, w: 168, h: 110 },
+        { id: "p4", kind: "step", n: 4, title: "Choose its beehiiv automation", x: 704, y: 65, w: 168, h: 110 },
+        { id: "p5", kind: "step", n: 5, title: "Publish", x: 908, y: 65, w: 168, h: 110 },
       ],
       edges: [
         { from: "p1", to: "p2" },
@@ -251,13 +361,16 @@ export const SECTIONS: Section[] = [
         { from: "p4", to: "p5" },
       ],
     },
-    notes: ["A report's automation and its emails are set up in beehiiv before the report is published."],
+    lists: [
+      { title: "Ways in (step 3)", items: ["beehiiv sign-up (most common)", "HubSpot form", "Payment link", "Any other link, e.g. a Google Form"] },
+      { title: "Its automation (step 4)", items: ["Built in beehiiv first", "Chosen from the report’s drop-down in Sanity", "Not listed? Name it and we connect it"] },
+    ],
+    notes: ["Build the automation in beehiiv first, or it won’t appear in Sanity."],
   },
   {
     id: "automations",
-    tab: "Its automation",
-    title: "Each report has its own automation",
-    lede: "A report names its automation in Sanity, so every sign-up starts the right emails.",
+    tab: "Automations",
+    title: "Report automations",
     diagram: {
       w: 1000,
       h: 340,
@@ -277,7 +390,80 @@ export const SECTIONS: Section[] = [
         { from: "rc", to: "ac" },
       ],
     },
-    notes: ["Each automation uses beehiiv's API trigger: it starts when the backend adds the subscriber and names that automation."],
+    notes: ["Each sign-up starts the automation its report names."],
   },
 
+  /* The newsletter (2026-11-17, at the user's word): written and sent in
+     beehiiv alone; the site shows each published issue by itself
+     (src/newsletter/beehiiv.ts, api/beehiiv.js, README "Newsletter"). */
+  {
+    id: "newsletter",
+    tab: "How it works",
+    title: "How a newsletter works",
+    compare: {
+      image: newsletterBeehiiv,
+      alt: "A draft of the ADDDitive in beehiiv: its title, subtitle, a banner image, a heading and the opening text.",
+      parts: [
+        { n: 1, beehiiv: "Title", site: "The page’s title", at: 3.3 },
+        { n: 2, beehiiv: "Subtitle", site: "The line under the title", at: 11.5 },
+        { n: 3, beehiiv: "Images", site: "Images, in the site’s frame", at: 33 },
+        { n: 4, beehiiv: "Headings", site: "Headings, in the site’s type", at: 53 },
+        { n: 5, beehiiv: "Text, links and lists", site: "The body, in the site’s type", at: 72 },
+      ],
+      link: { label: "See a newsletter page", href: "https://addd-staging.vercel.app/newsletter/addditive-template" },
+    },
+    notes: [
+      "Write and send in beehiiv as usual. The site updates itself.",
+      "beehiiv’s styling is dropped. The site adds the date, reading time and cover.",
+    ],
+  },
+
+  {
+    id: "newsletter-steps",
+    tab: "Steps",
+    title: "Adding a newsletter",
+    diagram: {
+      w: 1000,
+      h: 130,
+      nodes: [
+        { id: "n1", kind: "step", n: 1, title: "Write it in beehiiv", x: 115, y: 65, w: 210, h: 110 },
+        { id: "n2", kind: "step", n: 2, title: "Publish to email and web", x: 372, y: 65, w: 210, h: 110 },
+        { id: "n3", kind: "step", n: 3, title: "The site updates by itself", x: 628, y: 65, w: 210, h: 110 },
+        { id: "n4", kind: "step", n: 4, title: "Live on the Newsletter page", x: 885, y: 65, w: 210, h: 110 },
+      ],
+      edges: [
+        { from: "n1", to: "n2" },
+        { from: "n2", to: "n3" },
+        { from: "n3", to: "n4" },
+      ],
+    },
+    notes: [
+      "Only free issues published to the web appear.",
+      "Edits and deletions in beehiiv reach the site too.",
+    ],
+  },
+
+  /* Final tasks (2026-11-17, at the user's word): who does what next */
+  {
+    id: "tasks",
+    tab: "Who does what",
+    title: "Who does what",
+    timeline: LAUNCH_TIMELINE,
+    lists: [
+      { title: "Allister", items: ["Final copy in Sanity", "Operational details: timelines, deliverables", "FAQs", "Reports, each with its beehiiv automation"] },
+      { title: "Stas", items: ["Connect each report’s automation, by Friday 20", "Visual fixes, refinements and testing, by Wednesday 25", "Technical and SEO setup, by Wednesday 25", "Connect beehiiv’s API for the newsletter", "Launch on Friday 27: domain, desktop and mobile"] },
+    ],
+  },
+  /* Questions for the call (2026-11-17, at the user's word) */
+  {
+    id: "questions",
+    tab: "For Allister",
+    title: "For Allister",
+    questions: [
+      {
+        q: "When someone signs up to the ADDD app (Softr), is their email added to the newsletter?",
+        detail: "For example, someone signing up to see a full free tech stack. Is there an automation for this, or is it added by hand?",
+      },
+    ],
+  },
 ];

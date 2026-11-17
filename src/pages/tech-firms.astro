@@ -7,7 +7,8 @@ import ServiceTabs from "../components/ServiceTabs.astro";
 import ServiceDeck from "../components/ServiceDeck.astro";
 import FolderDocument from "../components/FolderDocument.astro";
 import type { Folder } from "../components/DeckFolder.astro";
-import StageTimeline, { type Stage, type StageItem } from "../components/StageTimeline.astro";
+import StageTimeline from "../components/StageTimeline.astro";
+import { layoutTimeline, type TimelineValue } from "../sanity/timeline";
 import { pageDocument, reader } from "../sanity/content";
 import { techFirmsPage as D } from "../sanity/defaults/tech-firms";
 
@@ -35,7 +36,6 @@ type Offer = { _key: string; title?: string; audience?: string; subtitle?: strin
 // 2026-11-16, else the one it was built with)
 const whyTiles = items("why.tiles").map((tile) => ({ number: tile.t("number"), title: tile.t("title"), text: tile.t("text"), photo: tile.img("image", 1200) }));
 const formatSteps = list<{ _key: string; label?: string; title?: string; text?: string }>("example.steps");
-const processTiles = list<{ _key: string; number?: string; title?: string; text?: string }>("process.tiles");
 const offers = list<Offer>("options.cards");
 const placements = list<Offer>("more.cards");
 // the blue panel's statements, one at a time (ServiceTabs.astro)
@@ -54,19 +54,9 @@ const statements = lines("services.statements");
 // yet, as the site is detached), for the staircase (2026-11-16), and its
 // phase (the Studio's phases) beside its title
 // (process.stageItems in Sanity since 2026-11-16)
-const PROCESS_ITEMS: StageItem[][] = items("process.stageItems").map((stage) =>
-  stage.list<{ _key: string; label?: string; by?: StageItem["by"] }>("items").map((item) => ({ label: item.label ?? "", by: item.by || "addd" })),
-);
-const processStages: Stage[] = processTiles.map((step, i) => ({
-  title: step.title,
-  when: lines("process.phases")[i],
-  text: step.text,
-  items: PROCESS_ITEMS[i],
-  start: i,
-  span: 1,
-  fields: { title: `process.tiles.${i}.title`, when: `process.phases.${i}`, text: `process.tiles.${i}.text` },
-}));
-const processScale = processTiles.map((_, i) => ({ label: lines("process.phases")[i] ?? "", field: `process.phases.${i}` }));
+// the timeline: one field in the Studio (process.timeline, 2026-11-17), each
+// stage drawn to its length (src/sanity/timeline.ts)
+const timeline = layoutTimeline({ unit: t("process.timeline.unit"), stages: list("process.timeline.stages") as TimelineValue["stages"] });
 
 // The name each partnership carries into the enquiry form
 // (contact.html?offer=…, initEnquiryOffer in site.js)
@@ -274,7 +264,7 @@ const folders: Folder[] = partnerships.map((offer, i) => ({
       </div>
 
       <div class="tf-process__run">
-        <StageTimeline id="partner-stages" stages={processStages} scale={processScale} dark itemsField="process.stageItems" keyField="process"
+        <StageTimeline id="partner-stages" timeline={timeline} field="process.timeline" dark keyField="process"
           keyLabels={{ addd: t("process.keyAddd"), you: t("process.keyYou"), optional: t("process.keyOptional") }} />
       </div>
 

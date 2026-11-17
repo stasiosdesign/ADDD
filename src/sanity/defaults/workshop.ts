@@ -135,6 +135,18 @@ export const workshopPage = {
       { items: keyed('point', [{ label: 'Written report', by: 'addd' }, { label: 'Priority areas', by: 'addd' }, { label: 'Executive readout', by: 'optional' }]) },
       { items: keyed('point', [{ label: 'Quick wins', by: 'you' }, { label: 'Next steps', by: 'you' }]) },
     ]),
+    // the timeline, all of it in one field (2026-11-17): each stage its title,
+    // its length in the unit (drawn to scale), its timing words (empty: the
+    // weeks it runs) and its points; the lists above stay for the code on main
+    timeline: {
+      unit: 'step',
+      stages: keyed('stage', [
+        { title: 'Prepare', length: 1, when: 'Before the session', items: keyed('point', [{ label: 'Questionnaire', by: 'you' }, { label: 'Project selection', by: 'you' }, { label: 'Who should attend', by: 'you' }]) },
+        { title: 'Attend', length: 1, when: 'Half a day · four hours', items: keyed('point', [{ label: 'Map the actual flow', by: 'addd' }, { label: 'Find the friction', by: 'addd' }, { label: 'Agree what matters most', by: 'addd' }]) },
+        { title: 'Review', length: 1, when: 'Within one week', items: keyed('point', [{ label: 'Written report', by: 'addd' }, { label: 'Priority areas', by: 'addd' }, { label: 'Executive readout', by: 'optional' }]) },
+        { title: 'Act', length: 1, when: 'After the report', items: keyed('point', [{ label: 'Quick wins', by: 'you' }, { label: 'Next steps', by: 'you' }]) },
+      ]),
+    },
     keyAddd: 'ADDD',
     keyYou: 'Your team',
     keyOptional: 'Optional',

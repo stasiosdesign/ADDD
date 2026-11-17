@@ -78,6 +78,18 @@ export const blueprintPage = {
       { items: keyed('point', [{ label: 'Recommendations', by: 'addd' }, { label: 'Cost analysis', by: 'addd' }, { label: 'Priorities', by: 'addd' }]) },
       { items: keyed('point', [{ label: 'The blueprint', by: 'addd' }, { label: 'Leadership presentation', by: 'you' }, { label: 'Implementation', by: 'you' }]) },
     ]),
+    // the timeline, all of it in one field (2026-11-17): each stage its title,
+    // its length in the unit (drawn to scale), its timing words (empty: the
+    // weeks it runs) and its points; the lists above stay for the code on main
+    timeline: {
+      unit: 'week',
+      stages: keyed('stage', [
+        { title: 'Mobilisation', length: 1, items: keyed('point', [{ label: 'Scope', by: 'addd' }, { label: 'Timeline', by: 'addd' }, { label: 'Who takes part', by: 'you' }]) },
+        { title: 'Discovery and analysis', length: 3, items: keyed('point', [{ label: 'Workflow interviews', by: 'addd' }, { label: 'Tool and cost inventory', by: 'addd' }, { label: 'Gap analysis', by: 'addd' }]) },
+        { title: 'Strategy and planning', length: 3, items: keyed('point', [{ label: 'Recommendations', by: 'addd' }, { label: 'Cost analysis', by: 'addd' }, { label: 'Priorities', by: 'addd' }]) },
+        { title: 'Finalisation and handover', length: 1, items: keyed('point', [{ label: 'The blueprint', by: 'addd' }, { label: 'Leadership presentation', by: 'you' }, { label: 'Implementation', by: 'you' }]) },
+      ]),
+    },
     keyAddd: 'ADDD',
     keyYou: 'Your team',
     keyOptional: 'Optional',

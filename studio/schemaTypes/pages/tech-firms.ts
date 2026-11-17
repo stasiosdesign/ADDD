@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {RocketIcon} from '@sanity/icons/Rocket'
-import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, seoSection, stageItemsField, taglineField, textField, timelineKeyFields} from '../shared/fields'
+import {buttonField, headingField, itemsField, leadField, linesField, pageSection, sectionHead, seoSection, stageItemsField, taglineField, textField, timelineField, timelineKeyFields} from '../shared/fields'
 
 /* The AEC Tech Partners page, one section per part of the page, in the
    order the page shows them (src/pages/tech-firms.astro; the page's own
@@ -85,16 +85,19 @@ export const techFirmsPage = defineType({
     pageSection('documents', 'Partnership papers', 'What each of the five folders opens, in order.', [
       defineField({name: 'items', title: 'Papers', type: 'array', of: [partnerDocument]}),
     ]),
-    pageSection('process', 'Process and independence', 'The four steps of a partnership on a timeline, how success is measured, and the editorial independence statement.', [
+    pageSection('process', 'Process and independence', 'The timeline of a partnership, how success is measured, and the editorial independence statement.', [
       ...sectionHead(),
-      itemsField('tiles', 'Steps', 'tile', 'The four steps, in order: each a box on the timeline, its title on the box and its text when it opens.'),
-      linesField('phases', 'Phases', 'The names across the top of the timeline, one per line, one for each step, in order.'),
+      timelineField(),
+      // the timeline is one field since 2026-11-17 (timelineField); the old
+      // lists are kept so the code on main can still read them, hidden
+      {...itemsField('tiles', 'Steps', 'tile', 'No longer shown.'), hidden: true},
+      {...linesField('phases', 'Phases', 'No longer shown.'), hidden: true},
       headingField('The heading over how success is measured.', 'measurementTitle', 'Measurement heading'),
       textField('How promotional partnerships are measured.', 'measurement', 'Measurement'),
       textField('How practice intelligence is measured.', 'intelligenceMeasurement', 'Intelligence measurement', 3),
       headingField('The heading over the independence statement.', 'independenceTitle', 'Independence heading'),
       linesField('independence', 'Independence statement', 'One line per commitment.'),
-      stageItemsField('For each step, in the same order: the points listed in its box on the timeline, each marked by who does it.'),
+      {...stageItemsField('No longer shown.'), hidden: true},
       ...timelineKeyFields(),
     ]),
     pageSection('closingCta', 'Closing call to action', 'The block that ends this page, for technology companies: this page has its own, apart from the one the other pages share.', [

@@ -1,6 +1,6 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {PresentationIcon} from '@sanity/icons/Presentation'
-import {buttonField, headingField, hrefField, itemsField, leadField, linesField, pageSection, sectionHead, seoSection, stageDetailsField, stageItemsField, taglineField, textField, timelineKeyFields} from '../shared/fields'
+import {buttonField, headingField, hrefField, itemsField, leadField, linesField, pageSection, sectionHead, seoSection, stageDetailsField, stageItemsField, taglineField, textField, timelineField, timelineKeyFields} from '../shared/fields'
 
 /* The Workflow Workshop page, one section per part of the page, in the
    order the page shows them (src/pages/workshops-audits.astro; the page's
@@ -65,11 +65,14 @@ export const workshopPage = defineType({
       headingField('Over each paper’s list of what you take away.', 'pointsLabel', 'Papers: list label'),
       defineField({name: 'documents', title: 'Folder documents', type: 'array', description: 'What each folder opens, in the folders’ order.', of: [folderDocument]}),
     ]),
-    pageSection('journey', 'Workshop Process', 'The heading and the line beside it, and the four stages on a timeline, from preparing to acting on the report.', [
+    pageSection('journey', 'Workshop Process', 'The heading and the line beside it, and the timeline, from preparing to acting on the report.', [
       ...sectionHead('The line beside the heading.'),
-      itemsField('steps', 'Stages', 'step', 'The stages, left to right: the name at the head of its column (Label), and the title and line in its block. The photographs stay in the site’s code.'),
-      stageDetailsField('For each stage, in the same order: its timing under the name, and what its block tells when opened.'),
-      stageItemsField(),
+      timelineField(),
+      // the timeline is one field since 2026-11-17 (timelineField); the old
+      // lists are kept so the code on main can still read them, hidden
+      {...itemsField('steps', 'Stages', 'step', 'No longer shown.'), hidden: true},
+      {...stageDetailsField('No longer shown.'), hidden: true},
+      {...stageItemsField('No longer shown.'), hidden: true},
       ...timelineKeyFields(),
     ]),
     pageSection('pricing', 'Pricing', 'The heading, what the day holds, the workshop’s card, and the panel on to the Technology Blueprint under them. The looks and where the buttons lead stay in the site’s code.', [

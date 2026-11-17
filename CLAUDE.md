@@ -172,6 +172,18 @@ the package as an option that is off by default, switched on in
   background slot `data-page-bg`. Add the field to the schema and its
   current text to the defaults. Then rebuild and confirm the page is
   unchanged.
+- **Anything that repeats is selected as one block** (since 17 Nov 2026,
+  at the user's word; `src/sanity/live-preview.ts`): a list, and every field
+  of a list's entries (`tabs.2.title`), is outlined at the element holding
+  all of them, and opens the whole list in the Studio's panel; single fields
+  stay selectable alone. `data-page-block="section.field"` makes an element
+  one block by name. List fields say how they're used (`withHow` in
+  `studio/schemaTypes/shared/fields.ts`).
+- **Timelines are one field each** (`timelineField`: stages with a title, a
+  length drawn to scale, an optional start, timing words and points),
+  laid out by `src/sanity/timeline.ts` for the page and the live preview.
+  The old split lists (`steps`, `details`, `stageItems`, `tiles`, `phases`)
+  stay hidden in the schema for the code on `main`.
 - `studio/package.json` pins an exact release. A CMS release updates this
   Studio by itself: `.github/workflows/studio-update.yml` (started by the
   package's release, or by hand from the Actions tab) installs the version

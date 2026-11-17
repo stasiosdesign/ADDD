@@ -14,13 +14,21 @@
 */
 import { Image } from "astro:assets";
 import Diagram from "../presentation/Diagram.astro";
-import { GROUPS, SECTIONS } from "../presentation/sections";
-import "../presentation/presentation.css";
+import { GROUPS, SECTIONS } from "../presentation/sections";import "../presentation/presentation.css";
 import "../styles/lenis.css";
 
 // each section's group and its number in it, for the tab list and the
 // line over its title
-const place = new Map(GROUPS.flatMap((g) => g.sections.map((id, k) => [id, { group: g, n: k + 1 }] as const)));
+// numbered as the call runs: parts 1, 2, 3…, sections 1.1, 3.2…
+const place = new Map(GROUPS.flatMap((g, gi) => g.sections.map((id, k) => [id, { group: g, part: gi + 1, n: `${gi + 1}.${k + 1}`, first: k === 0 }] as const)));
+const pad = (n: number) => String(n).padStart(2, "0");
+// how much of a timeline phase comes before the first weekend it crosses (1: none crossed),
+// so Allister's words stay clear of the blocked-out weekend
+const beforeWeekend = (p: { from: number; to: number }) => {
+  const days = SECTIONS.find((sec) => sec.timeline)?.timeline?.days ?? [];
+  const first = days.findIndex((d, i) => d.weekend && i >= p.from && i <= p.to);
+  return first < 0 ? 1 : (first - p.from) / (p.to - p.from + 1);
+};
 const byId = new Map(SECTIONS.map((s) => [s.id, s]));
 
 ---
@@ -40,6 +48,10 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
 </head>
 <body class="arch">
   <aside class="arch__side">
+    <!-- with a timeline expanded the menu folds to its numbers; this opens it again -->
+    <button type="button" class="arch__rail-open" data-wide-off aria-label="Show the full menu" title="Show the full menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+    </button>
     <a class="arch__brand" href="#overview">
       <img src="/assets/logo.svg" alt="" width="28" height="28">
       <span>ADDD</span>
@@ -50,11 +62,11 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
       <ol class="arch__groups">
         {GROUPS.map((g, gi) => (
           <li class:list={["arch__group", { "is--open": gi === 0 }]} data-group={g.id}>
-            <a href={`#${g.sections[0]}`} class:list={["arch__tab", { "is--active": gi === 0 }]} data-group-tab={g.id} aria-expanded={gi === 0 ? "true" : "false"} aria-controls={`${g.id}-list`}><span class="arch__dot" aria-hidden="true"></span>{g.tab}</a>
+            <a href={`#${g.sections[0]}`} class:list={["arch__tab", { "is--active": gi === 0 }]} data-group-tab={g.id} aria-expanded={gi === 0 ? "true" : "false"} aria-controls={`${g.id}-list`}><span class="arch__tab-n" aria-hidden="true">{gi + 1}</span><span class="arch__tab-label">{g.tab}</span></a>
             <div class="arch__subs" id={`${g.id}-list`}>
               <ol>
                 {g.sections.map((id, k) => (
-                  <li><a href={`#${id}`} class:list={["arch__sub", { "is--active": gi === 0 && k === 0 }]} data-tab={id} tabindex={gi === 0 ? undefined : "-1"}><span class="arch__sub-n">{k + 1}</span>{byId.get(id)?.tab}</a></li>
+                  <li><a href={`#${id}`} class:list={["arch__sub", { "is--active": gi === 0 && k === 0 }]} data-tab={id} tabindex={gi === 0 ? undefined : "-1"}><span class="arch__sub-n">{gi + 1}.{k + 1}</span>{byId.get(id)?.tab}</a></li>
                 ))}
               </ol>
             </div>
@@ -66,18 +78,30 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
 
   <main class="arch__main">
     {SECTIONS.map((s, i) => (
-      <section id={s.id} class:list={["arch__section", { "is--intro": i === 0 }]} data-section>
+      <>
+      {/* each part opens with its number and name, ruled off from the one before */}
+      {i > 0 && place.get(s.id)?.first && (
+        <div class="arch__part" aria-hidden="true">
+          <span class="arch__part-n">{pad(place.get(s.id)!.part)}</span>
+          <span class="arch__part-title">{place.get(s.id)!.group.tab}</span>
+        </div>
+      )}
+      <section id={s.id} class:list={["arch__section", { "is--intro": i === 0, "is--first": place.get(s.id)?.first }]} data-section>
         <header class="arch__head">
-          {i > 0 && place.get(s.id) && <p class="arch__crumb">{place.get(s.id)!.group.tab}<span aria-hidden="true">·</span>{place.get(s.id)!.n}</p>}
+          {i > 0 && place.get(s.id) && <p class="arch__crumb"><span class="arch__crumb-n">{place.get(s.id)!.n}</span>{place.get(s.id)!.group.tab}</p>}
           {i === 0 ? <h1 class="arch__title">{s.title}</h1> : <h2 class="arch__title">{s.title}</h2>}
-          <p class="arch__lede">{s.lede}</p>
+          {s.lede && <p class="arch__lede">{s.lede}</p>}
         </header>
 
-        {i === 0 && (
-          <ul class="arch__key" aria-label="How to read the diagrams">
-            <li><span class="arch__key-line"></span>A connection</li>
-            <li><span class="arch__key-line is--dashed"></span>Where it suits</li>
-          </ul>
+        {s.agenda && (
+          <div class="arch__agenda">
+            <p class="arch__agenda-label">In this call</p>
+            <ol>
+              {s.agenda.map((a) => (
+                <li><a href={a.href}><span class="arch__agenda-n">{a.n}</span><span class="arch__agenda-title">{a.title}</span><span class="arch__agenda-text">{a.text}</span></a></li>
+              ))}
+            </ol>
+          </div>
         )}
 
         {s.image && (
@@ -86,9 +110,103 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
           </figure>
         )}
 
+        {s.questions && (
+          <ol class="arch__questions">
+            {s.questions.map((q, k) => (
+              <li><span class="arch__q-n">Q{k + 1}</span><span class="arch__q"><span class="arch__q-text">{q.q}</span>{q.detail && <span class="arch__q-detail">{q.detail}</span>}</span></li>
+            ))}
+          </ol>
+        )}
+
+        {s.compare && (
+          <div class="arch__panel cmp">
+            <div class="cmp__sides">
+              <figure class="cmp__side">
+                <figcaption class="cmp__label"><img src="https://www.google.com/s2/favicons?domain=beehiiv.com&sz=64" alt="" width="18" height="18" />In beehiiv</figcaption>
+                <div class="cmp__shot">
+                  <Image src={s.compare.image} alt={s.compare.alt} widths={[600, 822]} sizes="(min-width: 860px) 32rem, 100vw" loading="lazy" />
+                  {s.compare.parts.map((p) => <span class="cmp__n" style={`top:${p.at}%`}>{p.n}</span>)}
+                </div>
+              </figure>
+              <span class="cmp__arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16M14 6l6 6-6 6" /></svg>
+              </span>
+              <figure class="cmp__side">
+                <figcaption class="cmp__label"><img src="/assets/logo.svg" alt="" width="18" height="18" />On the website</figcaption>
+                <!-- the same issue on the site's newsletter page, drawn: its
+                     parts numbered as the screenshot's -->
+                <div class="cmp__site" aria-hidden="true">
+                  <div class="cmp__nav"><img src="/assets/logo.svg" alt="" width="14" height="14" /><span></span><i>Contact</i></div>
+                  <div class="cmp__body">
+                    <p class="cmp__row"><span class="cmp__n">1</span><span class="cmp__h1">Title</span></p>
+                    <p class="cmp__row"><span class="cmp__n">2</span><span class="cmp__lede">Discovering the tools, workflows, and decisions shaping modern architectural practice</span></p>
+                    <p class="cmp__meta"><span>17 November 2026</span><span>6 min read</span></p>
+                    <p class="cmp__row"><span class="cmp__n">3</span><span class="cmp__img" style={`background-image:url("${s.compare.image.src}")`}></span></p>
+                    <div class="cmp__row cmp__cols">
+                      <span class="cmp__n">4</span>
+                      <span class="cmp__h2">Opening Insight — <em>Why This Matters This Week</em></span>
+                      <span class="cmp__text"><span class="cmp__n is--inline">5</span>Architects aren’t short on tools. They’re short on confidence about which decisions actually matter.<i></i><i></i><i class="is--short"></i></span>
+                    </div>
+                  </div>
+                </div>
+              </figure>
+            </div>
+            <ol class="cmp__map">
+              {s.compare.parts.map((p) => (
+                <li><span class="cmp__n">{p.n}</span><span class="cmp__from">{p.beehiiv}</span><span class="cmp__to" aria-hidden="true">→</span><span>{p.site}</span></li>
+              ))}
+            </ol>
+            {s.compare.link && <a class="cmp__link" href={s.compare.link.href} target="_blank" rel="noopener">{s.compare.link.label}<span aria-hidden="true"> ↗</span></a>}
+          </div>
+        )}
+
+        {s.timeline && (
+          <div class="arch__panel tl-panel" data-tl-panel title="Click to make the timeline bigger">
+            <button type="button" class="tl__expand" data-wide-toggle><span class="is--grow">Expand</span><span class="is--shrink">Shrink</span></button>
+            <div class="tl" style={`--days:${s.timeline.days.length};--phases:${s.timeline.phases.length}`}>
+              {s.timeline.days.map((d, k) => (
+                <>
+                {/* each day a block of its own down the whole chart, so a bar plainly ends on a day; a weekend's hatched out */}
+                <span class:list={["tl__cell", { "is--weekend": d.weekend, "is--today": d.today }]} style={`grid-column:${k + 1}`} aria-hidden="true"></span>
+                <div class:list={["tl__day", { "is--today": d.today, "is--weekend": d.weekend }]} style={`grid-column:${k + 1}`}>
+                  <span class="tl__day-name">{d.today ? "Today" : d.day}</span>
+                  <span class="tl__date">{d.date}</span>
+                </div>
+                </>
+              ))}
+              {s.timeline.phases.map((p, k) => (
+                <>
+                  <div class:list={["tl__phase", `is--${p.who}`]} style={`grid-column:${p.from + 1} / ${p.to + 2};grid-row:${k + 2};--before-weekend:${beforeWeekend(p)}`}>
+                    <p class="tl__title">
+                      {p.who === "allister" && <img class="tl__face" src="/assets/images/allister-headshot-bw-crop.webp" alt="Allister" width="28" height="28" />}
+                      {p.title}
+                    </p>
+                    {p.items.length > 0 && <ul class="tl__items">
+                      {p.items.map((item) => <li>{item}</li>)}
+                    </ul>}
+                  </div>
+                </>
+              ))}
+            </div>
+          </div>
+        )}
+
         {s.diagram && (
           <div class="arch__panel">
             <Diagram id={s.id} diagram={s.diagram} />
+          </div>
+        )}
+
+        {s.lists && (
+          <div class="arch__lists">
+            {s.lists.map((l) => (
+              <div class="arch__list">
+                <p class="arch__list-title">{l.title}</p>
+                <ul class="arch__notes">
+                  {l.items.map((item) => <li>{item}</li>)}
+                </ul>
+              </div>
+            ))}
           </div>
         )}
 
@@ -98,6 +216,7 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
           </ul>
         )}
       </section>
+      </>
     ))}
   </main>
 
@@ -116,6 +235,18 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
       lenis.scrollTo(target, { duration: 1.2 });
       history.replaceState(null, "", a.getAttribute("href"));
     }));
+
+    // a timeline made bigger (2026-11-17): the menu folds to its numbers and
+    // the page takes the width; its button, the menu's, or Esc undo it
+    const body = document.body;
+    const wide = (on: boolean) => body.classList.toggle("is--wide", on);
+    document.querySelectorAll<HTMLElement>("[data-tl-panel]").forEach((panel) => panel.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("[data-wide-toggle]")) return;
+      if (!body.classList.contains("is--wide")) wide(true);
+    }));
+    document.querySelectorAll("[data-wide-toggle]").forEach((b) => b.addEventListener("click", () => wide(!body.classList.contains("is--wide"))));
+    document.querySelectorAll("[data-wide-off]").forEach((b) => b.addEventListener("click", () => wide(false)));
+    addEventListener("keydown", (e) => { if (e.key === "Escape") wide(false); });
 
     // the tab of the section being read, marked as the page scrolls; a
     // section's words and diagram coming in once, gently, as it arrives

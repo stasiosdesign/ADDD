@@ -8,6 +8,25 @@ import {imageField, linesField} from '../shared/fields'
    issues were a second collection until 2026-11-16: they come from
    beehiiv now, src/newsletter/beehiiv.ts, and are never written here.) */
 
+/* The beehiiv automations a report can start (2026-11-17, at the user's
+   word): a report using a beehiiv sign-up picks one from a drop-down. An
+   automation is made in beehiiv first, and only then is it in the list.
+   For now the list is written here, by hand, from the live automations in
+   ADDD's beehiiv (Automations, 17 Nov 2026; the draft "New Automation"
+   left out); later it can be read from beehiiv itself. Two names were cut
+   short in beehiiv's list and are completed or marked "…" here. */
+const BEEHIIV_AUTOMATIONS = [
+  '32 AI Rendering Tools',
+  'Welcome Email (with re-entry)',
+  'Revizto - Beyond the Hype',
+  'Epic Games From Data to Decisions',
+  'Is You Practice Technology Ready?',
+  'Is your Practice Technology Ready',
+  'Lead Magnet Automation - FASS Ass',
+  'How to Get into Contech - Product Mana…',
+  'Lead Magnet Automation - AI in the Built Environment',
+]
+
 // A slug is the last part of the page's address, so it may only use lowercase
 // letters, numbers and single hyphens
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
@@ -160,6 +179,26 @@ export const report = defineType({
           type: 'string',
           description: 'The form’s ID or address (beehiiv → Grow → Subscribe forms → the form → Embed: the address in its iframe, https://subscribe-forms.beehiiv.com/…). Its automation sends the download.',
           hidden: ({parent}) => parent?.method !== 'beehiiv',
+        }),
+        // the beehiiv automation its sign-ups start, from beehiiv's own list
+        // (BEEHIIV_AUTOMATIONS above); not shown on the site
+        defineField({
+          name: 'automation',
+          title: 'beehiiv automation',
+          type: 'string',
+          description: 'First make the automation in beehiiv: only then does it appear in this list. It is what happens after someone signs up: it sends the report and adds them to the newsletter.',
+          options: {list: BEEHIIV_AUTOMATIONS.map((name) => ({title: name, value: name})), layout: 'dropdown'},
+          hidden: ({parent}) => parent?.method !== 'beehiiv',
+        }),
+        // which automation to connect, in plain words, for Stas
+        // (2026-11-17, at the user's word); not shown on the site
+        defineField({
+          name: 'automationNote',
+          title: 'Automation not in the list?',
+          type: 'text',
+          rows: 2,
+          description:
+            'Write its name as it is called in beehiiv, and Stas will connect it for you. Later you’ll be able to connect it yourself, here. Not shown on the site.',
         }),
         defineField({name: 'beehiivHeight', title: 'Form height', type: 'number', description: 'In pixels: the form’s own height at the card’s width (240 if empty). Leave room for its thank-you message.', hidden: ({parent}) => parent?.method !== 'beehiiv'}),
         defineField({

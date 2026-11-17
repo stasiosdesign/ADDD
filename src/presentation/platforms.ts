@@ -30,6 +30,12 @@ export const PLATFORMS = {
   drive: { name: "Google Drive", logo: simple("googledrive"), role: "Hosts downloads" },
   sanity: { name: "Sanity", logo: simple("sanity"), role: "Report content" },
   backend: { name: "Website backend", logo: simple("vercel/000000"), role: "Sends sign-ups on" },
+  // not in Simple Icons either: its own favicon, as beehiiv's
+  softr: {
+    name: "Softr",
+    logo: "https://www.google.com/s2/favicons?domain=softr.io&sz=128",
+    role: "The ADDD app",
+  },
 } satisfies Record<string, Platform>;
 
 export type PlatformKey = keyof typeof PLATFORMS;

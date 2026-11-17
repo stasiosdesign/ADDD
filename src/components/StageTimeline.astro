@@ -16,81 +16,51 @@
     - the boxes step down and across the run, so the chart reads as the
       run itself.
 
-  The stages' longer words (text, more) are kept in the data but not
-  shown here: the boxes say it in their items. No script: nothing opens.
+  Its stages come from one Studio field (timelineField, 2026-11-17): each
+  a title, a length drawn to scale, its timing words and its points. No
+  script: nothing opens; live-preview.ts redraws it from drafts.
   Styles: stage-timeline.css (dark: the version for an ink section).
   Below 992px every box takes the row's width.
 
-  fields: the Studio fields each stage's words come from, for the Visual
-  editor.
 */
-export interface StageItem {
-  label: string;
-  /** "addd" (ink, the default), "you" (grey) or "optional" (hollow) */
-  by?: "addd" | "you" | "optional";
-}
-export interface Stage {
-  /** the row's name, kept for the data (not shown) */
-  lane?: string;
-  /** when it runs, beside its title (e.g. "Weeks 2–4") */
-  when?: string;
-  title?: string;
-  text?: string;
-  more?: string;
-  image?: { src: string; alt?: string };
-  /** the stage's items, under its title */
-  items?: StageItem[];
-  /** the first unit the stage takes (from 0) and how many */
-  start?: number;
-  span?: number;
-  fields?: { lane?: string; when?: string; title?: string; text?: string; more?: string };
-}
-type Unit = string | { label?: string; field?: string };
+import type { LaidOutStage } from "../sanity/timeline";
 interface Props {
   id: string;
-  stages: Stage[];
-  /** the units of the run (e.g. Week 1 … Week 8): how many the boxes are placed over */
-  scale: Unit[];
+  /** the stages, laid out (layoutTimeline in src/sanity/timeline.ts): each
+      placed over its start and span, in half units of its run */
+  timeline: { units: number; stages: LaidOutStage[] };
+  /** the Studio field it comes from (journey.timeline): the Visual editor
+      selects the whole timeline as one block, and redraws it from drafts */
+  field?: string;
   /** on a dark ground: white rules and words, the boxes faint on the ink */
   dark?: boolean;
-  /** the Studio list the stages' points come from (journey.stageItems:
-      stage i, point j at <field>.i.items.j.label), for the Visual editor */
-  itemsField?: string;
   /** the key's words, and the section they come from (its keyAddd,
       keyYou and keyOptional) */
   keyLabels?: { addd?: string; you?: string; optional?: string };
   keyField?: string;
 }
-const { id, stages, scale, dark = false, itemsField, keyLabels = {}, keyField } = Astro.props;
-const units = Math.max(1, scale.length);
+const { id, timeline, field, dark = false, keyLabels = {}, keyField } = Astro.props;
 const pad = (n: number) => String(n).padStart(2, "0");
-const placed = stages.map((stage, i) => {
-  const start = Math.max(0, Math.min(units - 1, stage.start ?? i));
-  const span = Math.max(1, Math.min(units - start, stage.span ?? 1));
-  return `${start + 2} / span ${span}`;
-});
-const kinds = new Set<string>(stages.flatMap((s) => (s.items ?? []).map((item) => item.by ?? "addd")));
+const kinds = new Set<string>(timeline.stages.flatMap((s) => s.items.map((item) => item.by)));
 const KEY = [
   ["addd", keyLabels.addd || "ADDD", "keyAddd"],
   ["you", keyLabels.you || "Your team", "keyYou"],
   ["optional", keyLabels.optional || "Optional", "keyOptional"],
 ].filter(([k]) => kinds.has(k));
 ---
-<div class:list={["stage-timeline", { "is--dark": dark }]} id={id} style={`--tl-count:${units}`}>
+<div class:list={["stage-timeline", { "is--dark": dark }]} id={id} style={`--tl-count:${timeline.units}`} data-page-block={field} data-page-timeline={field}>
   <ol class="stage-timeline__rows" role="list">
-    {stages.map((stage, i) => (
-    <li class="stage-timeline__row">
-      <span class="stage-timeline__num" aria-hidden="true">{pad(i + 1)} /</span>
-      <article class="stage-timeline__box" style={`grid-column:${placed[i]}`}>
+    {timeline.stages.map((stage, i) => (
+    <li class="stage-timeline__row" data-tl-row>
+      <span class="stage-timeline__num" aria-hidden="true" data-tl-num>{pad(i + 1)} /</span>
+      <article class="stage-timeline__box" style={`grid-column:${stage.start + 2} / span ${stage.span}`} data-tl-box>
         <h3 class="stage-timeline__title">
-          <span data-page-field={stage.fields?.title}>{stage.title}</span>
-          {stage.when && <span class="stage-timeline__when" data-page-field={stage.fields?.when}>{stage.when}</span>}
+          <span data-tl-title>{stage.title}</span>
+          <span class="stage-timeline__when" data-tl-when hidden={!stage.when}>{stage.when}</span>
         </h3>
-        {stage.items && stage.items.length > 0 && (
-        <ul class="stage-timeline__items" role="list">
-          {stage.items.map((item, j) => <li class={`is--${item.by ?? "addd"}`} data-page-field={itemsField ? `${itemsField}.${i}.items.${j}.label` : undefined}>{item.label}</li>)}
+        <ul class="stage-timeline__items" role="list" data-tl-items>
+          {stage.items.map((item) => <li class={`is--${item.by}`}>{item.label}</li>)}
         </ul>
-        )}
       </article>
     </li>
     ))}
