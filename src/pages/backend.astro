@@ -1,7 +1,8 @@
 ---
 /*
   TEMPORARY (2026-11-16): how the software behind the ADDD website fits
-  together, as it is set up from now on, for a screen-shared client call. Not
+  together, as it is set up from now on: first for a client call, then
+  (2026-11-17, at the user's word) a guide for Allister to read alone. Not
   linked from anywhere and never indexed. To remove it, delete this file
   and src/presentation/.
 
@@ -19,7 +20,7 @@ import "../styles/lenis.css";
 
 // each section's group and its number in it, for the tab list and the
 // line over its title
-// numbered as the call runs: parts 1, 2, 3…, sections 1.1, 3.2…
+// numbered in reading order: parts 1, 2, 3…, sections 1.1, 3.2…
 const place = new Map(GROUPS.flatMap((g, gi) => g.sections.map((id, k) => [id, { group: g, part: gi + 1, n: `${gi + 1}.${k + 1}`, first: k === 0 }] as const)));
 const pad = (n: number) => String(n).padStart(2, "0");
 // how much of a timeline phase comes before the first weekend it crosses (1: none crossed),
@@ -30,6 +31,13 @@ const beforeWeekend = (p: { from: number; to: number }) => {
   return first < 0 ? 1 : (first - p.from) / (p.to - p.from + 1);
 };
 const byId = new Map(SECTIONS.map((s) => [s.id, s]));
+// the end of each part leads on to the next one; the last part back to the start
+const nextPart = (id: string) => {
+  const at = place.get(id);
+  if (!at || at.group.sections[at.group.sections.length - 1] !== id) return null;
+  const next = GROUPS[at.part];
+  return next ? { href: `#${next.sections[0]}`, n: pad(at.part + 1), title: next.tab } : { href: "#overview", n: "", title: "Back to the start" };
+};
 
 ---
 <!doctype html>
@@ -38,7 +46,7 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Backend and integrations · ADDD</title>
+  <title>Backend guide · ADDD</title>
   <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://use.typekit.net" crossorigin>
   <link rel="stylesheet" href="https://use.typekit.net/lzu8hkz.css">
@@ -91,11 +99,12 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
           {i > 0 && place.get(s.id) && <p class="arch__crumb"><span class="arch__crumb-n">{place.get(s.id)!.n}</span>{place.get(s.id)!.group.tab}</p>}
           {i === 0 ? <h1 class="arch__title">{s.title}</h1> : <h2 class="arch__title">{s.title}</h2>}
           {s.lede && <p class="arch__lede">{s.lede}</p>}
+          {s.link && <a class="arch__open" href={s.link.href} target="_blank" rel="noopener">{s.link.label}<span aria-hidden="true">↗</span></a>}
         </header>
 
         {s.agenda && (
           <div class="arch__agenda">
-            <p class="arch__agenda-label">In this call</p>
+            <p class="arch__agenda-label">In this guide</p>
             <ol>
               {s.agenda.map((a) => (
                 <li><a href={a.href}><span class="arch__agenda-n">{a.n}</span><span class="arch__agenda-title">{a.title}</span><span class="arch__agenda-text">{a.text}</span></a></li>
@@ -115,7 +124,7 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
             {s.tasks.map((task, k) => (
               <li>
                 <details>
-                  <summary><span class="arch__task-n">{pad(k + 1)}</span><span class="arch__task-title">{task.title}</span><span class="arch__task-icon" aria-hidden="true"></span></summary>
+                  <summary><span class="arch__task-n">{pad(k + 1)}</span><span class="arch__task-title">{task.title}{task.done && <span class="arch__done">Done</span>}</span><span class="arch__task-icon" aria-hidden="true"></span></summary>
                   <div class="arch__task-body">
                     <p>{task.text}</p>
                     {task.items && <ul>{task.items.map((item) => <li>{item}</li>)}</ul>}
@@ -123,14 +132,6 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
                   </div>
                 </details>
               </li>
-            ))}
-          </ol>
-        )}
-
-        {s.questions && (
-          <ol class="arch__questions">
-            {s.questions.map((q, k) => (
-              <li><span class="arch__q-n">Q{k + 1}</span><span class="arch__q"><span class="arch__q-text">{q.q}</span>{q.detail && <span class="arch__q-detail">{q.detail}</span>}</span></li>
             ))}
           </ol>
         )}
@@ -228,9 +229,20 @@ const byId = new Map(SECTIONS.map((s) => [s.id, s]));
         )}
 
         {s.notes && (
-          <ul class="arch__notes">
-            {s.notes.map((note) => <li>{note}</li>)}
-          </ul>
+          <div class="arch__tip">
+            <p class="arch__tip-label">Good to know</p>
+            <ul class="arch__notes">
+              {s.notes.map((note) => <li>{note}</li>)}
+            </ul>
+          </div>
+        )}
+
+        {nextPart(s.id) && (
+          <a class="arch__next" href={nextPart(s.id)!.href}>
+            <span class="arch__next-label">{nextPart(s.id)!.n ? "Next" : "Finished"}</span>
+            <span class="arch__next-title">{nextPart(s.id)!.n && <span class="arch__next-n">{nextPart(s.id)!.n}</span>}{nextPart(s.id)!.title}</span>
+            <span class="arch__next-arrow" aria-hidden="true">{nextPart(s.id)!.n ? "↓" : "↑"}</span>
+          </a>
         )}
       </section>
       </>

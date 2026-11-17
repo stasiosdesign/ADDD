@@ -13,7 +13,12 @@
    are set up from now on, and nothing about how they were (no Carrd, no
    HubSpot, no "today" or "proposed"). Other reports' email sequences are
    not invented: only the AI in the Built Environment automation's steps
-   are shown, as seen in beehiiv. */
+   are shown, as seen in beehiiv.
+
+   Fourth pass (2026-11-17, at the user's word): a guide for Allister to
+   read on his own rather than a call's slides: a line under every title
+   saying what the section is for, buttons into Sanity and beehiiv, "Good
+   to know" boxes, a link on to the next part, and no Questions. */
 import type { ImageMetadata } from "astro";
 import type { PlatformKey } from "./platforms";
 import pageEditor from "./page-editor.png";
@@ -87,7 +92,6 @@ export const GROUPS: Group[] = [
   { id: "report-group", tab: "Adding a Report", sections: ["report", "publishing", "automations"] },
   { id: "newsletter-group", tab: "Adding a Newsletter", sections: ["newsletter", "newsletter-steps"] },
   { id: "tasks-group", tab: "Final Tasks", sections: ["tasks"] },
-  { id: "questions-group", tab: "Questions", sections: ["questions"] },
 ];
 
 /* A timeline (2026-11-17, second pass after a plan the user pointed to): the
@@ -108,26 +112,27 @@ export interface Section {
   title: string;
   /** a line under the title, only where it says something the title and diagram do not */
   lede?: string;
+  /** a button under the line, into the tool the section is about */
+  link?: { label: string; href: string };
   /** a picture under the line (a screenshot), before the diagram */
   image?: { src: ImageMetadata; alt: string };
   timeline?: Timeline;
   /** the call's agenda (the introduction): each part or section, its number and a few words */
   agenda?: { n: string; title: string; text: string; href: string }[];
-  /** questions for the call, numbered, each with a line of detail */
-  questions?: { q: string; detail?: string }[];
   /** tasks as numbered drop-downs: a title, a line and points */
-  tasks?: { title: string; text: string; items?: string[]; image?: { src: ImageMetadata; alt: string } }[];
+  tasks?: { title: string; text: string; items?: string[]; image?: { src: ImageMetadata; alt: string }; done?: boolean }[];
   compare?: Compare;
   diagram?: Diagram;
   /** under the diagram, side by side: a heading and its bullet points each (2026-11-17) */
   lists?: { platform?: PlatformKey; title: string; items: string[] }[];
+  /** "Good to know": short points in a box of their own */
   notes?: string[];
 }
 
 /* The timeline to launch (1.2) */
 const LAUNCH_TIMELINE: Timeline = {
   days: [
-    { day: "Tue", date: "17", today: true },
+    { day: "Tue", date: "17" },
     { day: "Wed", date: "18" },
     { day: "Thu", date: "19" },
     { day: "Fri", date: "20" },
@@ -140,7 +145,7 @@ const LAUNCH_TIMELINE: Timeline = {
     { day: "Fri", date: "27" },
   ],
   phases: [
-    { title: "Backend walkthrough", from: 0, to: 0, who: "us", items: [] },
+    { title: "Backend guide", from: 0, to: 0, who: "us", items: [] },
     {
       title: "Allister: content in Sanity",
       from: 0,
@@ -159,15 +164,15 @@ export const SECTIONS: Section[] = [
   {
     id: "overview",
     tab: "Introduction",
-    title: "Backend and integrations",
+    title: "Backend guide",
+    lede: "How the new ADDD website works behind the scenes, and how to keep it up to date yourself. Read it in order, or jump to what you need.",
     agenda: [
-      { n: "1.2", title: "Timeline to launch", text: "From today to launch on Friday 27", href: "#timeline" },
+      { n: "1.2", title: "Timeline to launch", text: "From now to launch on Friday 27", href: "#timeline" },
       { n: "1.3", title: "Platforms", text: "Sanity, beehiiv and Softr", href: "#three" },
       { n: "2", title: "Editing the site", text: "The page editor and collections", href: "#editing" },
       { n: "3", title: "Adding a report", text: "From Sanity to an inbox", href: "#report" },
       { n: "4", title: "Adding a newsletter", text: "Written in beehiiv, shown on the site", href: "#newsletter" },
       { n: "5", title: "Final tasks", text: "What to prepare before launch", href: "#tasks" },
-      { n: "6", title: "Questions", text: "What we still need to know", href: "#questions" },
     ],
   },
 
@@ -177,6 +182,7 @@ export const SECTIONS: Section[] = [
     id: "timeline",
     tab: "Timeline",
     title: "Timeline to launch",
+    lede: "What happens between now and launch on Friday 27 November. Your part is the row with your photo.",
     timeline: LAUNCH_TIMELINE,
   },
 
@@ -186,6 +192,7 @@ export const SECTIONS: Section[] = [
     id: "three",
     tab: "Platforms",
     title: "Platforms",
+    lede: "The site runs on three platforms you’ll use. Everything else works quietly behind them.",
     // the three on top; the website, which they all reach, under them
     diagram: {
       w: 1000,
@@ -216,6 +223,7 @@ export const SECTIONS: Section[] = [
     id: "platforms",
     tab: "How they connect",
     title: "How they connect",
+    lede: "The website sits in the middle: content comes in from Sanity, and sign-ups go out to beehiiv and Softr.",
     // what moves between them (2026-11-17, at the user's word): the
     // website in the middle, each platform where it meets it; hosting is
     // infrastructure, under it all, not a part of its own
@@ -243,6 +251,8 @@ export const SECTIONS: Section[] = [
     id: "editing",
     tab: "Two ways to edit",
     title: "Two ways to edit",
+    lede: "Everything on the website is edited in Sanity, in one of two places.",
+    link: { label: "Open Sanity", href: "https://addd.sanity.studio" },
     diagram: {
       w: 1000,
       h: 230,
@@ -262,6 +272,7 @@ export const SECTIONS: Section[] = [
     id: "page-editor",
     tab: "Page editor",
     title: "Page editor",
+    lede: "For changing anything already on a page: click it on the page, change it in the panel, then publish.",
     image: { src: pageEditor, alt: "The page editor in Sanity: the selected section's fields on the left, the page itself on the right with the part being edited outlined." },
     diagram: {
       w: 1000,
@@ -289,6 +300,7 @@ export const SECTIONS: Section[] = [
     id: "collections",
     tab: "CMS collections",
     title: "CMS collections",
+    lede: "For things that get a page of their own, such as reports. Add an entry and its page is made for it.",
     diagram: {
       w: 1000,
       h: 300,
@@ -318,6 +330,7 @@ export const SECTIONS: Section[] = [
     id: "report",
     tab: "How it works",
     title: "How a report works",
+    lede: "Each report is a page of its own with a sign-up. One sign-up does three things.",
     diagram: {
       w: 1000,
       h: 430,
@@ -346,7 +359,8 @@ export const SECTIONS: Section[] = [
   {
     id: "publishing",
     tab: "Steps",
-    title: "Adding a report",
+    title: "How to add a report",
+    lede: "Five steps, all in Sanity apart from the automation, which is made in beehiiv.",
     diagram: {
       w: 1000,
       h: 130,
@@ -366,7 +380,7 @@ export const SECTIONS: Section[] = [
     },
     lists: [
       { title: "Ways in (step 3)", items: ["beehiiv sign-up (most common)", "HubSpot form", "Payment link", "Any other link, e.g. a Google Form"] },
-      { title: "Its automation (step 4)", items: ["Built in beehiiv first", "Chosen from the report’s drop-down in Sanity", "Not listed? Name it and we connect it"] },
+      { title: "Its automation (step 4)", items: ["Built in beehiiv first", "Chosen from the report’s drop-down in Sanity", "Not listed? Tell Stas and it gets connected"] },
     ],
     notes: ["Build the automation in beehiiv first, or it won’t appear in Sanity."],
   },
@@ -374,6 +388,7 @@ export const SECTIONS: Section[] = [
     id: "automations",
     tab: "Automations",
     title: "Report automations",
+    lede: "Each report has its own beehiiv automation, which sends the emails after someone signs up.",
     diagram: {
       w: 1000,
       h: 340,
@@ -403,6 +418,8 @@ export const SECTIONS: Section[] = [
     id: "newsletter",
     tab: "How it works",
     title: "How a newsletter works",
+    lede: "Newsletters are written in beehiiv, not Sanity. The website picks up each one and shows it in its own design.",
+    link: { label: "Open beehiiv", href: "https://app.beehiiv.com" },
     compare: {
       image: newsletterBeehiiv,
       alt: "A draft of the ADDDitive in beehiiv: its title, subtitle, a banner image, a heading and the opening text.",
@@ -424,7 +441,8 @@ export const SECTIONS: Section[] = [
   {
     id: "newsletter-steps",
     tab: "Steps",
-    title: "Adding a newsletter",
+    title: "How to publish a newsletter",
+    lede: "There’s nothing to do on the website: publishing in beehiiv is enough.",
     diagram: {
       w: 1000,
       h: 130,
@@ -451,6 +469,7 @@ export const SECTIONS: Section[] = [
     id: "tasks",
     tab: "Tasks",
     title: "Tasks",
+    lede: "What’s needed from you before launch. Open each one for the details.",
     tasks: [
       {
         title: "Copywriting check",
@@ -472,23 +491,12 @@ export const SECTIONS: Section[] = [
       },
       {
         title: "Booking calendar",
-        text: "A free booking page from Calendly or Cal.com, connected to your calendar so calls never clash. Just send me the link.",
+        text: "Done, thank you. Every booking button on the site now opens your Google Calendar booking page. Its link can be changed in Sanity: Home page, Free call booking.",
+        done: true,
       },
       {
         title: "Optional comments and revisions",
         text: "Feel free to leave any comments in Sanity’s Site Review, on the most recent version (Final Design, 17 November), and I’ll sort them out before launch.",
-      },
-    ],
-  },
-  /* Questions for the call (2026-11-17, at the user's word) */
-  {
-    id: "questions",
-    tab: "For Allister",
-    title: "For Allister",
-    questions: [
-      {
-        q: "When someone signs up to the ADDD app (Softr), is their email added to the newsletter?",
-        detail: "For example, someone signing up to see a full free tech stack. Is there an automation for this, or is it added by hand?",
       },
     ],
   },

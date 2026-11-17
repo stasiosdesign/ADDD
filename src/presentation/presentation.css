@@ -436,14 +436,6 @@
 .arch.is--wide .tl__expand .is--shrink { display: inline; }
 .tl-panel .tl { margin-top: 1.5rem; }
 
-/* ---------- questions for the call (2026-11-17) ---------- */
-.arch__questions { max-width: 52rem; margin-top: 2.5rem; border-top: 1px solid var(--faint); }
-.arch__questions li { display: grid; grid-template-columns: 2.75rem minmax(0, 1fr); gap: 1rem; padding: 1.25rem 0; border-bottom: 1px solid var(--faint); }
-.arch__q-n { font-size: 0.875rem; font-variant-numeric: tabular-nums; color: var(--red); padding-top: 0.125rem; }
-.arch__q { display: flex; flex-direction: column; gap: 0.375rem; }
-.arch__q-text { font-size: 1.125rem; line-height: 1.35; letter-spacing: -0.01em; }
-.arch__q-detail { font-size: 0.9375rem; line-height: 1.5; color: var(--quiet); }
-
 /* ---------- tasks as numbered drop-downs (2026-11-17) ---------- */
 .arch__tasks { max-width: 52rem; margin-top: 2.5rem; border-top: 1px solid var(--faint); }
 .arch__tasks > li { border-bottom: 1px solid var(--faint); }
@@ -460,3 +452,20 @@ details[open] .arch__task-icon::after { rotate: 0deg; }
 .arch__task-body li { position: relative; padding-left: 1rem; }
 .arch__task-body li::before { content: ""; position: absolute; left: 0.125rem; top: 0.6em; width: 0.3125rem; height: 0.3125rem; border-radius: 50%; background: rgba(10, 10, 10, 0.3); }
 .arch__task-img { display: block; width: 100%; max-width: 32rem; height: auto; margin-top: 1rem; border-radius: 0.5rem; box-shadow: 0 0 0 1px var(--faint); }
+
+/* The guide (2026-11-17, fourth pass): read alone, not presented. A button
+   into the tool a section is about; "Good to know" boxes; a done task's
+   badge; and at the end of each part, a link on to the next. */
+.arch__open { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; padding: 0.625rem 1rem; border-radius: 0.375rem; background: var(--ink); color: #fff; font-size: 0.9375rem; text-decoration: none; transition: background 0.2s ease; }
+.arch__open:hover { background: #333; }
+.arch__tip { max-width: 46rem; margin-top: 2rem; padding: 1.25rem 1.5rem 1.375rem; border-radius: 0.5rem; background: var(--panel); border-left: 2px solid var(--red); }
+.arch__tip-label { font-size: 0.8125rem; letter-spacing: 0.02em; text-transform: uppercase; color: var(--red); }
+.arch__tip .arch__notes { margin-top: 0.75rem; color: var(--ink); }
+.arch__lists + .arch__tip { margin-top: 2.25rem; }
+.arch__done { display: inline-block; margin-left: 0.75rem; padding: 0.125rem 0.5rem; border-radius: 999px; background: rgba(31, 143, 78, 0.12); color: #1f8f4e; font-size: 0.75rem; vertical-align: 0.15em; }
+.arch__next { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: baseline; gap: 1.25rem; max-width: 46rem; margin-top: 4rem; padding: 1.25rem 0; border-top: 1px solid var(--faint); border-bottom: 1px solid var(--faint); color: var(--ink); text-decoration: none; transition: padding 0.3s ease; }
+.arch__next:hover { padding-left: 0.5rem; }
+.arch__next-label { font-size: 0.875rem; color: var(--quiet); }
+.arch__next-title { font-size: 1.25rem; letter-spacing: -0.015em; }
+.arch__next-n { margin-right: 0.75rem; font-variant-numeric: tabular-nums; color: var(--red); }
+.arch__next-arrow { font-size: 1.125rem; color: var(--quiet); }

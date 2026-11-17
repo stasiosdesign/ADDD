@@ -16,7 +16,8 @@
   The reports' own pages (reports/[slug]) are no longer held since
   2026-11-17, when ADDD's six products became reports in Sanity, each on a
   page of the site's own design: a card on the Reports page now opens its
-  product. The About page is shown again since 2026-11-17, at the user's
-  word. The newsletter's issues and the two template pages stay held.
+  product. The About page was shown again for part of 2026-11-17 and held
+  again the same day, at the user's word. The newsletter's issues and the
+  two template pages stay held.
 */
 export const HOLD = true;
