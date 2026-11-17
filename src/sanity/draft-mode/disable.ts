@@ -1,4 +1,4 @@
-/* GET /api/draft-mode/disable: leaves draft mode, back to published content
+/* GET /sanity/draft-mode/disable: leaves draft mode, back to published content
    on the home page. The "Exit" link on the draft-mode label (BaseLayout.astro)
    points here. Staging and development only. */
 import type { APIRoute } from 'astro';

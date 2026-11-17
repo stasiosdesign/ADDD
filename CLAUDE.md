@@ -126,9 +126,14 @@ the package as an option that is off by default, switched on in
 
 - Sanity project `xqa8b0u9`, two datasets: `staging` (the Studio edits it;
   the staging site and the Visual editor read it) and `production` (the live
-  site alone reads it; only `/api/publish` writes it, with
+  site alone reads it; only `/sanity/publish` writes it, with
   `SANITY_API_WRITE_TOKEN`, after checking the caller's Studio session, and
   then calls `VERCEL_DEPLOY_HOOK_URL` to rebuild `main`).
+- **No Astro route under `/api/`.** On Vercel the root `api/` folder (the
+  newsletter function, `api/beehiiv.js`) owns every `/api/` address, so an
+  Astro route there is a 404 on staging. The Studio's routes are
+  `/sanity/draft-mode/*` and `/sanity/publish` (`studio/project.ts`); the
+  1.15 Visual editor 404'd at the old `/api/` ones on 17 Nov 2026.
 - Every page document is a singleton whose `_id` is its type
   (`homePage`, `workshopPage`…). Every page in `src/pages` reads its document
   with `reader()` (`src/sanity/content.ts`) and falls back, field by field,

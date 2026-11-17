@@ -1,4 +1,4 @@
-/* GET /api/draft-mode/enable: where the Studio's Visual editor opens the site
+/* GET /sanity/draft-mode/enable: where the Studio's Visual editor opens the site
    (visualEditor.previewModeEnable in studio/project.ts). Staging and development only.
 
    The URL carries the preview secret the Studio has just created, the page to

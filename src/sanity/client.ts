@@ -3,7 +3,7 @@
    Which dataset it reads follows the deployment (astro.config.mjs): the
    production dataset for the static production build, staging for staging
    and development. The Studio edits staging; only its Publish Live, through
-   /api/publish (src/sanity/publish/), writes production. PUBLIC_SANITY_*
+   /sanity/publish (src/sanity/publish/), writes production. PUBLIC_SANITY_*
    can point a build elsewhere (.env.example). Nothing here is secret, so the
    browser code (live-preview.ts) uses it too. Drafts come from the request's
    own client in draft mode (src/sanity/draft-mode/, src/middleware.ts). */

@@ -67,9 +67,12 @@ export const project: CmsProjectConfig = {
   },
 
   publishing: {
-    // The route is src/sanity/publish/ (the default /api/publish), on the
-    // datasets staging and production (the defaults). A live publish that
-    // doesn't rebuild the site points to the deploy hook in the README.
+    // The route is src/sanity/publish/, at /sanity/publish (not the default
+    // /api/publish: on Vercel the root api/ folder, the newsletter function,
+    // owns every /api/ address, 17 Nov 2026), on the datasets staging and
+    // production (the defaults). A live publish that doesn't rebuild the
+    // site points to the deploy hook in the README.
+    route: '/sanity/publish',
     rebuildHelp: 'check VERCEL_DEPLOY_HOOK_URL in the Vercel project’s Preview environment variables (README)',
   },
 
@@ -125,6 +128,8 @@ export const project: CmsProjectConfig = {
   },
 
   visualEditor: {
+    // The draft-mode route (src/sanity/draft-mode/), outside /api/ for the same reason
+    previewModeEnable: '/sanity/draft-mode/enable',
     // A report's own page opens the report beside the preview
     mainDocuments: [
       {route: '/reports/:slug', filter: `_type == "report" && slug.current == $slug`},

@@ -1,4 +1,4 @@
-/* POST /api/publish: the live site's publishing, done on the server.
+/* POST /sanity/publish: the live site's publishing, done on the server.
 
    Staging and development only (astro.config.mjs injects the route where
    the site renders on request; production, being static, has nothing of

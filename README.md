@@ -129,10 +129,10 @@ deployment), and Sanity's own drafts in the one the Studio edits:
   deploys code.
 - **Staging** reads the `staging` dataset on every request: published
   documents for anyone, drafts for a browser in **draft mode**, which the
-  Studio's Visual editor switches on through `/api/draft-mode/enable`
+  Studio's Visual editor switches on through `/sanity/draft-mode/enable`
   (`src/sanity/draft-mode/`; the read token stays on the server).
 - The Studio's publishing control (the CMS package's) sends every action to
-  `/api/publish` on staging (`src/sanity/publish/`), which checks the caller's
+  `/sanity/publish` on staging (`src/sanity/publish/`), which checks the caller's
   Studio session and role, writes with its own token, and after every live
   write calls the Vercel deploy hook for `main`, so the static production
   site is rebuilt with the new content (about a minute; the control watches
@@ -244,7 +244,7 @@ Setting it up (once):
   *Protection Bypass for Automation* secret, saved once in the Studio's
   **Vercel Protection Bypass** tool (`/vercel-protection-bypass`).
 - **Deploy hook** on `main`, whose URL is `VERCEL_DEPLOY_HOOK_URL` for the
-  `staging` branch's environment: `/api/publish` calls it after every live
+  `staging` branch's environment: `/sanity/publish` calls it after every live
   publish, unpublish or delete.
 
 ## Adding a custom domain

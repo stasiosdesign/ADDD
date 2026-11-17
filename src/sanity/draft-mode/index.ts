@@ -2,7 +2,7 @@
    browser the Studio's Visual editor has opened. Staging and development only;
    production builds never see this code (astro.config.mjs).
 
-   The Visual editor opens the site at /api/draft-mode/enable with a
+   The Visual editor opens the site at /sanity/draft-mode/enable with a
    short-lived secret it has written into the dataset. The route checks the
    secret with the read token, sets a signed cookie, and redirects to the page
    asked for. The middleware then reads drafts for that browser with the read
