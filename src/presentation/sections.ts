@@ -474,6 +474,10 @@ export const SECTIONS: Section[] = [
         title: "Booking calendar",
         text: "A free booking page from Calendly or Cal.com, connected to your calendar so calls never clash. Just send me the link.",
       },
+      {
+        title: "Optional comments and revisions",
+        text: "Feel free to leave any comments in Sanity’s Site Review, on the most recent version (Final Design, 17 November), and I’ll sort them out before launch.",
+      },
     ],
   },
   /* Questions for the call (2026-11-17, at the user's word) */
