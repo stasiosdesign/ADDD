@@ -36,7 +36,7 @@ const nextPart = (id: string) => {
   const at = place.get(id);
   if (!at || at.group.sections[at.group.sections.length - 1] !== id) return null;
   const next = GROUPS[at.part];
-  return next ? { href: `#${next.sections[0]}`, n: pad(at.part + 1), title: next.tab } : { href: "#overview", n: "", title: "Back to the start" };
+  return next ? { href: `#${next.sections[0]}`, n: String(at.part + 1), title: next.tab } : { href: "#overview", n: "", title: "Back to the start" };
 };
 
 ---
@@ -90,7 +90,7 @@ const nextPart = (id: string) => {
       {/* each part opens with its number and name, ruled off from the one before */}
       {i > 0 && place.get(s.id)?.first && (
         <div class="arch__part" aria-hidden="true">
-          <span class="arch__part-n">{pad(place.get(s.id)!.part)}</span>
+          <span class="arch__part-n">{place.get(s.id)!.part}</span>
           <span class="arch__part-title">{place.get(s.id)!.group.tab}</span>
         </div>
       )}

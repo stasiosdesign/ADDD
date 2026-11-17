@@ -346,17 +346,19 @@
 .arch__tab.is--active .arch__tab-n { color: var(--red); }
 .arch__sub-n { min-width: 1.75em; }
 
+/* a part's opening (2026-11-17, smaller at the user's word): its number in
+   a small red circle beside its name, over a fine rule */
 .arch__part {
   display: flex;
-  align-items: baseline;
-  gap: 1.25rem;
+  align-items: center;
+  gap: 0.875rem;
   max-width: 68rem;
   margin-top: 9rem;
-  padding-top: 1.5rem;
-  border-top: 2px solid var(--ink);
+  padding-top: 1.75rem;
+  border-top: 1px solid rgba(10, 10, 10, 0.16);
 }
-.arch__part-n { font-size: clamp(3rem, 6vw, 5rem); line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--red); }
-.arch__part-title { font-size: clamp(1.5rem, 2.4vw, 2rem); letter-spacing: -0.025em; }
+.arch__part-n { display: inline-grid; place-items: center; flex: none; width: 2.25rem; height: 2.25rem; border-radius: 50%; background: var(--red); color: #fff; font-size: 0.9375rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.arch__part-title { font-size: clamp(1.375rem, 2vw, 1.625rem); letter-spacing: -0.02em; }
 .arch__section.is--first:not(.is--intro) { padding-top: 3.5rem; }
 
 .arch__crumb { align-items: baseline; }
@@ -467,5 +469,6 @@ details[open] .arch__task-icon::after { rotate: 0deg; }
 .arch__next:hover { padding-left: 0.5rem; }
 .arch__next-label { font-size: 0.875rem; color: var(--quiet); }
 .arch__next-title { font-size: 1.25rem; letter-spacing: -0.015em; }
-.arch__next-n { margin-right: 0.75rem; font-variant-numeric: tabular-nums; color: var(--red); }
+.arch__next-title { display: inline-flex; align-items: center; }
+.arch__next-n { display: inline-grid; place-items: center; flex: none; width: 1.75rem; height: 1.75rem; margin-right: 0.75rem; border-radius: 50%; background: var(--red); color: #fff; font-size: 0.8125rem; line-height: 1; font-variant-numeric: tabular-nums; }
 .arch__next-arrow { font-size: 1.125rem; color: var(--quiet); }
