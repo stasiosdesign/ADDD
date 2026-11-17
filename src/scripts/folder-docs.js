@@ -260,8 +260,12 @@ export function initFolderDocs(container) {
     // never open together and each keeps the page's scroll as it should
     dialog.querySelectorAll("[data-folder-book]").forEach((el) =>
       el.addEventListener("click", async () => {
+        const calendar = document.getElementById(el.dataset.folderBook);
+        // a booking page elsewhere opens at once, while the click still
+        // counts (a browser blocks a new tab opened after the animation)
+        if (calendar?.dataset.bookingLink) calendar.booking?.show();
         await close();
-        if (state === "closed") document.getElementById(el.dataset.folderBook)?.booking?.show();
+        if (state === "closed" && !calendar?.dataset.bookingLink) calendar?.booking?.show();
       }),
     );
     // the paper's link (FolderDocument.astro, cta): the paper goes back into

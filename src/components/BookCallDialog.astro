@@ -25,6 +25,7 @@ const { t, items } = reader(await siteDocument(Astro.locals), HOME);
 ---
 <BookingDialog
   id={id}
+  link={t("booking.link")}
   label={t("booking.label")}
   title={t("booking.title")}
   note={t("booking.note")}

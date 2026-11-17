@@ -18,6 +18,8 @@ import ActionButton from "./ActionButton.astro";
 
 interface Props {
   id: string;
+  /** a booking page elsewhere: when set, the buttons open it in a new tab instead of this calendar (booking.js) */
+  link?: string;
   /** the label over the title */
   label?: string;
   title?: string;
@@ -35,6 +37,7 @@ interface Props {
 }
 const {
   id,
+  link,
   label = "Workflow Workshop · Half a day",
   title = "Book your workshop",
   note = "Choose a date for the half-day session with your team. This calendar is a preview: online booking opens soon.",
@@ -52,7 +55,7 @@ const at = (name: string) => (field ? `${field}.${name}` : undefined);
 // the words are the Home page's, wherever the dialog sits
 const scope = field ? { "data-page-doc": "homePage", "data-page-type": "homePage" } : {};
 ---
-<dialog class="booking" id={id} aria-labelledby={`${id}-title`} data-booking data-booking-days={days.join(",")} data-lenis-prevent {...scope}>
+<dialog class="booking" id={id} aria-labelledby={`${id}-title`} data-booking data-booking-days={days.join(",")} data-booking-link={link || undefined} data-lenis-prevent {...scope}>
   <div class="booking__scrim" data-booking-close aria-hidden="true"></div>
   <div class="booking__card">
     <button type="button" class="booking__close" data-booking-close aria-label="Close">

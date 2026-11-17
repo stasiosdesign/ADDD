@@ -14,6 +14,10 @@
 // workshop could take are Tuesday to Thursday from a week ahead (a stand-in
 // rule until a real calendar is connected). A day and a time picked, the
 // request only says thank you. Nothing is sent anywhere.
+//
+// With a booking page of its own (the dialog's data-booking-link: the Home
+// page's Booking section, booking.link), every button opens that page in a
+// new tab instead, and the calendar here stays closed.
 
 import { lenis } from "./scroll.js";
 import { motion, registerPageCleanup } from "./page.js";
@@ -36,6 +40,24 @@ export function initBooking(container) {
     if (dialog.booking) return;
     // every button on the page that opens this one
     const mine = openers.filter((o) => o.dataset.bookingOpen === dialog.id);
+
+    // a real booking page: the buttons lead there (folder-docs.js opens it
+    // through dialog.booking.show too)
+    const link = dialog.dataset.bookingLink;
+    if (link) {
+      const go = () => window.open(link, "_blank", "noopener");
+      mine.forEach((o) => {
+        o.removeAttribute("aria-haspopup");
+        o.removeAttribute("aria-controls");
+        o.addEventListener("click", go);
+      });
+      dialog.booking = { show: go, hide() {} };
+      registerPageCleanup(() => {
+        mine.forEach((o) => o.removeEventListener("click", go));
+        dialog.booking = null;
+      });
+      return;
+    }
     const card = dialog.querySelector(".booking__card");
     const scrim = dialog.querySelector(".booking__scrim");
     const grid = dialog.querySelector("[data-booking-days]");

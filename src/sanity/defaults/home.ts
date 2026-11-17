@@ -249,6 +249,10 @@ export const homePage = {
   // booking dialog (BookCallDialog.astro, BookingDialog.astro), on every
   // page that offers it
   booking: {
+    // Allister's booking page (Google Calendar appointments, 2026-11-17):
+    // with a link here, every booking button opens it in a new tab and the
+    // preview calendar below is not shown
+    link: 'https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ2ObnE6KjaF3yxQZAPe9jOP11R7BPtednSgeC0CqxagmGyI2tyq_vWVoO-GysJILMb6m9pQ8g2h',
     floatLabel: 'Book a Call',
     faqLabel: 'Book a Free Call',
     photo: { path: '/assets/images/allister-headshot-bw-crop.webp', alt: '' },

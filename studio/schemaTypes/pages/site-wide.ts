@@ -124,6 +124,7 @@ export const bookingSection = pageSection(
   'Free call booking (every page)',
   'The free call with Allister: the buttons that open it on the service pages, the FAQs and the Contact page, and the booking calendar they open. Which weekdays can be picked stays in the code.',
   [
+    hrefField('Allister’s booking page (Google Calendar, Calendly, Cal.com…). Every booking button opens it in a new tab. Leave it empty to show the preview calendar below instead.', 'link', 'Booking page link'),
     buttonField('The floating button at the foot of the screen on the service pages.', 'floatLabel', 'Floating button'),
     buttonField('The button at the end of the FAQs and on the folders’ papers.', 'faqLabel', 'Book a Free Call button'),
     imageField('Allister’s portrait in the buttons.', 'photo', 'Portrait'),
