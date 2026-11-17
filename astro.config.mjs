@@ -122,6 +122,11 @@ export default defineConfig({
     // fetches. (Where staging renders on request, the routes are clean
     // already; src/middleware.ts still answers an old .html address.)
     format: "file",
+    // Pages are built 8 at a time, not one by one: each waits mostly on
+    // Sanity, so a live publish's rebuild of 94 pages took ~24s of page
+    // building on Vercel, one after another (17 Nov 2026); 8 at a time
+    // builds the same files in a fraction of that (~3s locally, measured).
+    concurrency: 8,
   },
 
   // Astro 7 strips the whitespace between elements by default, which would
