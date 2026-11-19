@@ -30,9 +30,9 @@ const BYPASS_QUERY = `*[_id == "sanity-preview-url-secret.vercel-protection-bypa
 
 function warning(automation: Automation | undefined, value: Value): string {
   if (!value.id) return ''
-  if (!automation) return `“${value.name || value.id}” is no longer in beehiiv. Sign-ups for this report won’t start an automation until another is chosen.`
-  if (automation.active === false) return `This automation isn’t running in beehiiv (${automation.status}). Turn it on in beehiiv, or sign-ups won’t start it.`
-  if (automation.apiTrigger === false) return 'This automation can’t be started by the website: in beehiiv, give it the “Add by API” trigger.'
+  if (!automation) return `“${value.name || value.id}” is no longer in beehiiv. Choose another.`
+  if (automation.active === false) return `Not running in beehiiv (${automation.status}): publish it there first.`
+  if (automation.apiTrigger === false) return 'Needs the “Added by API” trigger in beehiiv.'
   return ''
 }
 
@@ -64,7 +64,7 @@ export function BeehiivAutomationInput(props: ObjectInputProps) {
     }
   }, [client, attempt])
 
-  const automations = state.kind === 'ready' ? state.automations : []
+  const automations = useMemo(() => (state.kind === 'ready' ? state.automations : []), [state])
   const current = useMemo(() => automations.find((automation) => automation.id === value.id), [automations, value.id])
 
   const choose = useCallback(
@@ -94,7 +94,7 @@ export function BeehiivAutomationInput(props: ObjectInputProps) {
         <Card padding={3} radius={2} tone="critical" border>
           <Flex align="center" gap={3}>
             <Box flex={1}>
-              <Text size={1}>beehiiv’s automations couldn’t be read: {state.message} The automation already chosen is kept.</Text>
+              <Text size={1}>Couldn’t read beehiiv: {state.message}</Text>
             </Box>
             <Button text="Try again" mode="ghost" onClick={() => setAttempt((n) => n + 1)} />
           </Flex>
@@ -107,7 +107,7 @@ export function BeehiivAutomationInput(props: ObjectInputProps) {
       )}
       {state.kind === 'ready' && (
         <Text size={1} muted>
-          {automations.length} automation{automations.length === 1 ? '' : 's'} in beehiiv. Made a new one? It shows here the next time this report is opened.
+          {automations.length} in beehiiv. New ones appear when the report is reopened.
         </Text>
       )}
     </Stack>
