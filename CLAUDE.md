@@ -214,3 +214,26 @@ the package as an option that is off by default, switched on in
 - Dataset writes from here may be blocked by auto mode; `npm run seed` is
   then for the user to run. Never print tokens, the deploy hook URL or the
   Vercel bypass secret.
+
+## beehiiv (since 19 Nov 2026)
+
+The client's beehiiv account (4,000+ subscribers) is never changed from
+here: no newsletters, automations, subscribers or settings, and no test
+that writes to it (the user's rule, 19 Nov 2026). Read it only, through the
+site's server; test writes with stand-ins (`test/subscribe.test.mjs`).
+
+- **Issues:** `src/newsletter/beehiiv.ts` reads beehiiv's API (key and
+  publication in Vercel, Production and Preview). The live site is rebuilt
+  by beehiiv's webhook (post.sent, post.updated) and a daily cron, both to
+  `api/beehiiv.js`. `/newsletter.json` feeds the Studio's Newsletter
+  collection. No copy of the archive is shown any more.
+- **Automations:** a report's `access.beehiivAutomation` ({id, name}) is
+  picked in the Studio from beehiiv's live list
+  (`studio/components/BeehiivAutomationInput.tsx`, through the staging route
+  `/sanity/beehiiv/automations`, which checks the editor's Sanity session).
+- **Sign-ups:** `api/subscribe.js`, for the footer's and menu's newsletter
+  forms and a report's own form (a report with an automation chosen; others
+  keep their embedded beehiiv or HubSpot form). It writes to beehiiv only
+  while `BEEHIIV_SIGNUPS=on` in Vercel (on since 19 Nov 2026, at the user's
+  word); deleting that switches every sign-up off. Report access never needs
+  newsletter consent: the tick box decides that.
