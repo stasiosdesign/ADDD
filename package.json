@@ -9,7 +9,7 @@
     "preview": "astro preview",
     "check": "astro check && npm run test:site && npm --prefix studio run check",
     "test": "npm run test:site && npm --prefix studio test",
-    "test:site": "node --test test/",
+    "test:site": "node --experimental-strip-types --test \"test/**/*.test.mjs\"",
     "studio": "npm --prefix studio run dev",
     "studio:deploy": "npm --prefix studio run deploy",
     "review:round": "node scripts/review-round.mjs",
