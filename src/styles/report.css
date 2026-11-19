@@ -225,3 +225,11 @@
 }
 /* HubSpot's form frame takes the card's width */
 .rp-form .hs-form-frame { width: 100%; }
+/* the website's own sign-up (2026-11-19, signup-forms.js): the email and
+   its button, the newsletter's own tick box under them, then the answer
+   and, once signed up, the download */
+.rp-form.is--own { position: relative; }
+.rp-form__consent { display: flex; gap: 0.625rem; align-items: flex-start; font-size: var(--t-sm, 0.875rem); line-height: 1.45; cursor: pointer; }
+.rp-form__consent input { flex: none; margin-top: 0.2em; accent-color: var(--c-red); }
+.rp-form.is--own [data-signup-access] { align-self: flex-start; }
+.rp-form.is--own [data-signup-access][hidden] { display: none; }

@@ -85,11 +85,14 @@ const SOCIAL: { name: string; href: string; paths: string[]; viewBox?: string }[
       <div class="site-footer__signup">
         <p class="site-footer__eyebrow" data-page-field="footer.signupTagline">{t("footer.signupTagline")}</p>
         <p class="site-footer__title" data-page-field="footer.signupHeading">{t("footer.signupHeading")}</p>
-        <form class="newsletter-signup" onsubmit="return false">
+        <!-- sends to beehiiv through /api/subscribe (src/scripts/signup-forms.js) -->
+        <form class="newsletter-signup" onsubmit="return false" data-signup="newsletter" data-source="footer">
           <div class="newsletter-form is--plain">
-            <input type="email" name="email" placeholder={t("signup.placeholder")} aria-label={t("signup.placeholder")} required>
+            <input type="email" name="email" placeholder={t("signup.placeholder")} aria-label={t("signup.placeholder")} autocomplete="email" required>
             <button class="newsletter-form__submit" type="submit" data-page-field="signup.button">{t("signup.button")}</button>
           </div>
+          <input class="signup-trap" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+          <p class="signup-status" data-signup-status role="status" hidden></p>
           <fieldset class="newsletter-audience">
             <legend class="newsletter-audience__legend" data-page-field="signup.audienceQuestion">{t("signup.audienceQuestion")}</legend>
             <label><input type="radio" name="audience" value="practice" required> <span data-page-field="signup.practiceOption">{t("signup.practiceOption")}</span></label>

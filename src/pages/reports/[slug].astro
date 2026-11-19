@@ -47,6 +47,8 @@ type Access = {
   buttonLabel?: string | null;
   beehiivForm?: string | null;
   beehiivHeight?: number | null;
+  /** the beehiiv automation its sign-ups start, picked in the Studio from beehiiv's list (2026-11-19) */
+  beehiivAutomation?: { id?: string | null; name?: string | null } | null;
   hubspotRegion?: string | null;
   hubspotPortal?: string | null;
   hubspotForm?: string | null;
@@ -121,7 +123,13 @@ const beehiivSrc = (() => {
   if (!form) return "";
   return form.startsWith("http") ? form : `https://subscribe-forms.beehiiv.com/${form}`;
 })();
-const hasForm = (method === "beehiiv" && !!beehiivSrc) || (method === "hubspot" && !!text(access.hubspotPortal) && !!text(access.hubspotForm));
+// a sign-up of the website's own (2026-11-19), for a report with an automation
+// chosen: sent to /api/subscribe (api/subscribe.js), which looks the report up
+// itself; it takes the place of an embedded beehiiv form
+const ownSignup = method === "beehiiv" && !!text(access.beehiivAutomation?.id);
+// the download link is given on the page once they've signed up, never in it
+const ownHasDownload = ownSignup && !!getHref;
+const hasForm = ownSignup || (method === "beehiiv" && !!beehiivSrc) || (method === "hubspot" && !!text(access.hubspotPortal) && !!text(access.hubspotForm));
 const getLabel = text(access.buttonLabel) || (free ? rp("freeButton") : rp("buyButton"));
 // the opening's button: straight to the purchase or the link, or down to the form
 const heroAction = hasForm || !getHref ? { href: "#get", arrow: "down" as const } : { href: getHref, arrow: "right" as const, ...linkTarget(getHref) };
@@ -286,7 +294,21 @@ const related: Card[] = others.slice(0, 6).map((other) => {
       >
         {hasForm && (
         <Fragment slot="action">
-          {method === "beehiiv" ? (
+          {ownSignup ? (
+          <form class="rp-form is--own newsletter-signup" onsubmit="return false" data-signup="report" data-report={slug} data-source="report" aria-label={`${rp("formTitle")}: ${item.title}`}>
+            <div class="newsletter-form">
+              <input type="email" name="email" placeholder="Your email" aria-label="Your email" autocomplete="email" required>
+              <button class="newsletter-form__submit" type="submit">{getLabel}</button>
+            </div>
+            <label class="rp-form__consent">
+              <input type="checkbox" name="consent" value="yes" required={!ownHasDownload}>
+              <span>{ownHasDownload ? "Also send me ADDDitive, the weekly newsletter. Unsubscribe any time." : "Send me the report by email. This also signs me up to ADDDitive, the weekly newsletter: unsubscribe any time."}</span>
+            </label>
+            <input class="signup-trap" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+            <p class="signup-status" data-signup-status role="status" hidden></p>
+            {ownHasDownload && <ActionButton href="#" variant="secondary" data-signup-access target="_blank" rel="noopener" hidden>Download the report</ActionButton>}
+          </form>
+          ) : method === "beehiiv" ? (
           <div class="rp-form is--beehiiv" data-product-form="beehiiv">
             <iframe class="rp-form__frame beehiiv-embed" src={beehiivSrc} title={`${rp("formTitle")}: ${item.title}`} loading="lazy" frameborder="0" scrolling="no" style={`height:${access.beehiivHeight || 240}px`} data-test-id="beehiiv-embed"></iframe>
           </div>

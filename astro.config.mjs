@@ -45,6 +45,8 @@ const sanityRoutes = () => ({
       injectRoute({ pattern: "/sanity/draft-mode/disable", entrypoint: "./src/sanity/draft-mode/disable.ts", prerender: false });
       // The Studio's live publishing, done on the server (src/sanity/publish/)
       injectRoute({ pattern: "/sanity/publish", entrypoint: "./src/sanity/publish/index.ts", prerender: false });
+      // beehiiv's automations, read-only, for the Studio's report form (src/sanity/beehiiv/)
+      injectRoute({ pattern: "/sanity/beehiiv/automations", entrypoint: "./src/sanity/beehiiv/automations.ts", prerender: false });
     },
   },
 });

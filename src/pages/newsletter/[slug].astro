@@ -12,7 +12,6 @@ import { cardOf, type Card, type Insight } from "../../sanity/insights";
 import { ISSUE_QUERY, ISSUES_QUERY } from "../../sanity/queries";
 import NewsletterIssue from "../../components/NewsletterIssue.astro";
 import { newsletterPost, newsletterPosts, newsletterSource } from "../../newsletter/beehiiv";
-import { ARCHIVE, archiveCard, archiveIssue } from "../../data/archive";
 
 /* One page per newsletter issue in Sanity (studio/schemaTypes/documents/
    insights.ts), at /newsletter/<slug>.html, set as newsletter-template.astro
@@ -30,7 +29,6 @@ export const getStaticPaths =
     ? ((async () => {
         const posts = await newsletterPosts();
         if (posts) return posts.map((post) => ({ params: { slug: post.slug } }));
-        if (ARCHIVE.length) return ARCHIVE.map((post) => ({ params: { slug: post.slug } }));
         const items = await collection<Insight>(contentClient, ISSUES_QUERY);
         return items.map((item) => ({ params: { slug: item.slug } }));
       }) satisfies GetStaticPaths)
@@ -49,11 +47,9 @@ const { sanity } = Astro.locals;
 const fromBeehiiv = newsletterSource() !== null;
 const post = fromBeehiiv ? await newsletterPost(slug) : null;
 if (fromBeehiiv && !post) return new Response("Not found", { status: 404 });
-// not yet: a post of the archive's, while there is one
-const archived = fromBeehiiv ? null : ARCHIVE.find((one) => one.slug === slug) ?? null;
-const archivedRelated = archived ? ARCHIVE.filter((one) => one.slug !== archived.slug).slice(0, 7).map(archiveCard) : [];
-const item = fromBeehiiv || archived ? null : await collectionItem<Issue>(sanity, ISSUE_QUERY, { slug });
-if (!post && !archived && !item) return new Response("Not found", { status: 404 });
+// (2026-11-19) the archive's copy is no longer shown: beehiiv's issues only
+const item = fromBeehiiv ? null : await collectionItem<Issue>(sanity, ISSUE_QUERY, { slug });
+if (!post && !item) return new Response("Not found", { status: 404 });
 
 // A card's address and picture, one folder up from here
 const fromHere = (card: Card): Card => ({ ...card, href: `/${card.href}`, image: card.image.startsWith("http") ? card.image : `/${card.image}` });
@@ -77,7 +73,7 @@ const body = item && Array.isArray(item.body) && item.body.length > 0 ? item.bod
 const others = item ? (await collection<Insight>(sanity, ISSUES_QUERY)).filter((other) => other._id !== item._id) : [];
 const related = others.length ? others.slice(0, 7).map((other) => fromHere(cardOf(other))) : RELATED;
 ---
-{post ? <NewsletterIssue post={post} /> : archived ? <NewsletterIssue post={archiveIssue(archived)} related={archivedRelated} /> : item && (
+{post ? <NewsletterIssue post={post} /> : item && (
 <BaseLayout
   title={`${item.title} — ADDD`}
   description={item.summary ?? item.standfirst ?? ""}

@@ -58,6 +58,16 @@ export const config: VercelConfig = {
         { key: 'Cache-Control', value: 'no-store' },
       ],
     },
+    // The newsletter's issues as data (src/pages/newsletter.json.ts): read by
+    // the Studio's Newsletter collection, on another origin. Public: the
+    // same issues the site's pages show
+    {
+      source: '/newsletter.json',
+      headers: [
+        { key: 'Access-Control-Allow-Origin', value: '*' },
+        { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
+      ],
+    },
     // Staging and the review rounds are never indexed. Every response says so,
     // files and images too, on any domain (Vercel's own preview header is
     // missing on a custom one). The pages say it again themselves

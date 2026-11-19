@@ -226,11 +226,14 @@ const gridRatio = firstGrid ? +lineGridRatio(firstGrid).toFixed(5) : undefined;
               <span class="resource-tile__name" data-page-field="nav.newsletterTile.name">{newsletterTile.name}</span>
               <span class="resource-tile__desc" data-page-field="nav.newsletterTile.text">{newsletterTile.text}</span>
             </a>
-            <form class="newsletter-signup resource-tile__signup" onsubmit="return false">
+            <!-- sends to beehiiv through /api/subscribe (src/scripts/signup-forms.js) -->
+            <form class="newsletter-signup resource-tile__signup" onsubmit="return false" data-signup="newsletter" data-source="menu">
               <div class="newsletter-form is--plain">
-                <input type="email" name="email" placeholder={t("signup.placeholder")} aria-label={t("signup.placeholder")} required>
+                <input type="email" name="email" placeholder={t("signup.placeholder")} aria-label={t("signup.placeholder")} autocomplete="email" required>
                 <button class="newsletter-form__submit" type="submit" data-page-field="signup.button">{t("signup.button")}</button>
               </div>
+              <input class="signup-trap" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <p class="signup-status" data-signup-status role="status" hidden></p>
             </form>
           </div>
 

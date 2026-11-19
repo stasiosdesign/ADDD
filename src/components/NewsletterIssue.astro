@@ -37,6 +37,9 @@ const { post, section = "/newsletter", related: given } = Astro.props;
 const date = newsletterDate(post.date);
 const readTime = post.readTime ? `${post.readTime.replace(/ minutes?$/, " min")} read` : "";
 const sections = post.html ? await postSections(post.html) : [];
+// a recurring section (2026-11-19): the issue's partner or sponsor, set apart
+// on a panel of its own; every other section is a plain row
+const PARTNER = /\b(partner|sponsor)/i;
 // the people who write the posts, as their card shows them; anyone else is
 // named alone
 const AUTHORS: Record<string, { photo: string; position: string; line: string; email: string }> = {
@@ -84,7 +87,7 @@ const related = given ?? ((await newsletterPosts()) ?? [])
     <div class="post-body">
       <div class="post-body__rows">
         {sections.length ? sections.map((part) => (
-        <section class:list={["post-section", { "is--untitled": !part.heading }]}>
+        <section class:list={["post-section", { "is--untitled": !part.heading, "is--partner": PARTNER.test(part.heading) }]}>
           {part.heading ? <h2 class="post-section__title" set:html={part.heading} /> : <span aria-hidden="true"></span>}
           <div class="prose is--newsletter" set:html={part.html} />
         </section>

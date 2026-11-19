@@ -1,6 +1,7 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 import {DocumentTextIcon} from '@sanity/icons/DocumentText'
 import {imageField, linesField} from '../shared/fields'
+import {BeehiivAutomationInput} from '../../components/BeehiivAutomationInput'
 
 /* The site's one collection: reports (at /reports/<slug>, listed on the
    Reports page), shown as insight cards on the Reports page, in the home
@@ -8,24 +9,10 @@ import {imageField, linesField} from '../shared/fields'
    issues were a second collection until 2026-11-16: they come from
    beehiiv now, src/newsletter/beehiiv.ts, and are never written here.) */
 
-/* The beehiiv automations a report can start (2026-11-17, at the user's
-   word): a report using a beehiiv sign-up picks one from a drop-down. An
-   automation is made in beehiiv first, and only then is it in the list.
-   For now the list is written here, by hand, from the live automations in
-   ADDD's beehiiv (Automations, 17 Nov 2026; the draft "New Automation"
-   left out); later it can be read from beehiiv itself. Two names were cut
-   short in beehiiv's list and are completed or marked "…" here. */
-const BEEHIIV_AUTOMATIONS = [
-  '32 AI Rendering Tools',
-  'Welcome Email (with re-entry)',
-  'Revizto - Beyond the Hype',
-  'Epic Games From Data to Decisions',
-  'Is You Practice Technology Ready?',
-  'Is your Practice Technology Ready',
-  'Lead Magnet Automation - FASS Ass',
-  'How to Get into Contech - Product Mana…',
-  'Lead Magnet Automation - AI in the Built Environment',
-]
+/* The beehiiv automation a report's sign-ups start (2026-11-19): picked from
+   beehiiv's own list, read live (studio/components/BeehiivAutomationInput.tsx,
+   through the site's src/sanity/beehiiv/automations.ts). Until 19 Nov the
+   list was typed here by hand; no report had one chosen. */
 
 // A slug is the last part of the page's address, so it may only use lowercase
 // letters, numbers and single hyphens
@@ -173,36 +160,42 @@ export const report = defineType({
           },
           initialValue: 'beehiiv',
         }),
+        // the beehiiv automation its sign-ups start, from beehiiv's live list
+        // (2026-11-19): its ID is what the website sends; never shown on the site
         defineField({
-          name: 'beehiivForm',
-          title: 'beehiiv form',
-          type: 'string',
-          description: 'The form’s ID or address (beehiiv → Grow → Subscribe forms → the form → Embed: the address in its iframe, https://subscribe-forms.beehiiv.com/…). Its automation sends the download.',
-          // no longer asked for (2026-11-17, at the user's word): a sign-up
-          // starts the report's automation; kept, hidden, for the code on main
-          hidden: true,
-        }),
-        // the beehiiv automation its sign-ups start, from beehiiv's own list
-        // (BEEHIIV_AUTOMATIONS above); not shown on the site
-        defineField({
-          name: 'automation',
+          name: 'beehiivAutomation',
           title: 'beehiiv automation',
-          type: 'string',
-          description: 'First make the automation in beehiiv: only then does it appear in this list. It is what happens after someone signs up: it sends the report and adds them to the newsletter.',
-          options: {list: BEEHIIV_AUTOMATIONS.map((name) => ({title: name, value: name})), layout: 'dropdown'},
+          type: 'object',
+          description:
+            'What happens in beehiiv after someone signs up for this report, e.g. the email that sends it. The list is beehiiv’s own: make the automation in beehiiv first (with the “Add by API” trigger), then choose it here. Choosing one puts the website’s own sign-up on the report, in place of an embedded beehiiv form.',
+          fields: [
+            defineField({name: 'id', title: 'Automation ID', type: 'string', readOnly: true}),
+            defineField({name: 'name', title: 'Name when chosen', type: 'string', readOnly: true}),
+          ],
+          components: {input: BeehiivAutomationInput},
           hidden: ({parent}) => parent?.method !== 'beehiiv',
         }),
-        // which automation to connect, in plain words, for Stas
-        // (2026-11-17, at the user's word); not shown on the site
         defineField({
-          name: 'automationNote',
-          title: 'Automation not in the list?',
-          type: 'text',
-          rows: 2,
+          name: 'beehiivForm',
+          title: 'Embedded beehiiv form (older way)',
+          type: 'string',
           description:
-            'Write its name as it is called in beehiiv, and Stas will connect it for you. Later you’ll be able to connect it yourself, here. Not shown on the site.',
+            'Only used when no automation is chosen above: a sign-up form made in beehiiv (Grow → Subscribe forms → the form → Embed: the address in its iframe, https://subscribe-forms.beehiiv.com/…), shown on the report as beehiiv’s own form. Whatever the form does in beehiiv is set there.',
+          // shown again (2026-11-19): three reports still use one
+          hidden: ({parent}) => parent?.method !== 'beehiiv' && !parent?.beehiivForm,
         }),
-        defineField({name: 'beehiivHeight', title: 'Form height', type: 'number', description: 'In pixels: the form’s own height at the card’s width (240 if empty). Leave room for its thank-you message.', hidden: true}),
+        defineField({
+          name: 'beehiivHeight',
+          title: 'Embedded form height',
+          type: 'number',
+          description: 'In pixels: the embedded form’s own height at the card’s width (240 if empty). Leave room for its thank-you message.',
+          hidden: ({parent}) => !parent?.beehiivForm,
+        }),
+        // the automation by name, from the hand-typed list before 19 Nov 2026,
+        // and the note asking Stas to connect one: none was ever set; kept,
+        // hidden, so nothing written before is lost
+        defineField({name: 'automation', title: 'beehiiv automation (by name, before 19 Nov 2026)', type: 'string', hidden: true}),
+        defineField({name: 'automationNote', title: 'Automation not in the list?', type: 'text', rows: 2, hidden: true}),
         defineField({
           name: 'hubspotRegion',
           title: 'HubSpot region',
@@ -217,9 +210,10 @@ export const report = defineType({
           name: 'href',
           title: 'Link',
           type: 'url',
-          description: 'Where the button leads: the checkout, or the page elsewhere.',
+          description:
+            'Where the button leads: the checkout, or the page elsewhere. For a sign-up with an automation: the download, opened on the page once someone has signed up (optional; leave empty if the automation’s email is how it arrives).',
           validation: (rule) => rule.uri({scheme: ['http', 'https'], allowRelative: true}),
-          hidden: ({parent}) => parent?.method !== 'buy' && parent?.method !== 'link',
+          hidden: ({parent}) => parent?.method !== 'buy' && parent?.method !== 'link' && !(parent?.method === 'beehiiv' && parent?.beehiivAutomation?.id),
         }),
         defineField({name: 'buttonLabel', title: 'Button words', type: 'string', description: 'The opening’s button and the card’s. Leave empty for the Reports page’s (“Get it free” or “Buy now”).'}),
         defineField({name: 'note', title: 'Note', type: 'text', rows: 2, description: 'At the card’s foot, e.g. “By downloading, you’ll join the ADDDitive newsletter. You can unsubscribe anytime.”'}),

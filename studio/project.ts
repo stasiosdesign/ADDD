@@ -146,25 +146,28 @@ export const project: CmsProjectConfig = {
       logo: 'https://www.google.com/s2/favicons?domain=beehiiv.com&sz=128',
       message: 'The newsletter CMS is handled by beehiiv. Write and send each issue in beehiiv as usual: every issue published to the web appears on the website’s Newsletter page by itself, with a page of its own. Here they are shown, view only.',
       link: {label: 'Open beehiiv', href: 'https://app.beehiiv.com'},
-      // Its issues, view only: for now the archive the site shows
-      // (src/data/archive-posts.json, 71 issues as published on beehiiv),
-      // loaded when the collection is opened; once the site reads beehiiv
-      // (src/newsletter/beehiiv.ts), from there
-      items: () =>
-        import('../src/data/archive-posts.json').then(({default: posts}) =>
-          posts
-            .filter((post) => !post.hidden)
-            .map((post) => ({
-              id: post.id,
-              title: post.title,
-              subtitle: post.subtitle || undefined,
-              date: post.date,
-              readTime: post.readTime || undefined,
-              author: post.author || undefined,
-              status: 'Published',
-              html: post.html,
-            })),
-        ),
+      // Its issues, view only, as the live site shows them, from beehiiv
+      // (2026-11-19): the site's /newsletter.json (src/pages/newsletter.json.ts),
+      // rebuilt with the site whenever beehiiv sends or updates an issue.
+      // Until 19 Nov 2026 a copy of the archive kept in the code.
+      items: async () => {
+        if (!LIVE_ORIGIN) throw new Error('The Studio doesn’t know the live site’s address (SANITY_STUDIO_PRODUCTION_ORIGIN).')
+        const response = await fetch(new URL('/newsletter.json', LIVE_ORIGIN), {cache: 'no-store'})
+        if (!response.ok) throw new Error(`The newsletter couldn’t be read from the website (${response.status}).`)
+        const body = (await response.json()) as {
+          items?: {id: string; title: string; subtitle?: string; date: string; readTime?: string; author?: string; status?: string; html?: string}[]
+        }
+        return (body.items ?? []).map((post) => ({
+          id: post.id,
+          title: post.title,
+          subtitle: post.subtitle,
+          date: post.date,
+          readTime: post.readTime,
+          author: post.author,
+          status: post.status ?? 'Published',
+          html: post.html ?? '',
+        }))
+      },
     },
   ],
 

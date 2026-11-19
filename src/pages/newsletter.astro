@@ -7,7 +7,6 @@ import { cardOf, indexMeta, type Insight } from "../sanity/insights";
 import { ISSUES_QUERY } from "../sanity/queries";
 import { newsletterPage as D, ISSUE_CARD_DEFAULTS, ISSUE_FILTER_DEFAULTS } from "../sanity/defaults/newsletter";
 import { newsletterPosts, newsletterDate } from "../newsletter/beehiiv";
-import { ARCHIVE, archiveCard } from "../data/archive";
 
 // The heading row's words come from the Newsletter page document in Sanity
 // (studio/schemaTypes/pages/newsletter.ts), each falling back to the page's
@@ -21,11 +20,15 @@ import { ARCHIVE, archiveCard } from "../data/archive";
 // its own page, with no filters (none wanted for now). Until then, the
 // ADDDitive's archive (src/data/archive.ts), the same issues, newest first,
 // also with no filters (moved here from Reports & Guides, 2026-11-16).
+//
+// (2026-11-19) beehiiv only: the archive's copy is no longer shown. Where
+// beehiiv isn't connected (a local copy without its key), the page says it
+// has no issues rather than show a copy that can go stale.
 const { sanity } = Astro.locals;
 const [doc, items, beehiiv] = await Promise.all([pageDocument(sanity, "newsletterPage"), collection<Insight>(sanity, ISSUES_QUERY), newsletterPosts()]);
 const { t } = reader(doc, D);
 
-const posts = beehiiv ?? (ARCHIVE.length ? ARCHIVE : null);
+const posts = beehiiv ?? [];
 const articles = beehiiv
   ? beehiiv.map((post) => ({
       href: `/newsletter/${post.slug}`,
@@ -35,7 +38,6 @@ const articles = beehiiv
       description: post.description || undefined,
       meta: [newsletterDate(post.date)],
     }))
-  : posts ? ARCHIVE.map(archiveCard)
   : items?.length ? items.map((item) => cardOf(item, indexMeta)) : ISSUE_CARD_DEFAULTS;
 // One button per category, shown as written, matched in lowercase (the
 // card's chip is its filter token: InsightCard.astro)

@@ -378,6 +378,11 @@ button, input { font: inherit; color: inherit; letter-spacing: inherit; }
    the firms that sell to them. The question sits outside the bordered
    control, in the context's own text colour, so the control stays a
    single field-and-button. */
+/* the sign-up's answer, and the field only bots fill in (signup-forms.js) */
+.signup-status { margin: 0; font-size: var(--t-sm, 0.875rem); line-height: 1.45; }
+.signup-status[data-tone="error"] { color: var(--c-red); }
+.signup-trap { position: absolute; left: -10000px; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+form[aria-busy="true"] [type="submit"] { opacity: 0.6; cursor: progress; }
 .newsletter-signup {
   display: flex;
   flex-direction: column;

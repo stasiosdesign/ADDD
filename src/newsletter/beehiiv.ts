@@ -64,8 +64,8 @@ export const newsletterSource = (): "api" | "rss" | null =>
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** A request, retried when beehiiv asks us to wait (202: content still rendering; 429: too many) or briefly fails */
-async function request(url: string, init: RequestInit = {}): Promise<Response> {
+/** A request, retried when beehiiv asks us to wait (202: content still rendering; 429: too many) or briefly fails. Also used by the Studio's read-only automations list (src/sanity/beehiiv/). */
+export async function request(url: string, init: RequestInit = {}): Promise<Response> {
   let last = "";
   for (let attempt = 1; attempt <= TRIES; attempt++) {
     try {
@@ -83,8 +83,35 @@ async function request(url: string, init: RequestInit = {}): Promise<Response> {
   throw new Error(`beehiiv: ${url.replace(/\?.*/, "")} failed (${last})`);
 }
 
+// ---- embedded media (2026-11-19) ------------------------------------------
+// beehiiv's YouTube and Vimeo blocks arrive as iframes, which the cleaning
+// below drops (it keeps no frame of anyone's). Each is set aside first as a
+// marker the cleaning keeps, then put back as a player of the site's own
+// making: YouTube's privacy-enhanced address or Vimeo's, nothing else of
+// the original tag. A frame from anywhere else becomes a plain link to it.
+const YOUTUBE = /(?:youtube(?:-nocookie)?\.com\/(?:embed\/|watch\?v=|shorts\/)|youtu\.be\/)([\w-]{11})/i;
+const VIMEO = /vimeo\.com\/(?:video\/)?(\d+)/i;
+function player(src: string): string {
+  const youtube = src.match(YOUTUBE)?.[1];
+  const vimeo = src.match(VIMEO)?.[1];
+  const url = youtube ? `https://www.youtube-nocookie.com/embed/${youtube}` : vimeo ? `https://player.vimeo.com/video/${vimeo}` : "";
+  if (url) {
+    const title = youtube ? "YouTube video" : "Vimeo video";
+    return `<figure class="post-embed"><iframe src="${url}" title="${title}" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe></figure>`;
+  }
+  return /^https:\/\/[^"<>\s]+$/.test(src) ? `<p><a href="${src}" target="_blank" rel="noopener">Open the embedded content</a></p>` : "";
+}
+
+/** About how long a post takes to read, from its words (230 a minute), e.g. "6 minutes" */
+export function readingTime(html: string): string | undefined {
+  const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+  if (!words) return undefined;
+  const minutes = Math.max(1, Math.round(words / 230));
+  return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+}
+
 // ---- cleaning a post's HTML ---------------------------------------------
-// Kept: the words and their structure, links, images, tables, embeds' links.
+// Kept: the words and their structure, links, images, tables, embeds (above).
 // Dropped: scripts, styles, forms, tracking pixels, beehiiv's own classes
 // and inline styles (the site's prose styles take over: styles.css .prose).
 const ALLOWED = [
@@ -105,7 +132,13 @@ const KEEP_ATTRIBUTES: Record<string, string[]> = {
 };
 async function clean(html: string): Promise<string> {
   // the post's body alone: beehiiv's RSS rendering wraps it in .beehiiv__body
-  const body = html.match(/<div[^>]+class="[^"]*beehiiv__body[^"]*"[^>]*>([\s\S]*)<\/div>\s*$/i)?.[1] ?? html;
+  let body = html.match(/<div[^>]+class="[^"]*beehiiv__body[^"]*"[^>]*>([\s\S]*)<\/div>\s*$/i)?.[1] ?? html;
+  // the embeds, set aside as markers the sanitizer keeps (player, above)
+  const embeds: string[] = [];
+  body = body.replace(/<iframe\b[^>]*\bsrc="([^"]+)"[^>]*>(?:[\s\S]*?<\/iframe>)?/gi, (_, src: string) => {
+    embeds.push(player(src.replace(/&amp;/g, "&")));
+    return `<p>@@embed-${embeds.length - 1}@@</p>`;
+  });
   const out = await transform(body, [
     sanitize({
       // any other element is unwrapped (its words kept); these go whole
@@ -134,6 +167,8 @@ async function clean(html: string): Promise<string> {
     .replace(/<img[^>]*\b(width="1"[^>]*height="1"|height="1"[^>]*width="1")[^>]*>/g, "")
     // no empty paragraphs and wrappers left behind
     .replace(/<(p|div|span)>\s*(?:&nbsp;)?\s*<\/\1>/g, "")
+    // the embeds back, as the site's own players
+    .replace(/<p>@@embed-(\d+)@@<\/p>/g, (_, n: string) => embeds[Number(n)] ?? "")
     .trim();
 }
 
@@ -212,6 +247,8 @@ async function fromApi(): Promise<NewsletterPost[]> {
         authors: (post.authors ?? []).filter(Boolean),
         html: content ? await clean(content) : "",
       });
+      const added = posts[posts.length - 1];
+      added.readTime = readingTime(added.html);
     }
   }
   return tidy(posts);

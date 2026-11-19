@@ -60,6 +60,7 @@ import { initBlueprintHero } from "./blueprint-hero.js";
 import { initBeforeRevitHero } from "./before-revit-hero.js";
 import { initCtaTiles } from "./cta-tiles.js";
 import { initProductForms } from "./product-forms.js";
+import { initSignupForms } from "./signup-forms.js";
 import { initStackSpace } from "./stack-space.js";
 import { initBookFloat } from "./book-float.js";
 import { initLanyard } from "./lanyard.js";
@@ -518,6 +519,7 @@ const PAGE_COMPONENTS = [
   ["[data-lanyard]", initLanyard],
   ["[data-scramble-word]", initScrambleWords],
   ["[data-product-form]", initProductForms],
+  ["form[data-signup]", initSignupForms],
 ];
 
 function initPage(container) {
@@ -787,6 +789,8 @@ barba.hooks.afterOnce(replayHeldHistoryStep);
 // outside the Barba container, so they survive every navigation and are
 // wired up once per document load.
 initNav();
+// the menu's newsletter sign-up, outside the container (signup-forms.js)
+initSignupForms(document);
 initColumnGrid();
 initScrollbar();
 
