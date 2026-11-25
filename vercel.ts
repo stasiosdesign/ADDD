@@ -18,19 +18,12 @@ export const config: VercelConfig = {
   framework: 'astro',
   buildCommand: 'npm run build',
   outputDirectory: 'dist',
-  // Production is never skipped: it is static, so a live publish reaches it
-  // only through the rebuild its deploy hook asks for, a build of a commit
-  // that hasn't changed. (From 10 to 25 Oct 2026 the rule below applied to
-  // production too, skipped those rebuilds, and live publishes never reached
-  // the site.) Staging renders every request from Sanity, so content needs
-  // no build there, and commits that change nothing it is built from (only
-  // the Studio, GitHub's workflows or these notes; a CMS release records its
-  // version on both branches) don't rebuild it: the Hobby plan allows few
-  // deployments a day. A review round's branch is built whenever it is
-  // pushed (once, as a rule). The rules are in scripts/vercel-ignore.sh:
-  // Vercel refuses an ignoreCommand over 256 characters, and failed the
-  // deployment when this one grew past it (9 Nov 2026).
-  ignoreCommand: 'sh scripts/vercel-ignore.sh',
+  // Every push is built, staging included (25 Nov 2026, at the user's word):
+  // until then commits that changed only the Studio skipped staging's build
+  // (scripts/vercel-ignore.sh), and Vercel lists a skipped deployment as
+  // "Canceled", which hid staging from the project's Active Branches. The
+  // cost is one more build per CMS release, well inside the Hobby plan's limit.
+
   // Clean addresses (/about, not /about.html), since 9 Nov 2026. Production is
   // built as files (about.html, astro.config.mjs): Vercel serves each at its
   // clean address and sends the old .html address there (308), so links

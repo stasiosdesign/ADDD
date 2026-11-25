@@ -43,7 +43,7 @@ branch's latest deployment. The Vercel project is `addd`, in the
 | Sanity content | the `production` dataset                | the `staging` dataset; drafts in draft mode    |
 | Visual editor  | never                                   | the Studio's Visual editor shows staging       |
 | Search engines | indexed                                 | never: `noindex, nofollow` on every response   |
-| Access         | public                                  | Vercel Authentication (and the Studio's bypass)|
+| Access         | public                                  | public since 25 Nov 2026 (unindexed)           |
 
 Which is which comes from Vercel itself (`VERCEL_ENV`: `production` for
 `main`, `preview` for every other branch), read in `astro.config.mjs`. Nothing
@@ -86,8 +86,7 @@ so its comments always sit on what was reviewed:
   would take it from an old round.
 - **Built as a review round** (`astro.config.mjs`, "review", from the branch's
   name): static like production, website comments on, the Visual editor's
-  editing off, never indexed, behind Vercel Authentication like staging (the
-  Studio opens it with the same bypass).
+  editing off, never indexed, public like staging (since 25 Nov 2026).
 - **Its folder in Site Review** (`studio/project.ts`, `review.versions`):
   title, date, its address and branch, and an `id` its comments are kept
   under, never changed. Final Design V1 keeps the id `final-design` (its
@@ -239,10 +238,13 @@ Setting it up (once):
 - One project, `addd`, connected to `stasiosdesign/ADDD`; production branch
   `main`. Build settings and headers (the build stamp's CORS, staging's
   noindex) are in `vercel.ts`.
-- **Deployment Protection:** Vercel Authentication protects every deployment
-  except the production domain. The Studio gets through with Vercel's
-  *Protection Bypass for Automation* secret, saved once in the Studio's
-  **Vercel Protection Bypass** tool (`/vercel-protection-bypass`).
+- **Deployment Protection:** off since 25 Nov 2026, at the user's word, so
+  staging, the review rounds and every preview deployment open without a
+  login (they stay unindexed). On the Hobby plan Vercel Authentication is one
+  switch for all of them (Protection Exceptions for one domain are a paid
+  add-on). Turning it back on needs nothing else: the Studio still keeps
+  Vercel's *Protection Bypass for Automation* secret in its **Vercel
+  Protection Bypass** tool (`/vercel-protection-bypass`).
 - **Deploy hook** on `main`, whose URL is `VERCEL_DEPLOY_HOOK_URL` for the
   `staging` branch's environment: `/sanity/publish` calls it after every live
   publish, unpublish or delete.
