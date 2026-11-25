@@ -18,6 +18,9 @@
    - data-page-field="hero.heading"       the element's text; on an <img>, its
                                           picture (at data-page-width)
    - data-page-bg="cost.cards.0.image"    a slot drawn with a background picture
+   - data-page-rich (with a field)        written text (Portable Text), drawn
+                                          as paragraphs, lists and links
+   - data-page-date (with a field)        a date, written out (25 November 2026)
    - data-page-list="faq.questions"       a list of blocks, redrawn from the
                                           draft in its order: each block an
                                           element carrying its key
@@ -29,7 +32,7 @@
 import { createQueryStore } from '@sanity/core-loader';
 import { createDataAttribute, enableVisualEditing } from '@sanity/visual-editing-standalone';
 import { sanityClient } from './client';
-import { valueAt, type Block, type Doc } from './content';
+import { longDate, valueAt, type Block, type Doc } from './content';
 import { hasImage, urlFor } from './image';
 import { PAGE_QUERY } from './queries';
 import { layoutTimeline, type TimelineValue } from './timeline';
@@ -98,6 +101,61 @@ const setText = (el: Element, value: unknown) => {
   // Its name for screen readers, where the lines themselves are hidden from them
   if (el.hasAttribute('aria-label')) el.setAttribute('aria-label', collapse(value));
 };
+
+/* Written text (2026-11-25, the legal pages' sections: data-page-rich),
+   as the Studio keeps it (Portable Text: one block per paragraph,
+   subheading or list item) drawn as the page's own renderer draws it
+   (astro-portabletext): <p>, <h3>, <ul>/<ol> round their items, <strong>,
+   <em> and links. Built as elements, never as HTML from the draft. */
+type RichSpan = { _type?: string; text?: string; marks?: string[] };
+type RichBlock = { _type?: string; style?: string; listItem?: string; children?: RichSpan[]; markDefs?: { _key: string; href?: string }[] };
+const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i;
+
+function richNodes(blocks: RichBlock[]): Node[] {
+  const out: Node[] = [];
+  let list: HTMLElement | null = null;
+  for (const block of blocks) {
+    if (block?._type !== 'block') continue;
+    let host: HTMLElement;
+    if (block.listItem) {
+      const tag = block.listItem === 'number' ? 'ol' : 'ul';
+      if (!list || list.localName !== tag) out.push((list = document.createElement(tag)));
+      host = document.createElement('li');
+      list.append(host);
+    } else {
+      list = null;
+      host = document.createElement(block.style === 'h3' ? 'h3' : block.style === 'h2' ? 'h2' : 'p');
+      out.push(host);
+    }
+    for (const span of block.children ?? []) {
+      let node: Node = document.createTextNode(span.text ?? '');
+      for (const name of span.marks ?? []) {
+        let wrap: HTMLElement;
+        if (name === 'strong' || name === 'em') wrap = document.createElement(name);
+        else {
+          const href = block.markDefs?.find((def) => def._key === name)?.href;
+          if (!href || !SAFE_HREF.test(href)) continue;
+          wrap = Object.assign(document.createElement('a'), { href });
+        }
+        wrap.append(node);
+        node = wrap;
+      }
+      host.append(node);
+    }
+  }
+  return out;
+}
+
+const setRich = (el: Element, value: unknown) => {
+  if (!Array.isArray(value) || value.length === 0) return;
+  const drawn = document.createElement('div');
+  drawn.append(...richNodes(value as RichBlock[]));
+  if (drawn.innerHTML !== el.innerHTML) el.replaceChildren(...drawn.childNodes);
+};
+
+// A field's value as its element shows it: a date (data-page-date) as the
+// site writes it, anything else as it is
+const shown = (el: HTMLElement, value: unknown) => (el.dataset.pageDate !== undefined ? longDate(value) : value);
 
 const setImage = (el: Element, value: unknown) => {
   if (!(el instanceof HTMLImageElement) || !hasImage(value)) return;
@@ -237,7 +295,8 @@ function renderList(list: HTMLElement, blocks: Block[]) {
       delete field.dataset.sanity;
       if (field instanceof HTMLImageElement) setImage(field, value);
       else if (field.dataset.pageItemBg !== undefined) setBackground(field, value);
-      else setText(field, value);
+      else if (field.dataset.pageRich !== undefined) setRich(field, value);
+      else setText(field, shown(field, value));
     });
     if (previous) previous.after(el);
     else list.prepend(el);
@@ -267,7 +326,8 @@ function renderDoc(ref: Ref, doc: Doc) {
     claim(claims, el, path);
     const value = valueAt(doc, path);
     if (el instanceof HTMLImageElement) setImage(el, value);
-    else setText(el, value);
+    else if (el.dataset.pageRich !== undefined) setRich(el, value);
+    else setText(el, shown(el, value));
   });
   document.querySelectorAll<HTMLElement>('[data-page-bg]').forEach((el) => {
     if (!scopeOf(el, ref.id) || !el.dataset.pageBg || el.closest('[data-page-list]')) return;

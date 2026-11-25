@@ -138,6 +138,13 @@ export function reader(doc: Doc | null | undefined, defaults: Doc) {
 /** A telephone number as written (+44 (0) 207 183 3675) as a tel: link's number (+442071833675) */
 export const telOf = (phone: string): string => phone.replace(/\(0\)/g, '').replace(/[^\d+]/g, '');
 
+/** A date as the Studio keeps it (2026-11-25) as the site writes it (25 November 2026); empty if it isn't one */
+export const longDate = (iso: unknown): string => {
+  if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return '';
+  const date = new Date(`${iso}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);
+};
+
 /** Whether a link leads off the site (it then opens in a new tab) */
 export const isExternal = (href: string): boolean => /^https?:\/\//i.test(href);
 

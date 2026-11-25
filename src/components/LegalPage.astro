@@ -2,22 +2,29 @@
 /*
   The legal pages' template (2026-11-25): the Privacy Policy
   (/privacy-policy) and the Terms and Conditions (/terms). Each page is
-  this template given its document: the heading row the Reports and
-  Newsletter pages open with (a standfirst on the left, the tagline and
-  heading on the right), the "last updated" line, then the text itself as
-  long-form copy (.prose.is--legal, pages.css) on the middle six columns,
-  and the closing call to action every page ends on.
+  this template given its document.
+
+  The heading row the Reports and Newsletter pages open with (a standfirst
+  on the left, the tagline and heading on the right); then, on the
+  12-Column Grid, the contents on Grid Columns 1–3, held in view while the
+  text scrolls past (sticky), and the text on Grid Columns 5–10: the date
+  it last changed, then its sections, numbered (CSS counters, so a section
+  added in the Studio is numbered at once), each its title and its text.
+  Below 992px the contents come first, over the text. A contents link
+  glides to its section (scroll.js, anchorY). Then the closing call to
+  action every page ends on.
 
   Every word comes from the page's document in Sanity
   (studio/schemaTypes/pages/legal.ts), falling back to
-  src/sanity/defaults/legal.ts while a field is empty. The text is
-  Portable Text, written in the Studio as in a word processor.
+  src/sanity/defaults/legal.ts while a field is empty. A section's text is
+  Portable Text, drawn here by astro-portabletext and live in the Page
+  editor by src/sanity/live-preview.ts (data-page-rich).
 */
 import { PortableText } from "astro-portabletext";
 import type { TypedObject } from "astro-portabletext/types";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import ClosingCta from "./ClosingCta.astro";
-import { pageDocument, reader } from "../sanity/content";
+import { longDate, pageDocument, reader } from "../sanity/content";
 import { privacyPage, termsPage } from "../sanity/defaults/legal";
 
 interface Props {
@@ -31,8 +38,22 @@ const DEFAULTS = { privacyPage, termsPage };
 
 const { type, pageName } = Astro.props;
 const doc = await pageDocument(Astro.locals.sanity, type);
-const { t, list } = reader(doc, DEFAULTS[type]);
-const body = list("content.body") as unknown as TypedObject[];
+const { t, items } = reader(doc, DEFAULTS[type]);
+
+// Each section's place on the page (#your-rights): its title in lowercase
+// words, numbered on where two titles read the same
+const slug = (text: string) => text.toLowerCase().normalize("NFKD").replace(/[^\w\s-]/g, "").trim().replace(/[\s_-]+/g, "-") || "section";
+const taken = new Set<string>();
+const sections = items("content.sections").map((section) => {
+  const heading = section.t("heading");
+  let id = slug(heading);
+  for (let n = 2; taken.has(id); n++) id = `${slug(heading)}-${n}`;
+  taken.add(id);
+  return { key: section.key, id, heading, text: section.list("text") as unknown as TypedObject[] };
+});
+
+// the date it last changed: the document's, if it is a date, else the page's own
+const updated = longDate(t("hero.updated")) ? t("hero.updated") : DEFAULTS[type].hero.updated;
 ---
 <BaseLayout
   title={t("seo.title")}
@@ -56,10 +77,30 @@ const body = list("content.body") as unknown as TypedObject[];
 
   <section class="section legal">
     <div class="container">
-      <div class="prose is--legal">
-        <p class="legal__updated" data-page-field="hero.updated">{t("hero.updated")}</p>
-        <div class="legal__body" data-page-field="content.body"><PortableText value={body} /></div>
+
+      <nav class="legal__contents" aria-labelledby={`${type}-contents`}>
+        <p class="tagline" id={`${type}-contents`} data-page-field="content.contentsLabel">{t("content.contentsLabel")}</p>
+        <ol class="legal__toc" data-page-list="content.sections">
+          {sections.map((section) => (
+          <li class="legal__toc-item" data-page-item={section.key}><a class="legal__toc-link" href={`#${section.id}`} data-page-item-field="heading">{section.heading}</a></li>
+          ))}
+        </ol>
+      </nav>
+
+      <div class="legal__main">
+        {updated && (
+        <p class="legal__updated"><span data-page-field="hero.updatedLabel">{t("hero.updatedLabel")}</span> <time datetime={updated} data-page-field="hero.updated" data-page-date>{longDate(updated)}</time></p>
+        )}
+        <div class="legal__sections" data-page-list="content.sections">
+          {sections.map((section) => (
+          <article class="legal__section" id={section.id} data-page-item={section.key}>
+            <h2 class="legal__heading" data-page-item-field="heading">{section.heading}</h2>
+            <div class="legal__text" data-page-item-field="text" data-page-rich><PortableText value={section.text} /></div>
+          </article>
+          ))}
+        </div>
       </div>
+
     </div>
   </section>
 

@@ -281,11 +281,13 @@ export const timelineKeyFields = () => [
 ]
 
 /**
- * Long-form written text (2026-11-25, the Privacy Policy and Terms pages):
- * paragraphs, headings, subheadings, bulleted and numbered lists, bold,
- * italic and links, written in the Studio as in a word processor.
+ * Written text (2026-11-25, the Privacy Policy and Terms sections):
+ * paragraphs, subheadings, bulleted and numbered lists, bold, italic and
+ * links, written in the Studio as in a word processor. The page draws it
+ * live as it is typed (src/sanity/live-preview.ts, data-page-rich). No
+ * headings: the section it sits in has its own title.
  */
-export const richTextField = (description?: string, name = 'body', title = 'Text') =>
+export const richTextField = (description?: string, name = 'text', title = 'Text') =>
   defineField({
     name,
     title,
@@ -296,7 +298,6 @@ export const richTextField = (description?: string, name = 'body', title = 'Text
         type: 'block',
         styles: [
           {title: 'Paragraph', value: 'normal'},
-          {title: 'Heading', value: 'h2'},
           {title: 'Subheading', value: 'h3'},
         ],
         lists: [

@@ -8,7 +8,7 @@ import {beforeRevitPage} from './pages/before-revit'
 import {blueprintPage} from './pages/blueprint'
 import {contactPage} from './pages/contact'
 import {homePage} from './pages/home'
-import {privacyPage, termsPage} from './pages/legal'
+import {legalSection, privacyPage, termsPage} from './pages/legal'
 import {licensingAuditPage} from './pages/licensing-audit'
 import {newsletterPage} from './pages/newsletter'
 import {reportsPage} from './pages/reports'
@@ -51,6 +51,7 @@ export const schemaTypes = [
   contactPage,
   privacyPage,
   termsPage,
+  legalSection,
   report,
   techStackItem,
   techStackStage,
