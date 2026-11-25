@@ -113,6 +113,8 @@ export const project: CmsProjectConfig = {
     {type: 'techFirmsPage', title: 'AEC Tech Partners', description: 'The partnership page: its opening, the opportunities and its own call to action.'},
     {type: 'aboutPage', title: 'About', description: 'The opening, foundation statement, what Allister sees and the validation.'},
     {type: 'contactPage', title: 'Contact', description: 'The enquiry page’s words and contact details; the form stays in the code.'},
+    {type: 'privacyPage', title: 'Privacy Policy', description: 'The privacy policy: its heading, when it last changed, and the policy itself, written as in a word processor.'},
+    {type: 'termsPage', title: 'Terms and Conditions', description: 'The terms and conditions: their heading, when they last changed, and the terms themselves, written as in a word processor.'},
   ],
 
   // The CMS collections: Reports alone (2026-11-16, at the user's word).

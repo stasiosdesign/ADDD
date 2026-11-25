@@ -280,6 +280,47 @@ export const timelineKeyFields = () => [
   defineField({name: 'keyOptional', title: 'Key: optional', type: 'string', description: 'What a point marked “Optional” stands for.'}),
 ]
 
+/**
+ * Long-form written text (2026-11-25, the Privacy Policy and Terms pages):
+ * paragraphs, headings, subheadings, bulleted and numbered lists, bold,
+ * italic and links, written in the Studio as in a word processor.
+ */
+export const richTextField = (description?: string, name = 'body', title = 'Text') =>
+  defineField({
+    name,
+    title,
+    type: 'array',
+    description,
+    of: [
+      defineArrayMember({
+        type: 'block',
+        styles: [
+          {title: 'Paragraph', value: 'normal'},
+          {title: 'Heading', value: 'h2'},
+          {title: 'Subheading', value: 'h3'},
+        ],
+        lists: [
+          {title: 'Bullets', value: 'bullet'},
+          {title: 'Numbered', value: 'number'},
+        ],
+        marks: {
+          decorators: [
+            {title: 'Bold', value: 'strong'},
+            {title: 'Italic', value: 'em'},
+          ],
+          annotations: [
+            {
+              name: 'link',
+              title: 'Link',
+              type: 'object',
+              fields: [hrefField('A page of the site (/contact), another site (https://…) or an email address (mailto:…).', 'href', 'Address')],
+            },
+          ],
+        },
+      }),
+    ],
+  })
+
 /** A list of lines of text (a check-list, the rows of a comparison side). */
 export const linesField = (name: string, title: string, description?: string) =>
   defineField({

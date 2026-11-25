@@ -232,6 +232,9 @@ export const homePage = {
       { label: 'About', href: '/about' },
       { label: 'AEC Tech Partners', href: '/tech-firms' },
       { label: 'Sign in ↗', href: 'https://app.addd.io/login' },
+      // the legal pages (2026-11-25)
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms & Conditions', href: '/terms' },
     ]),
     signupTagline: 'ADDDitive newsletter',
     signupHeading: 'Get ADDDitive in your inbox',

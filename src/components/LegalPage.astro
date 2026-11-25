@@ -1,0 +1,69 @@
+---
+/*
+  The legal pages' template (2026-11-25): the Privacy Policy
+  (/privacy-policy) and the Terms and Conditions (/terms). Each page is
+  this template given its document: the heading row the Reports and
+  Newsletter pages open with (a standfirst on the left, the tagline and
+  heading on the right), the "last updated" line, then the text itself as
+  long-form copy (.prose.is--legal, pages.css) on the middle six columns,
+  and the closing call to action every page ends on.
+
+  Every word comes from the page's document in Sanity
+  (studio/schemaTypes/pages/legal.ts), falling back to
+  src/sanity/defaults/legal.ts while a field is empty. The text is
+  Portable Text, written in the Studio as in a word processor.
+*/
+import { PortableText } from "astro-portabletext";
+import type { TypedObject } from "astro-portabletext/types";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import ClosingCta from "./ClosingCta.astro";
+import { pageDocument, reader } from "../sanity/content";
+import { privacyPage, termsPage } from "../sanity/defaults/legal";
+
+interface Props {
+  /** The page's document: its _id and type */
+  type: "privacyPage" | "termsPage";
+  /** The page's name (BaseLayout's pageName) */
+  pageName: string;
+}
+
+const DEFAULTS = { privacyPage, termsPage };
+
+const { type, pageName } = Astro.props;
+const doc = await pageDocument(Astro.locals.sanity, type);
+const { t, list } = reader(doc, DEFAULTS[type]);
+const body = list("content.body") as unknown as TypedObject[];
+---
+<BaseLayout
+  title={t("seo.title")}
+  description={t("seo.description")}
+  pageName={pageName}
+  doc={{ id: type }}
+>
+<main class="page--grid">
+
+  <section class="pg-hero">
+    <div class="container">
+      <div class="section-title">
+        <p class="text-md" data-page-field="hero.lede">{t("hero.lede")}</p>
+        <div class="section-title__body">
+          <p class="tagline" data-page-field="hero.tagline">{t("hero.tagline")}</p>
+          <h1 class="h2" data-split="heading" data-page-field="hero.heading">{t("hero.heading")}</h1>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section legal">
+    <div class="container">
+      <div class="prose is--legal">
+        <p class="legal__updated" data-page-field="hero.updated">{t("hero.updated")}</p>
+        <div class="legal__body" data-page-field="content.body"><PortableText value={body} /></div>
+      </div>
+    </div>
+  </section>
+
+  <ClosingCta />
+
+</main>
+</BaseLayout>

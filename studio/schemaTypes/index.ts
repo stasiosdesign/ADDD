@@ -8,6 +8,7 @@ import {beforeRevitPage} from './pages/before-revit'
 import {blueprintPage} from './pages/blueprint'
 import {contactPage} from './pages/contact'
 import {homePage} from './pages/home'
+import {privacyPage, termsPage} from './pages/legal'
 import {licensingAuditPage} from './pages/licensing-audit'
 import {newsletterPage} from './pages/newsletter'
 import {reportsPage} from './pages/reports'
@@ -31,6 +32,8 @@ export const PAGES: PageEntry[] = [
   {type: 'newsletterPage', title: 'Newsletter', route: '/newsletter'},
   {type: 'aboutPage', title: 'About', route: '/about'},
   {type: 'contactPage', title: 'Contact', route: '/contact'},
+  {type: 'privacyPage', title: 'Privacy Policy', route: '/privacy-policy'},
+  {type: 'termsPage', title: 'Terms and Conditions', route: '/terms'},
 ]
 
 export const schemaTypes = [
@@ -46,6 +49,8 @@ export const schemaTypes = [
   newsletterPage,
   aboutPage,
   contactPage,
+  privacyPage,
+  termsPage,
   report,
   techStackItem,
   techStackStage,

@@ -24,6 +24,7 @@ import { stackDiagnosticPage } from './stack-diagnostic';
 import { licensingAuditPage } from './licensing-audit';
 import { reportsPage } from './reports';
 import { newsletterPage } from './newsletter';
+import { privacyPage, termsPage } from './legal';
 import { CLIENTS } from './clients';
 
 export type { ImageDefault } from './types';
@@ -42,6 +43,8 @@ export const PAGE_DEFAULTS = {
   newsletterPage,
   aboutPage,
   contactPage,
+  privacyPage,
+  termsPage,
 } as const;
 
 export type PageType = keyof typeof PAGE_DEFAULTS;

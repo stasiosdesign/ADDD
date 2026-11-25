@@ -290,6 +290,8 @@ on to `/about`.
 | `/tech-firms` | `src/pages/tech-firms.astro` — AEC Tech Partners (a centred black hero, `Hero.astro` "centred", on a dotted isometric lattice with stacks of blue plates round its words lying in its cells (one cell, `--cell`, sets out both), drawn in the flatter 2:1 view of the reference rather than the site's 30° isometric (`data-iso-angle`), `IsoStacks.astro`; the blue statements panel; then the original approach cards from the homepage — Understand, Diagnose, Prioritise) |
 | `/about` | `src/pages/about.astro` |
 | `/contact` | `src/pages/contact.astro` |
+| `/privacy-policy` | `src/pages/privacy-policy.astro` — Privacy Policy |
+| `/terms` | `src/pages/terms.astro` — Terms and Conditions. Both legal pages are one template, `src/components/LegalPage.astro` (styles: `.legal`, `pages.css`), each with its own document in the Page editor (`studio/schemaTypes/pages/legal.ts`): the heading, a "last updated" line, and the text written as in a word processor (Portable Text). Linked from the footer's Company column |
 
 External destinations (`Sign in`, `Software Database`, `AEC Jobs`) link out to
 their own sites and are not pages here.
