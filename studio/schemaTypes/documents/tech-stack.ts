@@ -27,19 +27,19 @@ export const techStackStage = defineType({
   type: 'object',
   components: {item: BlockItem},
   fields: [
-    defineField({name: 'stage', title: 'Stage', type: 'string', description: 'What happens at this stage of the workflow, e.g. “Concept imagery”. Shown on its card, open or locked.', validation: (rule) => rule.required()}),
+    defineField({name: 'stage', title: 'Stage', type: 'string', description: 'E.g. “Concept imagery”.', validation: (rule) => rule.required()}),
     defineField({
       name: 'locked',
       title: 'Locked',
       type: 'boolean',
-      description: 'On: the card shows the stage alone, with a lock, and the way into the ADDD app. Its tool stays in the app and is never written here.',
+      description: 'Hides the tool behind the ADDD app sign-up.',
       initialValue: false,
     }),
     defineField({
       name: 'tool',
       title: 'Tool',
       type: 'string',
-      description: 'The software at this stage, e.g. “Rhino”.',
+      description: 'E.g. “Rhino”.',
       hidden: ({parent}) => !!parent?.locked,
       validation: (rule) =>
         rule.custom((value, context) => {
@@ -53,7 +53,6 @@ export const techStackStage = defineType({
       title: 'What it does here',
       type: 'text',
       rows: 3,
-      description: 'A sentence or two, shown under the tool in the stack’s sheet.',
       hidden: ({parent}) => !!parent?.locked,
       validation: (rule) =>
         rule.custom((value, context) => ((context.parent as {locked?: boolean} | undefined)?.locked && value ? 'A locked stage keeps this in the ADDD app: clear it here.' : true)),
@@ -62,7 +61,7 @@ export const techStackStage = defineType({
       name: 'alternatives',
       title: 'Alternatives',
       type: 'array',
-      description: 'Other tools that could do the same job, one per line. Shown in one line under what it does.',
+      description: 'One per line.',
       of: [defineArrayMember({type: 'string'})],
       hidden: ({parent}) => !!parent?.locked,
       validation: (rule) =>
@@ -72,7 +71,7 @@ export const techStackStage = defineType({
       name: 'logo',
       title: 'Logo',
       type: 'image',
-      description: 'The tool’s logo, square, on its card and in the sheet. Without one, the card shows the tool’s initials.',
+      description: 'Square.',
       options: {hotspot: true},
       fields: [defineField({name: 'alt', title: 'Alternative text', type: 'string', hidden: true})],
       hidden: ({parent}) => !!parent?.locked,
@@ -97,19 +96,19 @@ export const techStackItem = defineType({
   icon: StackIcon,
   components: {item: BlockItem},
   fields: [
-    defineField({name: 'name', title: 'Name', type: 'string', description: 'The workflow’s name, e.g. “Residential Design”: beside its cards in the row, on its block in the list and at the top of its sheet.', validation: (rule) => rule.required()}),
-    defineField({name: 'short', title: 'Short line', type: 'string', description: 'One short line, shown beside the row while the stack is under the pointer.'}),
-    defineField({name: 'summary', title: 'What it is for', type: 'text', rows: 3, description: 'Who the workflow suits and what it does, at the top of its sheet.'}),
-    defineField({name: 'note', title: 'Note', type: 'text', rows: 3, description: 'A note under the stages in the sheet, where there is one. Leave empty for none.'}),
+    defineField({name: 'name', title: 'Name', type: 'string', description: 'E.g. “Residential Design”.', validation: (rule) => rule.required()}),
+    defineField({name: 'short', title: 'Short line', type: 'string'}),
+    defineField({name: 'summary', title: 'What it is for', type: 'text', rows: 3}),
+    defineField({name: 'note', title: 'Note', type: 'text', rows: 3}),
     defineField({
       name: 'stages',
       title: 'Stages',
       type: 'array',
-      description: 'The workflow’s stages, in order: each a card in the row. Drag to reorder; switch a stage to Locked to keep its tool in the ADDD app.',
+      description: 'In order.',
       of: [defineArrayMember({type: 'techStackStage'})],
       validation: (rule) => rule.min(1),
     }),
-    defineField({name: 'url', title: 'Its place in the ADDD app', type: 'url', description: 'Where the sheet’s button and the locked stages lead for this stack. Without it, the Free Stack’s sign-up (the page’s Opening).'}),
+    defineField({name: 'url', title: 'Its place in the ADDD app', type: 'url', description: 'Empty: the Free Stack sign-up.'}),
   ],
   preview: {
     select: {title: 'name', subtitle: 'short', stages: 'stages'},

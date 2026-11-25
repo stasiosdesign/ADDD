@@ -32,7 +32,6 @@ const slugField = () =>
     name: 'slug',
     title: 'Page address',
     type: 'slug',
-    description: '“Generate” makes one from the title.',
     options: {source: 'title', maxLength: 96, slugify},
     validation: (rule) =>
       rule.required().custom((slug) =>
@@ -43,7 +42,7 @@ const slugField = () =>
   })
 
 /** The written text of a report or an issue: headings, paragraphs, lists and links */
-const bodyField = (description: string) =>
+const bodyField = (description?: string) =>
   defineField({
     name: 'body',
     title: 'Text',
@@ -101,8 +100,8 @@ export const report = defineType({
   type: 'document',
   icon: DocumentTextIcon,
   fieldsets: [
-    {name: 'card', title: 'Card', description: 'How it shows on the Reports page and in sliders.', options: {collapsible: true, collapsed: true}},
-    {name: 'page', title: 'Page', description: 'What its own page says.', options: {collapsible: true, collapsed: true}},
+    {name: 'card', title: 'Card', description: 'On the Reports page and sliders.', options: {collapsible: true, collapsed: true}},
+    {name: 'page', title: 'Page', options: {collapsible: true, collapsed: true}},
   ],
   fields: [
     defineField({name: 'title', title: 'Title', type: 'string', validation: (rule) => rule.required()}),
@@ -133,7 +132,7 @@ export const report = defineType({
           name: 'beehiivAutomation',
           title: 'beehiiv automation',
           type: 'object',
-          description: 'Sends the report after sign-up. Needs the “Added by API” trigger in beehiiv.',
+          description: 'Sends the report after sign-up; needs the “Added by API” trigger.',
           fields: [
             defineField({name: 'id', title: 'Automation ID', type: 'string', readOnly: true}),
             defineField({name: 'name', title: 'Name when chosen', type: 'string', readOnly: true}),
@@ -145,7 +144,7 @@ export const report = defineType({
           name: 'href',
           title: 'Link',
           type: 'url',
-          description: 'The checkout or page. With an automation: the download, shown after sign-up (optional).',
+          description: 'Checkout or page; with an automation, the download.',
           validation: (rule) => rule.uri({scheme: ['http', 'https'], allowRelative: true}),
           hidden: ({parent}) => parent?.method !== 'buy' && parent?.method !== 'link' && !(parent?.method === 'beehiiv' && parent?.beehiivAutomation?.id),
         }),
@@ -153,7 +152,7 @@ export const report = defineType({
           name: 'beehiivForm',
           title: 'beehiiv form (older way)',
           type: 'string',
-          description: 'Used only with no automation chosen: the embedded form’s ID.',
+          description: 'Embedded form ID; only without an automation.',
           // shown again (2026-11-19): three reports still use one
           hidden: ({parent}) => parent?.method !== 'beehiiv' && !parent?.beehiivForm,
         }),
@@ -162,7 +161,7 @@ export const report = defineType({
         defineField({name: 'hubspotPortal', title: 'HubSpot portal ID', type: 'string', hidden: ({parent}) => parent?.method !== 'hubspot'}),
         defineField({name: 'hubspotForm', title: 'HubSpot form ID', type: 'string', hidden: ({parent}) => parent?.method !== 'hubspot'}),
         defineField({name: 'buttonLabel', title: 'Button words', type: 'string', description: 'Empty: “Get it free” or “Buy now”.'}),
-        defineField({name: 'note', title: 'Small print', type: 'text', rows: 2, description: 'Under the button.'}),
+        defineField({name: 'note', title: 'Small print', type: 'text', rows: 2}),
         // the automation by name, from the hand-typed list before 19 Nov 2026,
         // and the note asking Stas to connect one: none was ever set; kept,
         // hidden, so nothing written before is lost
@@ -180,21 +179,20 @@ export const report = defineType({
     defineField({name: 'format', title: 'What it is', type: 'string', description: 'E.g. Report, Cheat sheet.', fieldset: 'card'}),
     defineField({name: 'readTime', title: 'Reading time', type: 'string', description: 'E.g. “12 min read”.', fieldset: 'card'}),
     defineField({name: 'author', title: 'Author', type: 'string', fieldset: 'card'}),
-    defineField({name: 'publishedAt', title: 'Date', type: 'date', description: 'Newest first.', fieldset: 'card'}),
+    defineField({name: 'publishedAt', title: 'Date', type: 'date', fieldset: 'card'}),
     {...slugField(), fieldset: 'card'},
 
     // the page
-    defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, description: 'Beside the cover.', fieldset: 'page'}),
-    shortList('facts', 'Facts', 'Short tags, e.g. “380 pages”.', 'page'),
+    defineField({name: 'standfirst', title: 'Standfirst', type: 'text', rows: 3, fieldset: 'page'}),
+    shortList('facts', 'Facts', 'E.g. “380 pages”.', 'page'),
     defineField({name: 'coversLede', title: 'What’s inside: intro', type: 'text', rows: 3, fieldset: 'page'}),
-    shortList('contents', 'What’s inside', 'One per entry. “Title — detail” adds a detail.', 'page'),
-    defineField({name: 'highlightTitle', title: 'Highlight', type: 'string', description: 'Optional.', fieldset: 'page'}),
+    shortList('contents', 'What’s inside', '“Title — detail” adds a detail.', 'page'),
+    defineField({name: 'highlightTitle', title: 'Highlight', type: 'string', fieldset: 'page'}),
     defineField({name: 'highlightText', title: 'Highlight text', type: 'text', rows: 2, fieldset: 'page'}),
     defineField({
       name: 'gallery',
       title: 'Pages',
       type: 'array',
-      description: 'Optional.',
       of: [
         defineArrayMember({
           type: 'image',
@@ -205,16 +203,16 @@ export const report = defineType({
       options: {layout: 'grid'},
       fieldset: 'page',
     }),
-    {...bodyField('Optional.'), fieldset: 'page'},
+    {...bodyField(), fieldset: 'page'},
     shortList('audience', 'Who it’s for', 'Empty hides the band.', 'page'),
     defineField({name: 'audienceLede', title: 'Who it’s for: intro', type: 'text', rows: 2, fieldset: 'page'}),
-    shortList('includes', 'What you get', 'On the card that gets it. “Title — detail” adds a detail.', 'page'),
+    shortList('includes', 'What you get', '“Title — detail” adds a detail.', 'page'),
 
     defineField({
       name: 'partner',
       title: 'Partner panel',
       type: 'object',
-      description: 'Optional. Empty title: none.',
+      description: 'Empty title hides it.',
       options: {collapsible: true, collapsed: true},
       fields: [
         defineField({name: 'kicker', title: 'Question', type: 'string'}),

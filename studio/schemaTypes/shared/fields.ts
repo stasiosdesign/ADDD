@@ -14,7 +14,7 @@ import {pageSection, SectionField} from '@stasiosdesign/sanity-cms'
 export {pageSection}
 
 /** The small line above a heading (the tagline). */
-export const taglineField = (description = 'The small line above the heading.', name = 'tagline', title = 'Tagline') =>
+export const taglineField = (description?: string, name = 'tagline', title = 'Tagline') =>
   defineField({name, title, type: 'string', description})
 
 /** A heading, on one line. */
@@ -30,7 +30,7 @@ export const textField = (description?: string, name = 'text', title = 'Text', r
   defineField({name, title, type: 'text', rows, description})
 
 /** The words on a button; where it leads stays in the site's code, so say so in the description. */
-export const buttonField = (description: string, name = 'button', title = 'Button label') =>
+export const buttonField = (description?: string, name = 'button', title = 'Button label') =>
   defineField({name, title, type: 'string', description})
 
 /** A picture, cropped and focused in the Studio. Alternative text is kept but hidden from the form for now. */
@@ -53,12 +53,11 @@ export const imageField = (description?: string, name = 'image', title = 'Pictur
   })
 
 /**
- * How every list in the Studio is used, at the end of its description
- * (2026-11-17): the page editor selects a list as one block and opens it
- * here, so the panel says how to change it.
+ * A list's description. Until 2026-11-25 every list ended with how to use
+ * it ("Click an entry to change it, drag it by its handle…"); removed with
+ * most of the Studio's helper text, at the user's word: the lists show it.
  */
-const HOW_LISTS_WORK = 'Click an entry to change it, drag it by its handle to reorder, and use “Add item” for a new one.'
-const withHow = (description?: string) => [description, HOW_LISTS_WORK].filter(Boolean).join(' ')
+const withHow = (description?: string) => description || undefined
 
 /** A list of blocks of one object type (a tile, a step, a question...), each edited in place. */
 export const itemsField = (name: string, title: string, of: string, description?: string) =>
@@ -75,7 +74,7 @@ export const itemsField = (name: string, title: string, of: string, description?
  * and Technology Blueprint pages): for each stage, in the stages' order, its
  * timing and the more its block tells when opened.
  */
-export const stageDetailsField = (description = 'For each stage, in the same order: its timing, and what its block tells when opened.') =>
+export const stageDetailsField = (description?: string) =>
   defineField({
     name: 'details',
     title: 'Stage details',
@@ -87,8 +86,8 @@ export const stageDetailsField = (description = 'For each stage, in the same ord
         name: 'stageDetail',
         title: 'Stage detail',
         fields: [
-          defineField({name: 'meta', title: 'Timing', type: 'string', description: 'E.g. “Before the session” or “Weeks 2–4”.'}),
-          defineField({name: 'more', title: 'More', type: 'text', rows: 3, description: 'What the block tells when opened.'}),
+          defineField({name: 'meta', title: 'Timing', type: 'string', description: 'E.g. “Weeks 2–4”.'}),
+          defineField({name: 'more', title: 'More', type: 'text', rows: 3}),
         ],
         preview: {select: {title: 'meta', subtitle: 'more'}},
       }),
@@ -100,7 +99,7 @@ export const stageDetailsField = (description = 'For each stage, in the same ord
  * (https://…), an email address (mailto:…) or a telephone number (tel:…).
  * A link to another site opens in a new tab.
  */
-export const hrefField = (description = 'A page of the site (/about), another site (https://…), mailto: or tel:.', name = 'href', title = 'Link') =>
+export const hrefField = (description = 'A page (/about), a website (https://…), mailto: or tel:', name = 'href', title = 'Link') =>
   defineField({
     name,
     title,
@@ -124,9 +123,9 @@ export const linksField = (name: string, title: string, description?: string) =>
  * title and its summary. Every page's first section, folded away.
  */
 export const seoSection = () =>
-  pageSection('seo', 'Search and sharing', 'The page’s title in the browser’s tab and in search results, and the summary search results show under it.', [
-    defineField({name: 'title', title: 'Title', type: 'string', description: 'About 50–60 characters, e.g. “Contact — ADDD”.'}),
-    defineField({name: 'description', title: 'Summary', type: 'text', rows: 3, description: 'One or two sentences, about 150 characters.'}),
+  pageSection('seo', 'Search and sharing', 'Browser tab and search results.', [
+    defineField({name: 'title', title: 'Title', type: 'string', description: '~50–60 characters'}),
+    defineField({name: 'description', title: 'Summary', type: 'text', rows: 3, description: '~150 characters'}),
   ])
 
 /**
@@ -135,7 +134,7 @@ export const seoSection = () =>
  * pages): for each stage, in the stages' order, its points, each marked by
  * who does it, ADDD, your team, or optional.
  */
-export const stageItemsField = (description = 'For each stage, in the same order: the points listed in its box, each marked by who does it.', name = 'stageItems', title = 'What each stage holds') =>
+export const stageItemsField = (description?: string, name = 'stageItems', title = 'What each stage holds') =>
   defineField({
     name,
     title,
@@ -187,7 +186,7 @@ export const stageItemsField = (description = 'For each stage, in the same order
  * it starts (after the one before, unless set), the words beside its
  * title, and its points, each marked by who does it.
  */
-export const timelineField = (description = 'Each stage is one row. Open a stage to change its title, length and points; drag it to reorder; “Add item” adds a stage. Lengths are drawn to scale: a stage of 3 weeks is three times as long as one of 1.') =>
+export const timelineField = (description?: string) =>
   defineField({
     name: 'timeline',
     title: 'Timeline',
@@ -199,7 +198,6 @@ export const timelineField = (description = 'Each stage is one row. Open a stage
         name: 'unit',
         title: 'Lengths counted in',
         type: 'string',
-        description: 'What a stage’s length means. “Steps”: every stage the same size unless you say otherwise.',
         options: {list: [{title: 'Days', value: 'day'}, {title: 'Weeks', value: 'week'}, {title: 'Steps', value: 'step'}], layout: 'radio', direction: 'horizontal'},
         initialValue: 'week',
       }),
@@ -218,7 +216,7 @@ export const timelineField = (description = 'Each stage is one row. Open a stage
                 name: 'length',
                 title: 'Length',
                 type: 'number',
-                description: 'How many days, weeks or steps it takes. Its box is drawn to this length.',
+                description: 'Days, weeks or steps; drawn to scale.',
                 initialValue: 1,
                 validation: (rule) => rule.required().min(0.5).max(52),
               }),
@@ -226,20 +224,19 @@ export const timelineField = (description = 'Each stage is one row. Open a stage
                 name: 'start',
                 title: 'Starts at',
                 type: 'number',
-                description: 'Leave empty: it starts when the stage before it ends. Set a day or week number (1 is the first) to start it elsewhere, e.g. to overlap the one before.',
+                description: 'Leave empty to follow the stage before.',
                 validation: (rule) => rule.min(1).max(52),
               }),
               defineField({
                 name: 'when',
                 title: 'Timing words',
                 type: 'string',
-                description: 'Beside the title. Leave empty to show the days or weeks it runs, e.g. “Weeks 2–4”. Write your own for anything else, e.g. “Before the session”.',
+                description: 'Leave empty to show e.g. “Weeks 2–4”.',
               }),
               defineField({
                 name: 'items',
                 title: 'Points',
                 type: 'array',
-                description: 'The bullet points in its box, each marked by who does it.',
                 of: [
                   defineArrayMember({
                     type: 'object',
@@ -275,52 +272,10 @@ export const timelineField = (description = 'Each stage is one row. Open a stage
 
 /** The timeline's key under it: the words for who does what */
 export const timelineKeyFields = () => [
-  defineField({name: 'keyAddd', title: 'Key: ADDD', type: 'string', description: 'Under the timeline: what a plain point stands for.'}),
-  defineField({name: 'keyYou', title: 'Key: your team', type: 'string', description: 'What a point marked “Your team” stands for.'}),
-  defineField({name: 'keyOptional', title: 'Key: optional', type: 'string', description: 'What a point marked “Optional” stands for.'}),
+  defineField({name: 'keyAddd', title: 'Key: ADDD', type: 'string'}),
+  defineField({name: 'keyYou', title: 'Key: your team', type: 'string'}),
+  defineField({name: 'keyOptional', title: 'Key: optional', type: 'string'}),
 ]
-
-/**
- * Written text (2026-11-25, the Privacy Policy and Terms sections):
- * paragraphs, subheadings, bulleted and numbered lists, bold, italic and
- * links, written in the Studio as in a word processor. The page draws it
- * live as it is typed (src/sanity/live-preview.ts, data-page-rich). No
- * headings: the section it sits in has its own title.
- */
-export const richTextField = (description?: string, name = 'text', title = 'Text') =>
-  defineField({
-    name,
-    title,
-    type: 'array',
-    description,
-    of: [
-      defineArrayMember({
-        type: 'block',
-        styles: [
-          {title: 'Paragraph', value: 'normal'},
-          {title: 'Subheading', value: 'h3'},
-        ],
-        lists: [
-          {title: 'Bullets', value: 'bullet'},
-          {title: 'Numbered', value: 'number'},
-        ],
-        marks: {
-          decorators: [
-            {title: 'Bold', value: 'strong'},
-            {title: 'Italic', value: 'em'},
-          ],
-          annotations: [
-            {
-              name: 'link',
-              title: 'Link',
-              type: 'object',
-              fields: [hrefField('A page of the site (/contact), another site (https://…) or an email address (mailto:…).', 'href', 'Address')],
-            },
-          ],
-        },
-      }),
-    ],
-  })
 
 /** A list of lines of text (a check-list, the rows of a comparison side). */
 export const linesField = (name: string, title: string, description?: string) =>
@@ -333,7 +288,7 @@ export const linesField = (name: string, title: string, description?: string) =>
   })
 
 /** The hero most content pages open with: the tagline, the heading, the standfirst and two buttons. */
-export const heroSection = (description: string, primary: string, secondary: string, more: ReturnType<typeof defineField>[] = []) =>
+export const heroSection = (description: string, primary?: string, secondary?: string, more: ReturnType<typeof defineField>[] = []) =>
   pageSection('hero', 'Opening', description, [
     taglineField(),
     headingField(),
@@ -344,14 +299,14 @@ export const heroSection = (description: string, primary: string, secondary: str
   ])
 
 /** The heading row most sections open with: a standfirst on the left, a tagline and heading on the right. */
-export const sectionHead = (lede = 'The standfirst beside the heading.') => [
+export const sectionHead = (lede?: string) => [
   leadField(lede),
   taglineField(),
   headingField(),
 ]
 
 /** A page's testimonial (the quote block), folded into a bar like the page's sections. */
-export const quoteSection = (description: string) =>
+export const quoteSection = (description?: string) =>
   defineField({
     name: 'quote',
     title: 'Quote',

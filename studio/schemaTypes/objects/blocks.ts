@@ -22,12 +22,12 @@ export const tile = defineType({
   icon: SquareIcon,
   components: {item: BlockItem},
   fields: [
-    defineField({name: 'number', title: 'Number', type: 'string', description: 'A small number above the card, where the design shows one (01, 02…).'}),
-    defineField({name: 'tagline', title: 'Tagline', type: 'string', description: 'The small line above the title, where the design shows one.'}),
+    defineField({name: 'number', title: 'Number', type: 'string', description: 'E.g. 01.'}),
+    defineField({name: 'tagline', title: 'Tagline', type: 'string'}),
     defineField({name: 'title', title: 'Title', type: 'string'}),
-    textField('The card’s text.'),
-    defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'The text link at the foot of the card, where the design shows one; where it leads stays in the site’s code.'}),
-    imageField('The picture at the top of the card, where the design shows one.'),
+    textField(),
+    defineField({name: 'linkLabel', title: 'Link label', type: 'string'}),
+    imageField(),
   ],
   preview: {select: {title: 'title', subtitle: 'text', media: 'image'}},
 })
@@ -40,9 +40,9 @@ export const step = defineType({
   icon: ListIcon,
   components: {item: BlockItem},
   fields: [
-    defineField({name: 'label', title: 'Label', type: 'string', description: 'The small label on the left: Prepare, Week 1, Stage one…'}),
+    defineField({name: 'label', title: 'Label', type: 'string', description: 'E.g. “Week 1”.'}),
     defineField({name: 'title', title: 'Title', type: 'string'}),
-    textField('The step’s text.'),
+    textField(),
   ],
   preview: {select: {title: 'title', subtitle: 'label'}},
 })
@@ -69,15 +69,14 @@ export const quote = defineType({
   icon: CommentIcon,
   components: {item: BlockItem},
   fields: [
-    defineField({name: 'quote', title: 'Quote', type: 'text', rows: 3, description: 'Without quotation marks: the design adds them.'}),
+    defineField({name: 'quote', title: 'Quote', type: 'text', rows: 3, description: 'Without quotation marks.'}),
     defineField({name: 'name', title: 'Name', type: 'string'}),
-    defineField({name: 'role', title: 'Role', type: 'string', description: 'Their role and practice, e.g. “Operations director, ADAM Architecture”.'}),
+    defineField({name: 'role', title: 'Role', type: 'string', description: 'Role and practice.'}),
     defineField({
       name: 'client',
       title: 'Logo',
       type: 'reference',
       to: [{type: 'client'}],
-      description: 'The practice whose logo shows beside the quote, from the logo strip’s clients.',
     }),
   ],
   preview: {select: {title: 'name', subtitle: 'quote'}},
@@ -92,18 +91,18 @@ export const priceCard = defineType({
   components: {item: BlockItem},
   fields: [
     defineField({name: 'title', title: 'Title', type: 'string'}),
-    defineField({name: 'audience', title: 'Best suited to', type: 'text', rows: 2, description: 'Who the offer is for, where the design shows it. Leave empty for none.'}),
-    defineField({name: 'badge', title: 'Badge', type: 'string', description: 'The small label at the card’s top right, where the design shows one (the Workflow Workshop, Before Revit and Ongoing Advisory prices). Leave empty for none.'}),
-    defineField({name: 'subtitle', title: 'Line under the title', type: 'text', rows: 2, description: 'On the Workflow Workshop, Before Revit and Ongoing Advisory prices, the line under the button.'}),
-    defineField({name: 'pricePrefix', title: 'Before the price', type: 'string', description: 'E.g. “From”. Leave empty for none.'}),
-    defineField({name: 'price', title: 'Price', type: 'string', description: 'As shown, e.g. “£1,995”.'}),
-    defineField({name: 'priceSuffix', title: 'After the price', type: 'string', description: 'E.g. “/mo”. Leave empty for none.'}),
-    defineField({name: 'note', title: 'Note under the price', type: 'string', description: 'E.g. “From January 2027”. Leave empty for none.'}),
-    defineField({name: 'includesLabel', title: 'List label', type: 'string', description: 'The small line above the list, e.g. “Includes”.'}),
-    linesField('includes', 'What it includes', 'One line per item.'),
-    defineField({name: 'conditions', title: 'Conditions', type: 'text', rows: 2, description: 'Eligibility or other conditions under the list, where the design shows them. Leave empty for none.'}),
-    buttonField('Where it leads: Button link.'),
-    hrefField('Where the button leads, where the card has its own: a page of the site (/contact) or another site. Leave empty for the page’s own.', 'href', 'Button link'),
+    defineField({name: 'audience', title: 'Best suited to', type: 'text', rows: 2}),
+    defineField({name: 'badge', title: 'Badge', type: 'string'}),
+    defineField({name: 'subtitle', title: 'Line under the title', type: 'text', rows: 2}),
+    defineField({name: 'pricePrefix', title: 'Before the price', type: 'string', description: 'E.g. “From”.'}),
+    defineField({name: 'price', title: 'Price', type: 'string', description: 'E.g. “£1,995”.'}),
+    defineField({name: 'priceSuffix', title: 'After the price', type: 'string', description: 'E.g. “/mo”.'}),
+    defineField({name: 'note', title: 'Note under the price', type: 'string'}),
+    defineField({name: 'includesLabel', title: 'List label', type: 'string', description: 'E.g. “Includes”.'}),
+    linesField('includes', 'What it includes'),
+    defineField({name: 'conditions', title: 'Conditions', type: 'text', rows: 2}),
+    buttonField(),
+    hrefField('Leave empty for the default.', 'href', 'Button link'),
   ],
   preview: {select: {title: 'title', subtitle: 'price'}},
 })
@@ -116,10 +115,10 @@ export const priceCard = defineType({
  */
 const folderFields = () => [
   defineField({name: 'title', title: 'Title', type: 'string'}),
-  textField('The folder’s line of text.'),
-  defineField({name: 'format', title: 'Beside the number', type: 'string', description: 'At the top right, beside the number, e.g. “Half a day”.'}),
-  defineField({name: 'kind', title: 'Kind', type: 'string', description: 'The pill at the foot, e.g. “Workshop”.'}),
-  linesField('covers', 'On the sheet', 'The lines on the sheet standing up inside the folder, one per line.'),
+  textField(),
+  defineField({name: 'format', title: 'Beside the number', type: 'string', description: 'E.g. “Half a day”.'}),
+  defineField({name: 'kind', title: 'Kind', type: 'string', description: 'E.g. “Workshop”.'}),
+  linesField('covers', 'On the sheet', 'The sheet inside the folder.'),
 ]
 
 export const routeCard = defineType({
@@ -129,9 +128,9 @@ export const routeCard = defineType({
   icon: SquareIcon,
   components: {item: BlockItem},
   fields: [
-    defineField({name: 'tagline', title: 'Tagline', type: 'string', description: 'The small line above the title, where the design shows one.'}),
+    defineField({name: 'tagline', title: 'Tagline', type: 'string'}),
     ...folderFields(),
-    hrefField('Where the folder leads, e.g. /workshops-audits.'),
+    hrefField('E.g. /workshops-audits.'),
   ],
   preview: {select: {title: 'title', subtitle: 'kind'}},
 })

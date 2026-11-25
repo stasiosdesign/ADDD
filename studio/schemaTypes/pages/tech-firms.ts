@@ -16,13 +16,13 @@ const partnerDocument = defineArrayMember({
   name: 'partnerDocument',
   title: 'Document',
   fields: [
-    defineField({name: 'folderMeta', title: 'Folder: beside the number', type: 'string', description: 'On the folder’s front, at the top right, e.g. “Price on enquiry”.'}),
-    defineField({name: 'folderKind', title: 'Folder: kind', type: 'string', description: 'The pill at the folder’s foot, e.g. “Story”.'}),
-    linesField('folderCovers', 'Folder: on the sheet', 'The lines on the sheet standing up inside the folder, one per line.'),
+    defineField({name: 'folderMeta', title: 'Folder: beside the number', type: 'string', description: 'E.g. “Price on enquiry”.'}),
+    defineField({name: 'folderKind', title: 'Folder: kind', type: 'string', description: 'E.g. “Story”.'}),
+    linesField('folderCovers', 'Folder: on the sheet', 'The sheet inside the folder.'),
     defineField({name: 'kicker', title: 'Line over the title', type: 'string'}),
-    defineField({name: 'lede', title: 'In short', type: 'text', rows: 3, description: 'The summary under the title, between two rules.'}),
-    linesField('body', 'Paragraphs', 'The body, one paragraph each. A line starting with “## ” is set as a heading.'),
-    linesField('points', 'What you receive', 'The short list at the foot, one line each. Left empty, the card’s own list (What it includes) is shown.'),
+    defineField({name: 'lede', title: 'In short', type: 'text', rows: 3}),
+    linesField('body', 'Paragraphs', '“## ” at the start makes a heading.'),
+    linesField('points', 'What you receive', 'Empty: the card’s “What it includes”.'),
   ],
   preview: {select: {title: 'kicker', subtitle: 'lede'}},
 })
@@ -34,80 +34,80 @@ export const techFirmsPage = defineType({
   icon: RocketIcon,
   fields: [
     seoSection(),
-    pageSection('hero', 'Opening', 'The opening on the ink: the tagline, the headline, the standfirst and its two buttons, over the plates, which are held while the page scrolls the words away and brings the statement up. The plates stay in the code.', [
+    pageSection('hero', 'Opening', '', [
       taglineField(),
       headingField(),
       leadField(),
-      buttonField('Opens the enquiry form, set to AEC Tech Partners.', 'primaryButton', 'First button label'),
-      buttonField('Scrolls down to the partnership options.', 'secondaryButton', 'Second button label'),
-      textField('The positioning statement that rises into the middle of the opening as its words go, at the size of the homepage’s statement.', 'statement', 'Statement', 3),
+      buttonField('Opens the enquiry form.', 'primaryButton', 'First button label'),
+      buttonField('Scrolls to the options.', 'secondaryButton', 'Second button label'),
+      textField(undefined, 'statement', 'Statement', 3),
     ]),
-    pageSection('why', 'Why ADDD', 'The heading row, the three cards on what ADDD does, and what that gives a technology company.', [
+    pageSection('why', 'Why ADDD', '', [
       ...sectionHead(),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: the number, the title and the text.'),
-      headingField('The heading beside the list of benefits.', 'benefitsTitle', 'Benefits heading'),
-      linesField('benefits', 'Benefits', 'One line per benefit.'),
-      textField('The note under the benefits, separating practice clients, content participants and sponsors.', 'note', 'Note', 3),
+      itemsField('tiles', 'Cards', 'tile'),
+      headingField(undefined, 'benefitsTitle', 'Benefits heading'),
+      linesField('benefits', 'Benefits'),
+      textField(undefined, 'note', 'Note', 3),
     ]),
-    pageSection('routes', 'Objectives (no longer shown)', 'Not shown on the page since 2026-11-04: the three cards said again what Ways to work with ADDD says. Kept while the live site still reads them.', [
-      itemsField('items', 'Objectives', 'tile', 'The three cards, in order: the title, the text, the link label and the picture. There are always three.'),
+    pageSection('routes', 'Objectives (no longer shown)', '', [
+      itemsField('items', 'Objectives', 'tile'),
     ]),
-    pageSection('services', 'Ways to work with ADDD', 'The heading over the blue panel that takes its statements in turn as the page scrolls, one large statement at a time, each with its number under it. The drawings beside them stay in the code, by position.', [
-      taglineField('The heading over the panel.', 'tagline', 'Heading'),
-      linesField('statements', 'Statements', 'One statement per line, in order: each is shown on its own in the panel, large, with nothing else. Three reads best.'),
-      itemsField('cards', 'Routes (no longer shown)', 'tile', 'The four routes the panel used to take in turn. No longer shown on this page; kept while the live site still reads them.'),
+    pageSection('services', 'Ways to work with ADDD', '', [
+      taglineField(undefined, 'tagline', 'Heading'),
+      linesField('statements', 'Statements', 'One per line; three reads best.'),
+      itemsField('cards', 'Routes (no longer shown)', 'tile'),
     ]),
-    pageSection('example', 'Episode format', 'The heading row and the steps of a featured workflow episode, labelled as an illustrative format.', [
+    pageSection('example', 'Episode format', '', [
       ...sectionHead(),
-      itemsField('steps', 'Steps', 'step', 'One step per row: the small label, the title and the text.'),
+      itemsField('steps', 'Steps', 'step'),
     ]),
-    pageSection('options', 'Partnership options', 'The heading, held beside the five partnerships as folders (the three here, then the two smaller placements below), each opening its paper. The folders’ looks and where each paper’s button leads stay in the code: the enquiry form, carrying the partnership’s title.', [
+    pageSection('options', 'Partnership options', '', [
       // the standfirst, no longer shown (2026-11-05)
       {...leadField('No longer shown.'), hidden: true},
-      taglineField('The small word held on the right of the folders.'),
+      taglineField(),
       headingField(),
-      itemsField('cards', 'Partnerships', 'priceCard', 'The first three folders: founder story, featured workflow episode, practice intelligence. On the folder: the title, the line under it (Line under the title) and the price; in its paper: who it suits, the price, the note and conditions as its terms, what you receive, and the button.'),
-      headingField('The word before each folder’s number, e.g. “Partnership” (Partnership N°01).', 'folderLabel', 'Folder label'),
-      headingField('The way on at each folder’s foot.', 'folderGo', 'Folder link words'),
-      headingField('At the top of every paper, e.g. “ADDD :: AEC Tech Partners”.', 'series', 'Papers: series'),
-      headingField('Over each paper’s summary.', 'summaryLabel', 'Papers: summary label'),
-      headingField('Over who a partnership suits.', 'audienceLabel', 'Papers: audience label'),
-      headingField('Over the price.', 'pricingLabel', 'Papers: pricing label'),
-      headingField('The price, the same for every partnership.', 'pricingValue', 'Papers: price'),
-      headingField('Over the terms.', 'termsLabel', 'Papers: terms label'),
-      headingField('Over the list of what you receive, unless a card has its own List label.', 'pointsLabel', 'Papers: list label'),
-      buttonField('The paper’s button, unless a card has its own. It opens the enquiry form, carrying the partnership’s title.', 'ctaLabel', 'Papers: button'),
+      itemsField('cards', 'Partnerships', 'priceCard', 'The first three folders.'),
+      headingField('E.g. “Partnership” (Partnership N°01).', 'folderLabel', 'Folder label'),
+      headingField(undefined, 'folderGo', 'Folder link words'),
+      headingField('E.g. “ADDD :: AEC Tech Partners”.', 'series', 'Papers: series'),
+      headingField(undefined, 'summaryLabel', 'Papers: summary label'),
+      headingField(undefined, 'audienceLabel', 'Papers: audience label'),
+      headingField(undefined, 'pricingLabel', 'Papers: pricing label'),
+      headingField('Same for every partnership.', 'pricingValue', 'Papers: price'),
+      headingField(undefined, 'termsLabel', 'Papers: terms label'),
+      headingField('Unless a card has its own List label.', 'pointsLabel', 'Papers: list label'),
+      buttonField('Unless a card has its own.', 'ctaLabel', 'Papers: button'),
     ]),
-    pageSection('more', 'Smaller placements', 'The last two folders, after the three partnerships: newsletter placement, event coverage.', [
+    pageSection('more', 'Smaller placements', 'The last two folders.', [
       {...headingField('No longer shown.'), hidden: true},
-      itemsField('cards', 'Placements', 'priceCard', 'The two cards: newsletter placement, event coverage.'),
+      itemsField('cards', 'Placements', 'priceCard'),
     ]),
-    pageSection('documents', 'Partnership papers', 'What each of the five folders opens, in order.', [
+    pageSection('documents', 'Partnership papers', 'One per folder, in order.', [
       defineField({name: 'items', title: 'Papers', type: 'array', of: [partnerDocument]}),
     ]),
-    pageSection('process', 'Process and independence', 'The timeline of a partnership, how success is measured, and the editorial independence statement.', [
+    pageSection('process', 'Process and independence', '', [
       ...sectionHead(),
       timelineField(),
       // the timeline is one field since 2026-11-17 (timelineField); the old
       // lists are kept so the code on main can still read them, hidden
       {...itemsField('tiles', 'Steps', 'tile', 'No longer shown.'), hidden: true},
       {...linesField('phases', 'Phases', 'No longer shown.'), hidden: true},
-      headingField('The heading over how success is measured.', 'measurementTitle', 'Measurement heading'),
-      textField('How promotional partnerships are measured.', 'measurement', 'Measurement'),
-      textField('How practice intelligence is measured.', 'intelligenceMeasurement', 'Intelligence measurement', 3),
-      headingField('The heading over the independence statement.', 'independenceTitle', 'Independence heading'),
-      linesField('independence', 'Independence statement', 'One line per commitment.'),
+      headingField(undefined, 'measurementTitle', 'Measurement heading'),
+      textField('For promotional partnerships.', 'measurement', 'Measurement'),
+      textField(undefined, 'intelligenceMeasurement', 'Intelligence measurement', 3),
+      headingField(undefined, 'independenceTitle', 'Independence heading'),
+      linesField('independence', 'Independence statement'),
       {...stageItemsField('No longer shown.'), hidden: true},
       ...timelineKeyFields(),
     ]),
-    pageSection('closingCta', 'Closing call to action', 'The block that ends this page, for technology companies: this page has its own, apart from the one the other pages share.', [
+    pageSection('closingCta', 'Closing call to action', 'Only on this page.', [
       // the label on the left, no longer shown (2026-11-04); kept so the
       // code on main can still read it, hidden from the form
       {...taglineField('No longer shown.', 'label', 'Label'), hidden: true},
       headingField(),
-      leadField('The line under the heading.'),
-      buttonField('Opens the enquiry form, set to AEC Tech Partners.', 'primaryButton', 'First button label'),
-      buttonField('Scrolls up to the partnership options.', 'secondaryButton', 'Second button label'),
+      leadField(),
+      buttonField('Opens the enquiry form.', 'primaryButton', 'First button label'),
+      buttonField('Scrolls to the options.', 'secondaryButton', 'Second button label'),
     ]),
     // The four cards the page showed before its redesign, kept so the code
     // on main can still read them; hidden from the form.

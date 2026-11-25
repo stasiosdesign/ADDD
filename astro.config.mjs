@@ -73,9 +73,13 @@ const buildStamp = () => {
           if (response.ok) contentFrom = (await response.json()).result;
         } catch {}
       },
-      "astro:build:done": async ({ dir }) => {
+      // ...and the pages it holds ("/", "/about", "/reports/<slug>"), so the
+      // Studio can say when a page's code isn't on the live site yet,
+      // instead of linking to its 404 (2026-11-25)
+      "astro:build:done": async ({ dir, pages }) => {
         const { writeFile } = await import("node:fs/promises");
-        const stamp = { builtAt: new Date().toISOString(), ...(contentFrom ? { contentFrom } : {}), deployment };
+        const paths = [...new Set(pages.map(({ pathname }) => `/${pathname.replace(/\.html$/, "").replace(/\/+$/, "")}`))].sort();
+        const stamp = { builtAt: new Date().toISOString(), ...(contentFrom ? { contentFrom } : {}), deployment, pages: paths };
         await writeFile(new URL("build.json", dir), JSON.stringify(stamp));
       },
     },

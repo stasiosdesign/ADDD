@@ -23,9 +23,9 @@ const folderDocument = defineArrayMember({
   title: 'Document',
   fields: [
     defineField({name: 'kicker', title: 'Line over the title', type: 'string'}),
-    defineField({name: 'lede', title: 'In short', type: 'text', rows: 3, description: 'The summary under the title, between two rules.'}),
-    linesField('body', 'Paragraphs', 'The body, one paragraph each. A line starting with “## ” is set as a heading.'),
-    linesField('points', 'What you take away', 'The short list at the foot, one line each.'),
+    defineField({name: 'lede', title: 'In short', type: 'text', rows: 3}),
+    linesField('body', 'Paragraphs', '“## ” at the start makes a heading.'),
+    linesField('points', 'What you take away'),
   ],
   preview: {select: {title: 'kicker', subtitle: 'lede'}},
 })
@@ -37,36 +37,36 @@ export const workshopPage = defineType({
   icon: PresentationIcon,
   fields: [
     seoSection(),
-    pageSection('hero', 'Opening', 'The opening on black: the headline, the standfirst and its two buttons on the left, the drawing held on the right while they scroll away and the statement comes up after them.', [
-      taglineField('The name on the drawing’s platform.'),
+    pageSection('hero', 'Opening', '', [
+      taglineField('Shown on the drawing.'),
       headingField(),
       leadField(),
-      buttonField('Opens the Book a Call calendar.', 'primaryButton', 'First button label'),
-      buttonField('Scrolls down to the pricing.', 'secondaryButton', 'Second button label'),
-      textField('The statement that comes up as the opening’s words scroll away. One line here is one line on the page, all at one size: break the lines where a reader would pause.', 'statement', 'Statement', 3),
-      headingField('The drawing: the label on the project held over the platform.', 'figureFrame', 'Drawing: project label'),
-      linesField('figureNote', 'Drawing: note', 'The note beside the drawing, one line per line. Its platform is the Tagline, its tags the first three stages of the Workshop Process.'),
+      buttonField('Opens the booking calendar.', 'primaryButton', 'First button label'),
+      buttonField('Scrolls to the pricing.', 'secondaryButton', 'Second button label'),
+      textField('One line here is one line on the page.', 'statement', 'Statement', 3),
+      headingField(undefined, 'figureFrame', 'Drawing: project label'),
+      linesField('figureNote', 'Drawing: note'),
     ]),
-    pageSection('symptoms', 'Does this sound like your practice?', 'The heading, the standfirst and the three cards naming the problems the workshop finds, each with its figure (the homepage problem cards’ design).', [
+    pageSection('symptoms', 'Does this sound like your practice?', '', [
       ...sectionHead(),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title and a line of text each. The figures stay in the site’s code.'),
+      itemsField('tiles', 'Cards', 'tile'),
     ]),
-    pageSection('method', 'Inside the Workshop', 'The heading, held on the left; the word on the right (Tagline); and the three numbered folders, each opening a document.', [
+    pageSection('method', 'Inside the Workshop', '', [
       // the line under the heading, no longer shown (2026-11-04); kept so
       // the code on main can still read it, hidden from the form
       {...leadField('No longer shown.'), hidden: true},
       taglineField(),
       headingField(),
-      headingField('The word before each folder’s number, e.g. “Outcome” (Outcome N°01).', 'folderLabel', 'Folder label'),
-      headingField('The way on at each folder’s foot.', 'folderGo', 'Folder link words'),
-      itemsField('tiles', 'Folders', 'folderCard', 'The three folders, top to bottom: the words on the front of each, beside the number, in the pill, and on the sheet inside.'),
-      headingField('At the top of every paper a folder opens, e.g. “ADDD :: Workflow Workshop”.', 'series', 'Papers: series'),
-      headingField('Over each paper’s summary.', 'summaryLabel', 'Papers: summary label'),
-      headingField('Over each paper’s list of what you take away.', 'pointsLabel', 'Papers: list label'),
-      defineField({name: 'documents', title: 'Folder documents', type: 'array', description: 'What each folder opens, in the folders’ order.', of: [folderDocument]}),
+      headingField('E.g. “Outcome” (Outcome N°01).', 'folderLabel', 'Folder label'),
+      headingField(undefined, 'folderGo', 'Folder link words'),
+      itemsField('tiles', 'Folders', 'folderCard'),
+      headingField('E.g. “ADDD :: Workflow Workshop”.', 'series', 'Papers: series'),
+      headingField(undefined, 'summaryLabel', 'Papers: summary label'),
+      headingField(undefined, 'pointsLabel', 'Papers: list label'),
+      defineField({name: 'documents', title: 'Folder documents', type: 'array', description: 'In the folders’ order.', of: [folderDocument]}),
     ]),
-    pageSection('journey', 'Workshop Process', 'The heading and the line beside it, and the timeline, from preparing to acting on the report.', [
-      ...sectionHead('The line beside the heading.'),
+    pageSection('journey', 'Workshop Process', '', [
+      ...sectionHead(),
       timelineField(),
       // the timeline is one field since 2026-11-17 (timelineField); the old
       // lists are kept so the code on main can still read them, hidden
@@ -75,27 +75,27 @@ export const workshopPage = defineType({
       {...stageItemsField('No longer shown.'), hidden: true},
       ...timelineKeyFields(),
     ]),
-    pageSection('pricing', 'Pricing', 'The heading, what the day holds, the workshop’s card, and the panel on to the Technology Blueprint under them. The looks and where the buttons lead stay in the site’s code.', [
+    pageSection('pricing', 'Pricing', '', [
       // the standfirst and the small tab over the heading, no longer shown
       // (2026-11-05); kept so the code on main can still read them
       {...leadField('No longer shown.'), hidden: true},
       {...taglineField('No longer shown.'), hidden: true},
-      defineField({name: 'headingLead', title: 'Heading, first words', type: 'string', description: 'The heading’s first words, set a step quieter, e.g. “Half a day.”'}),
-      headingField('The rest of the heading, e.g. “A clear place to start.”'),
-      itemsField('tiles', 'Rows', 'tile', 'What the day holds, beside the workshop’s card: a title and a line of text each.'),
-      {...itemsField('cards', 'Price cards', 'priceCard', 'The workshop’s card (an included line written “Title — detail” shows the detail under the title; the note sits at the card’s foot), then the Technology Blueprint: its title, line under the title and button make the panel under the prices.'), options: FIXED},
+      defineField({name: 'headingLead', title: 'Heading, first words', type: 'string', description: 'E.g. “Half a day.”'}),
+      headingField('E.g. “A clear place to start.”'),
+      itemsField('tiles', 'Rows', 'tile'),
+      {...itemsField('cards', 'Price cards', 'priceCard', '“Title — detail” adds a detail; the second card makes the Blueprint panel.'), options: FIXED},
     ]),
-    pageSection('faq', 'Common questions', 'The heading and the questions, in order (all start closed; their icons stay in the site’s code), and the line over Book a Free Call under them.', [
+    pageSection('faq', 'Common questions', '', [
       // the small tab over the heading, no longer shown (2026-11-04); kept
       // so the code on main can still read it, hidden from the form
       {...taglineField('No longer shown.'), hidden: true},
       headingField(),
-      itemsField('questions', 'Questions', 'faqItem', 'The questions and their answers, in order.'),
-      defineField({name: 'footLine', title: 'Line under the questions', type: 'string', description: 'Over the Book a Free Call button.'}),
+      itemsField('questions', 'Questions', 'faqItem'),
+      defineField({name: 'footLine', title: 'Line under the questions', type: 'string'}),
     ]),
-    pageSection('closing', 'Closing call to action', 'The one button under the closing heading (the heading is the Home page’s, shared by every page). It leads to the Technology Blueprint page.', [
-      buttonField('The button’s words.'),
-      hrefField('Where the button leads.', 'buttonHref', 'Button link'),
+    pageSection('closing', 'Closing call to action', 'The heading is edited on the Home page.', [
+      buttonField(),
+      hrefField(undefined, 'buttonHref', 'Button link'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Workflow Workshop page'})},

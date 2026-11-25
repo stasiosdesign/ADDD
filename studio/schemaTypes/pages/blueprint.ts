@@ -19,34 +19,34 @@ export const blueprintPage = defineType({
   icon: BlockElementIcon,
   fields: [
     seoSection(),
-    pageSection('hero', 'Opening', 'The opening, as the Workflow Workshop’s: the tagline and headline on the left, the standfirst and the two buttons on the panel on the right.', [
+    pageSection('hero', 'Opening', '', [
       taglineField(),
       headingField(),
       leadField(),
-      buttonField('The first button; it opens the booking calendar.'),
-      linkField('The second button; it scrolls down to the Delivery section.'),
-      textField('The statement that comes up on the left as the opening’s words scroll away, the network staying in place on the right. One line here is one line on the page, all at one size: break the lines where a reader would pause.', 'statement', 'Statement', 3),
+      buttonField('Opens the booking calendar.'),
+      linkField('Scrolls to Delivery.'),
+      textField('One line here is one line on the page.', 'statement', 'Statement', 3),
     ]),
-    pageSection('benefits', 'Benefits', 'The heading and the three cards under the opening, set as the homepage’s “How we work” is, in its light version: each a number, a title and a paragraph, with a live drawing (a card’s small line is not shown here). The drawings stay in the site’s code.', [
-      headingField('Centred over the cards, on two lines.'),
-      headingField('The small line under the heading, in the body face.', 'note', 'Note under the heading'),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, top to bottom. In a card’s text, the word written between two pairs of asterisks (**visibility**) is set bold and scrambles once as it is read.'),
+    pageSection('benefits', 'Benefits', '', [
+      headingField(),
+      headingField(undefined, 'note', 'Note under the heading'),
+      itemsField('tiles', 'Cards', 'tile', '**word** in a card’s text is set bold.'),
     ]),
-    pageSection('examine', 'What we look at', 'The heading row, and the tabs with the panel each opens.', [
+    pageSection('examine', 'What we look at', '', [
       ...sectionHead(),
-      itemsField('tabs', 'Tabs', 'step', 'The tabs, in order: the name on the tab (Label), and its panel’s heading and text.'),
-      headingField('At the foot of each tab’s panel, after the heading.', 'panelLabel', 'Panel label'),
+      itemsField('tabs', 'Tabs', 'step', 'Label on the tab, Title and Text in its panel.'),
+      headingField(undefined, 'panelLabel', 'Panel label'),
       // the single card the page showed before its tabs worked (2026-11-04);
       // kept so the code on main can still read it, hidden from the form
       {...taglineField('No longer shown.', 'cardTagline', 'Card tagline'), hidden: true},
       {...headingField('No longer shown.', 'cardHeading', 'Card heading'), hidden: true},
       {...textField('No longer shown.', 'cardText', 'Card text'), hidden: true},
     ]),
-    pageSection('delivery', 'Delivery', 'The tagline, heading and button, and the timeline of the eight weeks.', [
+    pageSection('delivery', 'Delivery', '', [
       taglineField(),
       headingField(),
-      buttonField('Where it leads: Button link.'),
-      hrefField('Where the button leads.', 'buttonHref', 'Button link'),
+      buttonField(),
+      hrefField(undefined, 'buttonHref', 'Button link'),
       // the “Learn” link beside the button, no longer shown (2026-11-04);
       // kept so the code on main can still read it, hidden from the form
       {...linkField('No longer shown.'), hidden: true},
@@ -61,24 +61,24 @@ export const blueprintPage = defineType({
     // the page now shows the Home page's testimonials (2026-11-04); kept
     // so the code on main can still read it, hidden from the form
     {...quoteSection('The quote between the delivery steps and the enquiry, and who said it. The avatar placeholder stays in the code.'), hidden: true},
-    pageSection('enquiry', 'Start here', 'The tagline, heading, standfirst and contact details beside the enquiry form, and the form’s words.', [
+    pageSection('enquiry', 'Start here', '', [
       taglineField(),
       headingField(),
-      leadField('The line under the heading.'),
-      defineField({name: 'email', title: 'Email address', type: 'string', description: 'Shown and linked as an email.'}),
-      defineField({name: 'phone', title: 'Phone number', type: 'string', description: 'As shown, e.g. “+44 (0) 207 183 3675”; the link dials it without the (0) and the spaces.'}),
+      leadField(),
+      defineField({name: 'email', title: 'Email address', type: 'string'}),
+      defineField({name: 'phone', title: 'Phone number', type: 'string', description: 'E.g. +44 (0) 207 183 3675'}),
       defineField({name: 'address', title: 'Address', type: 'string'}),
-      headingField('The form’s first field.', 'nameLabel', 'Form: name label'),
-      headingField('The form’s second field.', 'emailLabel', 'Form: email label'),
-      headingField('The form’s third field.', 'messageLabel', 'Form: message label'),
-      headingField('Inside the message box, before anything is typed.', 'messagePlaceholder', 'Form: message prompt'),
-      headingField('Beside the tick box.', 'consent', 'Form: consent'),
-      buttonField('The form’s submit button.'),
+      headingField(undefined, 'nameLabel', 'Form: name label'),
+      headingField(undefined, 'emailLabel', 'Form: email label'),
+      headingField(undefined, 'messageLabel', 'Form: message label'),
+      headingField('Placeholder text.', 'messagePlaceholder', 'Form: message prompt'),
+      headingField(undefined, 'consent', 'Form: consent'),
+      buttonField(),
     ]),
-    pageSection('faq', 'Answers', 'The heading and the questions, in order; all start closed.', [
+    pageSection('faq', 'Answers', '', [
       headingField(),
-      itemsField('questions', 'Questions', 'faqItem', 'The questions and their answers, in order.'),
-      defineField({name: 'footLine', title: 'Line under the questions', type: 'string', description: 'Over the Book a Free Call button.'}),
+      itemsField('questions', 'Questions', 'faqItem'),
+      defineField({name: 'footLine', title: 'Line under the questions', type: 'string'}),
     ]),
   ],
   preview: {prepare: () => ({title: 'Technology Blueprint page'})},

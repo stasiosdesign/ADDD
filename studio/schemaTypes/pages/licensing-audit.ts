@@ -16,28 +16,28 @@ export const licensingAuditPage = defineType({
   icon: BillIcon,
   fields: [
     seoSection(),
-    pageSection('hero', 'Opening', 'The opening: the tagline and headline on the left, the standfirst, its button and the text link beside it on the right.', [
+    pageSection('hero', 'Opening', '', [
       taglineField(),
       headingField(),
-      leadField('The standfirst.', 'lede', 'Standfirst', 4),
+      leadField(undefined, 'lede', 'Standfirst', 4),
       buttonField('Links to the Technology Blueprint.', 'button'),
-      defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'The text link beside the button; it scrolls down to How it works on this page.'}),
+      defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'Scrolls to How it works.'}),
     ]),
-    pageSection('fit', 'Who it’s for', 'The heading row, the three cards on who the audit suits, and the two outlined cards pointing elsewhere. Where each outlined card’s link leads stays in the site’s code.', [
+    pageSection('fit', 'Who it’s for', '', [
       ...sectionHead(),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title and a line of text each.'),
-      itemsField('alternatives', 'Outlined cards', 'tile', 'The two outlined cards under them: a title, a line of text and the text link. The first links to Free Tech Stacks, the second to the Technology Blueprint.'),
+      itemsField('tiles', 'Cards', 'tile'),
+      itemsField('alternatives', 'Outlined cards', 'tile', 'Link to Free Tech Stacks, then the Technology Blueprint.'),
     ]),
-    pageSection('method', 'How it works', 'The heading row, the four stages, and the button and text link under them. Where they lead stays in the site’s code.', [
+    pageSection('method', 'How it works', '', [
       ...sectionHead(),
-      itemsField('steps', 'Stages', 'step', 'The four stages, top to bottom: the small label, the title and the text.'),
-      buttonField('Links to the Contact page.', 'button'),
-      defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'The text link beside the button; it links to the Reports page.'}),
+      itemsField('steps', 'Stages', 'step'),
+      buttonField('Links to Contact.', 'button'),
+      defineField({name: 'linkLabel', title: 'Link label', type: 'string', description: 'Links to Reports.'}),
     ]),
-    pageSection('next', 'Where it leads', 'The heading row and the three cards on the routes practices take next. Where each card’s link leads stays in the site’s code.', [
+    pageSection('next', 'Where it leads', '', [
       leadField(),
       headingField(),
-      itemsField('tiles', 'Cards', 'tile', 'The three cards, left to right: a title, a line of text and the text link. They link to the Technology Blueprint, the Workflow Workshop and Ongoing Advisory.'),
+      itemsField('tiles', 'Cards', 'tile', 'Link to the Blueprint, Workshop and Advisory pages.'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Software & Licensing Audit page'})},

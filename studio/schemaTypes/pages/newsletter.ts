@@ -15,15 +15,15 @@ export const newsletterPage = defineType({
   icon: EnvelopeIcon,
   fields: [
     seoSection(),
-    pageSection('hero', 'Opening', 'The heading row above the issues. Every issue comes from beehiiv and is integrated with it: written and sent there, it appears on the site by itself. Issues are never added or edited here.', [
-      leadField('The standfirst on the left.'),
+    pageSection('hero', 'Opening', 'Issues come from beehiiv.', [
+      leadField(),
       taglineField(),
       headingField(),
     ]),
-    pageSection('archive', 'The issues', 'What the page says while there are no issues yet, and the filters’ first and last buttons; the others are made from the issues’ categories.', [
-      textField('Shown while there are none.', 'empty', 'While there are none', 2),
-      headingField('The first filter: everything.', 'allLabel', 'All button'),
-      headingField('The last: clears the filters.', 'resetLabel', 'Clear button'),
+    pageSection('archive', 'The issues', '', [
+      textField(undefined, 'empty', 'While there are none', 2),
+      headingField(undefined, 'allLabel', 'All button'),
+      headingField(undefined, 'resetLabel', 'Clear button'),
     ]),
   ],
   preview: {prepare: () => ({title: 'Newsletter page'})},
