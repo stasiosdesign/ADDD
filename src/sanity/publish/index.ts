@@ -303,6 +303,15 @@ function prepare(staging: SanityClient, production: SanityClient, id: string, re
       const history = (await staging.request({ url: `/data/history/${STAGING}/documents/${current._id}?revision=${encodeURIComponent(rev)}` }).catch(() => null)) as { documents?: SanityDocument[] } | null;
       const revision = history?.documents?.[0];
       if (!revision) throw new PublishError(409, 'The version you were looking at can no longer be found. Reload and publish again.');
+      // Never older than a change the editor never saw (2026-11-25): the
+      // published document written after that revision (by a script, an
+      // import or another publish) means the Studio was showing a stale
+      // copy, and publishing it would quietly undo that change. Typing on
+      // after pressing Publish only moves the draft on, never the
+      // published document, so it still publishes as before.
+      if (published && published._rev !== rev && Date.parse(published._updatedAt) > Date.parse(revision._updatedAt)) {
+        throw new PublishError(409, 'This page has changed since you opened it. Reload the Studio to see the latest version, then publish again.');
+      }
       source = revision;
     }
 

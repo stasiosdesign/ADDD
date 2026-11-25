@@ -23,7 +23,9 @@
 import {getCliClient} from 'sanity/cli'
 import {privacyPage, termsPage} from '../../src/sanity/defaults/legal'
 
-const client = getCliClient({apiVersion: '2025-02-19'}).withConfig({dataset: 'staging'})
+// raw: drafts included (this API version reads published documents only by
+// default, so the first runs never saw the Studio's drafts)
+const client = getCliClient({apiVersion: '2025-02-19'}).withConfig({dataset: 'staging', perspective: 'raw'})
 const dry = process.argv.includes('--dry')
 const replace = process.argv.includes('--replace')
 
